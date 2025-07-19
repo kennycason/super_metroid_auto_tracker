@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QUsb2Snes Test Client</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .connected { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .disconnected { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; border: 1px solid #bee5eb; }
+        button { padding: 10px 15px; margin: 5px; }
+        textarea { width: 100%; height: 200px; font-family: monospace; }
+        .memory-display { background: #f8f9fa; padding: 10px; margin: 10px 0; border: 1px solid #dee2e6; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>QUsb2Snes Test Client</h1>
+        
+        <div id="status" class="status disconnected">
+            Disconnected
+        </div>
+
+        <div>
+            <label>Server URL: </label>
+            <input type="text" id="serverUrl" value="ws://localhost:23074" style="width: 200px;">
+            <button onclick="connect()">Connect</button>
+            <button onclick="disconnect()">Disconnect</button>
+        </div>
+
+        <div>
+            <h3>Quick Tests:</h3>
+            <button onclick="getDeviceList()">Get Device List</button>
+            <button onclick="attachToRetroArch()">Attach to RetroArch</button>
+            <button onclick="getDeviceInfo()">Get Device Info</button>
+            <button onclick="readMemory()">Read Memory (Address $7E0000)</button>
+        </div>
+
+        <div>
+            <h3>Custom Command:</h3>
+            <textarea id="customCommand" placeholder='{"Opcode": "DeviceList", "Space": "SNES"}'></textarea>
+            <button onclick="sendCustomCommand()">Send Command</button>
+        </div>
+
+        <div>
+            <h3>Log:</h3>
+            <textarea id="log" readonly></textarea>
+            <button onclick="clearLog()">Clear Log</button>
+        </div>
+
+        <div class="memory-display" id="memoryDisplay" style="display:none;">
+            <h4>Memory Display:</h4>
+            <div id="memoryContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let isConnected = false;
+        let currentDevice = null;
+
+        function log(message) {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.value += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(message);
+        }
+
+        function updateStatus(message, isConnected) {
+            const statusElement = document.getElementById('status');
+            statusElement.textContent = message;
+            statusElement.className = isConnected ? 'status connected' : 'status disconnected';
+        }
+
+        function connect() {
+            const url = document.getElementById('serverUrl').value;
+            log(`Connecting to ${url}...`);
+            
+            try {
+                ws = new WebSocket(url);
+                
+                ws.onopen = function(event) {
+                    isConnected = true;
+                    updateStatus('Connected to QUsb2Snes', true);
+                    log('✅ Connected successfully!');
+                };
+                
+                ws.onmessage = function(event) {
+                    log(`📨 Received: ${event.data}`);
+                    try {
+                        const response = JSON.parse(event.data);
+                        handleResponse(response);
+                    } catch (e) {
+                        log(`❌ Failed to parse response: ${e.message}`);
+                    }
+                };
+                
+                ws.onclose = function(event) {
+                    isConnected = false;
+                    updateStatus('Disconnected', false);
+                    log(`🔌 Connection closed. Code: ${event.code}, Reason: ${event.reason}`);
+                };
+                
+                ws.onerror = function(error) {
+                    log(`❌ WebSocket error: ${error}`);
+                };
+                
+            } catch (error) {
+                log(`❌ Failed to create WebSocket: ${error.message}`);
+            }
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        function sendCommand(command) {
+            if (!isConnected || !ws) {
+                log('❌ Not connected to server');
+                return;
+            }
+            
+            const commandStr = JSON.stringify(command);
+            log(`📤 Sending: ${commandStr}`);
+            ws.send(commandStr);
+        }
+
+        function getDeviceList() {
+            sendCommand({
+                "Opcode": "DeviceList",
+                "Space": "SNES"
+            });
+        }
+
+        function attachToRetroArch() {
+            sendCommand({
+                "Opcode": "Attach",
+                "Space": "SNES",
+                "Operands": ["RetroArch Localhost"]
+            });
+        }
+
+        function getDeviceInfo() {
+            sendCommand({
+                "Opcode": "Info",
+                "Space": "SNES"
+            });
+        }
+
+        function readMemory() {
+            sendCommand({
+                "Opcode": "GetAddress",
+                "Space": "SNES",
+                "Operands": ["7E0000", "10"]
+            });
+        }
+
+        function sendCustomCommand() {
+            const commandText = document.getElementById('customCommand').value;
+            try {
+                const command = JSON.parse(commandText);
+                sendCommand(command);
+            } catch (error) {
+                log(`❌ Invalid JSON: ${error.message}`);
+            }
+        }
+
+        function clearLog() {
+            document.getElementById('log').value = '';
+        }
+
+        function handleResponse(response) {
+            if (response.Results) {
+                const results = response.Results;
+                
+                // Handle device list
+                if (Array.isArray(results) && results.length > 0) {
+                    if (results[0].includes('RetroArch') || results[0].includes('EMU')) {
+                        log(`🎮 Found devices: ${results.join(', ')}`);
+                        currentDevice = results.find(d => d.includes('RetroArch'));
+                    }
+                    
+                    // Handle device info
+                    if (results.length >= 3 && results[1] === 'RetroArch') {
+                        log(`📋 Device Info - Version: ${results[0]}, Type: ${results[1]}, ROM: ${results[2]}`);
+                        if (results.length > 3) {
+                            log(`🚫 Flags: ${results.slice(3).join(', ')}`);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Display memory as hex dump
+        function displayMemory(data) {
+            const memoryDiv = document.getElementById('memoryDisplay');
+            const contentDiv = document.getElementById('memoryContent');
+            
+            if (data && data.length > 0) {
+                let hexStr = '';
+                for (let i = 0; i < data.length; i++) {
+                    if (i % 16 === 0) hexStr += `\n$7E${(0x0000 + i).toString(16).padStart(4, '0').toUpperCase()}: `;
+                    hexStr += data[i].toString(16).padStart(2, '0').toUpperCase() + ' ';
+                }
+                contentDiv.textContent = hexStr;
+                memoryDiv.style.display = 'block';
+            }
+        }
+
+        // Set default custom command
+        document.getElementById('customCommand').value = JSON.stringify({
+            "Opcode": "DeviceList",
+            "Space": "SNES"
+        }, null, 2);
+    </script>
+</body>
+</html> 

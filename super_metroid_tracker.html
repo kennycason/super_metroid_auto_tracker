@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Super Metroid Live Tracker</title>
+    <style>
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: #000; 
+            color: #00ff00; 
+            margin: 20px; 
+        }
+        .container { max-width: 600px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .status { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border: 1px solid #00ff00; 
+            border-radius: 5px; 
+            text-align: center;
+        }
+        .connected { background-color: #001100; }
+        .disconnected { background-color: #110000; color: #ff0000; }
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 20px; 
+            margin: 20px 0; 
+        }
+        .stat-box { 
+            border: 1px solid #00ff00; 
+            padding: 15px; 
+            border-radius: 5px; 
+            background: #001a00;
+        }
+        .stat-label { font-size: 14px; opacity: 0.7; }
+        .stat-value { font-size: 24px; font-weight: bold; margin: 5px 0; }
+        .stat-bar { 
+            width: 100%; 
+            height: 10px; 
+            background: #003300; 
+            border: 1px solid #00ff00; 
+            margin: 5px 0;
+        }
+        .stat-bar-fill { 
+            height: 100%; 
+            background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00); 
+            transition: width 0.3s ease;
+        }
+        .game-info { 
+            text-align: center; 
+            margin: 20px 0; 
+            padding: 10px; 
+            border: 1px solid #00ff00; 
+            border-radius: 5px;
+        }
+        button { 
+            background: #003300; 
+            color: #00ff00; 
+            border: 1px solid #00ff00; 
+            padding: 10px 15px; 
+            margin: 5px; 
+            border-radius: 3px; 
+            cursor: pointer;
+        }
+        button:hover { background: #005500; }
+        .location { font-size: 18px; margin: 10px 0; }
+        .error { color: #ff0000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 SUPER METROID LIVE TRACKER 🚀</h1>
+            <div id="status" class="status disconnected">
+                DISCONNECTED
+            </div>
+            <button onclick="connect()">CONNECT</button>
+            <button onclick="disconnect()">DISCONNECT</button>
+        </div>
+
+        <div class="game-info" id="gameInfo" style="display:none;">
+            <div class="location" id="location">📍 Location: Unknown</div>
+            <div id="roomInfo">Room: Unknown</div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-label">ENERGY</div>
+                <div class="stat-value" id="healthValue">??? / ???</div>
+                <div class="stat-bar">
+                    <div class="stat-bar-fill" id="healthBar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="stat-box">
+                <div class="stat-label">MISSILES</div>
+                <div class="stat-value" id="missileValue">??? / ???</div>
+                <div class="stat-bar">
+                    <div class="stat-bar-fill" id="missileBar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="stat-box">
+                <div class="stat-label">SUPER MISSILES</div>
+                <div class="stat-value" id="superValue">??? / ???</div>
+                <div class="stat-bar">
+                    <div class="stat-bar-fill" id="superBar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="stat-box">
+                <div class="stat-label">POWER BOMBS</div>
+                <div class="stat-value" id="powerValue">??? / ???</div>
+                <div class="stat-bar">
+                    <div class="stat-bar-fill" id="powerBar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="debug" style="margin-top: 20px; font-size: 12px; opacity: 0.7; max-height: 200px; overflow-y: auto; border: 1px solid #003300; padding: 10px;"></div>
+    </div>
+
+    <script>
+        let isConnected = false;
+        let updateInterval = null;
+        let isAttached = false;
+
+        // Super Metroid memory addresses
+        const MEMORY_ADDRESSES = {
+            health: "7E09C2",
+            maxHealth: "7E09C4", 
+            missiles: "7E09C6",
+            maxMissiles: "7E09C8",
+            supers: "7E09CA",
+            maxSupers: "7E09CC",
+            powerBombs: "7E09CE",
+            maxPowerBombs: "7E09D0",
+            gameState: "7E0998",
+            roomID: "7E079B",
+            areaID: "7E079F"
+        };
+
+        const AREAS = {
+            0: "Crateria",
+            1: "Brinstar", 
+            2: "Norfair",
+            3: "Wrecked Ship",
+            4: "Maridia",
+            5: "Tourian"
+        };
+
+        function log(message) {
+            const debugDiv = document.getElementById('debug');
+            const timestamp = new Date().toLocaleTimeString();
+            debugDiv.innerHTML += `[${timestamp}] ${message}<br>`;
+            debugDiv.scrollTop = debugDiv.scrollHeight;
+        }
+
+        function updateStatus(message, connected) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = connected ? 'status connected' : 'status disconnected';
+        }
+
+        function connect() {
+            log("Connecting to UDP Tracker...");
+            
+            // Test the API connection
+            fetch('http://localhost:3000/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.connected && data.game_loaded) {
+                        isConnected = true;
+                        isAttached = true;
+                        updateStatus('TRACKING SUPER METROID', true);
+                        log("✅ Connected to RetroArch via UDP");
+                        log(`🎯 Game: ${data.game_info}`);
+                        document.getElementById('gameInfo').style.display = 'block';
+                        startTracking();
+                    } else if (data.connected) {
+                        isConnected = true;
+                        updateStatus('CONNECTED - NO GAME', true);
+                        log("✅ Connected to RetroArch but Super Metroid not loaded");
+                    } else {
+                        updateStatus('RETROARCH NOT FOUND', false);
+                        log("❌ Could not connect to RetroArch");
+                    }
+                })
+                .catch(error => {
+                    updateStatus('TRACKER SERVER NOT RUNNING', false);
+                    log(`❌ Connection error: ${error.message}`);
+                    log("💡 Make sure to run: python tracker_web_server.py");
+                });
+        }
+
+        function disconnect() {
+            isConnected = false;
+            isAttached = false;
+            updateStatus('DISCONNECTED', false);
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+            document.getElementById('gameInfo').style.display = 'none';
+            log("🔌 Disconnected");
+        }
+
+        function updateAllDisplays(stats) {
+            // Update all stat displays
+            updateStatDisplay('health', stats.health, stats.max_health);
+            updateStatDisplay('missile', stats.missiles, stats.max_missiles);
+            updateStatDisplay('super', stats.supers, stats.max_supers);
+            updateStatDisplay('power', stats.power_bombs, stats.max_power_bombs);
+        }
+
+        function updateLocationInfo(stats) {
+            if (stats.area_name) {
+                const locationEl = document.getElementById('location');
+                const roomEl = document.getElementById('roomInfo');
+                
+                locationEl.textContent = `📍 Location: ${stats.area_name}`;
+                roomEl.textContent = `Room: ${stats.room_id || 'Unknown'}`;
+            }
+        }
+
+        function startTracking() {
+            if (updateInterval) return;
+            
+            log("🔄 Starting live tracking...");
+            updateInterval = setInterval(updateStats, 1000);
+            updateStats(); // Initial update
+        }
+
+        function updateStats() {
+            if (!isConnected || !isAttached) return;
+            
+            // Fetch stats from HTTP API
+            fetch('http://localhost:3000/api/stats')
+                .then(response => response.json())
+                .then(stats => {
+                    if (stats && !stats.error) {
+                        updateAllDisplays(stats);
+                        updateLocationInfo(stats);
+                    } else {
+                        log(`❌ Stats error: ${stats.error || 'Unknown error'}`);
+                    }
+                })
+                .catch(error => {
+                    log(`❌ Failed to fetch stats: ${error.message}`);
+                    // Try to reconnect
+                    setTimeout(connect, 2000);
+                });
+        }
+
+
+
+        function updateStatDisplay(type, current, max) {
+            const valueEl = document.getElementById(type + 'Value');
+            const barEl = document.getElementById(type + 'Bar');
+            
+            if (valueEl && barEl) {
+                valueEl.textContent = `${current} / ${max}`;
+                const percentage = max > 0 ? (current / max) * 100 : 0;
+                barEl.style.width = percentage + '%';
+            }
+        }
+
+        // Auto-connect on page load
+        window.onload = function() {
+            log("🚀 Super Metroid UDP Tracker ready");
+            log("📡 Make sure tracker_web_server.py is running");
+            log("📡 Click CONNECT to start tracking");
+        };
+    </script>
+</body>
+</html> 
