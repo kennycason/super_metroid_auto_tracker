@@ -30,7 +30,11 @@ class SuperMetroidUDPTracker:
             'room_id': 0x7E079B,
             'area_id': 0x7E079F,
             'player_x': 0x7E0AF6,
-            'player_y': 0x7E0AFA
+            'player_y': 0x7E0AFA,
+            # Item and boss tracking
+            'items_collected': 0x7E09A4,
+            'beams_collected': 0x7E09A8, 
+            'bosses_defeated': 0x7ED828,
         }
         
         # Area names
@@ -41,6 +45,45 @@ class SuperMetroidUDPTracker:
             3: "Wrecked Ship",
             4: "Maridia",
             5: "Tourian"
+        }
+        
+        # Item bit mappings
+        self.item_bits = {
+            'morph': 0x04,
+            'bombs': 0x08,
+            'varia': 0x01,
+            'gravity': 0x20,
+            'hijump': 0x100,
+            'speed': 0x200,
+            'space': 0x02,
+            'screw': 0x08,
+            'spring': 0x02,
+            'grapple': 0x40,
+            'xray': 0x8000
+        }
+        
+        # Beam bit mappings
+        self.beam_bits = {
+            'charge': 0x1000,
+            'ice': 0x02,
+            'wave': 0x01,
+            'spazer': 0x04,
+            'plasma': 0x08
+        }
+        
+        # Boss bit mappings (simplified for now)
+        self.boss_bits = {
+            'bomb_torizo': 0x04,
+            'spore_spawn': 0x02,
+            'kraid': 0x01,
+            'crocomire': 0x02,
+            'phantoon': 0x01,
+            'botwoon': 0x04,
+            'draygon': 0x04,
+            'ridley': 0x01,
+            'gold_torizo': 0x04,
+            'mother_brain_1': 0x02,
+            'mother_brain_2': 0x08
         }
         
     def connect(self) -> bool:
@@ -137,6 +180,28 @@ class SuperMetroidUDPTracker:
             stats['area_name'] = self.areas.get(stats['area_id'], "Unknown")
             stats['room_id'] = self.read_word(self.memory_map['room_id'])
             stats['game_state'] = self.read_word(self.memory_map['game_state'])
+            
+            # Read item and boss data
+            items_data = self.read_word(self.memory_map['items_collected'])
+            beams_data = self.read_word(self.memory_map['beams_collected']) 
+            bosses_data = self.read_word(self.memory_map['bosses_defeated'])
+            
+            # Parse item bitflags
+            stats['items'] = {}
+            if items_data is not None:
+                for item, bit in self.item_bits.items():
+                    stats['items'][item] = bool(items_data & bit)
+                    
+            # Parse beam bitflags
+            if beams_data is not None:
+                for beam, bit in self.beam_bits.items():
+                    stats['items'][beam] = bool(beams_data & bit)
+                    
+            # Parse boss bitflags
+            stats['bosses'] = {}
+            if bosses_data is not None:
+                for boss, bit in self.boss_bits.items():
+                    stats['bosses'][boss] = bool(bosses_data & bit)
             
         except struct.error:
             return {}

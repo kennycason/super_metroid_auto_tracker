@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super Metroid Live Tracker</title>
     <style>
         body { 
@@ -65,12 +67,69 @@
         button:hover { background: #005500; }
         .location { font-size: 18px; margin: 10px 0; }
         .error { color: #ff0000; }
+        
+        /* Item/Boss Grid Styles */
+        .tracking-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(95px, 1fr)); 
+            gap: 15px; 
+            margin: 20px 0; 
+            padding: 20px;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            background: #001a00;
+        }
+        .tracking-section { margin: 20px 0; }
+        .section-title { 
+            font-size: 18px; 
+            margin-bottom: 10px; 
+            text-align: center;
+            color: #00ff00;
+            text-transform: uppercase;
+        }
+        .item-tile { 
+            width: 70px; 
+            height: 70px; 
+            border: 2px solid #003300; 
+            border-radius: 8px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 28px; 
+            background: #001100;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+            margin-bottom: 25px;
+        }
+        .item-tile.obtained { 
+            border-color: #00ff00; 
+            background: #003300; 
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+        .item-tile.boss-defeated { 
+            border-color: #ff0000; 
+            background: #330000; 
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+        .item-name { 
+            position: absolute; 
+            bottom: -22px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            font-size: 11px; 
+            opacity: 0.8;
+            white-space: nowrap;
+            text-align: center;
+            min-width: 70px;
+            color: #00ff00;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 SUPER METROID LIVE TRACKER 🚀</h1>
+            <h1>SUPER METROID LIVE TRACKER</h1>
             <div id="status" class="status disconnected">
                 DISCONNECTED
             </div>
@@ -117,6 +176,48 @@
             </div>
         </div>
 
+        <!-- Item Tracking Grid -->
+        <div class="tracking-section">
+            <!-- <div class="section-title">🔧 Equipment & Items</div> -->
+            <div class="tracking-grid" id="itemsGrid">
+                <!-- Major Items -->
+                <div class="item-tile" data-item="morph" title="Morph Ball">⚫<div class="item-name">Morph</div></div>
+                <div class="item-tile" data-item="bombs" title="Bombs">💣<div class="item-name">Bombs</div></div>
+                <div class="item-tile" data-item="charge" title="Charge Beam">⚡<div class="item-name">Charge</div></div>
+                <div class="item-tile" data-item="spazer" title="Spazer Beam">〰️<div class="item-name">Spazer</div></div>
+                <div class="item-tile" data-item="varia" title="Varia Suit">🛡️<div class="item-name">Varia</div></div>
+                <div class="item-tile" data-item="hijump" title="Hi-Jump Boots">👢<div class="item-name">HiJump</div></div>
+                <div class="item-tile" data-item="speed" title="Speed Booster">💨<div class="item-name">Speed</div></div>
+                <div class="item-tile" data-item="wave" title="Wave Beam">🌊<div class="item-name">Wave</div></div>
+                <div class="item-tile" data-item="ice" title="Ice Beam">❄️<div class="item-name">Ice</div></div>
+                <div class="item-tile" data-item="grapple" title="Grappling Beam">🪝<div class="item-name">Grapple</div></div>
+                <div class="item-tile" data-item="xray" title="X-Ray Scope">📡<div class="item-name">X-Ray</div></div>
+                <div class="item-tile" data-item="plasma" title="Plasma Beam">🔥<div class="item-name">Plasma</div></div>
+                <div class="item-tile" data-item="gravity" title="Gravity Suit">🌌<div class="item-name">Gravity</div></div>
+                <div class="item-tile" data-item="space" title="Space Jump">🚀<div class="item-name">Space</div></div>
+                <div class="item-tile" data-item="spring" title="Spring Ball">🔄<div class="item-name">Spring</div></div>
+                <div class="item-tile" data-item="screw" title="Screw Attack">🌀<div class="item-name">Screw</div></div>
+            </div>
+        </div>
+
+        <!-- Boss Tracking Grid -->
+        <div class="tracking-section">
+            <!-- <div class="section-title">👹 Boss Battles</div> -->
+            <div class="tracking-grid" id="bossGrid">
+                <div class="item-tile" data-boss="bomb_torizo" title="Bomb Torizo">🤖<div class="item-name">B.Torizo</div></div>
+                <div class="item-tile" data-boss="spore_spawn" title="Spore Spawn">🍄<div class="item-name">Spore</div></div>
+                <div class="item-tile" data-boss="kraid" title="Kraid">🦎<div class="item-name">Kraid</div></div>
+                <div class="item-tile" data-boss="crocomire" title="Crocomire">🐊<div class="item-name">Crocomire</div></div>
+                <div class="item-tile" data-boss="phantoon" title="Phantoon">👻<div class="item-name">Phantoon</div></div>
+                <div class="item-tile" data-boss="botwoon" title="Botwoon">🐍<div class="item-name">Botwoon</div></div>
+                <div class="item-tile" data-boss="draygon" title="Draygon">🐲<div class="item-name">Draygon</div></div>
+                <div class="item-tile" data-boss="ridley" title="Ridley">🦅<div class="item-name">Ridley</div></div>
+                <div class="item-tile" data-boss="gold_torizo" title="Golden Torizo">👑<div class="item-name">G.Torizo</div></div>
+                <div class="item-tile" data-boss="mother_brain_1" title="Mother Brain Phase 1">🧠<div class="item-name">MB-1</div></div>
+                <div class="item-tile" data-boss="mother_brain_2" title="Mother Brain Phase 2">💀<div class="item-name">MB-2</div></div>
+            </div>
+        </div>
+
         <div id="debug" style="margin-top: 20px; font-size: 12px; opacity: 0.7; max-height: 200px; overflow-y: auto; border: 1px solid #003300; padding: 10px;"></div>
     </div>
 
@@ -137,7 +238,11 @@
             maxPowerBombs: "7E09D0",
             gameState: "7E0998",
             roomID: "7E079B",
-            areaID: "7E079F"
+            areaID: "7E079F",
+            // Item bitflags
+            itemsCollected: "7E09A4",  // Collected items bitfield
+            beamsCollected: "7E09A8",  // Beam weapons bitfield  
+            bossesDefeated: "7ED828",  // Bosses defeated bitfield
         };
 
         const AREAS = {
@@ -147,6 +252,45 @@
             3: "Wrecked Ship",
             4: "Maridia",
             5: "Tourian"
+        };
+
+        // Item bit mappings (itemsCollected address)
+        const ITEM_BITS = {
+            morph: 0x04,     // Morph Ball
+            bombs: 0x08,     // Bombs  
+            varia: 0x01,     // Varia Suit
+            gravity: 0x20,   // Gravity Suit
+            hijump: 0x100,   // Hi-Jump Boots
+            speed: 0x200,    // Speed Booster
+            space: 0x02,     // Space Jump
+            screw: 0x08,     // Screw Attack (different address)
+            spring: 0x02,    // Spring Ball
+            grapple: 0x40,   // Grappling Beam
+            xray: 0x8000     // X-Ray Scope
+        };
+
+        // Beam bit mappings (beamsCollected address)  
+        const BEAM_BITS = {
+            charge: 0x1000,  // Charge Beam
+            ice: 0x02,       // Ice Beam
+            wave: 0x01,      // Wave Beam
+            spazer: 0x04,    // Spazer Beam
+            plasma: 0x08     // Plasma Beam
+        };
+
+        // Boss bit mappings (bossesDefeated address)
+        const BOSS_BITS = {
+            bomb_torizo: 0x04,      // Bomb Torizo
+            spore_spawn: 0x02,      // Spore Spawn  
+            kraid: 0x01,            // Kraid
+            crocomire: 0x02,        // Crocomire (different byte)
+            phantoon: 0x01,         // Phantoon (different byte)
+            botwoon: 0x04,          // Botwoon (different byte)
+            draygon: 0x04,          // Draygon
+            ridley: 0x01,           // Ridley
+            gold_torizo: 0x04,      // Golden Torizo
+            mother_brain_1: 0x02,   // Mother Brain Phase 1
+            mother_brain_2: 0x08    // Mother Brain Phase 2
         };
 
         function log(message) {
@@ -211,6 +355,10 @@
             updateStatDisplay('missile', stats.missiles, stats.max_missiles);
             updateStatDisplay('super', stats.supers, stats.max_supers);
             updateStatDisplay('power', stats.power_bombs, stats.max_power_bombs);
+            
+            // Update item and boss tiles
+            updateItemTiles(stats.items || {});
+            updateBossTiles(stats.bosses || {});
         }
 
         function updateLocationInfo(stats) {
@@ -221,6 +369,34 @@
                 locationEl.textContent = `📍 Location: ${stats.area_name}`;
                 roomEl.textContent = `Room: ${stats.room_id || 'Unknown'}`;
             }
+        }
+
+        function updateItemTiles(items) {
+            // Update each item tile based on collected status
+            Object.keys(items).forEach(itemName => {
+                const tile = document.querySelector(`[data-item="${itemName}"]`);
+                if (tile) {
+                    if (items[itemName]) {
+                        tile.classList.add('obtained');
+                    } else {
+                        tile.classList.remove('obtained');
+                    }
+                }
+            });
+        }
+
+        function updateBossTiles(bosses) {
+            // Update each boss tile based on defeated status
+            Object.keys(bosses).forEach(bossName => {
+                const tile = document.querySelector(`[data-boss="${bossName}"]`);
+                if (tile) {
+                    if (bosses[bossName]) {
+                        tile.classList.add('boss-defeated');
+                    } else {
+                        tile.classList.remove('boss-defeated');
+                    }
+                }
+            });
         }
 
         function startTracking() {
