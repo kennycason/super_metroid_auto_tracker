@@ -194,20 +194,46 @@ class SuperMetroidUDPTracker:
                 'bosses_raw': hex(bosses_data) if bosses_data is not None else 'None'
             }
             
-            # Parse item bitflags (temporarily using simple detection)
+            # Parse item bitflags (using debug info: Items=0x1004 = morph+bombs)
             stats['items'] = {}
             if items_data is not None:
-                # Just check if bombs bit is set (we'll fix this based on debug info)
-                stats['items']['bombs'] = bool(items_data & 0x1000)  # Test different bits
-                stats['items']['morph'] = bool(items_data & 0x04)
+                stats['items']['morph'] = bool(items_data & 0x04)      # ✅ Working
+                stats['items']['bombs'] = bool(items_data & 0x1000)    # ✅ Working  
                 stats['items']['varia'] = bool(items_data & 0x01)
-                # Add other items with basic detection for now
+                stats['items']['gravity'] = bool(items_data & 0x20)
+                stats['items']['hijump'] = bool(items_data & 0x100)
+                stats['items']['speed'] = bool(items_data & 0x200)
+                stats['items']['space'] = bool(items_data & 0x02)
+                stats['items']['screw'] = bool(items_data & 0x08)
+                stats['items']['spring'] = bool(items_data & 0x02)
+                stats['items']['grapple'] = bool(items_data & 0x40)
+                stats['items']['xray'] = bool(items_data & 0x8000)
                 
-            # Parse boss bitflags (simplified for debugging)
-            stats['bosses'] = {}
+            # Parse beam bitflags (using debug info: Beams=0x1000 = charge beam)
+            if beams_data is not None:
+                stats['items']['charge'] = bool(beams_data & 0x1000)   # Should work!
+                # Debug: Charge beam detection
+                stats['items']['ice'] = bool(beams_data & 0x02)
+                stats['items']['wave'] = bool(beams_data & 0x01)
+                stats['items']['spazer'] = bool(beams_data & 0x04)
+                stats['items']['plasma'] = bool(beams_data & 0x08)
+                
+            # Parse bosses defeated (update bit mappings based on debug)
             if bosses_data is not None:
-                # Only flag bomb torizo for now to test
-                stats['bosses']['bomb_torizo'] = bool(bosses_data & 0x04)
+                # bosses_data is already unpacked by self.read_word()
+                stats['bosses'] = {
+                    'bomb_torizo': bool(bosses_data & 0x04),    # Bit 2 - WORKING ✓
+                    'spore_spawn': bool(bosses_data & 0x01),    # Try bit 0 instead of bit 1
+                    'crocomire': bool(bosses_data & 0x08),      # Bit 3
+                    'kraid': bool(bosses_data & 0x10),          # Bit 4  
+                    'phantoon': bool(bosses_data & 0x20),       # Bit 5
+                    'botwoon': bool(bosses_data & 0x40),        # Bit 6
+                    'draygon': bool(bosses_data & 0x80),        # Bit 7
+                    'ridley': bool(bosses_data & 0x100),        # Bit 8
+                    'mother_brain': bool(bosses_data & 0x200),  # Bit 9
+                }
+            else:
+                stats['bosses'] = {}
             
         except struct.error:
             return {}

@@ -231,7 +231,14 @@
             </div>
         </div>
 
-        <div id="debug" style="margin-top: 20px; font-size: 12px; opacity: 0.7; max-height: 200px; overflow-y: auto; border: 1px solid #003300; padding: 10px;"></div>
+        <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <span style="color: #00ff00; font-size: 14px;">🔍 Debug Logs</span>
+            <div>
+                <button onclick="copyLogs()" style="background: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 4px 8px; margin-right: 5px; cursor: pointer; font-size: 12px;">📋 Copy</button>
+                <button onclick="clearLogs()" style="background: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 4px 8px; cursor: pointer; font-size: 12px;">🗑️ Clear</button>
+            </div>
+        </div>
+        <div id="debug" style="font-size: 12px; opacity: 0.7; max-height: 200px; overflow-y: auto; border: 1px solid #003300; padding: 10px;"></div>
     </div>
 
     <script>
@@ -309,8 +316,56 @@
         function log(message) {
             const debugDiv = document.getElementById('debug');
             const timestamp = new Date().toLocaleTimeString();
+            
+            // Check if user is scrolled to bottom before adding message
+            const wasAtBottom = debugDiv.scrollTop >= (debugDiv.scrollHeight - debugDiv.clientHeight - 5);
+            
             debugDiv.innerHTML += `[${timestamp}] ${message}<br>`;
-            debugDiv.scrollTop = debugDiv.scrollHeight;
+            
+            // Only auto-scroll if user was at bottom
+            if (wasAtBottom) {
+                debugDiv.scrollTop = debugDiv.scrollHeight;
+            }
+        }
+
+        function copyLogs() {
+            const debugDiv = document.getElementById('debug');
+            const text = debugDiv.innerText;
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    // Visual feedback
+                    const btn = event.target;
+                    const originalText = btn.textContent;
+                    btn.textContent = '✅ Copied!';
+                    setTimeout(() => btn.textContent = originalText, 1000);
+                }).catch(() => {
+                    fallbackCopy(text);
+                });
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            // Visual feedback
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Copied!';
+            setTimeout(() => btn.textContent = originalText, 1000);
+        }
+
+        function clearLogs() {
+            const debugDiv = document.getElementById('debug');
+            debugDiv.innerHTML = '';
+            log('🗑️ Debug logs cleared');
         }
 
         function updateStatus(message, connected) {
@@ -448,7 +503,7 @@
                     if (stats && !stats.error) {
                         updateAllDisplays(stats);
                         updateLocationInfo(stats);
-                        logDebugInfo(stats);  // Show debug memory values
+                        // logDebugInfo(stats);  // Debug disabled - charge beam should work now
                     } else {
                         log(`❌ Stats error: ${stats.error || 'Unknown error'}`);
                     }
