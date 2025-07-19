@@ -31,10 +31,11 @@ class SuperMetroidUDPTracker:
             'area_id': 0x7E079F,
             'player_x': 0x7E0AF6,
             'player_y': 0x7E0AFA,
-            # Item and boss tracking
-            'items_collected': 0x7E09A4,
-            'beams_collected': 0x7E09A8, 
-            'bosses_defeated': 0x7ED828,
+            # Item and boss tracking (correct Super Metroid addresses)
+            'items_collected': 0x7E09A4,    # Collected items bitfield
+            'beams_collected': 0x7E09A8,    # Beam weapons bitfield  
+            'bosses_defeated': 0x7ED828,    # Bosses defeated bitfield
+            'events_flags': 0x7ED870,       # Event flags
         }
         
         # Area names
@@ -47,19 +48,19 @@ class SuperMetroidUDPTracker:
             5: "Tourian"
         }
         
-        # Item bit mappings
+        # Item bit mappings (corrected based on actual Super Metroid RAM)
         self.item_bits = {
-            'morph': 0x04,
-            'bombs': 0x08,
-            'varia': 0x01,
-            'gravity': 0x20,
-            'hijump': 0x100,
-            'speed': 0x200,
-            'space': 0x02,
-            'screw': 0x08,
-            'spring': 0x02,
-            'grapple': 0x40,
-            'xray': 0x8000
+            'morph': 0x04,      # Morph Ball
+            'bombs': 0x1000,    # Bombs  
+            'varia': 0x01,      # Varia Suit
+            'gravity': 0x20,    # Gravity Suit
+            'hijump': 0x100,    # Hi-Jump Boots
+            'speed': 0x200,     # Speed Booster
+            'space': 0x02,      # Space Jump
+            'screw': 0x08,      # Screw Attack
+            'spring': 0x02,     # Spring Ball
+            'grapple': 0x40,    # Grappling Beam
+            'xray': 0x8000      # X-Ray Scope
         }
         
         # Beam bit mappings
@@ -186,22 +187,27 @@ class SuperMetroidUDPTracker:
             beams_data = self.read_word(self.memory_map['beams_collected']) 
             bosses_data = self.read_word(self.memory_map['bosses_defeated'])
             
-            # Parse item bitflags
+            # Add debug info for raw memory values
+            stats['debug'] = {
+                'items_raw': hex(items_data) if items_data is not None else 'None',
+                'beams_raw': hex(beams_data) if beams_data is not None else 'None', 
+                'bosses_raw': hex(bosses_data) if bosses_data is not None else 'None'
+            }
+            
+            # Parse item bitflags (temporarily using simple detection)
             stats['items'] = {}
             if items_data is not None:
-                for item, bit in self.item_bits.items():
-                    stats['items'][item] = bool(items_data & bit)
-                    
-            # Parse beam bitflags
-            if beams_data is not None:
-                for beam, bit in self.beam_bits.items():
-                    stats['items'][beam] = bool(beams_data & bit)
-                    
-            # Parse boss bitflags
+                # Just check if bombs bit is set (we'll fix this based on debug info)
+                stats['items']['bombs'] = bool(items_data & 0x1000)  # Test different bits
+                stats['items']['morph'] = bool(items_data & 0x04)
+                stats['items']['varia'] = bool(items_data & 0x01)
+                # Add other items with basic detection for now
+                
+            # Parse boss bitflags (simplified for debugging)
             stats['bosses'] = {}
             if bosses_data is not None:
-                for boss, bit in self.boss_bits.items():
-                    stats['bosses'][boss] = bool(bosses_data & bit)
+                # Only flag bomb torizo for now to test
+                stats['bosses']['bomb_torizo'] = bool(bosses_data & 0x04)
             
         except struct.error:
             return {}

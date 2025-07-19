@@ -12,7 +12,14 @@
             margin: 20px; 
         }
         .container { max-width: 600px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 30px; }
+        .header { text-align: center; margin-bottom: 15px; }
+        .status-row { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 15px; 
+            margin: 10px 0;
+        }
         .status { 
             padding: 10px; 
             margin: 10px 0; 
@@ -25,23 +32,22 @@
         .stats-grid { 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
-            gap: 20px; 
-            margin: 20px 0; 
+            gap: 10px; 
+            margin: 10px 0; 
         }
         .stat-box { 
             border: 1px solid #00ff00; 
-            padding: 15px; 
+            padding: 8px; 
             border-radius: 5px; 
             background: #001a00;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .stat-label { font-size: 14px; opacity: 0.7; }
-        .stat-value { font-size: 24px; font-weight: bold; margin: 5px 0; }
+        .stat-label { font-size: 12px; opacity: 0.7; min-width: 60px; }
+        .stat-value { font-size: 16px; font-weight: bold; }
         .stat-bar { 
-            width: 100%; 
-            height: 10px; 
-            background: #003300; 
-            border: 1px solid #00ff00; 
-            margin: 5px 0;
+            display: none; /* Hidden for compact overlay */
         }
         .stat-bar-fill { 
             height: 100%; 
@@ -71,15 +77,15 @@
         /* Item/Boss Grid Styles */
         .tracking-grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(95px, 1fr)); 
-            gap: 15px; 
-            margin: 20px 0; 
-            padding: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); 
+            gap: 8px; 
+            margin: 8px 0; 
+            padding: 10px;
             border: 1px solid #00ff00;
             border-radius: 5px;
             background: #001a00;
         }
-        .tracking-section { margin: 20px 0; }
+        .tracking-section { margin: 8px 0; }
         .section-title { 
             font-size: 18px; 
             margin-bottom: 10px; 
@@ -88,40 +94,46 @@
             text-transform: uppercase;
         }
         .item-tile { 
-            width: 70px; 
-            height: 70px; 
+            width: 55px; 
+            height: 55px; 
             border: 2px solid #003300; 
-            border-radius: 8px; 
+            border-radius: 6px; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            font-size: 28px; 
+            font-size: 24px; 
             background: #001100;
             transition: all 0.3s ease;
             position: relative;
             cursor: pointer;
-            margin-bottom: 25px;
+            margin-bottom: 18px;
+            opacity: 0.4; /* Grayed out by default */
+            filter: grayscale(100%);
         }
         .item-tile.obtained { 
             border-color: #00ff00; 
             background: #003300; 
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+            opacity: 1;
+            filter: grayscale(0%);
         }
         .item-tile.boss-defeated { 
             border-color: #ff0000; 
             background: #330000; 
-            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            box-shadow: 0 0 8px rgba(255, 0, 0, 0.4);
+            opacity: 1;
+            filter: grayscale(0%);
         }
         .item-name { 
             position: absolute; 
-            bottom: -22px; 
+            bottom: -16px; 
             left: 50%; 
             transform: translateX(-50%); 
-            font-size: 11px; 
-            opacity: 0.8;
+            font-size: 9px; 
+            opacity: 0.7;
             white-space: nowrap;
             text-align: center;
-            min-width: 70px;
+            min-width: 55px;
             color: #00ff00;
         }
     </style>
@@ -130,16 +142,17 @@
     <div class="container">
         <div class="header">
             <h1>SUPER METROID LIVE TRACKER</h1>
-            <div id="status" class="status disconnected">
-                DISCONNECTED
+            <div class="status-row">
+                <div id="status" class="status disconnected">DISCONNECTED</div>
+                <button id="toggleBtn" onclick="toggleConnection()">CONNECT</button>
             </div>
-            <button onclick="connect()">CONNECT</button>
-            <button onclick="disconnect()">DISCONNECT</button>
         </div>
 
         <div class="game-info" id="gameInfo" style="display:none;">
-            <div class="location" id="location">📍 Location: Unknown</div>
-            <div id="roomInfo">Room: Unknown</div>
+            <div class="location">
+                <span id="location">📍 Crateria</span> 
+                <span id="roomInfo">Room: 0</span>
+            </div>
         </div>
 
         <div class="stats-grid">
@@ -306,6 +319,10 @@
             statusEl.className = connected ? 'status connected' : 'status disconnected';
         }
 
+        function updateToggleButton(connected) {
+            document.getElementById('toggleBtn').textContent = connected ? 'DISCONNECT' : 'CONNECT';
+        }
+
         function connect() {
             log("Connecting to UDP Tracker...");
             
@@ -317,6 +334,7 @@
                         isConnected = true;
                         isAttached = true;
                         updateStatus('TRACKING SUPER METROID', true);
+                        updateToggleButton(true);
                         log("✅ Connected to RetroArch via UDP");
                         log(`🎯 Game: ${data.game_info}`);
                         document.getElementById('gameInfo').style.display = 'block';
@@ -324,14 +342,17 @@
                     } else if (data.connected) {
                         isConnected = true;
                         updateStatus('CONNECTED - NO GAME', true);
+                        updateToggleButton(true);
                         log("✅ Connected to RetroArch but Super Metroid not loaded");
                     } else {
                         updateStatus('RETROARCH NOT FOUND', false);
+                        updateToggleButton(false);
                         log("❌ Could not connect to RetroArch");
                     }
                 })
                 .catch(error => {
                     updateStatus('TRACKER SERVER NOT RUNNING', false);
+                    updateToggleButton(false);
                     log(`❌ Connection error: ${error.message}`);
                     log("💡 Make sure to run: python tracker_web_server.py");
                 });
@@ -341,12 +362,21 @@
             isConnected = false;
             isAttached = false;
             updateStatus('DISCONNECTED', false);
+            updateToggleButton(false);
             if (updateInterval) {
                 clearInterval(updateInterval);
                 updateInterval = null;
             }
             document.getElementById('gameInfo').style.display = 'none';
             log("🔌 Disconnected");
+        }
+
+        function toggleConnection() {
+            if (isConnected) {
+                disconnect();
+            } else {
+                connect();
+            }
         }
 
         function updateAllDisplays(stats) {
@@ -403,6 +433,7 @@
             if (updateInterval) return;
             
             log("🔄 Starting live tracking...");
+            updateToggleButton(true);
             updateInterval = setInterval(updateStats, 1000);
             updateStats(); // Initial update
         }
@@ -417,6 +448,7 @@
                     if (stats && !stats.error) {
                         updateAllDisplays(stats);
                         updateLocationInfo(stats);
+                        logDebugInfo(stats);  // Show debug memory values
                     } else {
                         log(`❌ Stats error: ${stats.error || 'Unknown error'}`);
                     }
@@ -426,6 +458,12 @@
                     // Try to reconnect
                     setTimeout(connect, 2000);
                 });
+        }
+
+        function logDebugInfo(stats) {
+            if (stats.debug) {
+                log(`🔍 DEBUG - Items: ${stats.debug.items_raw}, Beams: ${stats.debug.beams_raw}, Bosses: ${stats.debug.bosses_raw}`);
+            }
         }
 
 
