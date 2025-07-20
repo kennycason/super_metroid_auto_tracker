@@ -89,36 +89,125 @@
         }
         .tracking-section { margin: 8px 0; }
         
-        /* Single 16x16 Tile Sprite System - ONE tile fills the container */
+        /* Perfect 16x16 Sprite System - Each sprite displays as perfect square */
         .sprite {
             display: inline-block;
-            width: 50px;
-            height: 50px;
+            width: 48px;
+            height: 48px;
             background-image: url('item_sprites.png');
             background-repeat: no-repeat;
-            background-size: 400px 300px; /* Scale so each 16x16 tile becomes 50x50: 8*50=400px, 6*50=300px */
+            /* Scale sprite sheet: 4 items wide (4×32px=128px) × 6 rows (6×16px=96px) */
+            /* Scale 128px → 384px (4×48px×2), 96px → 288px (6×48px) for perfect square scaling */
+            background-size: 384px 288px; 
             image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
             vertical-align: middle;
             margin-right: 4px;
+            /* Ensure perfect square container */
+            flex-shrink: 0;
+            box-sizing: border-box;
         }
         
-        /* SPRITE CLASSES - Static sprites using first frame only (no animations) */
-        .sprite-morph-ball { 
-            background-position: 0px 0px; /* First frame of morph ball */
+        /* SPRITE SHEET COORDINATE MAPPING
+         * 16x16 tiles, using first tile of each 32x16 item
+         * Row 0: Morph ball, Bomb, Energy tank
+         * Row 1: Missile, Super missile, Power bomb, Reserve tanks
+         * Row 2: Hi jump, Speed booster, Grappling beam, X-ray scope  
+         * Row 3: Spring ball, Space jump, Screw attack, Charge beam
+         * Row 4: Spazer beam, Wave beam, Ice beam, Plasma beam
+         * Row 5: Varia suit
+         */
+        
+        /* === ROW 0 (y=0px) === */
+        .sprite-morph-ball {
+            background-position: 0px 0px; /* Row 0, Col 0 */
         }
         
-        .sprite-bomb { 
-            background-position: -32px 0px; /* First frame of bomb animation */
+        .sprite-bomb {
+            background-position: -96px 0px; /* Row 0, Col 1 (32px × 3 = 96px) */
         }
         
-        .sprite-charge-beam { 
-            background-position: -96px -48px; /* First frame of charge beam animation */
+        .sprite-energy-tank {
+            background-position: -192px 0px; /* Row 0, Col 2 (64px × 3 = 192px) */
         }
         
-        .sprite-grapple { 
-            background-position: -64px -32px; /* First frame of grapple animation */
+        /* === ROW 1 (y=-48px) === */
+        .sprite-missile {
+            background-position: 0px -48px; /* Row 1, Col 0 (16px × 3 = 48px) */
         }
         
+        .sprite-super-missile {
+            background-position: -96px -48px; /* Row 1, Col 1 */
+        }
+        
+        .sprite-power-bomb {
+            background-position: -192px -48px; /* Row 1, Col 2 */
+        }
+        
+        .sprite-reserve-tank {
+            background-position: -288px -48px; /* Row 1, Col 3 (96px × 3 = 288px) */
+        }
+        
+        /* === ROW 2 (y=-96px) === */
+        .sprite-hijump {
+            background-position: 0px -96px; /* Row 2, Col 0 (32px × 3 = 96px) */
+        }
+        
+        .sprite-speed {
+            background-position: -96px -96px; /* Row 2, Col 1 */
+        }
+        
+        .sprite-grapple {
+            background-position: -192px -96px; /* Row 2, Col 2 */
+        }
+        
+        .sprite-xray {
+            background-position: -288px -96px; /* Row 2, Col 3 */
+        }
+        
+        /* === ROW 3 (y=-144px) === */
+        .sprite-spring {
+            background-position: 0px -144px; /* Row 3, Col 0 (48px × 3 = 144px) */
+        }
+        
+        .sprite-space {
+            background-position: -96px -144px; /* Row 3, Col 1 */
+        }
+        
+        .sprite-screw {
+            background-position: -192px -144px; /* Row 3, Col 2 */
+        }
+        
+        .sprite-charge-beam {
+            background-position: -288px -144px; /* Row 3, Col 3 */
+        }
+        
+        /* === ROW 4 (y=-192px) === */
+        .sprite-spazer {
+            background-position: 0px -192px; /* Row 4, Col 0 (64px × 3 = 192px) */
+        }
+        
+        .sprite-wave {
+            background-position: -96px -192px; /* Row 4, Col 1 */
+        }
+        
+        .sprite-ice {
+            background-position: -192px -192px; /* Row 4, Col 2 */
+        }
+        
+        .sprite-plasma {
+            background-position: -288px -192px; /* Row 4, Col 3 */
+        }
+        
+        /* === ROW 5 (y=-240px) === */
+        .sprite-varia {
+            background-position: 0px -240px; /* Row 5, Col 0 (80px × 3 = 240px) */
+        }
+        
+        .sprite-gravity {
+            background-position: -32px -80px; /* Row 5, Col 1 - assuming gravity is next to varia */
+        }
 
         .section-title { 
             font-size: 18px; 
@@ -232,19 +321,19 @@
                 <div class="item-tile" data-item="morph" title="Morph Ball"><span class="sprite sprite-morph-ball"></span><div class="item-name">Morph</div></div>
                 <div class="item-tile" data-item="bombs" title="Bombs"><span class="sprite sprite-bomb"></span><div class="item-name">Bombs</div></div>
                 <div class="item-tile" data-item="charge" title="Charge Beam"><span class="sprite sprite-charge-beam"></span><div class="item-name">Charge</div></div>
-                <div class="item-tile" data-item="spazer" title="Spazer Beam">〰️<div class="item-name">Spazer</div></div>
-                <div class="item-tile" data-item="varia" title="Varia Suit">🛡️<div class="item-name">Varia</div></div>
-                <div class="item-tile" data-item="hijump" title="Hi-Jump Boots">👢<div class="item-name">HiJump</div></div>
-                <div class="item-tile" data-item="speed" title="Speed Booster">💨<div class="item-name">Speed</div></div>
-                <div class="item-tile" data-item="wave" title="Wave Beam">🌊<div class="item-name">Wave</div></div>
-                <div class="item-tile" data-item="ice" title="Ice Beam">❄️<div class="item-name">Ice</div></div>
+                <div class="item-tile" data-item="spazer" title="Spazer Beam"><span class="sprite sprite-spazer"></span><div class="item-name">Spazer</div></div>
+                <div class="item-tile" data-item="varia" title="Varia Suit"><span class="sprite sprite-varia"></span><div class="item-name">Varia</div></div>
+                <div class="item-tile" data-item="hijump" title="Hi-Jump Boots"><span class="sprite sprite-hijump"></span><div class="item-name">HiJump</div></div>
+                <div class="item-tile" data-item="speed" title="Speed Booster"><span class="sprite sprite-speed"></span><div class="item-name">Speed</div></div>
+                <div class="item-tile" data-item="wave" title="Wave Beam"><span class="sprite sprite-wave"></span><div class="item-name">Wave</div></div>
+                <div class="item-tile" data-item="ice" title="Ice Beam"><span class="sprite sprite-ice"></span><div class="item-name">Ice</div></div>
                 <div class="item-tile" data-item="grapple" title="Grappling Beam"><span class="sprite sprite-grapple"></span><div class="item-name">Grapple</div></div>
-                <div class="item-tile" data-item="xray" title="X-Ray Scope">📡<div class="item-name">X-Ray</div></div>
-                <div class="item-tile" data-item="plasma" title="Plasma Beam">🔥<div class="item-name">Plasma</div></div>
-                <div class="item-tile" data-item="gravity" title="Gravity Suit">🌌<div class="item-name">Gravity</div></div>
-                <div class="item-tile" data-item="space" title="Space Jump">🚀<div class="item-name">Space</div></div>
-                <div class="item-tile" data-item="spring" title="Spring Ball">🔄<div class="item-name">Spring</div></div>
-                <div class="item-tile" data-item="screw" title="Screw Attack">🌀<div class="item-name">Screw</div></div>
+                <div class="item-tile" data-item="xray" title="X-Ray Scope"><span class="sprite sprite-xray"></span><div class="item-name">X-Ray</div></div>
+                <div class="item-tile" data-item="plasma" title="Plasma Beam"><span class="sprite sprite-plasma"></span><div class="item-name">Plasma</div></div>
+                <div class="item-tile" data-item="gravity" title="Gravity Suit"><span class="sprite sprite-gravity"></span><div class="item-name">Gravity</div></div>
+                <div class="item-tile" data-item="space" title="Space Jump"><span class="sprite sprite-space"></span><div class="item-name">Space</div></div>
+                <div class="item-tile" data-item="spring" title="Spring Ball"><span class="sprite sprite-spring"></span><div class="item-name">Spring</div></div>
+                <div class="item-tile" data-item="screw" title="Screw Attack"><span class="sprite sprite-screw"></span><div class="item-name">Screw</div></div>
             </div>
         </div>
 
