@@ -231,6 +231,16 @@
             min-width: 16px;
         }
 
+        /* Grayed out styling for uncollected items */
+        .quantity-tile.grayed-out {
+            opacity: 0.4;
+            filter: grayscale(100%);
+        }
+
+        .quantity-tile.grayed-out .quantity-display {
+            color: #666;
+        }
+
         /* === BOSS SPRITES (64x64 pixels, single row) === */
         .boss-sprite {
             display: inline-block;
@@ -706,18 +716,71 @@
             }
             
             try {
-                // Energy Tanks (calculated from max health: each tank = 100 energy, minus base 99)
-                const energyTanks = Math.max(0, Math.floor((stats.max_health - 99) / 100));
-                document.getElementById('energyTankCount').textContent = energyTanks;
+                // Energy Tanks: show current/max energy
+                const energyEl = document.getElementById('energyTankCount');
+                const energyTile = document.querySelector('[data-item="energy-tank"]');
+                if (energyEl && energyTile) {
+                    energyEl.textContent = `${stats.health || 0}/${stats.max_health || 99}`;
+                    // Gray out if no energy tanks collected (max health = 99, starting health)
+                    const maxHealth = stats.max_health || 99;
+                    if (maxHealth <= 99) {
+                        energyTile.classList.add('grayed-out');
+                    } else {
+                        energyTile.classList.remove('grayed-out');
+                    }
+                }
                 
-                // Reserve Tanks (calculated from max reserve: each tank = 100 energy)
-                const reserveTanks = Math.floor((stats.max_reserve_energy || 0) / 100);
-                document.getElementById('reserveTankCount').textContent = reserveTanks;
+                // Reserve Tanks: show current/max reserve energy
+                const reserveEl = document.getElementById('reserveTankCount');
+                const reserveTile = document.querySelector('[data-item="reserve-tank"]');
+                if (reserveEl && reserveTile) {
+                    const maxReserve = stats.max_reserve_energy || 0;
+                    const currentReserve = stats.reserve_energy || 0;
+                    reserveEl.textContent = `${currentReserve}/${maxReserve}`;
+                    // Gray out if no reserve tanks collected
+                    if (maxReserve === 0) {
+                        reserveTile.classList.add('grayed-out');
+                    } else {
+                        reserveTile.classList.remove('grayed-out');
+                    }
+                }
                 
-                // Missiles, Super Missiles, Power Bombs
-                document.getElementById('missileCount').textContent = `${stats.missiles || 0}/${stats.max_missiles || 0}`;
-                document.getElementById('superMissileCount').textContent = `${stats.supers || 0}/${stats.max_supers || 0}`;
-                document.getElementById('powerBombCount').textContent = `${stats.power_bombs || 0}/${stats.max_power_bombs || 0}`;
+                // Missiles: gray out if max is 0
+                const missileEl = document.getElementById('missileCount');
+                const missileTile = document.querySelector('[data-item="missile"]');
+                if (missileEl && missileTile) {
+                    missileEl.textContent = `${stats.missiles || 0}/${stats.max_missiles || 0}`;
+                    if ((stats.max_missiles || 0) === 0) {
+                        missileTile.classList.add('grayed-out');
+                    } else {
+                        missileTile.classList.remove('grayed-out');
+                    }
+                }
+                
+                // Super Missiles: gray out if max is 0  
+                const superEl = document.getElementById('superMissileCount');
+                const superTile = document.querySelector('[data-item="super-missile"]');
+                if (superEl && superTile) {
+                    superEl.textContent = `${stats.supers || 0}/${stats.max_supers || 0}`;
+                    if ((stats.max_supers || 0) === 0) {
+                        superTile.classList.add('grayed-out');
+                    } else {
+                        superTile.classList.remove('grayed-out');
+                    }
+                }
+                
+                // Power Bombs: gray out if max is 0
+                const powerEl = document.getElementById('powerBombCount');
+                const powerTile = document.querySelector('[data-item="power-bomb"]');
+                if (powerEl && powerTile) {
+                    powerEl.textContent = `${stats.power_bombs || 0}/${stats.max_power_bombs || 0}`;
+                    if ((stats.max_power_bombs || 0) === 0) {
+                        powerTile.classList.add('grayed-out');
+                    } else {
+                        powerTile.classList.remove('grayed-out');
+                    }
+                }
+                
             } catch (error) {
                 console.warn('Failed to update quantity displays:', error);
             }

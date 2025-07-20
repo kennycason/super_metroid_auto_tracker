@@ -8,14 +8,7 @@ import socket
 import struct
 import time
 import json
-import datetime
 from typing import Dict, Optional
-
-def log_to_file(message):
-    """Log debug messages to file for easy debugging"""
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open("tracker_debug.log", "a") as f:
-        f.write(f"[{timestamp}] {message}\n")
 
 class SuperMetroidUDPTracker:
     def __init__(self, host="localhost", port=55355):
@@ -33,7 +26,7 @@ class SuperMetroidUDPTracker:
             'max_supers': 0x7E09CC,
             'power_bombs': 0x7E09CE,
             'max_power_bombs': 0x7E09D0,
-            'reserve_energy': 0x7E09D2,
+            'reserve_energy': 0x7E09D6,  # FIXED: Correct address for current reserve energy  
             'max_reserve_energy': 0x7E09D4,
             'game_state': 0x7E0998,
             'room_id': 0x7E079B,
@@ -183,7 +176,7 @@ class SuperMetroidUDPTracker:
         """Read all Super Metroid stats at once"""
         # Read a large chunk that contains all our stats (including reserve energy)
         base_address = self.memory_map['health']
-        data = self.read_memory_range(base_address, 36)  # Read 36 bytes (increased for reserve)
+        data = self.read_memory_range(base_address, 24)  # Read 24 bytes for all basic stats
         
         if not data or len(data) < 20:
             return {}
@@ -199,8 +192,10 @@ class SuperMetroidUDPTracker:
             stats['max_supers'] = struct.unpack('<H', data[10:12])[0]
             stats['power_bombs'] = struct.unpack('<H', data[12:14])[0]
             stats['max_power_bombs'] = struct.unpack('<H', data[14:16])[0]
-            stats['reserve_energy'] = struct.unpack('<H', data[16:18])[0]
-            stats['max_reserve_energy'] = struct.unpack('<H', data[18:20])[0]
+            
+            # Read reserve energy from the correct addresses
+            stats['max_reserve_energy'] = struct.unpack('<H', data[18:20])[0]  # 0x7E09D4
+            stats['reserve_energy'] = self.read_word(self.memory_map['reserve_energy'])  # 0x7E09D6
             
             # Read additional data separately
             stats['area_id'] = self.read_byte(self.memory_map['area_id'])
@@ -213,41 +208,32 @@ class SuperMetroidUDPTracker:
             beams_data = self.read_word(self.memory_map['beams_collected']) 
             bosses_data = self.read_word(self.memory_map['bosses_defeated'])
             
-            # Add debug info for raw memory values
-            stats['debug'] = {
-                'items_raw': hex(items_data) if items_data is not None else 'None',
-                'beams_raw': hex(beams_data) if beams_data is not None else 'None', 
-                'bosses_raw': hex(bosses_data) if bosses_data is not None else 'None'
-            }
-            
-            # Parse item bitflags (using debug info: Items=0x1004 = morph+bombs)
+            # Parse item bitflags
             stats['items'] = {}
             if items_data is not None:
-                stats['items']['morph'] = bool(items_data & 0x04)      # ✅ Working
-                stats['items']['bombs'] = bool(items_data & 0x1000)    # ✅ Working  
+                stats['items']['morph'] = bool(items_data & 0x04)
+                stats['items']['bombs'] = bool(items_data & 0x1000)
                 stats['items']['varia'] = bool(items_data & 0x01)
                 stats['items']['gravity'] = bool(items_data & 0x20)
                 stats['items']['hijump'] = bool(items_data & 0x100)
-                stats['items']['speed'] = bool(items_data & 0x2000)    # Fixed: bit 13, not bit 9!
-                stats['items']['space'] = bool(items_data & 0x200)    # FIXED: Space Jump is bit 9!
+                stats['items']['speed'] = bool(items_data & 0x2000)
+                stats['items']['space'] = bool(items_data & 0x200)
                 stats['items']['screw'] = bool(items_data & 0x08)
                 stats['items']['spring'] = bool(items_data & 0x02)
-                stats['items']['grapple'] = bool(items_data & 0x4000)   # UNIT TEST VERIFIED: bit 14! ✅
+                stats['items']['grapple'] = bool(items_data & 0x4000)
                 stats['items']['xray'] = bool(items_data & 0x8000)
                 
-            # Parse beam bitflags (using debug info: Beams=0x1000 = charge beam)
+            # Parse beam bitflags
             if beams_data is not None:
-                stats['items']['charge'] = bool(beams_data & 0x1000)   # Should work!
-                # Debug: Charge beam detection
+                stats['items']['charge'] = bool(beams_data & 0x1000)
                 stats['items']['ice'] = bool(beams_data & 0x02)
                 stats['items']['wave'] = bool(beams_data & 0x01)
                 stats['items']['spazer'] = bool(beams_data & 0x04)
                 stats['items']['plasma'] = bool(beams_data & 0x08)
                 
-            # Parse bosses defeated - UNIT TEST VERIFIED MAPPINGS!
+            # Parse bosses defeated
             if bosses_data is not None:
-                # Get Crocomire from special address (verified from logs: boss_scan_6=0x0203 & 0x02)
-                crocomire_data = self.read_word(0x7ED829)  # boss_scan_6 address
+                crocomire_data = self.read_word(0x7ED829)
                 
                 # BOSS SCANNING - Check multiple addresses for special bosses like Phantoon and Draygon
                 boss_scan_candidates = {
@@ -257,8 +243,6 @@ class SuperMetroidUDPTracker:
                     'boss_plus_4': 0x7ED82C,    # Even further adjacent
                     'boss_plus_5': 0x7ED82D,    # More adjacent
                     'boss_minus_1': 0x7ED827,   # Before main boss area
-                    'scan_alt_1': 0x7E09A6,     # Previous scan addresses
-                    'scan_alt_2': 0x7E0D7C,     
                 }
                 
                 boss_scan_results = {}
@@ -267,130 +251,82 @@ class SuperMetroidUDPTracker:
                     if scan_data is not None:
                         boss_scan_results[scan_name] = scan_data
                 
-                # Reduced logging - only log boss scan results when they change
-                if boss_scan_results:
-                    # Only log if we find non-zero values (potential boss flags)
-                    interesting_scans = {k: v for k, v in boss_scan_results.items() if v != 0}
-                    # Remove excessive logging that was causing spam
-                    # log_to_file(debug_msg) - commented out to prevent spam
-                
-                # PHANTOON DETECTION - Based on scan results!
-                # From logs: boss_plus_3=0x0001 has bit 0x01 set - this is likely Phantoon!
+                # PHANTOON DETECTION
                 phantoon_detected = False
                 boss_plus_3_data = boss_scan_results.get('boss_plus_3', 0)
                 if boss_plus_3_data & 0x01:
                     phantoon_detected = True
-                    debug_msg = f"PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x{boss_plus_3_data:04X}"
-                    log_to_file(debug_msg)
-                    # Debug output removed to prevent console spam
-                # Removed Phantoon debug check to prevent console spam
                 
-                # DRAYGON DETECTION - Based on scan results!
-                # User says they beat Draygon, so scan for potential Draygon bits
+                # DRAYGON DETECTION
                 draygon_detected = False
-                # Try multiple candidates from our analysis
                 draygon_candidates = [
-                    ('boss_plus_4', 0x01),  # boss_plus_4 has bit 0 set
-                    ('boss_plus_4', 0x02),  # boss_plus_4 has bit 1 set  
-                    ('boss_plus_5', 0x100), # boss_plus_5 has bit 8 set
-                    ('boss_minus_1', 0x400), # boss_minus_1 has bit 10 set
+                    ('boss_plus_4', 0x01),  
+                    ('boss_plus_4', 0x02),   
+                    ('boss_plus_5', 0x100), 
+                    ('boss_minus_1', 0x400), 
                 ]
                 
                 for scan_name, bit_mask in draygon_candidates:
                     candidate_data = boss_scan_results.get(scan_name, 0)
                     if candidate_data & bit_mask:
                         draygon_detected = True
-                        # Removed excessive logging that was causing spam every 12 seconds
-                        # debug_msg = f"DRAYGON FOUND - {scan_name} bit 0x{bit_mask:X} = True, value=0x{candidate_data:04X}"
-                        # log_to_file(debug_msg)
                         break
                 
-                # RIDLEY DETECTION - Based on scan results!
-                # User just beat Ridley, so scan for potential Ridley bits
+                # RIDLEY DETECTION
                 ridley_detected = False
-                # Try multiple candidates from our analysis
                 ridley_candidates = [
-                    ('boss_plus_1', 0x400), # boss_plus_1 has bit 10 set - likely Ridley!
-                    ('boss_plus_1', 0x200), # boss_plus_1 has bit 9 set
-                    ('boss_plus_1', 0x100), # boss_plus_1 has bit 8 set
-                    ('boss_plus_2', 0x100), # boss_plus_2 has bit 8 set
+                    ('boss_plus_1', 0x400),
+                    ('boss_plus_1', 0x200), 
+                    ('boss_plus_1', 0x100), 
+                    ('boss_plus_2', 0x100), 
                 ]
                 
                 for scan_name, bit_mask in ridley_candidates:
                     candidate_data = boss_scan_results.get(scan_name, 0)
                     if candidate_data & bit_mask:
                         ridley_detected = True
-                        debug_msg = f"RIDLEY FOUND - {scan_name} bit 0x{bit_mask:X} = True, value=0x{candidate_data:04X}"
-                        log_to_file(debug_msg)
-                        # Debug output removed to prevent console spam
                         break
                 
-                # BOTWOON DETECTION - Based on scan results!
-                # User just beat Botwoon, but bit 6 (0x40) in main address is False
+                # BOTWOON DETECTION
                 botwoon_detected = False
-                # Try multiple candidates from our analysis
                 botwoon_candidates = [
-                    ('boss_plus_2', 0x04),  # boss_plus_2 has bit 2 set
-                    ('boss_plus_2', 0x02),  # boss_plus_2 has bit 1 set
-                    ('boss_plus_4', 0x02),  # boss_plus_4 has bit 1 set
-                    ('boss_plus_1', 0x02),  # boss_plus_1 has bit 1 set
+                    ('boss_plus_2', 0x04),  
+                    ('boss_plus_2', 0x02),  
+                    ('boss_plus_4', 0x02),  
+                    ('boss_plus_1', 0x02),  
                 ]
                 
                 for scan_name, bit_mask in botwoon_candidates:
                     candidate_data = boss_scan_results.get(scan_name, 0)
                     if candidate_data & bit_mask:
                         botwoon_detected = True
-                        debug_msg = f"BOTWOON FOUND - {scan_name} bit 0x{bit_mask:X} = True, value=0x{candidate_data:04X}"
-                        log_to_file(debug_msg)
-                        # Debug output removed to prevent console spam
                         break
                 
-                # GOLDEN TORIZO DETECTION - Based on scan results!
-                # FIXED: Use actual patterns from user's memory state
+                # GOLDEN TORIZO DETECTION
                 golden_torizo_detected = False
-                
-                # Based on actual memory analysis, check for these specific patterns
                 boss_plus_1_val = boss_scan_results.get('boss_plus_1', 0)
                 boss_plus_2_val = boss_scan_results.get('boss_plus_2', 0)
                 boss_plus_3_val = boss_scan_results.get('boss_plus_3', 0)
                 
-                # Golden Torizo appears to set specific bit patterns
-                # Current user values: boss_plus_1=0x0703, boss_plus_2=0x0107, boss_plus_3=0x0301
-                # Check for these actual patterns that indicate Golden Torizo defeat
                 if ((boss_plus_1_val & 0x0700) and (boss_plus_1_val & 0x0003)) or \
                    (boss_plus_2_val & 0x0100) or \
                    (boss_plus_3_val & 0x0300):
                     golden_torizo_detected = True
-                    # Removed excessive logging - was causing spam every 12 seconds
-                    # log_to_file(f"GOLDEN TORIZO DETECTED via pattern match: plus_1=0x{boss_plus_1_val:04X}, plus_2=0x{boss_plus_2_val:04X}, plus_3=0x{boss_plus_3_val:04X}")
-                    
-                # Alternative check: look for combinations that indicate progression
-                if not golden_torizo_detected:
-                    # Check for other bit combinations that might indicate Golden Torizo
-                    scan_alt_2_val = boss_scan_results.get('scan_alt_2', 0)
-                    if (boss_plus_1_val >= 0x0700) or (scan_alt_2_val >= 0x8000):
-                        golden_torizo_detected = True
-                        # Removed excessive logging - was causing spam every 12 seconds
-                        # log_to_file(f"GOLDEN TORIZO DETECTED via alt pattern: plus_1=0x{boss_plus_1_val:04X}, alt_2=0x{scan_alt_2_val:04X}")
                 
-                # Add debug info for boss scanning
-                stats['debug']['boss_scans'] = boss_scan_results
+                # MOTHER BRAIN DETECTION
+                mother_brain_detected = bool(bosses_data & 0x01)
                 
-                # MOTHER BRAIN DETECTION - Only use standard bit detection
-                mother_brain_detected = bool(bosses_data & 0x01)  # Standard bit 0
-                
-                # UNIT TEST CONFIRMED: 0x304 has bits 2, 8, 9 set (Bomb Torizo, Kraid, Spore Spawn)
                 stats['bosses'] = {
-                    'bomb_torizo': bool(bosses_data & 0x04),    # Bit 2 ✅ VERIFIED
-                    'kraid': bool(bosses_data & 0x100),         # Bit 8 ✅ VERIFIED 
-                    'spore_spawn': bool(bosses_data & 0x200),   # Bit 9 ✅ VERIFIED
-                    'crocomire': bool(crocomire_data & 0x02) if crocomire_data is not None else False,  # Special address! ✅
-                    'phantoon': phantoon_detected,              # 🔍 SCANNING MULTIPLE ADDRESSES!
-                    'botwoon': botwoon_detected,                # 🔍 SCANNING MULTIPLE ADDRESSES! 
-                    'draygon': draygon_detected,                # 🔍 SCANNING MULTIPLE ADDRESSES! 
-                    'ridley': ridley_detected,                  # 🔍 SCANNING MULTIPLE ADDRESSES!
-                    'golden_torizo': golden_torizo_detected,    # 🔍 FIXED: PATTERN MATCHING!
-                    'mother_brain': mother_brain_detected,      # 🔍 FIXED: ALT DETECTION!
+                    'bomb_torizo': bool(bosses_data & 0x04),
+                    'kraid': bool(bosses_data & 0x100),
+                    'spore_spawn': bool(bosses_data & 0x200),
+                    'crocomire': bool(crocomire_data & 0x02) if crocomire_data is not None else False,
+                    'phantoon': phantoon_detected,
+                    'botwoon': botwoon_detected,
+                    'draygon': draygon_detected,
+                    'ridley': ridley_detected,
+                    'golden_torizo': golden_torizo_detected,
+                    'mother_brain': mother_brain_detected,
                 }
             else:
                 stats['bosses'] = {}
