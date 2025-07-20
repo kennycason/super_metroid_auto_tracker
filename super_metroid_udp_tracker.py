@@ -287,30 +287,33 @@ class SuperMetroidUDPTracker:
                             draygon_detected = True
                             break
                             
-                # RIDLEY DETECTION - Use exact working logic from old tracker
+                # RIDLEY DETECTION - More conservative to prevent false positives
                 ridley_detected = False
                 ridley_candidates = [
-                    ('boss_plus_1', 0x400),
-                    ('boss_plus_1', 0x200), 
-                    ('boss_plus_1', 0x100), 
-                    ('boss_plus_2', 0x100), 
+                    ('boss_plus_1', 0x400, 0x0400),  # Require value >= threshold  
+                    ('boss_plus_1', 0x200, 0x0A00),  # Much higher threshold for 0x200 bit
+                    ('boss_plus_1', 0x100, 0x0500),  # Higher threshold 
+                    ('boss_plus_2', 0x100, 0x0100),  # Standard threshold
                 ]
                 
-                for scan_name, bit_mask in ridley_candidates:
+                for scan_name, bit_mask, min_value in ridley_candidates:
                     candidate_data = boss_scan_results.get(scan_name, 0)
-                    if candidate_data & bit_mask:
+                    if (candidate_data & bit_mask) and (candidate_data >= min_value):
                         ridley_detected = True
                         break
                         
-                # GOLDEN TORIZO DETECTION - Use exact working logic from old tracker
+                # GOLDEN TORIZO DETECTION - More conservative to prevent false positives
                 golden_torizo_detected = False
                 boss_plus_1_val = boss_scan_results.get('boss_plus_1', 0)
                 boss_plus_2_val = boss_scan_results.get('boss_plus_2', 0)
                 boss_plus_3_val = boss_scan_results.get('boss_plus_3', 0)
                 
-                if ((boss_plus_1_val & 0x0700) and (boss_plus_1_val & 0x0003)) or \
-                   (boss_plus_2_val & 0x0100) or \
-                   (boss_plus_3_val & 0x0300):
+                # Much more restrictive conditions to prevent false positives
+                condition1 = ((boss_plus_1_val & 0x0700) and (boss_plus_1_val & 0x0003) and (boss_plus_1_val >= 0x0703))
+                condition2 = (boss_plus_2_val & 0x0100) and (boss_plus_2_val >= 0x0500)
+                condition3 = (boss_plus_3_val & 0x0300) and (boss_plus_3_val >= 0x0300)
+                
+                if condition1 or condition2 or condition3:
                     golden_torizo_detected = True
                 
                 stats['bosses'] = {

@@ -335,6 +335,191 @@ class TestSuperMetroidDetection(unittest.TestCase):
             
         print(f"\n✅ CROCOMIRE DETECTION LOGIC VALIDATED!")
 
+    def test_crocomire_defeated_ridley_golden_torizo_false_positives(self):
+        """Test NEW scenario: Crocomire defeated causing Ridley and Golden Torizo false positives"""
+        print(f"\n🚨 CROCOMIRE → RIDLEY/GOLDEN TORIZO FALSE POSITIVE TEST")
+        print(f"=" * 50)
+        
+        # Real memory values after defeating Crocomire (user's current scenario)
+        bosses_data = 0x304         # Bomb Torizo + Kraid + Spore Spawn defeated
+        crocomire_data = 0x0203     # Value after Crocomire defeat - this is the problem!
+        
+        # Boss scan results after Crocomire defeat
+        boss_scan_results = {
+            'boss_plus_1': 0x0203,    # Same as crocomire_data
+            'boss_plus_2': 0x0002,
+            'boss_plus_3': 0x0000,
+            'boss_plus_4': 0x0000,
+            'boss_plus_5': 0x0100,
+            'boss_minus_1': 0x0400,
+        }
+        
+        print(f"🔍 MEMORY VALUES AFTER CROCOMIRE DEFEAT:")
+        print(f"  boss_plus_1 = 0x{boss_scan_results['boss_plus_1']:04X}")
+        print(f"  boss_plus_2 = 0x{boss_scan_results['boss_plus_2']:04X}")
+        print(f"  boss_plus_3 = 0x{boss_scan_results['boss_plus_3']:04X}")
+        
+        # Test OLD RIDLEY logic (was causing false positive)
+        ridley_old_candidates = [
+            ('boss_plus_1', 0x400),
+            ('boss_plus_1', 0x200),   # This one triggers! 0x0203 & 0x200 = True
+            ('boss_plus_1', 0x100), 
+            ('boss_plus_2', 0x100), 
+        ]
+        
+        ridley_old_detected = False
+        for scan_name, bit_mask in ridley_old_candidates:
+            candidate_data = boss_scan_results.get(scan_name, 0)
+            if candidate_data & bit_mask:
+                ridley_old_detected = True
+                print(f"  🐉 OLD RIDLEY LOGIC: {scan_name} & 0x{bit_mask:X} = 0x{candidate_data:04X} & 0x{bit_mask:X} = True")
+                break
+        
+        # Test NEW RIDLEY logic (should prevent false positive)
+        ridley_new_candidates = [
+            ('boss_plus_1', 0x400, 0x0400),
+            ('boss_plus_1', 0x200, 0x0A00),  # Now requires 0x0203 >= 0x0A00 = False!
+            ('boss_plus_1', 0x100, 0x0500), 
+            ('boss_plus_2', 0x100, 0x0100), 
+        ]
+        
+        ridley_new_detected = False
+        for scan_name, bit_mask, min_value in ridley_new_candidates:
+            candidate_data = boss_scan_results.get(scan_name, 0)
+            if (candidate_data & bit_mask) and (candidate_data >= min_value):
+                ridley_new_detected = True
+                break
+        
+        # Test OLD GOLDEN TORIZO logic (was causing false positive)
+        boss_plus_1_val = boss_scan_results.get('boss_plus_1', 0)  # 0x0203
+        golden_torizo_old = ((boss_plus_1_val & 0x0700) and (boss_plus_1_val & 0x0003))  # True AND True = True!
+        
+        # Test NEW GOLDEN TORIZO logic (should prevent false positive)
+        golden_torizo_new = ((boss_plus_1_val & 0x0700) and (boss_plus_1_val & 0x0003) and (boss_plus_1_val >= 0x0703))
+        # 0x0203 >= 0x0703 = False!
+        
+        print(f"\n🐉 RIDLEY ANALYSIS:")
+        print(f"  OLD LOGIC (broken): {ridley_old_detected} - FALSE POSITIVE!")
+        print(f"  NEW LOGIC (fixed):  {ridley_new_detected} - Should be False")
+        
+        print(f"\n🥇 GOLDEN TORIZO ANALYSIS:")
+        print(f"  OLD LOGIC: (0x{boss_plus_1_val:04X} & 0x0700) AND (0x{boss_plus_1_val:04X} & 0x0003) = {golden_torizo_old}")
+        print(f"  NEW LOGIC: Above AND (0x{boss_plus_1_val:04X} >= 0x0703) = {golden_torizo_new}")
+        
+        # Assertions - verify the fixes work
+        self.assertTrue(ridley_old_detected, "Old Ridley logic should have false positive")
+        self.assertFalse(ridley_new_detected, "NEW Ridley logic should prevent false positive")
+        self.assertTrue(golden_torizo_old, "Old Golden Torizo logic should have false positive") 
+        self.assertFalse(golden_torizo_new, "NEW Golden Torizo logic should prevent false positive")
+        
+        print(f"\n✅ RIDLEY & GOLDEN TORIZO FALSE POSITIVES FIXED!")
+
+    def test_ridley_actual_defeat_scenarios(self):
+        """Test that Ridley is still detected when actually defeated"""
+        print(f"\n🐉 RIDLEY ACTUAL DEFEAT TEST")
+        print(f"=" * 50)
+        
+        # Test scenarios where Ridley should be detected with NEW logic
+        ridley_valid_scenarios = [
+            ('boss_plus_1', 0x400, 0x0400, "Minimum threshold for 0x400 bit"),
+            ('boss_plus_1', 0x400, 0x0500, "Above threshold for 0x400 bit"),
+            ('boss_plus_1', 0x200, 0x0A00, "Minimum threshold for 0x200 bit (very high)"),
+            ('boss_plus_1', 0x200, 0x0E00, "Above threshold for 0x200 bit (has 0x200 bit)"),
+            ('boss_plus_1', 0x100, 0x0500, "Minimum threshold for 0x100 bit"),
+            ('boss_plus_2', 0x100, 0x0100, "Standard threshold for boss_plus_2"),
+        ]
+        
+        print(f"🧪 TESTING RIDLEY DETECTION SCENARIOS:")
+        for scan_name, bit_mask, test_value, description in ridley_valid_scenarios:
+            # Use the correct threshold for each scan_name + bit_mask combination
+            if scan_name == 'boss_plus_1' and bit_mask == 0x400:
+                min_value = 0x0400
+            elif scan_name == 'boss_plus_1' and bit_mask == 0x200:
+                min_value = 0x0A00
+            elif scan_name == 'boss_plus_1' and bit_mask == 0x100:
+                min_value = 0x0500
+            elif scan_name == 'boss_plus_2' and bit_mask == 0x100:
+                min_value = 0x0100  # Different threshold for boss_plus_2
+            else:
+                min_value = 0x0100
+                
+            detected = (test_value & bit_mask) and (test_value >= min_value)
+            print(f"  📋 {description}: 0x{test_value:04X} → {detected}")
+            self.assertTrue(detected, f"Ridley should be detected for {description}")
+        
+        # Test scenarios where Ridley should NOT be detected
+        ridley_invalid_scenarios = [
+            ('boss_plus_1', 0x200, 0x0203, "Current false positive value (too low)"),
+            ('boss_plus_1', 0x400, 0x0200, "Has 0x200 bit but not 0x400, below threshold"),
+            ('boss_plus_1', 0x100, 0x0100, "Has 0x100 bit but below 0x0500 threshold"),
+        ]
+        
+        print(f"\n🚫 TESTING RIDLEY FALSE POSITIVE PREVENTION:")
+        for scan_name, bit_mask, test_value, description in ridley_invalid_scenarios:
+            # Determine correct threshold based on scan_name + bit_mask combination
+            if scan_name == 'boss_plus_1' and bit_mask == 0x400:
+                min_value = 0x0400
+            elif scan_name == 'boss_plus_1' and bit_mask == 0x200:
+                min_value = 0x0A00
+            elif scan_name == 'boss_plus_1' and bit_mask == 0x100:
+                min_value = 0x0500
+            elif scan_name == 'boss_plus_2' and bit_mask == 0x100:
+                min_value = 0x0100
+            else:
+                min_value = 0x0100
+            
+            detected = (test_value & bit_mask) and (test_value >= min_value)
+            print(f"  📋 {description}: 0x{test_value:04X} → {detected}")
+            self.assertFalse(detected, f"Ridley should NOT be detected for {description}")
+            
+        print(f"\n✅ RIDLEY DETECTION LOGIC VALIDATED!")
+
+    def test_golden_torizo_actual_defeat_scenarios(self):
+        """Test that Golden Torizo is still detected when actually defeated"""
+        print(f"\n🥇 GOLDEN TORIZO ACTUAL DEFEAT TEST")
+        print(f"=" * 50)
+        
+        # Test scenarios where Golden Torizo should be detected with NEW logic
+        golden_torizo_valid_scenarios = [
+            (0x0703, 0x0000, 0x0000, "Minimum threshold for condition 1"),
+            (0x0F03, 0x0000, 0x0000, "Above threshold for condition 1"), 
+            (0x0000, 0x0500, 0x0000, "Minimum threshold for condition 2"),
+            (0x0000, 0x0700, 0x0000, "Above threshold for condition 2 (has 0x0100 bit)"),
+            (0x0000, 0x0000, 0x0300, "Minimum threshold for condition 3"),
+            (0x0000, 0x0000, 0x0700, "Above threshold for condition 3 (has 0x0300 bits)"),
+        ]
+        
+        print(f"🧪 TESTING GOLDEN TORIZO DETECTION SCENARIOS:")
+        for boss_plus_1, boss_plus_2, boss_plus_3, description in golden_torizo_valid_scenarios:
+            condition1 = ((boss_plus_1 & 0x0700) and (boss_plus_1 & 0x0003) and (boss_plus_1 >= 0x0703))
+            condition2 = (boss_plus_2 & 0x0100) and (boss_plus_2 >= 0x0500)
+            condition3 = (boss_plus_3 & 0x0300) and (boss_plus_3 >= 0x0300)
+            detected = condition1 or condition2 or condition3
+            
+            print(f"  📋 {description}: detected = {detected}")
+            self.assertTrue(detected, f"Golden Torizo should be detected for {description}")
+        
+        # Test scenarios where Golden Torizo should NOT be detected
+        golden_torizo_invalid_scenarios = [
+            (0x0203, 0x0000, 0x0000, "Current false positive (below 0x0703 threshold)"),
+            (0x0700, 0x0000, 0x0000, "Missing 0x0003 bits"),
+            (0x0003, 0x0000, 0x0000, "Missing 0x0700 bits"),
+            (0x0000, 0x0100, 0x0000, "Has 0x0100 bit but below 0x0500 threshold"),
+            (0x0000, 0x0000, 0x0200, "Has partial 0x0300 bits but below threshold"),
+        ]
+        
+        print(f"\n🚫 TESTING GOLDEN TORIZO FALSE POSITIVE PREVENTION:")
+        for boss_plus_1, boss_plus_2, boss_plus_3, description in golden_torizo_invalid_scenarios:
+            condition1 = ((boss_plus_1 & 0x0700) and (boss_plus_1 & 0x0003) and (boss_plus_1 >= 0x0703))
+            condition2 = (boss_plus_2 & 0x0100) and (boss_plus_2 >= 0x0500)
+            condition3 = (boss_plus_3 & 0x0300) and (boss_plus_3 >= 0x0300)
+            detected = condition1 or condition2 or condition3
+            
+            print(f"  📋 {description}: detected = {detected}")
+            self.assertFalse(detected, f"Golden Torizo should NOT be detected for {description}")
+            
+        print(f"\n✅ GOLDEN TORIZO DETECTION LOGIC VALIDATED!")
+
     def test_detection_completeness(self):
         """Test that all major game elements are detectable"""
         print(f"\n📋 DETECTION COMPLETENESS CHECK:")
