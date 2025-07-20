@@ -4465,3 +4465,643 @@
 [2025-07-19 20:23:19] BOSS SCAN - Main=0x0304, boss_scan_1=0x1007, boss_scan_2=0xB193, boss_scan_3=0x97B1, boss_scan_4=0xB197, boss_scan_5=0x0801, boss_scan_6=0x0203
 [2025-07-19 20:23:20] BOSS SCAN - Main=0x0304, boss_scan_1=0x1007, boss_scan_2=0xB193, boss_scan_3=0x97B1, boss_scan_4=0xB197, boss_scan_5=0x0801, boss_scan_6=0x0203
 [2025-07-19 20:23:21] BOSS SCAN - Main=0x0304, boss_scan_1=0x1007, boss_scan_2=0xB193, boss_scan_3=0x97B1, boss_scan_4=0xB197, boss_scan_5=0x0801, boss_scan_6=0x0203
+[2025-07-19 20:28:46] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:30:28] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:31:13] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:31:13] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:31:35] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:31:35] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:36] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:36] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:38] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:38] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:39] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:39] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:39] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:39] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:40] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:40] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:40] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:40] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:41] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:41] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:42] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:42] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:43] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:43] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:44] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:44] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:45] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:45] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:46] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:46] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:47] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:47] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:48] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:48] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:49] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:49] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:50] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:50] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:51] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:51] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:52] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:52] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:53] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:53] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:54] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:54] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:55] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:55] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:55] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:55] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:56] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:56] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:57] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:57] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:58] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:58] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:32:59] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:32:59] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:00] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:00] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:01] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:01] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:02] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:02] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:03] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:03] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:04] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:04] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:05] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:05] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:06] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:06] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:07] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:07] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:08] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:08] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:09] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:09] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:10] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:10] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:11] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:11] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:12] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:12] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:13] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:13] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:14] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:14] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:15] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:15] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:16] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:16] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:17] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:17] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:18] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:18] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:19] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:19] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:20] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:20] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:21] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:21] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:22] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:22] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:23] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:23] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:24] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:24] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:25] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:25] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:25] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:25] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:26] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:26] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:27] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:27] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:28] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:28] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:29] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:29] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:30] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:30] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:31] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:31] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:32] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:32] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:33] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:33] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:34] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:34] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:35] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:35] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:36] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:36] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:37] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:37] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:38] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:38] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:39] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:39] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:40] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:40] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:41] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:41] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:33:42] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:43] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:44] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:45] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:46] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007, scan_alt_2=0xB193
+[2025-07-19 20:33:47] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:33:48] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:33:49] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:33:50] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:33:51] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:33:52] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:33:53] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:33:54] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:33:55] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:33:56] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:33:57] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:33:58] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:33:59] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:00] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:01] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:02] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:03] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:04] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:05] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:06] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:07] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:08] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:09] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:10] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:11] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:12] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:13] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:14] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:15] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:16] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:17] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:18] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:19] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:20] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:21] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:22] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:23] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:24] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:25] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:26] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:27] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:28] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:29] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:30] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:31] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:32] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:33] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:34] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:35] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:36] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:37] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:38] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:39] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:40] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:41] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:42] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:43] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:44] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:45] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:46] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:47] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:48] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:49] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:50] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:51] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:52] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:53] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:54] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:55] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:56] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:57] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:58] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:34:59] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:00] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:01] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:02] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:03] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:04] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:05] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:06] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:07] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:08] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:09] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:10] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:11] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:12] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:13] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:14] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:15] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:16] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:17] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:18] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:19] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:20] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:21] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:22] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:23] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:24] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:25] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:26] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:27] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:28] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:29] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:30] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:31] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:32] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:33] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:34] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:35] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:36] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:37] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:38] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:39] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:40] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:41] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:42] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:43] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:44] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:45] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:46] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:47] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:48] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:49] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:50] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:51] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:52] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:53] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:54] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:55] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:56] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:57] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:58] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:35:59] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:00] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:01] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:02] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:03] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:04] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:05] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:06] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:07] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:08] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:09] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:10] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:11] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:12] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:13] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:14] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:15] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:16] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:17] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:18] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:19] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:20] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:21] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:22] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:23] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:24] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:25] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:26] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:27] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:28] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:29] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:30] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:31] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:32] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:33] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:34] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:35] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:36] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:37] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:38] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:39] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:40] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:41] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:42] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:43] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:44] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:45] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:46] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:47] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:48] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:49] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:50] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:51] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:52] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:53] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:54] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:55] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:56] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:57] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:58] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:36:59] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:37:00] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:37:01] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:37:02] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:37:03] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:37:04] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:37:05] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:37:06] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:37:07] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:37:08] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:37:09] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0002, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:44:18] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:44:18] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:44:32] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:44:32] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:45:01] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:45:01] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:45:25] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:45:25] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:45:45] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:45:45] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:47:53] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:47:53] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:47:53] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:47:53] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:47:54] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:47:54] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:47:55] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:47:55] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:47:56] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:47:56] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:47:57] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:47:57] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:47:58] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:47:58] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:47:59] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:47:59] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:00] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:00] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:01] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:01] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:02] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:02] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:03] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:03] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:04] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:04] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:05] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:05] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:06] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:06] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:07] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:07] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:08] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:08] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:09] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:09] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:10] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:10] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:11] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:11] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:12] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:12] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:13] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:13] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:14] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:14] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:15] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:15] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:16] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:16] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:17] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:17] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:18] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:18] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:19] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:19] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:20] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:20] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:21] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:21] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:22] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:22] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:23] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:23] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:24] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:24] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:25] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:25] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:26] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:26] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:27] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:27] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:28] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:28] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:29] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:29] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:30] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:30] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:31] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:31] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:32] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:32] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:33] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:33] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:34] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:34] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:35] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:35] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:36] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:36] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:37] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:37] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:38] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:38] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:39] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:39] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:40] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:40] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:41] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:41] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:42] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:42] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:43] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:43] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:44] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:44] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:45] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:45] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:46] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:46] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:47] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:47] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:48] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:48] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:49] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:49] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:50] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:50] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:51] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:51] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:52] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:52] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:53] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:53] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:54] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:54] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:55] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:55] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:56] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:56] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:57] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:57] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:58] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:58] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:48:59] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:48:59] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:00] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:00] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:01] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:01] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:02] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:02] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:03] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:03] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:04] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:04] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:05] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:05] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:06] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:06] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:07] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:07] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:08] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:08] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:09] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:09] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:10] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:10] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:11] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:11] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:12] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:12] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:13] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:13] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:14] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:14] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:15] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:15] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:16] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:16] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:17] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:17] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:18] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:18] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:19] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:19] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:20] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:20] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:21] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:21] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:22] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:22] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:23] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:23] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:24] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:24] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:25] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:25] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:26] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:26] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:27] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:27] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:28] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:28] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:29] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:29] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:30] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:30] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:31] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:31] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:32] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:32] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:33] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:33] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:34] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:34] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:35] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:35] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:36] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:36] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:37] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:37] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:38] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:38] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:39] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:39] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:40] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:40] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:41] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:41] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:42] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:42] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:43] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:43] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:44] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:44] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:45] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:45] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:46] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:46] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:47] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:47] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:48] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:48] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:49] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:49] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:50] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:50] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:51] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:51] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:52] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:52] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:53] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:53] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:54] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:54] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:55] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:55] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:56] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:56] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:57] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:57] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:58] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:58] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:49:59] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:49:59] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:50:00] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:50:00] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:50:01] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:50:01] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:50:02] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:50:02] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:50:03] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:50:03] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:50:04] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:50:04] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:50:05] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:50:05] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:50:06] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:50:06] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:50:07] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:50:07] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:50:08] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:50:08] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:50:09] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:50:09] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001
+[2025-07-19 20:50:10] PHANTOON SCAN - boss_plus_1=0x0203, boss_plus_2=0x0102, boss_plus_3=0x0001, boss_minus_1=0x0400, scan_alt_1=0x1007
+[2025-07-19 20:50:10] PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x0001

@@ -230,13 +230,53 @@ class SuperMetroidUDPTracker:
                 # Get Crocomire from special address (verified from logs: boss_scan_6=0x0203 & 0x02)
                 crocomire_data = self.read_word(0x7ED829)  # boss_scan_6 address
                 
+                # PHANTOON SCANNING - Check multiple addresses like we did for Crocomire
+                phantoon_candidates = {
+                    'boss_plus_1': 0x7ED829,    # Same as Crocomire
+                    'boss_plus_2': 0x7ED82A,    # Adjacent to main boss area  
+                    'boss_plus_3': 0x7ED82B,    # Further adjacent
+                    'boss_minus_1': 0x7ED827,   # Before main boss area
+                    'scan_alt_1': 0x7E09A6,     # Previous scan addresses
+                    'scan_alt_2': 0x7E0D7C,     
+                }
+                
+                phantoon_scan_results = {}
+                for scan_name, addr in phantoon_candidates.items():
+                    scan_data = self.read_word(addr)
+                    if scan_data is not None:
+                        phantoon_scan_results[scan_name] = scan_data
+                
+                # Log Phantoon scan results for debugging
+                if phantoon_scan_results:
+                    # Only log if we find non-zero values (potential Phantoon flags)
+                    interesting_scans = {k: v for k, v in phantoon_scan_results.items() if v != 0}
+                    if interesting_scans:
+                        debug_msg = f"PHANTOON SCAN - " + ", ".join([f"{k}=0x{v:04X}" for k, v in interesting_scans.items()])
+                        log_to_file(debug_msg)
+                        print(f"👻 PHANTOON SCAN: Found potential flags!")
+                
+                # PHANTOON DETECTION - Based on scan results!
+                # From logs: boss_plus_3=0x0001 has bit 0x01 set - this is likely Phantoon!
+                phantoon_detected = False
+                boss_plus_3_data = phantoon_scan_results.get('boss_plus_3', 0)
+                if boss_plus_3_data & 0x01:
+                    phantoon_detected = True
+                    debug_msg = f"PHANTOON FOUND - boss_plus_3 (0x7ED82B) bit 0x01 = True, value=0x{boss_plus_3_data:04X}"
+                    log_to_file(debug_msg)
+                    print(f"👻 PHANTOON DETECTED: boss_plus_3 bit 0x01! Value: 0x{boss_plus_3_data:04X}")
+                else:
+                    print(f"👻 Phantoon check: boss_plus_3=0x{boss_plus_3_data:04X}, bit 0x01 = {bool(boss_plus_3_data & 0x01)}")
+                
+                # Add debug info for Phantoon scanning
+                stats['debug']['phantoon_scans'] = phantoon_scan_results
+                
                 # UNIT TEST CONFIRMED: 0x304 has bits 2, 8, 9 set (Bomb Torizo, Kraid, Spore Spawn)
                 stats['bosses'] = {
                     'bomb_torizo': bool(bosses_data & 0x04),    # Bit 2 ✅ VERIFIED
                     'kraid': bool(bosses_data & 0x100),         # Bit 8 ✅ VERIFIED 
                     'spore_spawn': bool(bosses_data & 0x200),   # Bit 9 ✅ VERIFIED
                     'crocomire': bool(crocomire_data & 0x02) if crocomire_data is not None else False,  # Special address! ✅
-                    'phantoon': bool(bosses_data & 0x20),       # Bit 5 - TBD
+                    'phantoon': phantoon_detected,              # 🔍 SCANNING MULTIPLE ADDRESSES!
                     'botwoon': bool(bosses_data & 0x40),        # Bit 6 - TBD  
                     'draygon': bool(bosses_data & 0x80),        # Bit 7 - TBD
                     'ridley': bool(bosses_data & 0x10),         # Bit 4 - TBD
