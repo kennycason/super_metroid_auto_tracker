@@ -8,7 +8,14 @@ import socket
 import struct
 import time
 import json
+import datetime
 from typing import Dict, Optional
+
+def log_to_file(message):
+    """Log debug messages to file for easy debugging"""
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open("tracker_debug.log", "a") as f:
+        f.write(f"[{timestamp}] {message}\n")
 
 class SuperMetroidUDPTracker:
     def __init__(self, host="localhost", port=55355):
@@ -202,7 +209,7 @@ class SuperMetroidUDPTracker:
                 stats['items']['varia'] = bool(items_data & 0x01)
                 stats['items']['gravity'] = bool(items_data & 0x20)
                 stats['items']['hijump'] = bool(items_data & 0x100)
-                stats['items']['speed'] = bool(items_data & 0x200)
+                stats['items']['speed'] = bool(items_data & 0x2000)    # Fixed: bit 13, not bit 9!
                 stats['items']['space'] = bool(items_data & 0x02)
                 stats['items']['screw'] = bool(items_data & 0x08)
                 stats['items']['spring'] = bool(items_data & 0x02)
@@ -220,17 +227,22 @@ class SuperMetroidUDPTracker:
                 
             # Parse bosses defeated (update bit mappings based on debug)
             if bosses_data is not None:
+                # Log to file for debugging
+                debug_msg = f"Items: 0x{items_data:04X}, Beams: 0x{beams_data:04X}, Bosses: 0x{bosses_data:04X}"
+                log_to_file(debug_msg)
+                log_to_file(f"Speed Booster fixed: 0x{items_data:04X} & 0x2000 = {bool(items_data & 0x2000)}")
+                
                 # bosses_data is already unpacked by self.read_word()
                 stats['bosses'] = {
-                    'bomb_torizo': bool(bosses_data & 0x04),    # Bit 2 - WORKING ✓
-                    'spore_spawn': bool(bosses_data & 0x01),    # Try bit 0 instead of bit 1
-                    'crocomire': bool(bosses_data & 0x08),      # Bit 3
-                    'kraid': bool(bosses_data & 0x10),          # Bit 4  
-                    'phantoon': bool(bosses_data & 0x20),       # Bit 5
-                    'botwoon': bool(bosses_data & 0x40),        # Bit 6
-                    'draygon': bool(bosses_data & 0x80),        # Bit 7
-                    'ridley': bool(bosses_data & 0x100),        # Bit 8
-                    'mother_brain': bool(bosses_data & 0x200),  # Bit 9
+                    'bomb_torizo': bool(bosses_data & 0x04),    # Bit 2 - WORKING ✅
+                    'kraid': bool(bosses_data & 0x100),         # Bit 8 - FIXED from user feedback! 🎯
+                    'spore_spawn': bool(bosses_data & 0x200),   # Bit 9 - Testing...
+                    'crocomire': bool(bosses_data & 0x08),      # Bit 3 - TBD
+                    'phantoon': bool(bosses_data & 0x20),       # Bit 5 - TBD
+                    'botwoon': bool(bosses_data & 0x40),        # Bit 6 - TBD
+                    'draygon': bool(bosses_data & 0x80),        # Bit 7 - TBD
+                    'ridley': bool(bosses_data & 0x10),         # Bit 4 - Swapped with Kraid
+                    'mother_brain': bool(bosses_data & 0x01),   # Bit 0 - TBD
                 }
             else:
                 stats['bosses'] = {}
