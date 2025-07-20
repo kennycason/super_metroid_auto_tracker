@@ -25,6 +25,14 @@ class TrackerHandler(BaseHTTPRequestHandler):
             self.serve_file('super_metroid_tracker.html')
         elif self.path.endswith('.html'):
             self.serve_file(self.path[1:])  # Remove leading /
+        elif self.path.endswith('.png'):
+            self.serve_static_file(self.path[1:], 'image/png')  # Serve PNG images
+        elif self.path.endswith('.jpg') or self.path.endswith('.jpeg'):
+            self.serve_static_file(self.path[1:], 'image/jpeg')  # Serve JPEG images
+        elif self.path.endswith('.css'):
+            self.serve_static_file(self.path[1:], 'text/css')  # Serve CSS files
+        elif self.path.endswith('.js'):
+            self.serve_static_file(self.path[1:], 'application/javascript')  # Serve JS files
         else:
             self.send_error(404)
             
@@ -74,6 +82,22 @@ class TrackerHandler(BaseHTTPRequestHandler):
             self.send_header('Content-Length', len(content.encode()))
             self.end_headers()
             self.wfile.write(content.encode())
+        except FileNotFoundError:
+            self.send_error(404)
+        except Exception as e:
+            self.send_error(500)
+            
+    def serve_static_file(self, filename, content_type):
+        """Serve static files (images, CSS, JS) as binary data"""
+        try:
+            with open(filename, 'rb') as f:  # Open in binary mode for images
+                content = f.read()
+                
+            self.send_response(200)
+            self.send_header('Content-Type', content_type)
+            self.send_header('Content-Length', len(content))
+            self.end_headers()
+            self.wfile.write(content)  # Write binary data directly
         except FileNotFoundError:
             self.send_error(404)
         except Exception as e:

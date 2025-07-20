@@ -12,17 +12,18 @@
             margin: 20px; 
         }
         .container { max-width: 600px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 15px; }
+        .header { text-align: center; margin-bottom: 8px; }
+        .header h1 { font-size: 20px; margin: 5px 0; }
         .status-row { 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             gap: 15px; 
-            margin: 10px 0;
+            margin: 5px 0;
         }
         .status { 
-            padding: 10px; 
-            margin: 10px 0; 
+            padding: 8px; 
+            margin: 5px 0; 
             border: 1px solid #00ff00; 
             border-radius: 5px; 
             text-align: center;
@@ -33,7 +34,7 @@
             display: grid; 
             grid-template-columns: 1fr 1fr; 
             gap: 10px; 
-            margin: 10px 0; 
+            margin: 8px 0; 
         }
         .stat-box { 
             border: 1px solid #00ff00; 
@@ -56,22 +57,23 @@
         }
         .game-info { 
             text-align: center; 
-            margin: 20px 0; 
-            padding: 10px; 
+            margin: 8px 0; 
+            padding: 8px; 
             border: 1px solid #00ff00; 
             border-radius: 5px;
+            background: #001a00;
         }
         button { 
             background: #003300; 
             color: #00ff00; 
             border: 1px solid #00ff00; 
-            padding: 10px 15px; 
+            padding: 8px 12px; 
             margin: 5px; 
             border-radius: 3px; 
             cursor: pointer;
         }
         button:hover { background: #005500; }
-        .location { font-size: 18px; margin: 10px 0; }
+        .location { font-size: 14px; margin: 0; }
         .error { color: #ff0000; }
         
         /* Item/Boss Grid Styles */
@@ -80,12 +82,44 @@
             grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); 
             gap: 8px; 
             margin: 8px 0; 
-            padding: 10px;
+            padding: 8px;
             border: 1px solid #00ff00;
             border-radius: 5px;
             background: #001a00;
         }
         .tracking-section { margin: 8px 0; }
+        
+        /* Single 16x16 Tile Sprite System - ONE tile fills the container */
+        .sprite {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            background-image: url('item_sprites.png');
+            background-repeat: no-repeat;
+            background-size: 400px 300px; /* Scale so each 16x16 tile becomes 50x50: 8*50=400px, 6*50=300px */
+            image-rendering: pixelated;
+            vertical-align: middle;
+            margin-right: 4px;
+        }
+        
+        /* SPRITE CLASSES - Static sprites using first frame only (no animations) */
+        .sprite-morph-ball { 
+            background-position: 0px 0px; /* First frame of morph ball */
+        }
+        
+        .sprite-bomb { 
+            background-position: -32px 0px; /* First frame of bomb animation */
+        }
+        
+        .sprite-charge-beam { 
+            background-position: -96px -48px; /* First frame of charge beam animation */
+        }
+        
+        .sprite-grapple { 
+            background-position: -64px -32px; /* First frame of grapple animation */
+        }
+        
+
         .section-title { 
             font-size: 18px; 
             margin-bottom: 10px; 
@@ -150,7 +184,7 @@
 
         <div class="game-info" id="gameInfo" style="display:none;">
             <div class="location">
-                <span id="location">📍 Crateria</span> 
+                <span id="location">Crateria</span> 
                 <span id="roomInfo">Room: 0</span>
             </div>
         </div>
@@ -159,6 +193,7 @@
             <div class="stat-box">
                 <div class="stat-label">ENERGY</div>
                 <div class="stat-value" id="healthValue">??? / ???</div>
+                <div class="stat-value-reserve" id="reserveValue" style="display:none; font-size: 10px; color: #ffaa00; margin-top: 2px;">Reserve: ??? / ???</div>
                 <div class="stat-bar">
                     <div class="stat-bar-fill" id="healthBar" style="width: 0%"></div>
                 </div>
@@ -194,16 +229,16 @@
             <!-- <div class="section-title">🔧 Equipment & Items</div> -->
             <div class="tracking-grid" id="itemsGrid">
                 <!-- Major Items -->
-                <div class="item-tile" data-item="morph" title="Morph Ball">⚫<div class="item-name">Morph</div></div>
-                <div class="item-tile" data-item="bombs" title="Bombs">💣<div class="item-name">Bombs</div></div>
-                <div class="item-tile" data-item="charge" title="Charge Beam">⚡<div class="item-name">Charge</div></div>
+                <div class="item-tile" data-item="morph" title="Morph Ball"><span class="sprite sprite-morph-ball"></span><div class="item-name">Morph</div></div>
+                <div class="item-tile" data-item="bombs" title="Bombs"><span class="sprite sprite-bomb"></span><div class="item-name">Bombs</div></div>
+                <div class="item-tile" data-item="charge" title="Charge Beam"><span class="sprite sprite-charge-beam"></span><div class="item-name">Charge</div></div>
                 <div class="item-tile" data-item="spazer" title="Spazer Beam">〰️<div class="item-name">Spazer</div></div>
                 <div class="item-tile" data-item="varia" title="Varia Suit">🛡️<div class="item-name">Varia</div></div>
                 <div class="item-tile" data-item="hijump" title="Hi-Jump Boots">👢<div class="item-name">HiJump</div></div>
                 <div class="item-tile" data-item="speed" title="Speed Booster">💨<div class="item-name">Speed</div></div>
                 <div class="item-tile" data-item="wave" title="Wave Beam">🌊<div class="item-name">Wave</div></div>
                 <div class="item-tile" data-item="ice" title="Ice Beam">❄️<div class="item-name">Ice</div></div>
-                <div class="item-tile" data-item="grapple" title="Grappling Beam">🪝<div class="item-name">Grapple</div></div>
+                <div class="item-tile" data-item="grapple" title="Grappling Beam"><span class="sprite sprite-grapple"></span><div class="item-name">Grapple</div></div>
                 <div class="item-tile" data-item="xray" title="X-Ray Scope">📡<div class="item-name">X-Ray</div></div>
                 <div class="item-tile" data-item="plasma" title="Plasma Beam">🔥<div class="item-name">Plasma</div></div>
                 <div class="item-tile" data-item="gravity" title="Gravity Suit">🌌<div class="item-name">Gravity</div></div>
@@ -225,9 +260,8 @@
                 <div class="item-tile" data-boss="botwoon" title="Botwoon">🐍<div class="item-name">Botwoon</div></div>
                 <div class="item-tile" data-boss="draygon" title="Draygon">🐲<div class="item-name">Draygon</div></div>
                 <div class="item-tile" data-boss="ridley" title="Ridley">🦅<div class="item-name">Ridley</div></div>
-                <div class="item-tile" data-boss="gold_torizo" title="Golden Torizo">👑<div class="item-name">G.Torizo</div></div>
-                <div class="item-tile" data-boss="mother_brain_1" title="Mother Brain Phase 1">🧠<div class="item-name">MB-1</div></div>
-                <div class="item-tile" data-boss="mother_brain_2" title="Mother Brain Phase 2">💀<div class="item-name">MB-2</div></div>
+                <div class="item-tile" data-boss="golden_torizo" title="Golden Torizo">👑<div class="item-name">G.Torizo</div></div>
+                <div class="item-tile" data-boss="mother_brain" title="Mother Brain">🧠<div class="item-name">M.Brain</div></div>
             </div>
         </div>
 
@@ -238,7 +272,7 @@
                 <button onclick="clearLogs()" style="background: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 4px 8px; cursor: pointer; font-size: 12px;">🗑️ Clear</button>
             </div>
         </div>
-        <div id="debug" style="font-size: 12px; opacity: 0.7; max-height: 200px; overflow-y: auto; border: 1px solid #003300; padding: 10px;"></div>
+        <div id="debug" style="font-size: 12px; opacity: 0.7; max-height: 200px; overflow-y: auto; border: 1px solid #003300; padding: 8px;"></div>
     </div>
 
     <script>
@@ -441,6 +475,15 @@
             updateStatDisplay('super', stats.supers, stats.max_supers);
             updateStatDisplay('power', stats.power_bombs, stats.max_power_bombs);
             
+            // Update reserve energy (show only if available)
+            const reserveEl = document.getElementById('reserveValue');
+            if (stats.max_reserve_energy && stats.max_reserve_energy > 0) {
+                reserveEl.textContent = `Reserve: ${stats.reserve_energy} / ${stats.max_reserve_energy}`;
+                reserveEl.style.display = 'block';
+            } else {
+                reserveEl.style.display = 'none';
+            }
+            
             // Update item and boss tiles
             updateItemTiles(stats.items || {});
             updateBossTiles(stats.bosses || {});
@@ -451,7 +494,7 @@
                 const locationEl = document.getElementById('location');
                 const roomEl = document.getElementById('roomInfo');
                 
-                locationEl.textContent = `📍 Location: ${stats.area_name}`;
+                locationEl.textContent = `${stats.area_name}`;
                 roomEl.textContent = `Room: ${stats.room_id || 'Unknown'}`;
             }
         }
