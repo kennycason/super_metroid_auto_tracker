@@ -212,7 +212,7 @@
         .quantity-tile {
             position: relative;
             display: inline-block;
-            margin-right: 8px;
+            /* margin-right: 8px; */
             text-align: center;
         }
 
@@ -324,7 +324,7 @@
             transition: all 0.3s ease;
             position: relative;
             cursor: pointer;
-            margin-bottom: 18px;
+            /* margin-bottom: 18px; */
             opacity: 0.4; /* Grayed out by default */
             filter: grayscale(100%);
         }
@@ -343,6 +343,7 @@
             filter: grayscale(0%);
         }
         .item-name { 
+            display: none;
             position: absolute; 
             bottom: -16px; 
             left: 50%; 
@@ -722,13 +723,8 @@
                 const energyTile = document.querySelector('[data-item="energy-tank"]');
                 if (energyEl && energyTile) {
                     energyEl.textContent = `${stats.health || 0}/${stats.max_health || 99}`;
-                    // Gray out if no energy tanks collected (max health = 99, starting health)
-                    const maxHealth = stats.max_health || 99;
-                    if (maxHealth <= 99) {
-                        energyTile.classList.add('grayed-out');
-                    } else {
-                        energyTile.classList.remove('grayed-out');
-                    }
+                    // Energy tanks are ALWAYS obtained since you start with at least one
+                    energyTile.classList.remove('grayed-out');
                 }
                 
                 // Reserve Tanks: show current/max reserve energy
