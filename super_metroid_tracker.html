@@ -109,7 +109,7 @@
         
         /* SPRITE SHEET COORDINATE MAPPING
          * 16x16 tiles, using first tile of each 32x16 item
-         * Row 0: Morph ball, Bomb, Energy tank
+         * Row 0: Morph ball, Bomb, Energy tank, Energy Tank V2
          * Row 1: Missile, Super missile, Power bomb, Reserve tanks
          * Row 2: Hi jump, Speed booster, Grappling beam, X-ray scope  
          * Row 3: Spring ball, Space jump, Screw attack, Charge beam
@@ -207,26 +207,6 @@
             background-position: -128px -320px; /* Row 5, Col 1 (32px * 4) */
         }
 
-        /* === QUANTITY COLLECTIBLE SPRITES === */
-        .sprite-energy-tank {
-            background-position: -128px 0px; /* Row 0, Col 2 */
-        }
-        
-        .sprite-missile {
-            background-position: 0px -64px; /* Row 1, Col 0 */
-        }
-        
-        .sprite-super-missile {
-            background-position: -64px -64px; /* Row 1, Col 1 */
-        }
-        
-        .sprite-power-bomb {
-            background-position: -128px -64px; /* Row 1, Col 2 */
-        }
-        
-        .sprite-reserve-tank {
-            background-position: -192px -64px; /* Row 1, Col 3 */
-        }
 
         /* === QUANTITY TILE STYLING === */
         .quantity-tile {
@@ -383,7 +363,7 @@
             </div>
         </div>
 
-        <div class="stats-grid">
+        <!-- <div class="stats-grid">
             <div class="stat-box">
                 <div class="stat-label">ENERGY</div>
                 <div class="stat-value" id="healthValue">??? / ???</div>
@@ -416,7 +396,7 @@
                     <div class="stat-bar-fill" id="powerBar" style="width: 0%"></div>
                 </div>
             </div>
-        </div>
+        </div> -->
 
         <!-- Quantity Items Section -->
         <div class="tracking-section">
