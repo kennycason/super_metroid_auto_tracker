@@ -405,6 +405,10 @@
                     <span class="sprite sprite-energy-tank"></span>
                     <div class="quantity-display" id="energyTankCount">0</div>
                 </div>
+                <div class="quantity-tile" data-item="reserve-tank" title="Reserve Tanks">
+                    <span class="sprite sprite-reserve-tank"></span>
+                    <div class="quantity-display" id="reserveTankCount">0</div>
+                </div>
                 <div class="quantity-tile" data-item="missile" title="Missiles">
                     <span class="sprite sprite-missile"></span>
                     <div class="quantity-display" id="missileCount">0/0</div>
@@ -416,10 +420,6 @@
                 <div class="quantity-tile" data-item="power-bomb" title="Power Bombs">
                     <span class="sprite sprite-power-bomb"></span>
                     <div class="quantity-display" id="powerBombCount">0/0</div>
-                </div>
-                <div class="quantity-tile" data-item="reserve-tank" title="Reserve Tanks">
-                    <span class="sprite sprite-reserve-tank"></span>
-                    <div class="quantity-display" id="reserveTankCount">0</div>
                 </div>
             </div>
         </div>
@@ -669,19 +669,26 @@
         }
 
         function updateAllDisplays(stats) {
+            // Skip update if no valid stats
+            if (!stats) {
+                return;
+            }
+            
             // Update all stat displays
-            updateStatDisplay('health', stats.health, stats.max_health);
-            updateStatDisplay('missile', stats.missiles, stats.max_missiles);
-            updateStatDisplay('super', stats.supers, stats.max_supers);
-            updateStatDisplay('power', stats.power_bombs, stats.max_power_bombs);
+            updateStatDisplay('health', stats.health || 0, stats.max_health || 0);
+            updateStatDisplay('missile', stats.missiles || 0, stats.max_missiles || 0);
+            updateStatDisplay('super', stats.supers || 0, stats.max_supers || 0);
+            updateStatDisplay('power', stats.power_bombs || 0, stats.max_power_bombs || 0);
             
             // Update reserve energy (show only if available)
             const reserveEl = document.getElementById('reserveValue');
-            if (stats.max_reserve_energy && stats.max_reserve_energy > 0) {
-                reserveEl.textContent = `Reserve: ${stats.reserve_energy} / ${stats.max_reserve_energy}`;
-                reserveEl.style.display = 'block';
-            } else {
-                reserveEl.style.display = 'none';
+            if (reserveEl) {
+                if (stats.max_reserve_energy && stats.max_reserve_energy > 0) {
+                    reserveEl.textContent = `Reserve: ${stats.reserve_energy || 0} / ${stats.max_reserve_energy}`;
+                    reserveEl.style.display = 'block';
+                } else {
+                    reserveEl.style.display = 'none';
+                }
             }
             
             // Update quantity displays
@@ -693,18 +700,27 @@
         }
 
         function updateQuantityDisplays(stats) {
-            // Energy Tanks (calculated from max health: each tank = 100 energy, minus base 99)
-            const energyTanks = Math.max(0, Math.floor((stats.max_health - 99) / 100));
-            document.getElementById('energyTankCount').textContent = energyTanks;
+            // Skip update if no valid stats (when game not loaded)
+            if (!stats || typeof stats.max_health === 'undefined') {
+                return;
+            }
             
-            // Reserve Tanks (calculated from max reserve: each tank = 100 energy)
-            const reserveTanks = Math.floor((stats.max_reserve_energy || 0) / 100);
-            document.getElementById('reserveTankCount').textContent = reserveTanks;
-            
-            // Missiles, Super Missiles, Power Bombs
-            document.getElementById('missileCount').textContent = `${stats.missiles}/${stats.max_missiles}`;
-            document.getElementById('superMissileCount').textContent = `${stats.supers}/${stats.max_supers}`;
-            document.getElementById('powerBombCount').textContent = `${stats.power_bombs}/${stats.max_power_bombs}`;
+            try {
+                // Energy Tanks (calculated from max health: each tank = 100 energy, minus base 99)
+                const energyTanks = Math.max(0, Math.floor((stats.max_health - 99) / 100));
+                document.getElementById('energyTankCount').textContent = energyTanks;
+                
+                // Reserve Tanks (calculated from max reserve: each tank = 100 energy)
+                const reserveTanks = Math.floor((stats.max_reserve_energy || 0) / 100);
+                document.getElementById('reserveTankCount').textContent = reserveTanks;
+                
+                // Missiles, Super Missiles, Power Bombs
+                document.getElementById('missileCount').textContent = `${stats.missiles || 0}/${stats.max_missiles || 0}`;
+                document.getElementById('superMissileCount').textContent = `${stats.supers || 0}/${stats.max_supers || 0}`;
+                document.getElementById('powerBombCount').textContent = `${stats.power_bombs || 0}/${stats.max_power_bombs || 0}`;
+            } catch (error) {
+                console.warn('Failed to update quantity displays:', error);
+            }
         }
 
         function updateLocationInfo(stats) {
