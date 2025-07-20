@@ -1,215 +1,149 @@
-# 🚀 Super Metroid Live Tracker
+# Super Metroid Live Tracker
 
-![Super Metroid Live Tracker](screenshot_v3.png)
+A real-time Super Metroid item and boss tracker that reads game memory from RetroArch via UDP.
 
-A **real-time overlay tracker** for Super Metroid that displays live game stats, items, and boss progress directly from RetroArch. Perfect for speedruns, casual play, or streaming!
+## Features
 
-## ✨ Features
+- 🎮 **Live Game Tracking** - Real-time item and boss status
+- 🔧 **RetroArch Integration** - Connects via UDP to read game memory  
+- 🌐 **Web Interface** - Clean, responsive UI at localhost:3000
+- 🎯 **Accurate Detection** - Advanced boss detection using multiple memory addresses
+- ⚡ **Compact Layout** - 1px spacing between tiles for maximum efficiency
 
-### 📊 **Real-Time Stats**
-- **Energy/Health** with current/max display
-- **Missiles, Super Missiles, Power Bombs** counts
-- **Location tracking** (Area + Room ID)
-- **Live updates** every second
+## Prerequisites
 
-### 🎮 **Item & Boss Tracking**
-- **16 Major Items** - Morph Ball, Bombs, Varia Suit, Speed Booster, etc.
-- **11 Boss Battles** - Kraid, Ridley, Mother Brain, etc.
-- **Visual indicators** - Items glow green when obtained, bosses glow red when defeated
-- **Grayed out uncollected items** for clear visual status
+1. **Python 3.13+** with virtual environment
+2. **RetroArch** with network commands enabled
+3. **Super Metroid ROM** loaded in RetroArch
 
-### 🎨 **Overlay-Friendly Design**
-- **Compact layout** optimized for streaming overlays
-- **Retro terminal aesthetic** with green Matrix-style theme
-- **Responsive grid layout** that adapts to different screen sizes
-- **Clean emojis** for instant visual recognition
+## Setup
 
-## 🏗️ Architecture
-
-```
-Super Metroid (RetroArch) 
-    ↓ UDP (port 55355)
-Python UDP Tracker ─→ Web Server (port 3000)
-    ↓ HTTP JSON API
-HTML Live Tracker (Browser)
-```
-
-### 🔧 **Why UDP Direct Connection?**
-
-We **bypass QUsb2Snes entirely** and connect directly to RetroArch via UDP because:
-- ✅ **No "trusted origin" security issues**
-- ✅ **Faster response times** (no middleware)
-- ✅ **More reliable** (fewer connection drops)
-- ✅ **Simpler setup** (one less dependency)
-
-## 🚀 Quick Start
-
-### Prerequisites
-- **RetroArch** with Super Metroid loaded
-- **Python 3.7+** with pip
-- **Network commands enabled** in RetroArch
-
-### 1. Setup RetroArch
-Ensure your `retroarch.cfg` has:
-```ini
-network_cmd_enable = "true"
-network_cmd_port = "55355"
+### 1. Create Virtual Environment
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 ### 2. Install Dependencies
 ```bash
-pip install -r requirements.txt
+pip install flask requests
 ```
 
-### 3. Start the Tracker
+### 3. Configure RetroArch
+Enable network commands in RetroArch:
+- Settings → Network → Network Commands → ON
+- Default port: 55355
+
+## Server Management Commands
+
+### 🚀 Start Server (Recommended)
 ```bash
-python tracker_web_server.py
+# Start the tracker (includes both UDP tracker and web server)
+source venv/bin/activate && python tracker_web_server.py
 ```
 
-### 4. Open in Browser
-Navigate to: **http://localhost:3000/**
+### 🔄 Restart Server (Clean)
+```bash
+# Kill all tracker processes and restart
+pkill -f "tracker_web_server.py\|super_metroid_udp_tracker.py"; lsof -ti :3000 | xargs kill -9 2>/dev/null; sleep 3 && source venv/bin/activate && python tracker_web_server.py > web_server.log 2>&1 &
+```
 
-### 5. Connect & Track!
-Click **CONNECT** and start playing! The tracker will automatically detect when Super Metroid is loaded.
+### ⏹️ Stop Server
+```bash
+# Stop all tracker processes
+pkill -f "tracker_web_server.py\|super_metroid_udp_tracker.py"
+```
 
-## 📁 Project Structure
+### 🧹 Force Kill Everything
+```bash
+# Nuclear option - kill everything using port 3000
+pkill -f "tracker_web_server.py\|super_metroid_udp_tracker.py"; lsof -ti :3000 | xargs kill -9 2>/dev/null
+```
+
+### 📊 Check Status
+```bash
+# Check if servers are running
+ps aux | grep -E "(tracker_web_server|super_metroid_udp_tracker)" | grep -v grep
+
+# Test API response
+curl -s http://localhost:3000/api/stats | jq '.bosses.ridley, .bosses.golden_torizo'
+
+# Check web interface
+curl -s http://localhost:3000/ | head -10
+```
+
+### 🔍 View Logs
+```bash
+# View web server logs
+tail -f web_server.log
+
+# Test UDP tracker directly (debug mode)
+source venv/bin/activate && python super_metroid_udp_tracker.py
+```
+
+## Usage
+
+1. **Start RetroArch** with Super Metroid loaded
+2. **Run the tracker**: `source venv/bin/activate && python tracker_web_server.py`
+3. **Open browser**: Navigate to `http://localhost:3000/`
+4. **Play the game** - the tracker updates in real-time!
+
+## Troubleshooting
+
+### Port 3000 Already in Use
+```bash
+# Kill whatever is using port 3000
+lsof -ti :3000 | xargs kill -9 2>/dev/null
+```
+
+### RetroArch Not Connecting
+- Ensure RetroArch network commands are enabled
+- Check RetroArch is using port 55355
+- Verify Super Metroid is loaded and playing
+
+### Tracker Not Updating
+- Refresh the web page
+- Check RetroArch connection
+- Restart the tracker server
+
+## API Endpoints
+
+- `GET /` - Web interface
+- `GET /api/status` - Server and RetroArch connection status
+- `GET /api/stats` - Current game statistics (items, bosses, etc.)
+
+## File Structure
 
 ```
 super_metroid_hud/
-├── super_metroid_tracker.html      # Main tracker interface
-├── super_metroid_udp_tracker.py    # UDP client for RetroArch
-├── tracker_web_server.py           # HTTP server bridge
-├── requirements.txt                # Python dependencies
-├── test_client.html                # Debug WebSocket client
-├── test_client.py                  # Debug Python client
-├── direct_retroarch_udp.py         # UDP testing client
-└── QUsb2Snes_TestClients_README.md # Original troubleshooting docs
+├── tracker_web_server.py      # Main web server + UDP tracker
+├── super_metroid_udp_tracker.py  # UDP tracker (can run standalone)
+├── super_metroid_tracker.html    # Web interface
+├── item_sprites.png              # Item sprite sheet
+├── boss_sprites.png              # Boss sprite sheet
+└── README.md                     # This file
 ```
 
-## 🛠️ Technical Details
+## Features Implemented
 
-### Memory Addresses (Super Metroid SNES)
-```javascript
-Health:        0x7E09C2  // Current health (2 bytes)
-Max Health:    0x7E09C4  // Maximum health (2 bytes) 
-Missiles:      0x7E09C6  // Current missiles (2 bytes)
-Area ID:       0x7E079F  // Current area (1 byte)
-Room ID:       0x7E079B  // Current room (2 bytes)
-Items:         0x7E09A4  // Item bitfield (2 bytes)
-Bosses:        0x7ED828  // Boss bitfield (2 bytes)
-```
+### ✅ Items Tracked
+- Morph Ball, Bombs, Varia Suit, Gravity Suit
+- Hi-Jump Boots, Speed Booster, Space Jump, Screw Attack
+- Spring Ball, Grappling Beam, X-Ray Scope
+- Charge Beam, Ice Beam, Wave Beam, Spazer, Plasma Beam
+- Energy Tanks (always colored), Missiles, Super Missiles, Power Bombs
 
-### API Endpoints
-- `GET /` - Main tracker interface
-- `GET /api/status` - Full game status + connection info
-- `GET /api/stats` - Live game statistics only
+### ✅ Bosses Tracked  
+- Bomb Torizo, Kraid, Spore Spawn, Crocomire
+- Phantoon, Botwoon, Draygon, Ridley, Golden Torizo
+- Mother Brain
 
-### RetroArch UDP Commands
-```
-VERSION                          # Get RetroArch version
-GET_STATUS                       # Get core + game info  
-READ_CORE_MEMORY 0x7E09C2 16    # Read 16 bytes from address
-```
+### ✅ Recent Fixes
+- **Ridley & Golden Torizo Detection**: Using exact logic from original working tracker
+- **Energy Tanks**: Always show as obtained (never grayed out)
+- **Tile Spacing**: Reduced to 1px for compact layout
+- **Debug Spam**: Eliminated console flooding
 
-## 🎯 Development Journey
+## Credits
 
-### Original Challenge
-Started with **QUsb2Snes WebSocket** connection but encountered:
-- `"Not in trusted origin"` security errors
-- Connection instability  
-- Browser CORS restrictions
-
-### Solution Evolution
-1. **QUsb2Snes WebSocket** ❌ (Security issues)
-2. **Direct RetroArch TCP** ❌ (Wrong protocol)
-3. **Direct RetroArch UDP** ✅ (Perfect!)
-
-### Key Breakthroughs
-- Discovered RetroArch uses **UDP** not TCP on port 55355
-- Found the correct **Super Metroid memory layout**
-- Built **HTTP bridge** for browser compatibility
-- Optimized for **overlay streaming** use
-
-## 🎮 Supported Features
-
-### Items Tracked
-- **Movement**: Morph Ball, Bombs, Hi-Jump, Speed Booster, Space Jump
-- **Suits**: Varia Suit, Gravity Suit  
-- **Beams**: Charge, Ice, Wave, Spazer, Plasma
-- **Tools**: Grappling Beam, X-Ray Scope, Spring Ball, Screw Attack
-
-### Bosses Tracked  
-- **Crateria**: Bomb Torizo
-- **Brinstar**: Spore Spawn, Kraid
-- **Norfair**: Crocomire, Golden Torizo
-- **Wrecked Ship**: Phantoon
-- **Maridia**: Botwoon, Draygon  
-- **Tourian**: Ridley, Mother Brain (Phase 1 & 2)
-
-## 🔧 Troubleshooting
-
-### RetroArch Not Detected
-```bash
-# Check if RetroArch UDP port is open
-lsof -i :55355
-
-# Should show RetroArch process using UDP
-```
-
-### Game Not Loading
-- Ensure Super Metroid ROM is loaded and **actively playing**
-- Check RetroArch core compatibility (bsnes-mercury works best)
-- Verify `network_cmd_enable = "true"` in retroarch.cfg
-
-### Connection Issues
-- Make sure **both RetroArch and tracker server** are running
-- Check firewall isn't blocking port 55355 or 3000
-- Try refreshing browser if connection seems stuck
-
-## 🎨 Customization
-
-### Modify Update Rate
-```python
-# In tracker_web_server.py, change polling interval
-updateInterval = setInterval(updateStats, 500);  # 500ms = 2x per second
-```
-
-### Add Custom Items
-```python
-# In super_metroid_udp_tracker.py
-self.item_bits = {
-    'my_item': 0x80,  # Add custom item with bit flag
-    # ... existing items
-}
-```
-
-### Style Changes
-Edit CSS in `super_metroid_tracker.html` to customize:
-- Colors and themes
-- Grid layouts
-- Font sizes and spacing
-- Animation effects
-
-## 🚀 Future Enhancements
-
-- [ ] **Energy Tank count** tracking
-- [ ] **Missile expansion** tracking  
-- [ ] **Completion percentage** calculation
-- [ ] **Time tracking** for speedruns
-- [ ] **Multiple game support** (ALttP, etc.)
-- [ ] **Sound alerts** for item collection
-- [ ] **Twitch integration** for viewer commands
-
-## 📜 License
-
-MIT License - Feel free to fork, modify, and share!
-
-## 🙏 Acknowledgments
-
-- **RetroArch team** for the excellent emulator and UDP interface
-- **Super Metroid community** for memory mapping documentation  
-- **QUsb2Snes project** for inspiration (even though we ended up bypassing it!)
-
----
-
-**Happy bounty hunting, space pirates!** 🚀👾 
+Built for live Super Metroid speedrun/randomizer tracking with RetroArch integration. 

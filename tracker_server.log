@@ -1,0 +1,14 @@
+2025-07-20 13:50:59,842 - INFO - 🚀 Starting tracker server (attempt 1)
+2025-07-20 13:50:59,842 - INFO - 🚀 Starting Super Metroid Tracker Server...
+2025-07-20 13:50:59,845 - INFO - ✅ Server started successfully:
+2025-07-20 13:50:59,845 - INFO -    📱 Tracker UI: http://localhost:3000/
+2025-07-20 13:50:59,845 - INFO -    📊 API Status: http://localhost:3000/api/status
+2025-07-20 13:50:59,845 - INFO -    📈 API Stats:  http://localhost:3000/api/stats
+2025-07-20 13:50:59,845 - INFO -    ⏹️  Press Ctrl+C to stop
+2025-07-20 13:53:01,152 - INFO - 🚀 Starting tracker server (attempt 1)
+2025-07-20 13:53:01,152 - INFO - 🚀 Starting Super Metroid Tracker Server...
+2025-07-20 13:53:01,156 - INFO - ✅ Server started successfully:
+2025-07-20 13:53:01,156 - INFO -    📱 Tracker UI: http://localhost:3000/
+2025-07-20 13:53:01,156 - INFO -    📊 API Status: http://localhost:3000/api/status
+2025-07-20 13:53:01,156 - INFO -    📈 API Stats:  http://localhost:3000/api/stats
+2025-07-20 13:53:01,156 - INFO -    ⏹️  Press Ctrl+C to stop

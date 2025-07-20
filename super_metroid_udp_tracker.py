@@ -261,19 +261,22 @@ class SuperMetroidUDPTracker:
                     if scan_data is not None:
                         boss_scan_results[scan_name] = scan_data
                         
-                # PHANTOON DETECTION - Multiple address scanning
+                # PHANTOON DETECTION - More specific detection to avoid false positives
                 phantoon_detected = False
-                for scan_name, scan_value in boss_scan_results.items():
-                    if scan_value is not None and (scan_value & 0x01):
-                        phantoon_detected = True
-                        break
+                # Only check specific addresses that are more reliable for Phantoon
+                phantoon_addr = boss_scan_results.get('boss_plus_3', 0)
+                if phantoon_addr and (phantoon_addr & 0x01) and (phantoon_addr & 0x0300):
+                    phantoon_detected = True
                         
-                # BOTWOON DETECTION - Check alternate addresses
+                # BOTWOON DETECTION - More conservative detection to avoid false positives  
                 botwoon_detected = False
-                for scan_name, scan_value in boss_scan_results.items():
-                    if scan_value is not None and (scan_value & 0x02):
-                        botwoon_detected = True
-                        break
+                # Only check specific addresses with additional validation
+                botwoon_addr_1 = boss_scan_results.get('boss_plus_2', 0)
+                botwoon_addr_2 = boss_scan_results.get('boss_plus_4', 0)
+                # Require both a specific bit pattern AND that we're past certain game progression
+                if ((botwoon_addr_1 & 0x04) and (botwoon_addr_1 > 0x0100)) or \
+                   ((botwoon_addr_2 & 0x02) and (botwoon_addr_2 > 0x0001)):
+                    botwoon_detected = True
                         
                 # DRAYGON DETECTION - Check for Space Jump + bit patterns
                 draygon_detected = False
@@ -314,7 +317,7 @@ class SuperMetroidUDPTracker:
                     'bomb_torizo': bool(bosses_data & 0x04),
                     'kraid': bool(bosses_data & 0x100),
                     'spore_spawn': bool(bosses_data & 0x200),
-                    'crocomire': bool(crocomire_data & 0x02) if crocomire_data is not None else False,
+                    'crocomire': bool(crocomire_data & 0x02) and (crocomire_data >= 0x0202) if crocomire_data is not None else False,
                     'phantoon': phantoon_detected,
                     'botwoon': botwoon_detected,
                     'draygon': draygon_detected,
