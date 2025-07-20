@@ -207,6 +207,50 @@
             background-position: -128px -320px; /* Row 5, Col 1 (32px * 4) */
         }
 
+        /* === QUANTITY COLLECTIBLE SPRITES === */
+        .sprite-energy-tank {
+            background-position: -128px 0px; /* Row 0, Col 2 */
+        }
+        
+        .sprite-missile {
+            background-position: 0px -64px; /* Row 1, Col 0 */
+        }
+        
+        .sprite-super-missile {
+            background-position: -64px -64px; /* Row 1, Col 1 */
+        }
+        
+        .sprite-power-bomb {
+            background-position: -128px -64px; /* Row 1, Col 2 */
+        }
+        
+        .sprite-reserve-tank {
+            background-position: -192px -64px; /* Row 1, Col 3 */
+        }
+
+        /* === QUANTITY TILE STYLING === */
+        .quantity-tile {
+            position: relative;
+            display: inline-block;
+            margin-right: 8px;
+            text-align: center;
+        }
+
+        .quantity-display {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 1px 2px;
+            border-radius: 2px;
+            line-height: 1;
+            min-width: 16px;
+        }
+
         /* === BOSS SPRITES (64x64 pixels, single row) === */
         .boss-sprite {
             display: inline-block;
@@ -370,6 +414,32 @@
                 <div class="stat-value" id="powerValue">??? / ???</div>
                 <div class="stat-bar">
                     <div class="stat-bar-fill" id="powerBar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quantity Items Section -->
+        <div class="tracking-section">
+            <div class="tracking-grid" id="quantityGrid" style="margin-bottom: 15px;">
+                <div class="quantity-tile" data-item="energy-tank" title="Energy Tanks">
+                    <span class="sprite sprite-energy-tank"></span>
+                    <div class="quantity-display" id="energyTankCount">0</div>
+                </div>
+                <div class="quantity-tile" data-item="missile" title="Missiles">
+                    <span class="sprite sprite-missile"></span>
+                    <div class="quantity-display" id="missileCount">0/0</div>
+                </div>
+                <div class="quantity-tile" data-item="super-missile" title="Super Missiles">
+                    <span class="sprite sprite-super-missile"></span>
+                    <div class="quantity-display" id="superMissileCount">0/0</div>
+                </div>
+                <div class="quantity-tile" data-item="power-bomb" title="Power Bombs">
+                    <span class="sprite sprite-power-bomb"></span>
+                    <div class="quantity-display" id="powerBombCount">0/0</div>
+                </div>
+                <div class="quantity-tile" data-item="reserve-tank" title="Reserve Tanks">
+                    <span class="sprite sprite-reserve-tank"></span>
+                    <div class="quantity-display" id="reserveTankCount">0</div>
                 </div>
             </div>
         </div>
@@ -634,9 +704,27 @@
                 reserveEl.style.display = 'none';
             }
             
+            // Update quantity displays
+            updateQuantityDisplays(stats);
+            
             // Update item and boss tiles
             updateItemTiles(stats.items || {});
             updateBossTiles(stats.bosses || {});
+        }
+
+        function updateQuantityDisplays(stats) {
+            // Energy Tanks (calculated from max health: each tank = 100 energy, minus base 99)
+            const energyTanks = Math.max(0, Math.floor((stats.max_health - 99) / 100));
+            document.getElementById('energyTankCount').textContent = energyTanks;
+            
+            // Reserve Tanks (calculated from max reserve: each tank = 100 energy)
+            const reserveTanks = Math.floor((stats.max_reserve_energy || 0) / 100);
+            document.getElementById('reserveTankCount').textContent = reserveTanks;
+            
+            // Missiles, Super Missiles, Power Bombs
+            document.getElementById('missileCount').textContent = `${stats.missiles}/${stats.max_missiles}`;
+            document.getElementById('superMissileCount').textContent = `${stats.supers}/${stats.max_supers}`;
+            document.getElementById('powerBombCount').textContent = `${stats.power_bombs}/${stats.max_power_bombs}`;
         }
 
         function updateLocationInfo(stats) {
