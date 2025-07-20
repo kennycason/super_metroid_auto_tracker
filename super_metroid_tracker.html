@@ -89,14 +89,15 @@
         }
         .tracking-section { margin: 8px 0; }
         
-        /* TRUE 16x16 Sprite System - Actual pixel dimensions, no scaling */
+        /* Direct 64x64 Sprite System - no wrapper needed */
         .sprite {
             display: inline-block;
-            width: 16px;
-            height: 16px;
+            width: 64px;
+            height: 64px;
             background-image: url('item_sprites.png');
             background-repeat: no-repeat;
-            /* NO background-size - use sprite sheet at original dimensions */
+            /* Scale the background image 4x: 128x96 -> 512x384 */
+            background-size: 512px 384px;
             image-rendering: pixelated;
             image-rendering: -moz-crisp-edges;
             image-rendering: crisp-edges;
@@ -122,88 +123,88 @@
         }
         
         .sprite-bomb {
-            background-position: -32px 0px; /* Row 0, Col 1 */
+            background-position: -128px 0px; /* Row 0, Col 1 (32px * 4) */
         }
         
         .sprite-energy-tank {
-            background-position: -64px 0px; /* Row 0, Col 2 */
+            background-position: -256px 0px; /* Row 0, Col 2 (64px * 4) */
         }
         
-        /* === ROW 1 (y=-16px) === */
+        /* === ROW 1 (y=-64px) === */
         .sprite-missile {
-            background-position: 0px -16px; /* Row 1, Col 0 */
+            background-position: 0px -64px; /* Row 1, Col 0 (16px * 4) */
         }
         
         .sprite-super-missile {
-            background-position: -32px -16px; /* Row 1, Col 1 */
+            background-position: -128px -64px; /* Row 1, Col 1 */
         }
         
         .sprite-power-bomb {
-            background-position: -64px -16px; /* Row 1, Col 2 */
+            background-position: -256px -64px; /* Row 1, Col 2 */
         }
         
         .sprite-reserve-tank {
-            background-position: -96px -16px; /* Row 1, Col 3 */
+            background-position: -384px -64px; /* Row 1, Col 3 (96px * 4) */
         }
         
-        /* === ROW 2 (y=-32px) === */
+        /* === ROW 2 (y=-128px) === */
         .sprite-hijump {
-            background-position: 0px -32px; /* Row 2, Col 0 */
+            background-position: 0px -128px; /* Row 2, Col 0 (32px * 4) */
         }
         
         .sprite-speed {
-            background-position: -32px -32px; /* Row 2, Col 1 */
+            background-position: -128px -128px; /* Row 2, Col 1 */
         }
         
         .sprite-grapple {
-            background-position: -64px -32px; /* Row 2, Col 2 */
+            background-position: -256px -128px; /* Row 2, Col 2 */
         }
         
         .sprite-xray {
-            background-position: -96px -32px; /* Row 2, Col 3 */
+            background-position: -384px -128px; /* Row 2, Col 3 */
         }
         
-        /* === ROW 3 (y=-48px) === */
+        /* === ROW 3 (y=-192px) === */
         .sprite-spring {
-            background-position: 0px -48px; /* Row 3, Col 0 */
+            background-position: 0px -192px; /* Row 3, Col 0 (48px * 4) */
         }
         
         .sprite-space {
-            background-position: -32px -48px; /* Row 3, Col 1 */
+            background-position: -128px -192px; /* Row 3, Col 1 */
         }
         
         .sprite-screw {
-            background-position: -64px -48px; /* Row 3, Col 2 */
+            background-position: -256px -192px; /* Row 3, Col 2 */
         }
         
         .sprite-charge-beam {
-            background-position: -96px -48px; /* Row 3, Col 3 */
+            background-position: -384px -192px; /* Row 3, Col 3 */
         }
         
-        /* === ROW 4 (y=-64px) === */
+        /* === ROW 4 (y=-256px) === */
         .sprite-spazer {
-            background-position: 0px -64px; /* Row 4, Col 0 */
+            background-position: 0px -256px; /* Row 4, Col 0 (64px * 4) */
         }
         
         .sprite-wave {
-            background-position: -32px -64px; /* Row 4, Col 1 */
+            background-position: -128px -256px; /* Row 4, Col 1 */
         }
         
         .sprite-ice {
-            background-position: -64px -64px; /* Row 4, Col 2 */
+            background-position: -256px -256px; /* Row 4, Col 2 */
         }
         
         .sprite-plasma {
-            background-position: -96px -64px; /* Row 4, Col 3 */
+            background-position: -384px -256px; /* Row 4, Col 3 */
         }
         
-        /* === ROW 5 (y=-80px) === */
+        /* === ROW 5 (y=-320px) === */
         .sprite-varia {
-            background-position: 0px -80px; /* Row 5, Col 0 */
+            background-position: 0px -320px; /* Row 5, Col 0 (80px * 4) */
         }
         
         .sprite-gravity {
-            background-position: -32px -80px; /* Row 5, Col 1 - next to varia */
+            background-position: -128px -320px; /* Row 5, Col 1 (32px * 4) */
         }
 
         /* === BOSS SPRITES (64x64 pixels, single row) === */
