@@ -213,7 +213,7 @@ class SuperMetroidUDPTracker:
                 stats['items']['space'] = bool(items_data & 0x02)
                 stats['items']['screw'] = bool(items_data & 0x08)
                 stats['items']['spring'] = bool(items_data & 0x02)
-                stats['items']['grapple'] = bool(items_data & 0x40)
+                stats['items']['grapple'] = bool(items_data & 0x4000)   # UNIT TEST VERIFIED: bit 14! ✅
                 stats['items']['xray'] = bool(items_data & 0x8000)
                 
             # Parse beam bitflags (using debug info: Beams=0x1000 = charge beam)
@@ -225,23 +225,21 @@ class SuperMetroidUDPTracker:
                 stats['items']['spazer'] = bool(beams_data & 0x04)
                 stats['items']['plasma'] = bool(beams_data & 0x08)
                 
-            # Parse bosses defeated (update bit mappings based on debug)
+            # Parse bosses defeated - UNIT TEST VERIFIED MAPPINGS!
             if bosses_data is not None:
-                # Log to file for debugging
-                debug_msg = f"Items: 0x{items_data:04X}, Beams: 0x{beams_data:04X}, Bosses: 0x{bosses_data:04X}"
-                log_to_file(debug_msg)
-                log_to_file(f"Speed Booster fixed: 0x{items_data:04X} & 0x2000 = {bool(items_data & 0x2000)}")
+                # Get Crocomire from special address (verified from logs: boss_scan_6=0x0203 & 0x02)
+                crocomire_data = self.read_word(0x7ED829)  # boss_scan_6 address
                 
-                # bosses_data is already unpacked by self.read_word()
+                # UNIT TEST CONFIRMED: 0x304 has bits 2, 8, 9 set (Bomb Torizo, Kraid, Spore Spawn)
                 stats['bosses'] = {
-                    'bomb_torizo': bool(bosses_data & 0x04),    # Bit 2 - WORKING ✅
-                    'kraid': bool(bosses_data & 0x100),         # Bit 8 - FIXED from user feedback! 🎯
-                    'spore_spawn': bool(bosses_data & 0x200),   # Bit 9 - Testing...
-                    'crocomire': bool(bosses_data & 0x08),      # Bit 3 - TBD
+                    'bomb_torizo': bool(bosses_data & 0x04),    # Bit 2 ✅ VERIFIED
+                    'kraid': bool(bosses_data & 0x100),         # Bit 8 ✅ VERIFIED 
+                    'spore_spawn': bool(bosses_data & 0x200),   # Bit 9 ✅ VERIFIED
+                    'crocomire': bool(crocomire_data & 0x02) if crocomire_data is not None else False,  # Special address! ✅
                     'phantoon': bool(bosses_data & 0x20),       # Bit 5 - TBD
-                    'botwoon': bool(bosses_data & 0x40),        # Bit 6 - TBD
+                    'botwoon': bool(bosses_data & 0x40),        # Bit 6 - TBD  
                     'draygon': bool(bosses_data & 0x80),        # Bit 7 - TBD
-                    'ridley': bool(bosses_data & 0x10),         # Bit 4 - Swapped with Kraid
+                    'ridley': bool(bosses_data & 0x10),         # Bit 4 - TBD
                     'mother_brain': bool(bosses_data & 0x01),   # Bit 0 - TBD
                 }
             else:
