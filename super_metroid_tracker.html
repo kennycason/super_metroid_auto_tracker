@@ -89,22 +89,19 @@
         }
         .tracking-section { margin: 8px 0; }
         
-        /* Perfect 16x16 Sprite System - Each sprite displays as perfect square */
+        /* TRUE 16x16 Sprite System - Actual pixel dimensions, no scaling */
         .sprite {
             display: inline-block;
-            width: 48px;
-            height: 48px;
+            width: 16px;
+            height: 16px;
             background-image: url('item_sprites.png');
             background-repeat: no-repeat;
-            /* Scale sprite sheet: 4 items wide (4×32px=128px) × 6 rows (6×16px=96px) */
-            /* Scale 128px → 384px (4×48px×2), 96px → 288px (6×48px) for perfect square scaling */
-            background-size: 384px 288px; 
+            /* NO background-size - use sprite sheet at original dimensions */
             image-rendering: pixelated;
             image-rendering: -moz-crisp-edges;
             image-rendering: crisp-edges;
             vertical-align: middle;
             margin-right: 4px;
-            /* Ensure perfect square container */
             flex-shrink: 0;
             box-sizing: border-box;
         }
@@ -125,88 +122,151 @@
         }
         
         .sprite-bomb {
-            background-position: -96px 0px; /* Row 0, Col 1 (32px × 3 = 96px) */
+            background-position: -32px 0px; /* Row 0, Col 1 */
         }
         
         .sprite-energy-tank {
-            background-position: -192px 0px; /* Row 0, Col 2 (64px × 3 = 192px) */
+            background-position: -64px 0px; /* Row 0, Col 2 */
         }
         
-        /* === ROW 1 (y=-48px) === */
+        /* === ROW 1 (y=-16px) === */
         .sprite-missile {
-            background-position: 0px -48px; /* Row 1, Col 0 (16px × 3 = 48px) */
+            background-position: 0px -16px; /* Row 1, Col 0 */
         }
         
         .sprite-super-missile {
-            background-position: -96px -48px; /* Row 1, Col 1 */
+            background-position: -32px -16px; /* Row 1, Col 1 */
         }
         
         .sprite-power-bomb {
-            background-position: -192px -48px; /* Row 1, Col 2 */
+            background-position: -64px -16px; /* Row 1, Col 2 */
         }
         
         .sprite-reserve-tank {
-            background-position: -288px -48px; /* Row 1, Col 3 (96px × 3 = 288px) */
+            background-position: -96px -16px; /* Row 1, Col 3 */
         }
         
-        /* === ROW 2 (y=-96px) === */
+        /* === ROW 2 (y=-32px) === */
         .sprite-hijump {
-            background-position: 0px -96px; /* Row 2, Col 0 (32px × 3 = 96px) */
+            background-position: 0px -32px; /* Row 2, Col 0 */
         }
         
         .sprite-speed {
-            background-position: -96px -96px; /* Row 2, Col 1 */
+            background-position: -32px -32px; /* Row 2, Col 1 */
         }
         
         .sprite-grapple {
-            background-position: -192px -96px; /* Row 2, Col 2 */
+            background-position: -64px -32px; /* Row 2, Col 2 */
         }
         
         .sprite-xray {
-            background-position: -288px -96px; /* Row 2, Col 3 */
+            background-position: -96px -32px; /* Row 2, Col 3 */
         }
         
-        /* === ROW 3 (y=-144px) === */
+        /* === ROW 3 (y=-48px) === */
         .sprite-spring {
-            background-position: 0px -144px; /* Row 3, Col 0 (48px × 3 = 144px) */
+            background-position: 0px -48px; /* Row 3, Col 0 */
         }
         
         .sprite-space {
-            background-position: -96px -144px; /* Row 3, Col 1 */
+            background-position: -32px -48px; /* Row 3, Col 1 */
         }
         
         .sprite-screw {
-            background-position: -192px -144px; /* Row 3, Col 2 */
+            background-position: -64px -48px; /* Row 3, Col 2 */
         }
         
         .sprite-charge-beam {
-            background-position: -288px -144px; /* Row 3, Col 3 */
+            background-position: -96px -48px; /* Row 3, Col 3 */
         }
         
-        /* === ROW 4 (y=-192px) === */
+        /* === ROW 4 (y=-64px) === */
         .sprite-spazer {
-            background-position: 0px -192px; /* Row 4, Col 0 (64px × 3 = 192px) */
+            background-position: 0px -64px; /* Row 4, Col 0 */
         }
         
         .sprite-wave {
-            background-position: -96px -192px; /* Row 4, Col 1 */
+            background-position: -32px -64px; /* Row 4, Col 1 */
         }
         
         .sprite-ice {
-            background-position: -192px -192px; /* Row 4, Col 2 */
+            background-position: -64px -64px; /* Row 4, Col 2 */
         }
         
         .sprite-plasma {
-            background-position: -288px -192px; /* Row 4, Col 3 */
+            background-position: -96px -64px; /* Row 4, Col 3 */
         }
         
-        /* === ROW 5 (y=-240px) === */
+        /* === ROW 5 (y=-80px) === */
         .sprite-varia {
-            background-position: 0px -240px; /* Row 5, Col 0 (80px × 3 = 240px) */
+            background-position: 0px -80px; /* Row 5, Col 0 */
         }
         
         .sprite-gravity {
-            background-position: -32px -80px; /* Row 5, Col 1 - assuming gravity is next to varia */
+            background-position: -32px -80px; /* Row 5, Col 1 - next to varia */
+        }
+
+        /* === BOSS SPRITES (64x64 pixels, single row) === */
+        .boss-sprite {
+            display: inline-block;
+            width: 64px;
+            height: 64px;
+            background-image: url('boss_sprites.png');
+            background-repeat: no-repeat;
+            /* Full size 64x64 display */
+            background-size: 704px 64px; /* 11 sprites × 64px each = 704px */
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            vertical-align: middle;
+            margin-right: 4px;
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
+
+        /* Boss sprite positions (64px spacing) */
+        .boss-sprite-b-torizo {
+            background-position: 0px 0px; /* Col 0 */
+        }
+
+        .boss-sprite-spore-spawn {
+            background-position: -64px 0px; /* Col 1 */
+        }
+
+        .boss-sprite-kraid {
+            background-position: -128px 0px; /* Col 2 */
+        }
+
+        .boss-sprite-crocomire {
+            background-position: -192px 0px; /* Col 3 */
+        }
+
+        .boss-sprite-phantoon {
+            background-position: -256px 0px; /* Col 4 */
+        }
+
+        .boss-sprite-botwoon {
+            background-position: -320px 0px; /* Col 5 */
+        }
+
+        .boss-sprite-draygon {
+            background-position: -384px 0px; /* Col 6 */
+        }
+
+        .boss-sprite-golden-torizo {
+            background-position: -448px 0px; /* Col 7 */
+        }
+
+        .boss-sprite-ridley {
+            background-position: -512px 0px; /* Col 8 */
+        }
+
+        .boss-sprite-mother-brain-1 {
+            background-position: -576px 0px; /* Col 9 - MB1 */
+        }
+
+        .boss-sprite-mother-brain-2 {
+            background-position: -640px 0px; /* Col 10 - MB2 */
         }
 
         .section-title { 
@@ -217,8 +277,8 @@
             text-transform: uppercase;
         }
         .item-tile { 
-            width: 55px; 
-            height: 55px; 
+            width: 64px; 
+            height: 64px; 
             border: 2px solid #003300; 
             border-radius: 6px; 
             display: flex; 
@@ -341,16 +401,16 @@
         <div class="tracking-section">
             <!-- <div class="section-title">👹 Boss Battles</div> -->
             <div class="tracking-grid" id="bossGrid">
-                <div class="item-tile" data-boss="bomb_torizo" title="Bomb Torizo">🤖<div class="item-name">B.Torizo</div></div>
-                <div class="item-tile" data-boss="spore_spawn" title="Spore Spawn">🍄<div class="item-name">Spore</div></div>
-                <div class="item-tile" data-boss="kraid" title="Kraid">🦎<div class="item-name">Kraid</div></div>
-                <div class="item-tile" data-boss="crocomire" title="Crocomire">🐊<div class="item-name">Crocomire</div></div>
-                <div class="item-tile" data-boss="phantoon" title="Phantoon">👻<div class="item-name">Phantoon</div></div>
-                <div class="item-tile" data-boss="botwoon" title="Botwoon">🐍<div class="item-name">Botwoon</div></div>
-                <div class="item-tile" data-boss="draygon" title="Draygon">🐲<div class="item-name">Draygon</div></div>
-                <div class="item-tile" data-boss="ridley" title="Ridley">🦅<div class="item-name">Ridley</div></div>
-                <div class="item-tile" data-boss="golden_torizo" title="Golden Torizo">👑<div class="item-name">G.Torizo</div></div>
-                <div class="item-tile" data-boss="mother_brain" title="Mother Brain">🧠<div class="item-name">M.Brain</div></div>
+                <div class="item-tile" data-boss="bomb_torizo" title="Bomb Torizo"><span class="boss-sprite boss-sprite-b-torizo"></span><div class="item-name">B.Torizo</div></div>
+                <div class="item-tile" data-boss="spore_spawn" title="Spore Spawn"><span class="boss-sprite boss-sprite-spore-spawn"></span><div class="item-name">Spore</div></div>
+                <div class="item-tile" data-boss="kraid" title="Kraid"><span class="boss-sprite boss-sprite-kraid"></span><div class="item-name">Kraid</div></div>
+                <div class="item-tile" data-boss="crocomire" title="Crocomire"><span class="boss-sprite boss-sprite-crocomire"></span><div class="item-name">Crocomire</div></div>
+                <div class="item-tile" data-boss="phantoon" title="Phantoon"><span class="boss-sprite boss-sprite-phantoon"></span><div class="item-name">Phantoon</div></div>
+                <div class="item-tile" data-boss="botwoon" title="Botwoon"><span class="boss-sprite boss-sprite-botwoon"></span><div class="item-name">Botwoon</div></div>
+                <div class="item-tile" data-boss="draygon" title="Draygon"><span class="boss-sprite boss-sprite-draygon"></span><div class="item-name">Draygon</div></div>
+                <div class="item-tile" data-boss="ridley" title="Ridley"><span class="boss-sprite boss-sprite-ridley"></span><div class="item-name">Ridley</div></div>
+                <div class="item-tile" data-boss="golden_torizo" title="Golden Torizo"><span class="boss-sprite boss-sprite-golden-torizo"></span><div class="item-name">G.Torizo</div></div>
+                <div class="item-tile" data-boss="mother_brain" title="Mother Brain"><span class="boss-sprite boss-sprite-mother-brain-1"></span><div class="item-name">M.Brain</div></div>
             </div>
         </div>
 

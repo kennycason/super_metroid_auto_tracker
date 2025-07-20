@@ -376,20 +376,8 @@ class SuperMetroidUDPTracker:
                 # Add debug info for boss scanning
                 stats['debug']['boss_scans'] = boss_scan_results
                 
-                # MOTHER BRAIN DETECTION - Check alternative locations
+                # MOTHER BRAIN DETECTION - Only use standard bit detection
                 mother_brain_detected = bool(bosses_data & 0x01)  # Standard bit 0
-                
-                # If standard detection fails, check alternative patterns
-                if not mother_brain_detected:
-                    # Mother Brain might be stored in scan results or other locations
-                    scan_alt_1_val = boss_scan_results.get('scan_alt_1', 0)
-                    scan_alt_2_val = boss_scan_results.get('scan_alt_2', 0)
-                    
-                    # Check for patterns that might indicate Mother Brain defeat
-                    # User's scan_alt_1=0x100B, scan_alt_2=0xB18F suggest high-level completion
-                    if (scan_alt_1_val >= 0x1000) or (scan_alt_2_val >= 0xB000):
-                        mother_brain_detected = True
-                        log_to_file(f"MOTHER BRAIN DETECTED via alt scan: alt_1=0x{scan_alt_1_val:04X}, alt_2=0x{scan_alt_2_val:04X}")
                 
                 # UNIT TEST CONFIRMED: 0x304 has bits 2, 8, 9 set (Bomb Torizo, Kraid, Spore Spawn)
                 stats['bosses'] = {
