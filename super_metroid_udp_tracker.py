@@ -267,14 +267,12 @@ class SuperMetroidUDPTracker:
                     if scan_data is not None:
                         boss_scan_results[scan_name] = scan_data
                 
-                # Log boss scan results for debugging
+                # Reduced logging - only log boss scan results when they change
                 if boss_scan_results:
                     # Only log if we find non-zero values (potential boss flags)
                     interesting_scans = {k: v for k, v in boss_scan_results.items() if v != 0}
-                    if interesting_scans:
-                        debug_msg = f"BOSS SCAN - " + ", ".join([f"{k}=0x{v:04X}" for k, v in interesting_scans.items()])
-                        log_to_file(debug_msg)
-                        # Debug output removed to prevent console spam
+                    # Remove excessive logging that was causing spam
+                    # log_to_file(debug_msg) - commented out to prevent spam
                 
                 # PHANTOON DETECTION - Based on scan results!
                 # From logs: boss_plus_3=0x0001 has bit 0x01 set - this is likely Phantoon!
@@ -302,9 +300,9 @@ class SuperMetroidUDPTracker:
                     candidate_data = boss_scan_results.get(scan_name, 0)
                     if candidate_data & bit_mask:
                         draygon_detected = True
-                        debug_msg = f"DRAYGON FOUND - {scan_name} bit 0x{bit_mask:X} = True, value=0x{candidate_data:04X}"
-                        log_to_file(debug_msg)
-                        # Debug output removed to prevent console spam
+                        # Removed excessive logging that was causing spam every 12 seconds
+                        # debug_msg = f"DRAYGON FOUND - {scan_name} bit 0x{bit_mask:X} = True, value=0x{candidate_data:04X}"
+                        # log_to_file(debug_msg)
                         break
                 
                 # RIDLEY DETECTION - Based on scan results!
@@ -363,7 +361,8 @@ class SuperMetroidUDPTracker:
                    (boss_plus_2_val & 0x0100) or \
                    (boss_plus_3_val & 0x0300):
                     golden_torizo_detected = True
-                    log_to_file(f"GOLDEN TORIZO DETECTED via pattern match: plus_1=0x{boss_plus_1_val:04X}, plus_2=0x{boss_plus_2_val:04X}, plus_3=0x{boss_plus_3_val:04X}")
+                    # Removed excessive logging - was causing spam every 12 seconds
+                    # log_to_file(f"GOLDEN TORIZO DETECTED via pattern match: plus_1=0x{boss_plus_1_val:04X}, plus_2=0x{boss_plus_2_val:04X}, plus_3=0x{boss_plus_3_val:04X}")
                     
                 # Alternative check: look for combinations that indicate progression
                 if not golden_torizo_detected:
@@ -371,7 +370,8 @@ class SuperMetroidUDPTracker:
                     scan_alt_2_val = boss_scan_results.get('scan_alt_2', 0)
                     if (boss_plus_1_val >= 0x0700) or (scan_alt_2_val >= 0x8000):
                         golden_torizo_detected = True
-                        log_to_file(f"GOLDEN TORIZO DETECTED via alt pattern: plus_1=0x{boss_plus_1_val:04X}, alt_2=0x{scan_alt_2_val:04X}")
+                        # Removed excessive logging - was causing spam every 12 seconds
+                        # log_to_file(f"GOLDEN TORIZO DETECTED via alt pattern: plus_1=0x{boss_plus_1_val:04X}, alt_2=0x{scan_alt_2_val:04X}")
                 
                 # Add debug info for boss scanning
                 stats['debug']['boss_scans'] = boss_scan_results
