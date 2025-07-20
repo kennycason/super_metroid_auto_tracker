@@ -705,7 +705,8 @@
             updateQuantityDisplays(stats);
             
             // Update item and boss tiles
-            updateItemTiles(stats.items || {});
+            const allItems = { ...(stats.items || {}), ...(stats.beams || {}) };
+            updateItemTiles(allItems);
             updateBossTiles(stats.bosses || {});
         }
 

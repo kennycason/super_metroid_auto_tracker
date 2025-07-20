@@ -37,6 +37,7 @@ class SuperMetroidUDPTracker:
             'items_collected': 0x7E09A4,    # Collected items bitfield
             'beams_collected': 0x7E09A8,    # Beam weapons bitfield  
             'bosses_defeated': 0x7ED828,    # Bosses defeated bitfield
+            'crocomire_defeated': 0x7ED829, # Crocomire special address
             'events_flags': 0x7ED870,       # Event flags
         }
         
@@ -174,11 +175,11 @@ class SuperMetroidUDPTracker:
         
     def get_all_stats(self) -> Dict:
         """Read all Super Metroid stats at once"""
-        # Read a large chunk that contains all our stats (including reserve energy)
+        # Read a large chunk that contains all our stats
         base_address = self.memory_map['health']
-        data = self.read_memory_range(base_address, 24)  # Read 24 bytes for all basic stats
+        data = self.read_memory_range(base_address, 22)  # Read 22 bytes to include reserve energy
         
-        if not data or len(data) < 20:
+        if not data or len(data) < 22:
             return {}
             
         # Parse the data (all 16-bit little-endian values)
@@ -192,16 +193,23 @@ class SuperMetroidUDPTracker:
             stats['max_supers'] = struct.unpack('<H', data[10:12])[0]
             stats['power_bombs'] = struct.unpack('<H', data[12:14])[0]
             stats['max_power_bombs'] = struct.unpack('<H', data[14:16])[0]
+            stats['max_reserve_energy'] = struct.unpack('<H', data[18:20])[0]
+            stats['reserve_energy'] = struct.unpack('<H', data[20:22])[0]
             
-            # Read reserve energy from the correct addresses
-            stats['max_reserve_energy'] = struct.unpack('<H', data[18:20])[0]  # 0x7E09D4
-            stats['reserve_energy'] = self.read_word(self.memory_map['reserve_energy'])  # 0x7E09D6
+            # Read additional memory for location and game state
+            room_data = self.read_word(self.memory_map['room_id'])
+            area_data = self.read_byte(self.memory_map['area_id']) 
+            game_state_data = self.read_word(self.memory_map['game_state'])
+            player_x_data = self.read_word(self.memory_map['player_x'])
+            player_y_data = self.read_word(self.memory_map['player_y'])
             
-            # Read additional data separately
-            stats['area_id'] = self.read_byte(self.memory_map['area_id'])
+            # Add location data
+            stats['room_id'] = room_data if room_data is not None else 0
+            stats['area_id'] = area_data if area_data is not None else 0
             stats['area_name'] = self.areas.get(stats['area_id'], "Unknown")
-            stats['room_id'] = self.read_word(self.memory_map['room_id'])
-            stats['game_state'] = self.read_word(self.memory_map['game_state'])
+            stats['game_state'] = game_state_data if game_state_data is not None else 0
+            stats['player_x'] = player_x_data if player_x_data is not None else 0
+            stats['player_y'] = player_y_data if player_y_data is not None else 0
             
             # Read item and boss data
             items_data = self.read_word(self.memory_map['items_collected'])
@@ -219,30 +227,32 @@ class SuperMetroidUDPTracker:
                 stats['items']['speed'] = bool(items_data & 0x2000)
                 stats['items']['space'] = bool(items_data & 0x200)
                 stats['items']['screw'] = bool(items_data & 0x08)
-                stats['items']['spring'] = bool(items_data & 0x02)
-                stats['items']['grapple'] = bool(items_data & 0x4000)
+                stats['items']['spring'] = bool(items_data & 0x02)  # Spring Ball - ADDED
                 stats['items']['xray'] = bool(items_data & 0x8000)
+                stats['items']['grapple'] = bool(items_data & 0x4000)
                 
-            # Parse beam bitflags
+            # Parse beam bitflags  
+            stats['beams'] = {}
             if beams_data is not None:
-                stats['items']['charge'] = bool(beams_data & 0x1000)
-                stats['items']['ice'] = bool(beams_data & 0x02)
-                stats['items']['wave'] = bool(beams_data & 0x01)
-                stats['items']['spazer'] = bool(beams_data & 0x04)
-                stats['items']['plasma'] = bool(beams_data & 0x08)
+                stats['beams']['charge'] = bool(beams_data & 0x1000)
+                stats['beams']['ice'] = bool(beams_data & 0x02)
+                stats['beams']['wave'] = bool(beams_data & 0x01)
+                stats['beams']['spazer'] = bool(beams_data & 0x04)
+                stats['beams']['plasma'] = bool(beams_data & 0x08)
                 
-            # Parse bosses defeated
+            # Parse boss bitflags
             if bosses_data is not None:
-                crocomire_data = self.read_word(0x7ED829)
+                # Read special boss addresses
+                crocomire_data = self.read_word(self.memory_map['crocomire_defeated'])
                 
-                # BOSS SCANNING - Check multiple addresses for special bosses like Phantoon and Draygon
+                # BOSS SCANNING - Check multiple addresses for special bosses
                 boss_scan_candidates = {
-                    'boss_plus_1': 0x7ED829,    # Same as Crocomire
-                    'boss_plus_2': 0x7ED82A,    # Adjacent to main boss area  
-                    'boss_plus_3': 0x7ED82B,    # Further adjacent
-                    'boss_plus_4': 0x7ED82C,    # Even further adjacent
-                    'boss_plus_5': 0x7ED82D,    # More adjacent
-                    'boss_minus_1': 0x7ED827,   # Before main boss area
+                    'boss_plus_1': 0x7ED829,
+                    'boss_plus_2': 0x7ED82A,
+                    'boss_plus_3': 0x7ED82B,
+                    'boss_plus_4': 0x7ED82C,
+                    'boss_plus_5': 0x7ED82D,
+                    'boss_minus_1': 0x7ED827,
                 }
                 
                 boss_scan_results = {}
@@ -250,29 +260,31 @@ class SuperMetroidUDPTracker:
                     scan_data = self.read_word(addr)
                     if scan_data is not None:
                         boss_scan_results[scan_name] = scan_data
-                
-                # PHANTOON DETECTION
+                        
+                # PHANTOON DETECTION - Multiple address scanning
                 phantoon_detected = False
-                boss_plus_3_data = boss_scan_results.get('boss_plus_3', 0)
-                if boss_plus_3_data & 0x01:
-                    phantoon_detected = True
-                
-                # DRAYGON DETECTION
-                draygon_detected = False
-                draygon_candidates = [
-                    ('boss_plus_4', 0x01),  
-                    ('boss_plus_4', 0x02),   
-                    ('boss_plus_5', 0x100), 
-                    ('boss_minus_1', 0x400), 
-                ]
-                
-                for scan_name, bit_mask in draygon_candidates:
-                    candidate_data = boss_scan_results.get(scan_name, 0)
-                    if candidate_data & bit_mask:
-                        draygon_detected = True
+                for scan_name, scan_value in boss_scan_results.items():
+                    if scan_value is not None and (scan_value & 0x01):
+                        phantoon_detected = True
                         break
-                
-                # RIDLEY DETECTION
+                        
+                # BOTWOON DETECTION - Check alternate addresses
+                botwoon_detected = False
+                for scan_name, scan_value in boss_scan_results.items():
+                    if scan_value is not None and (scan_value & 0x02):
+                        botwoon_detected = True
+                        break
+                        
+                # DRAYGON DETECTION - Check for Space Jump + bit patterns
+                draygon_detected = False
+                space_jump = stats['items'].get('space', False) if 'items' in stats else False
+                if space_jump:
+                    for scan_name, scan_value in boss_scan_results.items():
+                        if scan_value is not None and (scan_value & 0x04):
+                            draygon_detected = True
+                            break
+                            
+                # RIDLEY DETECTION - Use exact working logic from old tracker
                 ridley_detected = False
                 ridley_candidates = [
                     ('boss_plus_1', 0x400),
@@ -286,23 +298,8 @@ class SuperMetroidUDPTracker:
                     if candidate_data & bit_mask:
                         ridley_detected = True
                         break
-                
-                # BOTWOON DETECTION
-                botwoon_detected = False
-                botwoon_candidates = [
-                    ('boss_plus_2', 0x04),  
-                    ('boss_plus_2', 0x02),  
-                    ('boss_plus_4', 0x02),  
-                    ('boss_plus_1', 0x02),  
-                ]
-                
-                for scan_name, bit_mask in botwoon_candidates:
-                    candidate_data = boss_scan_results.get(scan_name, 0)
-                    if candidate_data & bit_mask:
-                        botwoon_detected = True
-                        break
-                
-                # GOLDEN TORIZO DETECTION
+                        
+                # GOLDEN TORIZO DETECTION - Use exact working logic from old tracker
                 golden_torizo_detected = False
                 boss_plus_1_val = boss_scan_results.get('boss_plus_1', 0)
                 boss_plus_2_val = boss_scan_results.get('boss_plus_2', 0)
@@ -312,9 +309,6 @@ class SuperMetroidUDPTracker:
                    (boss_plus_2_val & 0x0100) or \
                    (boss_plus_3_val & 0x0300):
                     golden_torizo_detected = True
-                
-                # MOTHER BRAIN DETECTION
-                mother_brain_detected = bool(bosses_data & 0x01)
                 
                 stats['bosses'] = {
                     'bomb_torizo': bool(bosses_data & 0x04),
@@ -326,15 +320,13 @@ class SuperMetroidUDPTracker:
                     'draygon': draygon_detected,
                     'ridley': ridley_detected,
                     'golden_torizo': golden_torizo_detected,
-                    'mother_brain': mother_brain_detected,
+                    'mother_brain': bool(bosses_data & 0x01),
                 }
-            else:
-                stats['bosses'] = {}
+                
+            return stats
             
-        except struct.error:
+        except Exception as e:
             return {}
-            
-        return stats
         
     def get_status(self) -> Dict:
         """Get full game status including RetroArch info"""
