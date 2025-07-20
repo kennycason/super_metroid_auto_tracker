@@ -1,6 +1,6 @@
 # 🚀 Super Metroid Live Tracker
 
-![Super Metroid Live Tracker](screenshot_v1.png)
+![Super Metroid Live Tracker](screenshot_v2.png)
 
 A **real-time overlay tracker** for Super Metroid that displays live game stats, items, and boss progress directly from RetroArch. Perfect for speedruns, casual play, or streaming!
 
