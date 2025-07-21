@@ -357,10 +357,16 @@ class UnifiedSuperMetroidTracker:
                 space_jump = stats['items'].get('space', False)
                 draygon_detected = False
                 if space_jump:
-                    for scan_value in boss_scan_results.values():
-                        if scan_value is not None and (scan_value & 0x04):
-                            draygon_detected = True
-                            break
+                    # Fixed: Check for Draygon-specific pattern 0x0301 in boss_plus_3
+                    boss_plus_3_val = boss_scan_results.get('boss_plus_3', 0)
+                    if boss_plus_3_val == 0x0301:  # Specific Draygon defeat pattern
+                        draygon_detected = True
+                    else:
+                        # Fallback: original logic for other patterns
+                        for scan_value in boss_scan_results.values():
+                            if scan_value is not None and (scan_value & 0x04):
+                                draygon_detected = True
+                                break
                 
                 # Fixed Ridley detection - more conservative to prevent false positives
                 ridley_addr_5 = boss_scan_results.get('boss_plus_5', 0)
@@ -370,10 +376,11 @@ class UnifiedSuperMetroidTracker:
                 boss_plus_2_val = boss_scan_results.get('boss_plus_2', 0)
                 boss_plus_3_val = boss_scan_results.get('boss_plus_3', 0)
                 
+                # Fixed Golden Torizo detection - more conservative to prevent false positives
                 condition1 = ((boss_plus_1_val & 0x0700) and (boss_plus_1_val & 0x0003) and (boss_plus_1_val >= 0x0703))
                 condition2 = (boss_plus_2_val & 0x0100) and (boss_plus_2_val >= 0x0500)
-                condition3 = (boss_plus_3_val & 0x0300) and (boss_plus_3_val >= 0x0300)
-                golden_torizo_detected = condition1 or condition2 or condition3
+                # Removed condition3 that was triggering on Draygon's 0x0301 pattern
+                golden_torizo_detected = condition1 or condition2
                 
                 stats['bosses'] = {
                     'bomb_torizo': bool(bosses_data & 0x04),

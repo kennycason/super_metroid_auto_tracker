@@ -349,7 +349,7 @@ class CacheServingHTTPHandler(BaseHTTPRequestHandler):
 class BackgroundPollerServer:
     """Main server that orchestrates background polling and HTTP serving"""
     
-    def __init__(self, port=3001, poll_interval=2.5):
+    def __init__(self, port=3000, poll_interval=2.5):
         self.port = port
         self.poll_interval = poll_interval
         self.poller = BackgroundGamePoller(poll_interval)
@@ -406,6 +406,6 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
     
-    # Start server on port 3001 to avoid conflicts
-    server = BackgroundPollerServer(port=3001, poll_interval=2.5)
+    # Start server on port 3000 
+    server = BackgroundPollerServer(port=3000, poll_interval=2.5)
     server.start() 

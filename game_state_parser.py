@@ -167,7 +167,7 @@ class SuperMetroidGameStateParser:
         
         # Fixed boss detection logic (copied from working unified server)
         phantoon_addr = boss_scan_results.get('boss_plus_3', 0)
-        phantoon_detected = phantoon_addr and (phantoon_addr & 0x01) and (phantoon_addr & 0x0300)
+        phantoon_detected = phantoon_addr and (phantoon_addr & 0x01)  # Fixed: removed 0x0300 requirement
         bosses['phantoon'] = phantoon_detected
         
         # Botwoon detection
@@ -177,18 +177,31 @@ class SuperMetroidGameStateParser:
                           ((botwoon_addr_2 & 0x02) and (botwoon_addr_2 > 0x0001))
         bosses['botwoon'] = botwoon_detected
         
-        # Ridley detection - using conservative logic to prevent false positives
-        ridley_addr_1 = boss_scan_results.get('boss_plus_1', 0)
+        # Draygon detection - Fixed to detect the 0x0301 pattern
+        boss_plus_3_val = boss_scan_results.get('boss_plus_3', 0)
+        if boss_plus_3_val == 0x0301:  # Specific Draygon defeat pattern
+            draygon_detected = True
+        else:
+            # Fallback: original logic for other patterns
+            draygon_detected = False
+            for val in boss_scan_results.values():
+                if val and (val & 0x04):
+                    draygon_detected = True
+                    break
+        bosses['draygon'] = draygon_detected
+        
+        # Ridley detection - conservative to prevent false positives
         ridley_addr_5 = boss_scan_results.get('boss_plus_5', 0)
-        ridley_detected = ((ridley_addr_1 & 0x01) and (ridley_addr_1 > 0x0200)) or \
-                         ((ridley_addr_5 & 0x01) and (ridley_addr_5 > 0x0100))
+        ridley_detected = (ridley_addr_5 & 0x01) and (ridley_addr_5 > 0x0200)
         bosses['ridley'] = ridley_detected
         
-        # Golden Torizo detection - conservative to prevent false positives
+        # Golden Torizo detection - Fixed to prevent false positives from Draygon
         gt_addr_1 = boss_scan_results.get('boss_plus_1', 0)
-        gt_addr_3 = boss_scan_results.get('boss_plus_3', 0)
-        golden_torizo_detected = ((gt_addr_1 & 0x02) and (gt_addr_1 > 0x0400)) or \
-                                ((gt_addr_3 & 0x02) and (gt_addr_3 > 0x0200))
+        gt_addr_2 = boss_scan_results.get('boss_plus_2', 0)
+        condition1 = ((gt_addr_1 & 0x0700) and (gt_addr_1 & 0x0003) and (gt_addr_1 >= 0x0703))
+        condition2 = (gt_addr_2 & 0x0100) and (gt_addr_2 >= 0x0500)
+        # Removed condition3 that was triggering on Draygon's 0x0301 pattern
+        golden_torizo_detected = condition1 or condition2
         bosses['golden_torizo'] = golden_torizo_detected
         
         return bosses
