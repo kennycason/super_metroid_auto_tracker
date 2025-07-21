@@ -833,23 +833,70 @@
         function updateStats() {
             if (!isConnected || !isAttached) return;
             
-            // Fetch stats from HTTP API
-            fetch('http://localhost:3000/api/stats')
-                .then(response => response.json())
+            // Fetch stats from HTTP API with timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+            
+            fetch('http://localhost:3000/api/stats', { 
+                signal: controller.signal,
+                cache: 'no-cache'
+            })
+                .then(response => {
+                    clearTimeout(timeoutId);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
                 .then(stats => {
                     if (stats && !stats.error) {
                         updateAllDisplays(stats);
                         updateLocationInfo(stats);
+                        // Reset retry counter on success
+                        window.reconnectAttempts = 0;
                         // logDebugInfo(stats);  // Debug disabled - charge beam should work now
                     } else {
                         log(`❌ Stats error: ${stats.error || 'Unknown error'}`);
+                        handleConnectionError(`Server returned error: ${stats.error}`);
                     }
                 })
                 .catch(error => {
-                    log(`❌ Failed to fetch stats: ${error.message}`);
-                    // Try to reconnect
-                    setTimeout(connect, 2000);
+                    clearTimeout(timeoutId);
+                    if (error.name === 'AbortError') {
+                        log(`⏱️ Request timeout - server may be stuck`);
+                    } else {
+                        log(`❌ Failed to fetch stats: ${error.message}`);
+                    }
+                    handleConnectionError(error.message);
                 });
+        }
+        
+        function handleConnectionError(errorMsg) {
+            // Initialize retry counter
+            if (!window.reconnectAttempts) window.reconnectAttempts = 0;
+            window.reconnectAttempts++;
+            
+            // Mark as disconnected
+            isConnected = false;
+            isAttached = false;
+            updateStatus('CONNECTION LOST - RETRYING', false);
+            updateToggleButton(false);
+            
+            // Stop current tracking
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+            
+            // Exponential backoff: 2s, 4s, 8s, max 30s
+            const delay = Math.min(2000 * Math.pow(2, window.reconnectAttempts - 1), 30000);
+            
+            log(`🔄 Auto-reconnecting in ${delay/1000}s (attempt ${window.reconnectAttempts})`);
+            
+            setTimeout(() => {
+                log(`🔄 Attempting reconnection...`);
+                connect();
+            }, delay);
         }
 
         function logDebugInfo(stats) {

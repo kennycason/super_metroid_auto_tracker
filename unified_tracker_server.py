@@ -13,7 +13,12 @@ import logging
 import sys
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
+from urllib.parse import urlparse, parse_qs
+import traceback
+import os
+import sys
+import signal
 
 # Configure logging
 logging.basicConfig(
@@ -65,6 +70,79 @@ class UnifiedSuperMetroidTracker:
             3: "Wrecked Ship", 4: "Maridia", 5: "Tourian"
         }
         
+        # Circuit breaker for RetroArch communication
+        self.circuit_breaker = {
+            'failure_count': 0,
+            'failure_threshold': 5,  # Open circuit after 5 failures
+            'reset_timeout': 30,     # Try to close circuit after 30 seconds
+            'last_failure_time': 0,
+            'state': 'closed'        # closed, open, half_open
+        }
+        
+        # Health monitoring
+        self.health_status = {
+            'last_successful_read': time.time(),
+            'consecutive_failures': 0,
+            'is_healthy': True
+        }
+
+    def is_circuit_breaker_open(self) -> bool:
+        """Check if circuit breaker is open (blocking RetroArch calls)"""
+        if self.circuit_breaker['state'] == 'open':
+            # Check if we should try to close it
+            if time.time() - self.circuit_breaker['last_failure_time'] > self.circuit_breaker['reset_timeout']:
+                self.circuit_breaker['state'] = 'half_open'
+                logger.info("🔄 Circuit breaker moving to half-open state")
+                return False
+            return True
+        return False
+
+    def record_circuit_breaker_success(self):
+        """Record successful RetroArch communication"""
+        self.circuit_breaker['failure_count'] = 0
+        if self.circuit_breaker['state'] == 'half_open':
+            self.circuit_breaker['state'] = 'closed'
+            logger.info("✅ Circuit breaker closed - RetroArch communication restored")
+
+    def record_circuit_breaker_failure(self):
+        """Record failed RetroArch communication"""
+        self.circuit_breaker['failure_count'] += 1
+        self.circuit_breaker['last_failure_time'] = time.time()
+        
+        if (self.circuit_breaker['failure_count'] >= self.circuit_breaker['failure_threshold'] 
+            and self.circuit_breaker['state'] == 'closed'):
+            self.circuit_breaker['state'] = 'open'
+            logger.warning(f"🚫 Circuit breaker OPENED - Too many RetroArch failures ({self.circuit_breaker['failure_count']})")
+
+    def update_health_status(self, success: bool):
+        """Update server health status"""
+        if success:
+            self.health_status['last_successful_read'] = time.time()
+            self.health_status['consecutive_failures'] = 0
+            if not self.health_status['is_healthy']:
+                self.health_status['is_healthy'] = True
+                logger.info("💚 Server health restored")
+        else:
+            self.health_status['consecutive_failures'] += 1
+            
+            # Mark unhealthy after 3 consecutive failures or 60 seconds without success
+            time_since_success = time.time() - self.health_status['last_successful_read']
+            if (self.health_status['consecutive_failures'] >= 3 or time_since_success > 60):
+                if self.health_status['is_healthy']:
+                    self.health_status['is_healthy'] = False
+                    logger.error("💔 Server marked UNHEALTHY")
+
+    def get_health_status(self) -> Dict[str, Any]:
+        """Get current health status"""
+        time_since_success = time.time() - self.health_status['last_successful_read']
+        return {
+            'is_healthy': self.health_status['is_healthy'],
+            'consecutive_failures': self.health_status['consecutive_failures'],
+            'time_since_last_success': time_since_success,
+            'circuit_breaker_state': self.circuit_breaker['state'],
+            'circuit_breaker_failures': self.circuit_breaker['failure_count']
+        }
+            
     def connect_udp(self) -> bool:
         """Connect to RetroArch via UDP"""
         try:
@@ -78,12 +156,18 @@ class UnifiedSuperMetroidTracker:
             return False
             
     def send_retroarch_command(self, command: str) -> Optional[str]:
-        """Send command to RetroArch"""
+        """Send command to RetroArch with circuit breaker protection"""
+        # Check circuit breaker first
+        if self.is_circuit_breaker_open():
+            logger.debug(f"Circuit breaker open, skipping command: {command}")
+            return None
+            
         max_retries = 2
         
         for attempt in range(max_retries):
             if not self.udp_sock:
                 if not self.connect_udp():
+                    self.record_circuit_breaker_failure()
                     return None
                     
             try:
@@ -96,7 +180,7 @@ class UnifiedSuperMetroidTracker:
                     pass
                 
                 # Set normal timeout and send command
-                self.udp_sock.settimeout(2.0)
+                self.udp_sock.settimeout(1.5)
                 self.udp_sock.sendto(command.encode(), (self.retroarch_host, self.retroarch_port))
                 data, addr = self.udp_sock.recvfrom(1024)
                 response = data.decode().strip()
@@ -111,6 +195,8 @@ class UnifiedSuperMetroidTracker:
                     self.connect_udp()  # Fresh socket
                     continue
                     
+                # Success! Update circuit breaker
+                self.record_circuit_breaker_success()
                 return response
                 
             except socket.timeout:
@@ -120,6 +206,9 @@ class UnifiedSuperMetroidTracker:
                 logger.error(f"RetroArch command error: {e} (attempt {attempt + 1})")
                 self.connect_udp()  # Fresh socket for retry
                 
+        # All retries failed
+        logger.warning(f"All retries failed for command: {command}")
+        self.record_circuit_breaker_failure()
         return None
             
     def is_retroarch_connected(self) -> bool:
@@ -181,6 +270,7 @@ class UnifiedSuperMetroidTracker:
             data = self.read_memory_range(base_address, 22)
             
             if not data or len(data) < 22:
+                self.update_health_status(False)
                 return {}
                 
             stats = {
@@ -324,7 +414,8 @@ class UnifiedSuperMetroidTracker:
             'retroarch_version': None,
             'game_info': None,
             'stats': {},
-            'last_update': None
+            'last_update': None,
+            'health': self.get_health_status()
         }
         
         try:
@@ -414,8 +505,16 @@ class UnifiedTrackerHandler(BaseHTTPRequestHandler):
             self.send_json_response({'error': str(e)}, 500)
             
     def serve_stats(self):
-        """Serve just stats"""
+        """Serve just stats with smart caching"""
         try:
+            # Use cached stats if they're recent (within 2 seconds)
+            if (self.tracker.last_stats and 
+                time.time() - self.tracker.last_successful_read < 2.0):
+                logger.debug("Serving cached stats")
+                self.send_json_response(self.tracker.last_stats)
+                return
+                
+            # Get fresh stats
             status = self.tracker.get_full_status()
             stats = status.get('stats', {})
             if not stats:
