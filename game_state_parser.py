@@ -221,20 +221,25 @@ class SuperMetroidGameStateParser:
             mb1_detected = True
             mb2_detected = True
         elif in_mb_room:
-            # We're in Mother Brain room - detect intermediate states
+            # We're in Mother Brain room - detect intermediate states only with very specific patterns
             # Use memory patterns to determine which phases have been completed during the fight
             mb_progress_val = boss_scan_results.get('boss_plus_1', 0)
             
-            # If we're in MB room with certain patterns, MB1 must be defeated to get there
-            # Look for patterns indicating progression beyond MB1
-            if mb_progress_val > 0x0200 or location_data.get('missiles', 1) == 0:
-                # Strong indicators that we're past MB1 (fighting MB2/MB3)
+            # Only detect MB1 as defeated if we have very specific patterns indicating actual progression
+            # Being in MB room alone is NOT enough - need clear indicators of phase progression
+            
+            # Check for specific patterns that indicate MB1 is actually defeated
+            # Look for much higher thresholds that clearly indicate progression beyond MB1
+            if mb_progress_val >= 0x0600 and location_data.get('missiles', 1) == 0:
+                # Very strong indicators: high memory pattern AND no missiles (used in MB2/MB3 fight)
                 mb1_detected = True
-                # MB2 should only be detected as defeated AFTER actually completing her
-                # During intermediate fight, don't mark MB2 as defeated yet
                 mb2_detected = False  # Conservative: only detect when complete sequence is done
+            elif mb_progress_val >= 0x0800:
+                # Very high pattern that likely indicates actual MB1 completion
+                mb1_detected = True
+                mb2_detected = False
             else:
-                # Still fighting MB1
+                # Still fighting or just entered room - don't assume any phases are defeated
                 mb1_detected = False
                 mb2_detected = False
         else:

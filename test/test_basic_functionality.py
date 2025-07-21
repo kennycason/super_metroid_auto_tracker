@@ -163,29 +163,46 @@ class TestBasicFunctionality(unittest.TestCase):
         mb_room_location = {
             'area_id': 5,      # Tourian
             'room_id': 56664,  # Mother Brain room
-            'missiles': 0,     # Typical during MB fight
+            'missiles': 135,   # User has missiles (hasn't used them all yet)
         }
         
-        # Test fighting state
-        mb_fighting_data = {
+        # Test: just entered MB room, low memory pattern - should NOT detect MB1 as defeated
+        mb_early_fighting_data = {
             'main_bosses': b'\x04\x03',      # Main MB bit not set
-            'boss_plus_1': b'\x03\x06',      # Some progress pattern
+            'boss_plus_1': b'\x03\x02',      # Low pattern (0x0203) - just in room
             'crocomire': b'\x03\x02',
             'boss_plus_2': b'\x00\x00',
             'boss_plus_3': b'\x01\x03',
             'boss_plus_4': b'\x03\x00',
         }
         
-        result = self.parser.parse_bosses(mb_fighting_data, mb_room_location)
+        result_early = self.parser.parse_bosses(mb_early_fighting_data, mb_room_location)
         
-        # The key logic: in MB room with 0 missiles should detect MB1 as defeated
-        # (This was the main fix we implemented)
-        self.assertIn('mother_brain_1', result)
-        self.assertIn('mother_brain_2', result)
+        # Key fix: being in MB room with low patterns should NOT detect MB1 as defeated
+        self.assertIn('mother_brain_1', result_early)
+        self.assertIn('mother_brain_2', result_early)
+        self.assertFalse(result_early.get('mother_brain_1'), "MB1 should NOT be detected when just entering room")
         
-        # When in MB room with 0 missiles, MB1 should be detected
-        # (exact behavior might vary, but structure should be there)
-        print(f"✅ Mother Brain intermediate logic: MB1={result.get('mother_brain_1')}, MB2={result.get('mother_brain_2')}")
+        # Test: advanced MB fight with high pattern + no missiles - should detect MB1
+        mb_advanced_fighting = {
+            'main_bosses': b'\x04\x03',      # Main MB bit not set
+            'boss_plus_1': b'\x00\x06',      # High pattern (0x0600+)
+            'crocomire': b'\x03\x02',
+            'boss_plus_2': b'\x00\x00',
+            'boss_plus_3': b'\x01\x03',
+            'boss_plus_4': b'\x03\x00',
+        }
+        
+        mb_room_no_missiles = {
+            'area_id': 5,      # Tourian
+            'room_id': 56664,  # Mother Brain room
+            'missiles': 0,     # Used all missiles in fight
+        }
+        
+        result_advanced = self.parser.parse_bosses(mb_advanced_fighting, mb_room_no_missiles)
+        
+        print(f"✅ Mother Brain early fight: MB1={result_early.get('mother_brain_1')}, MB2={result_early.get('mother_brain_2')}")
+        print(f"✅ Mother Brain advanced fight: MB1={result_advanced.get('mother_brain_1')}, MB2={result_advanced.get('mother_brain_2')}")
     
     def test_working_boss_detections(self):
         """Test boss detections that we know work from user sessions"""
