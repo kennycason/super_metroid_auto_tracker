@@ -132,7 +132,7 @@ class SuperMetroidGameStateParser:
             "plasma": bool(beams_value & 0x0008)
         }
     
-    def parse_bosses(self, boss_memory_data: Dict[str, bytes]) -> Dict[str, Any]:
+    def parse_bosses(self, boss_memory_data: Dict[str, bytes], location_data: Dict[str, Any] = None) -> Dict[str, Any]:
         """Parse boss defeat status with advanced detection logic"""
         if not boss_memory_data:
             return {}
@@ -205,28 +205,46 @@ class SuperMetroidGameStateParser:
         golden_torizo_detected = condition1 or condition2
         bosses['golden_torizo'] = golden_torizo_detected
         
-        # Mother Brain detection - Using ORIGINAL working logic from main boss address
-        # The main_bosses address (0x7ED828) correctly tracks Mother Brain defeat
+        # Mother Brain detection - Handle both complete sequence AND intermediate fight states
         main_mb_detected = bosses.get('mother_brain', False)  # From original detection above
         
-        # For phases, we can distinguish based on additional patterns when MB is actually defeated
+        # Mother Brain has 3 phases: MB1 (glass tank), MB2 (mech body), MB3 (final form)
+        # We need to detect intermediate states during the active fight sequence
+        
+        # Check if we're in the Mother Brain room during the fight
+        area_id = location_data.get('area_id', 0) if location_data else 0
+        room_id = location_data.get('room_id', 0) if location_data else 0
+        in_mb_room = (area_id == 5 and room_id == 56664)  # Tourian Mother Brain room
+        
         if main_mb_detected:
-            # When Mother Brain is actually defeated, check for phase-specific patterns
-            mb_advanced_check = boss_scan_results.get('boss_plus_1', 0)
+            # Complete sequence: all phases are done
+            mb1_detected = True
+            mb2_detected = True
+        elif in_mb_room:
+            # We're in Mother Brain room - detect intermediate states
+            # Use memory patterns to determine which phases have been completed during the fight
+            mb_progress_val = boss_scan_results.get('boss_plus_1', 0)
             
-            # MB1: Look for specific pattern indicating phase 1 completion
-            mb1_detected = main_mb_detected and (mb_advanced_check >= 0x0600)
-            
-            # MB2: Look for higher pattern indicating phase 2 completion  
-            mb2_detected = main_mb_detected and (mb_advanced_check >= 0x0700)
+            # If we're in MB room with certain patterns, MB1 must be defeated to get there
+            # Look for patterns indicating progression beyond MB1
+            if mb_progress_val > 0x0200 or location_data.get('missiles', 1) == 0:
+                # Strong indicators that we're past MB1 (fighting MB2/MB3)
+                mb1_detected = True
+                # MB2 should only be detected as defeated AFTER actually completing her
+                # During intermediate fight, don't mark MB2 as defeated yet
+                mb2_detected = False  # Conservative: only detect when complete sequence is done
+            else:
+                # Still fighting MB1
+                mb1_detected = False
+                mb2_detected = False
         else:
-            # If main Mother Brain bit isn't set, neither phase is defeated
+            # Not in Mother Brain room and main bit not set - no phases defeated
             mb1_detected = False
             mb2_detected = False
             
         bosses['mother_brain_1'] = mb1_detected
         bosses['mother_brain_2'] = mb2_detected
-        # mother_brain stays as originally detected
+        # mother_brain stays as originally detected (complete sequence)
         
         return bosses
     
@@ -257,7 +275,7 @@ class SuperMetroidGameStateParser:
             # Bosses (pass all boss-related memory data)
             boss_memory = {k: v for k, v in memory_data.items() 
                           if k.startswith('boss') or k == 'main_bosses' or k == 'crocomire'}
-            game_state['bosses'] = self.parse_bosses(boss_memory)
+            game_state['bosses'] = self.parse_bosses(boss_memory, game_state)
             
             return game_state
             

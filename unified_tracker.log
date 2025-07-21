@@ -1,8 +1,0 @@
-2025-07-20 21:37:43,215 - INFO - 🚀 Starting unified server (attempt 1)
-2025-07-20 21:37:43,215 - INFO - 🚀 Starting Unified Super Metroid Tracker Server...
-2025-07-20 21:37:43,219 - INFO - ✅ Unified server started successfully:
-2025-07-20 21:37:43,219 - INFO -    📱 Tracker UI: http://localhost:3000/
-2025-07-20 21:37:43,219 - INFO -    📊 API Status: http://localhost:3000/api/status
-2025-07-20 21:37:43,219 - INFO -    📈 API Stats:  http://localhost:3000/api/stats
-2025-07-20 21:37:43,220 - INFO -    🎯 Single process - no complexity!
-2025-07-20 21:37:43,220 - INFO -    ⏹️  Press Ctrl+C to stop
