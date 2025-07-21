@@ -205,23 +205,28 @@ class SuperMetroidGameStateParser:
         golden_torizo_detected = condition1 or condition2
         bosses['golden_torizo'] = golden_torizo_detected
         
-        # Mother Brain Phase 1 detection - checks for bit 1 in multiple addresses
-        mb1_addr_1 = boss_scan_results.get('boss_plus_1', 0)
-        mb1_addr_2 = boss_scan_results.get('boss_plus_2', 0)
-        mb1_addr_4 = boss_scan_results.get('boss_plus_4', 0)
-        mb1_detected = ((mb1_addr_1 & 0x0001) != 0) or ((mb1_addr_2 & 0x0001) != 0) or ((mb1_addr_4 & 0x0001) != 0)
+        # Mother Brain detection - Using ORIGINAL working logic from main boss address
+        # The main_bosses address (0x7ED828) correctly tracks Mother Brain defeat
+        main_mb_detected = bosses.get('mother_brain', False)  # From original detection above
+        
+        # For phases, we can distinguish based on additional patterns when MB is actually defeated
+        if main_mb_detected:
+            # When Mother Brain is actually defeated, check for phase-specific patterns
+            mb_advanced_check = boss_scan_results.get('boss_plus_1', 0)
+            
+            # MB1: Look for specific pattern indicating phase 1 completion
+            mb1_detected = main_mb_detected and (mb_advanced_check >= 0x0600)
+            
+            # MB2: Look for higher pattern indicating phase 2 completion  
+            mb2_detected = main_mb_detected and (mb_advanced_check >= 0x0700)
+        else:
+            # If main Mother Brain bit isn't set, neither phase is defeated
+            mb1_detected = False
+            mb2_detected = False
+            
         bosses['mother_brain_1'] = mb1_detected
-        
-        # Mother Brain Phase 2 detection - checks for bit 2 in multiple addresses  
-        mb2_addr_1 = boss_scan_results.get('boss_plus_1', 0)
-        mb2_addr_2 = boss_scan_results.get('boss_plus_2', 0)
-        mb2_addr_4 = boss_scan_results.get('boss_plus_4', 0)
-        mb2_addr_5 = boss_scan_results.get('boss_plus_5', 0)
-        mb2_detected = ((mb2_addr_1 & 0x0002) != 0) or ((mb2_addr_2 & 0x0002) != 0) or ((mb2_addr_4 & 0x0002) != 0) or ((mb2_addr_5 & 0x0002) != 0)
         bosses['mother_brain_2'] = mb2_detected
-        
-        # Combined Mother Brain detection (for backward compatibility)
-        bosses['mother_brain'] = mb1_detected or mb2_detected
+        # mother_brain stays as originally detected
         
         return bosses
     

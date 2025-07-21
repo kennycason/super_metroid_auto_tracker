@@ -51,3 +51,17 @@
 2025-07-20 22:42:38,566 - INFO - 🎯 Architecture: Background UDP + Instant Cache Serving
 2025-07-20 22:42:38,566 - INFO - ⏹️  Press Ctrl+C to stop
 2025-07-20 22:42:38,566 - INFO - ==================================================
+2025-07-20 22:46:46,655 - INFO - 🛑 Received shutdown signal
+2025-07-20 22:46:49,116 - INFO - 🛑 Background poller stopped
+2025-07-20 22:46:49,117 - INFO - 🏁 Server stopped
+2025-07-20 22:46:58,039 - INFO - 📡 Starting background polling loop...
+2025-07-20 22:46:58,039 - INFO - 🚀 Background poller started (interval: 2.5s)
+2025-07-20 22:46:58,042 - INFO - 🚀 Background Polling Super Metroid Tracker Server
+2025-07-20 22:46:58,042 - INFO - ==================================================
+2025-07-20 22:46:58,042 - INFO - 📱 Tracker UI: http://localhost:3000/
+2025-07-20 22:46:58,042 - INFO - 📊 API Status: http://localhost:3000/api/status
+2025-07-20 22:46:58,042 - INFO - 📈 API Stats:  http://localhost:3000/api/stats
+2025-07-20 22:46:58,042 - INFO - ⚡ Background polling: 2.5s intervals
+2025-07-20 22:46:58,042 - INFO - 🎯 Architecture: Background UDP + Instant Cache Serving
+2025-07-20 22:46:58,042 - INFO - ⏹️  Press Ctrl+C to stop
+2025-07-20 22:46:58,042 - INFO - ==================================================
