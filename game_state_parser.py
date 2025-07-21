@@ -214,6 +214,8 @@ class SuperMetroidGameStateParser:
         # Check if we're in the Mother Brain room during the fight
         area_id = location_data.get('area_id', 0) if location_data else 0
         room_id = location_data.get('room_id', 0) if location_data else 0
+        player_x = location_data.get('player_x', 0) if location_data else 0
+        player_y = location_data.get('player_y', 0) if location_data else 0
         in_mb_room = (area_id == 5 and room_id == 56664)  # Tourian Mother Brain room
         
         if main_mb_detected:
@@ -221,25 +223,49 @@ class SuperMetroidGameStateParser:
             mb1_detected = True
             mb2_detected = True
         elif in_mb_room:
-            # We're in Mother Brain room - detect intermediate states only with very specific patterns
-            # Use memory patterns to determine which phases have been completed during the fight
+            # Multi-indicator detection system: use memory patterns + position + ammo as fallback
             mb_progress_val = boss_scan_results.get('boss_plus_1', 0)
+            mb_alt_pattern = boss_scan_results.get('boss_plus_2', 0)
+            mb_extra_pattern = boss_scan_results.get('boss_plus_3', 0)
+            mb_pattern_4 = boss_scan_results.get('boss_plus_4', 0)
+            mb_pattern_5 = boss_scan_results.get('boss_plus_5', 0)
             
-            # Only detect MB1 as defeated if we have very specific patterns indicating actual progression
-            # Being in MB room alone is NOT enough - need clear indicators of phase progression
+            # Position-based indicators: where in MB room
+            in_mb_fight_area = (player_x >= 700 and player_x <= 2000 and player_y >= 300)
             
-            # Check for specific patterns that indicate MB1 is actually defeated
-            # Look for much higher thresholds that clearly indicate progression beyond MB1
-            if mb_progress_val >= 0x0600 and location_data.get('missiles', 1) == 0:
-                # Very strong indicators: high memory pattern AND no missiles (used in MB2/MB3 fight)
-                mb1_detected = True
-                mb2_detected = False  # Conservative: only detect when complete sequence is done
-            elif mb_progress_val >= 0x0800:
-                # Very high pattern that likely indicates actual MB1 completion
+            # Game state validation (active gameplay should be 0x000B according to ChatGPT)
+            game_state_val = location_data.get('game_state', 0) if location_data else 0
+            in_active_gameplay = (game_state_val == 0x000B)
+            
+            # Missile usage as supporting evidence (not primary)
+            initial_missiles = location_data.get('max_missiles', 135) if location_data else 135
+            current_missiles = location_data.get('missiles', 135) if location_data else 135
+            missiles_used = initial_missiles - current_missiles
+            significant_ammo_used = missiles_used >= 30
+            
+            # Log all memory values for debugging
+            logger.info(f"MB Debug - Position: ({player_x}, {player_y}), Missiles: {current_missiles}/{initial_missiles}")
+            logger.info(f"MB Debug - Game State: 0x{game_state_val:04X}, In Fight Area: {in_mb_fight_area}")
+            logger.info(f"MB Debug - boss_plus_1: 0x{mb_progress_val:04X}, boss_plus_2: 0x{mb_alt_pattern:04X}")
+            logger.info(f"MB Debug - boss_plus_3: 0x{mb_extra_pattern:04X}, boss_plus_4: 0x{mb_pattern_4:04X}, boss_plus_5: 0x{mb_pattern_5:04X}")
+            
+            # CONSERVATIVE but PRACTICAL detection - focus on missile usage as primary indicator
+            # Pattern 1: High memory progression value + active gameplay OR good missile evidence
+            strong_memory_pattern = ((mb_progress_val >= 0x0700) and in_active_gameplay) or ((mb_progress_val >= 0x0600) and significant_ammo_used)
+            
+            # Pattern 2: Alternative memory addresses with medium thresholds + evidence
+            alt_strong_pattern = (mb_alt_pattern >= 0x0300) and significant_ammo_used
+            
+            # Pattern 3: Strong missile usage evidence (primary indicator)
+            missile_evidence_strong = missiles_used >= 30
+            
+            # Only detect MB1 if we have strong evidence
+            if strong_memory_pattern or alt_strong_pattern or missile_evidence_strong:
+                logger.info(f"MB Debug - Detected MB1: strong_mem={strong_memory_pattern}, alt_strong={alt_strong_pattern}, missile_strong={missile_evidence_strong}")
                 mb1_detected = True
                 mb2_detected = False
             else:
-                # Still fighting or just entered room - don't assume any phases are defeated
+                logger.info(f"MB Debug - NO MB1 detection: insufficient evidence")
                 mb1_detected = False
                 mb2_detected = False
         else:
