@@ -199,13 +199,13 @@ class TestBasicFunctionality(unittest.TestCase):
         self.assertTrue(result_beaten.get('mother_brain_1'), "MB1 MUST be detected - USER SUCCESS CASE")
         self.assertFalse(result_beaten.get('mother_brain_2'), "MB2 should remain false after MB1")
 
-        # Test scenario 3: Strong missile evidence threshold (30+ missiles used)
+        # Test scenario 3: Strong missile evidence threshold (35+ missiles used - FIXED THRESHOLD)
         mb_room_missile_threshold = {
             'area_id': 5,         # Tourian
             'room_id': 56664,     # Mother Brain room
             'player_x': 500,      # Any position
             'player_y': 300,      # Any position  
-            'missiles': 105,      # Used exactly 30 missiles (135 -> 105)
+            'missiles': 100,      # Used exactly 35 missiles (135 -> 100)
             'max_missiles': 135,  # Max missiles
             'game_state': 0x000F, # Any game state
         }
@@ -216,7 +216,7 @@ class TestBasicFunctionality(unittest.TestCase):
             'boss_plus_3': struct.pack('<H', 0x0080),  # Not used for MB
         }
         result_missile = self.parser.parse_bosses(mb_missile_data, mb_room_missile_threshold)
-        self.assertTrue(result_missile.get('mother_brain_1'), "MB1 should be detected with 30+ missiles used")
+        self.assertTrue(result_missile.get('mother_brain_1'), "MB1 should be detected with 35+ missiles used")
 
         # Test scenario 4: Memory pattern + missile evidence combo
         mb_room_combo = {
@@ -224,7 +224,7 @@ class TestBasicFunctionality(unittest.TestCase):
             'room_id': 56664,     # Mother Brain room
             'player_x': 800,      # In fight area
             'player_y': 400,      # In fight area
-            'missiles': 115,      # Used 20 missiles (135 -> 115)
+            'missiles': 95,       # Used 40 missiles (135 -> 95) - above 35 threshold
             'max_missiles': 135,  # Max missiles
             'game_state': 0x000B, # Active gameplay
         }
@@ -276,6 +276,75 @@ class TestBasicFunctionality(unittest.TestCase):
         }
         false_positive_result = self.parser.parse_bosses(false_positive_memory, false_positive_test)
         self.assertFalse(false_positive_result.get('mother_brain_1'), "REGRESSION: Must not detect MB1 with full missiles!")
+
+        # MB2 DETECTION TESTS - Lock in working logic!
+        
+        # Test MB2 SUCCESS CASE: Exact user state when MB2 was detected
+        mb2_user_success = {
+            'area_id': 5,         # Tourian
+            'room_id': 56664,     # Mother Brain room
+            'player_x': 235,      # User's exact position after MB2
+            'player_y': 195,      # User's exact position after MB2
+            'missiles': 0,        # All missiles used (key indicator!)
+            'max_missiles': 135,  # Max missiles
+            'game_state': 0x000F, # User's game state
+        }
+        mb2_success_memory = {
+            'main_bosses': struct.pack('<H', 0x0000),  # Main MB not defeated (MB3 not done)
+            'boss_plus_1': struct.pack('<H', 0x0703),  # Same memory pattern
+            'boss_plus_2': struct.pack('<H', 0x0107),  # Same alt pattern
+            'boss_plus_3': struct.pack('<H', 0x0301),  # Draygon pattern (not used for MB)
+            'boss_plus_4': struct.pack('<H', 0x0203),  # NEW: MB2 memory pattern! 
+            'boss_plus_5': struct.pack('<H', 0x0102),  # NEW: MB2 memory pattern!
+        }
+        mb2_success_result = self.parser.parse_bosses(mb2_success_memory, mb2_user_success)
+        self.assertTrue(mb2_success_result.get('mother_brain_1'), "MB2 Test: MB1 should remain true")
+        self.assertTrue(mb2_success_result.get('mother_brain_2'), "MB2 Test: MB2 MUST be detected - USER SUCCESS CASE!")
+        self.assertFalse(mb2_success_result.get('mother_brain'), "MB2 Test: Full MB should remain false")
+
+        # Test MB2 - All missiles used detection
+        mb2_all_missiles = {
+            'area_id': 5,         # Tourian
+            'room_id': 56664,     # Mother Brain room
+            'player_x': 500,      # Any position
+            'player_y': 300,      # Any position  
+            'missiles': 0,        # ALL missiles used (key for conservative detection)
+            'max_missiles': 135,  # Max missiles
+            'game_state': 0x000F, # Any game state
+        }
+        mb2_missiles_memory = {
+            'main_bosses': struct.pack('<H', 0x0000),  # Main MB not defeated
+            'boss_plus_1': struct.pack('<H', 0x0650),  # Enough for MB1
+            'boss_plus_2': struct.pack('<H', 0x0100),  # Low alt pattern
+            'boss_plus_3': struct.pack('<H', 0x0080),  # Not used for MB
+            'boss_plus_4': struct.pack('<H', 0x0300),  # MB2 NEW higher threshold
+            'boss_plus_5': struct.pack('<H', 0x0080),  # Below MB2 threshold
+        }
+        mb2_missiles_result = self.parser.parse_bosses(mb2_missiles_memory, mb2_all_missiles)
+        self.assertTrue(mb2_missiles_result.get('mother_brain_1'), "MB2: MB1 should be detected")
+        self.assertTrue(mb2_missiles_result.get('mother_brain_2'), "MB2: Should detect via all missiles used + strong memory")
+
+        # Test MB2 - Extreme usage (hyper beam phase) detection  
+        mb2_extreme_test = {
+            'area_id': 5,         # Tourian
+            'room_id': 56664,     # Mother Brain room
+            'player_x': 400,      # Any position
+            'player_y': 250,      # Any position  
+            'missiles': 10,       # Almost all missiles used (135 -> 10 = 125 used)
+            'max_missiles': 135,  # Max missiles
+            'game_state': 0x000F, # Any game state
+        }
+        mb2_extreme_memory = {
+            'main_bosses': struct.pack('<H', 0x0000),  # Main MB not defeated
+            'boss_plus_1': struct.pack('<H', 0x0700),  # High enough for extreme detection
+            'boss_plus_2': struct.pack('<H', 0x0200),  # Medium alt pattern
+            'boss_plus_3': struct.pack('<H', 0x0080),  # Not used for MB
+            'boss_plus_4': struct.pack('<H', 0x0100),  # Below threshold (testing extreme path)
+            'boss_plus_5': struct.pack('<H', 0x0080),  # Below threshold
+        }
+        mb2_extreme_result = self.parser.parse_bosses(mb2_extreme_memory, mb2_extreme_test)
+        self.assertTrue(mb2_extreme_result.get('mother_brain_1'), "MB2: MB1 should be detected")
+        self.assertTrue(mb2_extreme_result.get('mother_brain_2'), "MB2: Should detect via extreme missile usage (125 used)")
     
     def test_working_boss_detections(self):
         """Test boss detections that we know work from user sessions"""

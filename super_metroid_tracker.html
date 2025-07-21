@@ -254,7 +254,7 @@
             background-image: url('boss_sprites.png');
             background-repeat: no-repeat;
             /* Full size 64x64 display */
-            background-size: 704px 64px; /* 11 sprites × 64px each = 704px */
+            background-size: 768px 64px; /* 12 sprites × 64px each = 768px (was 704px for 11 sprites) */
             image-rendering: pixelated;
             image-rendering: -moz-crisp-edges;
             image-rendering: crisp-edges;
@@ -307,6 +307,10 @@
 
         .boss-sprite-mother-brain-2 {
             background-position: -640px 0px; /* Col 10 - MB2 */
+        }
+
+        .boss-sprite-samus-ship {
+            background-position: -704px 0px; /* Col 11 - Samus Ship */
         }
 
         .section-title { 
@@ -911,8 +915,6 @@
             }
         }
 
-
-
         function updateStatDisplay(type, current, max) {
             const valueEl = document.getElementById(type + 'Value');
             const barEl = document.getElementById(type + 'Bar');
@@ -932,4 +934,4 @@
         };
     </script>
 </body>
-</html> 
+</html>

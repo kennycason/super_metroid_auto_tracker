@@ -241,7 +241,7 @@ class SuperMetroidGameStateParser:
             initial_missiles = location_data.get('max_missiles', 135) if location_data else 135
             current_missiles = location_data.get('missiles', 135) if location_data else 135
             missiles_used = initial_missiles - current_missiles
-            significant_ammo_used = missiles_used >= 30
+            significant_ammo_used = missiles_used >= 35  # Increased from 30 to fix early detection
             
             # Log all memory values for debugging
             logger.info(f"MB Debug - Position: ({player_x}, {player_y}), Missiles: {current_missiles}/{initial_missiles}")
@@ -256,14 +256,29 @@ class SuperMetroidGameStateParser:
             # Pattern 2: Alternative memory addresses with medium thresholds + evidence
             alt_strong_pattern = (mb_alt_pattern >= 0x0300) and significant_ammo_used
             
-            # Pattern 3: Strong missile usage evidence (primary indicator)
-            missile_evidence_strong = missiles_used >= 30
+            # Pattern 3: Strong missile usage evidence (primary indicator) - increased threshold
+            missile_evidence_strong = missiles_used >= 35  # Increased from 30 to fix early detection
             
             # Only detect MB1 if we have strong evidence
             if strong_memory_pattern or alt_strong_pattern or missile_evidence_strong:
                 logger.info(f"MB Debug - Detected MB1: strong_mem={strong_memory_pattern}, alt_strong={alt_strong_pattern}, missile_strong={missile_evidence_strong}")
                 mb1_detected = True
-                mb2_detected = False
+                
+                # MB2 detection - MORE CONSERVATIVE to trigger after hyper beam phase
+                # Pattern 1: All missiles used + high memory pattern (stronger requirement)
+                all_missiles_used = (current_missiles == 0 and initial_missiles > 0)
+                strong_mb2_memory = (mb_pattern_4 >= 0x0300) or (mb_pattern_5 >= 0x0150)  # Higher thresholds
+                
+                # Pattern 2: Extreme missile usage + strong memory evidence (for hyper beam phase)
+                extreme_missile_usage = (missiles_used >= 120) and (mb_progress_val >= 0x0700)  # Much higher thresholds
+                
+                # Detect MB2 only with VERY strong evidence (after hyper beam phase)
+                if (all_missiles_used and strong_mb2_memory) or extreme_missile_usage:
+                    logger.info(f"MB Debug - Detected MB2: all_missiles={all_missiles_used}, strong_mb2_memory={strong_mb2_memory}, extreme_usage={extreme_missile_usage}")
+                    mb2_detected = True
+                else:
+                    logger.info(f"MB Debug - MB1 only: insufficient MB2 evidence (pre-hyper beam)")
+                    mb2_detected = False
             else:
                 logger.info(f"MB Debug - NO MB1 detection: insufficient evidence")
                 mb1_detected = False
