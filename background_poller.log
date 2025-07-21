@@ -8911,3 +8911,1371 @@
 2025-07-21 16:16:33,510 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
 2025-07-21 16:16:33,510 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
 2025-07-21 16:16:33,510 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:16:36,018 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:16:36,018 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:16:36,018 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:16:36,018 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:16:36,018 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:16:36,018 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:16:38,491 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:16:38,491 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:16:38,491 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:16:38,491 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:16:38,491 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:16:38,491 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:16:40,998 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:16:40,998 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:16:40,998 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:16:40,998 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:16:40,998 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:16:40,998 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:16:43,541 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:16:43,541 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:16:43,541 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:16:43,541 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:16:43,541 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:16:43,541 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:16:46,060 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:16:46,060 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:16:46,060 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:16:46,060 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:16:46,060 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:16:46,060 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:16:48,577 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:16:48,577 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:16:48,578 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:16:48,578 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:16:48,578 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:16:48,578 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:16:51,076 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:16:51,076 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:16:51,076 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:16:51,076 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:16:51,076 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:16:51,076 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:16:53,549 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:16:53,549 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:16:53,549 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:16:53,549 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:16:53,549 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:16:53,549 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:16:56,056 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:16:56,057 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:16:56,057 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:16:56,057 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:16:56,057 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:16:56,057 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:16:58,564 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:16:58,564 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:16:58,565 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:16:58,565 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:16:58,565 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:16:58,565 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:01,072 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:01,072 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:01,072 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:01,072 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:01,072 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:01,072 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:03,580 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:03,580 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:03,580 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:03,580 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:03,580 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:03,580 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:06,088 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:06,088 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:06,088 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:06,088 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:06,088 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:06,088 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:08,558 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:08,558 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:08,558 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:08,558 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:08,558 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:08,558 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:11,112 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:11,113 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:11,113 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:11,113 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:11,113 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:11,113 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:13,576 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:13,576 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:13,576 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:13,576 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:13,576 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:13,576 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:16,095 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:16,096 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:16,096 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:16,096 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:16,096 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:16,096 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:18,603 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:18,603 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:18,603 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:18,603 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:18,603 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:18,603 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:21,111 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:21,111 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:21,111 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:21,111 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:21,111 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:21,111 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:23,584 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:23,584 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:23,584 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:23,584 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:23,584 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:23,584 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:26,092 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:26,092 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:26,092 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:26,092 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:26,092 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:26,092 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:28,600 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:28,600 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:28,600 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:28,600 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:28,600 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:28,600 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:31,082 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:31,082 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:31,082 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:31,082 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:31,082 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:31,082 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:33,636 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:33,636 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:33,636 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:33,636 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:33,636 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:33,637 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:36,135 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:36,135 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:36,135 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:36,135 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:36,135 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:36,135 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:38,642 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:38,642 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:38,642 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:38,642 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:38,642 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:38,642 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:41,115 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:41,115 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:41,115 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:41,115 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:41,115 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:41,115 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:43,588 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:43,588 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:43,588 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:43,588 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:43,588 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:43,588 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:46,096 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:46,096 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:46,096 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:46,096 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:46,097 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:46,097 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:48,650 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:48,650 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:48,650 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:48,650 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:48,650 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:48,650 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:51,158 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:51,158 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:51,158 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:51,158 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:51,159 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:51,159 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:53,631 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:53,631 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:53,631 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:53,631 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:53,631 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:53,632 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:56,104 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:56,104 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:56,104 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:56,104 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:56,104 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:56,104 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:17:58,611 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:17:58,612 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:17:58,612 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:17:58,612 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:17:58,612 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:17:58,612 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:01,154 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:01,155 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:01,155 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:01,155 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:01,155 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:01,155 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:03,673 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:03,673 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:03,674 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:03,674 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:03,674 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:03,674 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:06,181 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:06,182 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:06,182 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:06,182 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:06,182 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:06,182 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:08,654 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:08,654 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:08,654 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:08,654 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:08,654 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:08,654 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:11,162 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:11,162 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:11,162 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:11,162 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:11,162 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:11,162 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:13,670 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:13,670 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:13,670 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:13,670 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:13,670 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:13,670 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:16,189 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:16,189 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:16,189 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:16,189 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:16,189 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:16,189 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:18,697 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:18,697 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:18,697 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:18,697 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:18,697 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:18,697 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:21,205 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:21,205 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:21,205 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:21,205 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:21,205 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:21,205 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:23,677 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:23,678 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:23,678 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:23,678 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:23,678 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:23,678 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:26,185 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:26,185 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:26,186 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:26,186 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:26,186 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:26,186 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:28,658 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:28,658 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:28,658 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:28,658 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:28,658 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:28,658 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:31,166 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:31,166 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:31,166 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:31,166 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:31,166 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:31,166 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:33,674 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:33,674 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:33,674 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:33,674 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:33,674 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:33,674 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:36,216 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:36,217 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:36,217 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:36,217 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:36,217 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:36,217 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:38,736 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:38,736 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:38,736 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:38,736 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:38,736 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:38,736 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:41,162 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:41,163 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:41,163 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:41,163 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:41,163 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:41,163 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:43,705 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:43,705 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:43,705 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:43,705 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:43,705 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:43,705 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:46,224 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:46,224 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:46,225 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:46,225 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:46,225 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:46,225 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:48,732 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:48,732 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:48,732 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:48,732 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:48,732 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:48,733 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:51,240 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:51,240 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:51,240 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:51,240 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:51,240 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:51,240 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:53,713 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:53,713 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:53,713 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:53,713 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:53,713 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:53,713 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:56,221 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:56,221 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:56,221 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:56,221 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:56,221 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:56,221 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:18:58,728 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:18:58,729 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:18:58,729 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:18:58,729 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:18:58,729 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:18:58,729 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:01,201 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:01,202 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:01,202 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:01,202 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:01,202 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:01,202 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:03,709 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:03,709 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:03,709 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:03,709 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:03,709 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:03,709 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:06,217 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:06,217 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:06,217 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:06,217 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:06,217 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:06,217 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:08,759 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:08,760 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:08,760 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:08,760 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:08,760 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:08,760 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:11,279 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:11,279 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:11,279 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:11,279 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:11,279 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:11,279 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:13,787 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:13,787 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:13,787 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:13,787 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:13,787 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:13,787 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:16,294 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:16,294 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:16,294 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:16,295 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:16,295 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:16,295 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:18,767 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:18,767 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:18,767 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:18,767 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:18,767 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:18,768 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:21,275 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:21,275 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:21,276 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:21,276 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:21,276 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:21,276 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:23,783 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:23,783 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:23,783 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:23,783 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:23,783 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:23,783 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:26,291 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:26,291 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:26,291 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:26,291 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:26,291 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:26,291 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:28,763 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:28,764 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:28,764 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:28,764 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:28,764 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:28,764 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:31,271 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:31,271 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:31,271 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:31,271 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:31,271 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:31,271 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:33,779 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:33,780 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:33,780 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:33,780 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:33,780 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:33,780 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:36,253 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:36,253 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:36,253 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:36,253 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:36,253 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:36,253 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:38,797 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:38,797 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:38,797 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:38,797 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:38,797 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:38,797 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:41,317 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:41,317 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:41,317 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:41,317 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:41,317 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:41,317 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:43,825 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:43,825 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:43,826 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:43,826 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:43,826 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:43,826 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:46,334 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:46,334 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:46,334 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:46,334 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:46,334 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:46,334 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:48,807 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:48,807 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:48,807 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:48,807 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:48,807 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:48,807 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:51,315 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:51,316 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:51,316 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:51,316 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:51,316 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:51,316 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:53,823 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:53,823 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:53,824 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:53,824 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:53,824 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:53,824 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:56,332 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:56,332 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:56,332 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:56,332 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:56,332 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:56,332 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:19:58,840 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:19:58,840 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:19:58,840 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:19:58,840 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:19:58,840 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:19:58,840 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:01,348 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:01,348 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:01,348 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:01,348 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:01,348 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:01,348 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:03,821 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:03,821 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:03,821 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:03,821 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:03,821 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:03,821 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:06,329 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:06,329 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:06,329 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:06,329 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:06,329 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:06,329 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:08,837 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:08,837 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:08,837 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:08,837 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:08,837 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:08,837 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:11,319 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:11,319 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:11,319 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:11,319 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:11,320 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:11,320 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:13,818 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:13,818 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:13,818 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:13,818 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:13,818 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:13,818 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:16,372 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:16,372 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:16,372 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:16,372 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:16,372 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:16,372 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:18,880 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:18,880 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:18,880 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:18,880 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:18,880 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:18,880 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:21,388 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:21,388 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:21,388 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:21,388 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:21,388 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:21,388 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:23,861 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:23,861 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:23,861 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:23,861 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:23,861 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:23,861 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:26,368 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:26,368 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:26,368 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:26,368 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:26,368 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:26,368 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:28,876 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:28,876 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:28,876 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:28,876 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:28,876 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:28,876 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:31,384 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:31,384 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:31,384 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:31,384 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:31,384 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:31,384 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:33,855 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:33,855 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:33,855 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:33,855 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:33,855 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:33,855 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:36,365 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:36,365 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:36,365 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:36,365 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:36,365 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:36,365 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:38,838 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:38,838 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:38,838 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:38,838 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:38,838 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:38,838 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:41,392 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:41,392 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:41,392 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:41,392 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:41,392 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:41,392 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:43,900 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:43,900 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:43,900 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:43,900 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:43,900 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:43,900 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:46,407 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:46,408 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:46,408 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:46,408 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:46,408 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:46,408 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:48,881 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:48,881 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:48,881 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:48,881 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:48,881 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:48,881 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:51,388 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:51,389 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:51,389 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:51,389 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:51,389 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:51,389 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:53,896 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:53,896 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:53,896 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:53,897 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:53,897 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:53,897 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:56,415 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:56,416 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:56,416 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:56,416 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:56,416 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:56,416 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:20:58,923 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:20:58,924 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:20:58,924 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:20:58,924 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:20:58,924 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:20:58,924 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:01,431 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:01,431 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:01,432 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:01,432 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:01,432 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:01,432 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:03,904 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:03,905 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:03,905 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:03,905 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:03,905 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:03,906 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:06,412 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:06,412 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:06,412 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:06,412 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:06,412 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:06,412 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:08,885 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:08,885 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:08,885 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:08,885 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:08,885 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:08,885 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:11,439 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:11,439 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:11,439 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:11,439 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:11,440 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:11,440 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:13,947 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:13,947 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:13,947 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:13,947 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:13,947 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:13,947 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:16,455 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:16,455 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:16,455 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:16,456 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:16,456 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:16,456 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:18,927 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:18,928 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:18,928 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:18,928 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:18,929 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:18,929 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:21,401 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:21,401 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:21,401 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:21,401 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:21,401 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:21,401 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:23,943 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:23,943 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:23,943 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:23,943 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:23,943 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:23,943 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:26,462 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:26,462 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:26,463 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:26,463 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:26,463 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:26,463 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:28,970 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:28,971 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:28,971 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:28,971 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:28,971 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:28,971 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:31,443 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:31,443 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:31,444 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:31,444 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:31,444 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:31,444 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:33,951 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:33,951 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:33,951 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:33,951 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:33,951 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:33,951 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:36,424 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:36,424 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:36,424 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:36,424 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:36,425 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:36,425 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:38,978 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:38,978 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:38,978 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:38,978 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:38,978 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:38,978 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:41,486 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:41,486 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:41,487 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:41,487 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:41,487 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:41,487 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:43,968 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:43,969 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:43,969 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:43,969 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:43,969 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:43,969 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:46,467 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:46,467 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:46,467 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:46,467 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:46,467 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:46,467 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:48,940 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:48,940 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:48,940 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:48,940 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:48,940 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:48,940 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:51,482 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:51,482 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:51,483 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:51,483 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:51,483 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:51,483 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:54,002 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:54,002 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:54,002 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:54,002 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:54,002 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:54,002 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:56,509 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:56,510 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:56,510 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:56,510 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:56,511 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:56,511 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:21:58,982 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:21:58,983 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:21:58,983 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:21:58,983 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:21:58,983 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:21:58,983 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:01,490 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:01,490 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:01,490 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:01,490 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:01,490 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:01,491 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:03,963 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:03,963 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:03,963 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:03,964 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:03,964 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:03,964 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:06,517 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:06,518 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:06,518 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:06,518 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:06,518 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:06,518 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:09,025 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:09,025 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:09,025 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:09,025 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:09,025 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:09,025 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:11,533 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:11,533 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:11,533 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:11,533 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:11,533 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:11,533 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:14,006 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:14,006 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:14,006 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:14,006 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:14,006 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:14,006 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:16,514 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:16,514 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:16,514 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:16,514 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:16,514 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:16,515 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:19,033 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:19,033 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:19,033 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:19,033 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:19,034 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:19,034 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:21,541 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:21,541 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:21,541 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:21,541 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:21,541 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:21,541 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:24,048 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:24,048 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:24,048 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:24,048 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:24,048 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:24,048 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:26,521 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:26,522 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:26,522 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:26,522 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:26,522 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:26,522 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:29,029 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:29,029 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:29,029 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:29,029 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:29,029 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:29,029 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:31,502 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:31,503 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:31,503 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:31,503 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:31,503 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:31,504 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:34,045 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:34,045 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:34,045 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:34,045 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:34,046 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:34,046 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:36,564 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:36,564 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:36,564 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:36,564 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:36,564 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:36,564 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:39,072 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:39,072 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:39,072 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:39,073 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:39,073 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:39,073 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:41,545 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:41,545 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:41,545 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:41,545 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:41,546 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:41,546 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:44,053 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:44,053 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:44,053 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:44,053 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:44,054 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:44,054 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:46,525 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:46,526 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:46,526 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:46,526 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:46,526 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:46,526 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:49,080 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:49,080 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:49,080 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:49,080 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:49,080 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:49,080 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:51,587 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:51,587 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:51,588 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:51,588 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:51,588 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:51,588 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:54,060 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:54,060 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:54,060 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:54,060 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:54,060 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:54,060 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:56,568 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:56,568 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:56,568 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:56,568 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:56,568 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:56,568 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:22:59,076 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:22:59,076 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:22:59,076 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:22:59,076 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:22:59,076 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:22:59,076 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:01,549 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:23:01,549 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:01,550 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:01,550 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:01,550 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:01,550 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:04,091 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:23:04,092 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:04,092 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:04,092 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:04,092 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:04,092 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:06,611 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:23:06,611 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:06,611 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:06,611 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:06,611 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:06,611 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:09,084 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:23:09,084 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:09,084 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:09,084 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:09,084 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:09,084 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:11,592 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:23:11,592 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:11,592 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:11,592 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:11,592 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:11,592 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:14,099 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:23:14,100 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:14,100 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:14,100 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:14,100 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:14,100 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:16,573 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:23:16,573 - INFO - MB Debug - Game State: 0x0011, In Fight Area: False
+2025-07-21 16:23:16,573 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:16,573 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:16,574 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:16,574 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:19,127 - INFO - MB Debug - Position: (233, 195), Missiles: 0/135
+2025-07-21 16:23:19,127 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:19,127 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:19,127 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:19,128 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:19,128 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:21,599 - INFO - MB Debug - Position: (235, 162), Missiles: 0/135
+2025-07-21 16:23:21,600 - INFO - MB Debug - Game State: 0x0012, In Fight Area: False
+2025-07-21 16:23:21,600 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:21,600 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:21,600 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:21,600 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:24,072 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:23:24,072 - INFO - MB Debug - Game State: 0x000E, In Fight Area: False
+2025-07-21 16:23:24,072 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:24,072 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:24,072 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:24,072 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:26,615 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:23:26,615 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:26,615 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:26,616 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:26,616 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:26,616 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:29,088 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:23:29,088 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:29,088 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:29,088 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:29,088 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:29,088 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:31,607 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:23:31,608 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:31,608 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:31,608 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:31,608 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:31,608 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:34,150 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:23:34,150 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:34,151 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:34,151 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:34,151 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:34,151 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:36,623 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:23:36,623 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:36,623 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:36,624 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:36,624 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:36,624 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:39,131 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:23:39,131 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:39,131 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:39,131 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:39,131 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:39,131 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:41,638 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:23:41,638 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:41,638 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:41,638 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:41,638 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:41,638 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:44,146 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:23:44,147 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:44,147 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:44,147 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:44,147 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:44,148 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:46,621 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:23:46,622 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:46,622 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:46,622 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:46,622 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:46,622 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:49,174 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:23:49,174 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:49,174 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:49,174 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:49,174 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:49,174 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:51,646 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:23:51,647 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:51,647 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:51,647 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:51,647 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:51,647 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:54,154 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:23:54,154 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:54,154 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:54,154 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:54,154 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:54,154 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:56,662 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:23:56,662 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:56,663 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:56,663 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:56,663 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:56,663 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:23:59,170 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:23:59,170 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:23:59,170 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:23:59,170 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:23:59,170 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:23:59,170 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:01,689 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:01,689 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:01,690 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:01,690 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:01,690 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:01,690 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:04,150 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:04,150 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:04,150 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:04,150 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:04,150 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:04,151 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:06,658 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:06,659 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:06,659 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:06,659 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:06,659 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:06,659 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:09,177 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:09,178 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:09,178 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:09,178 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:09,178 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:09,178 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:11,685 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:11,686 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:11,686 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:11,686 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:11,686 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:11,686 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:14,193 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:14,194 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:14,194 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:14,195 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:14,195 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:14,195 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:16,666 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:16,667 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:16,667 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:16,667 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:16,667 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:16,667 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:19,174 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:19,174 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:19,174 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:19,174 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:19,174 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:19,174 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:21,645 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:21,645 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:21,645 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:21,645 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:21,645 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:21,645 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:24,175 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:24,176 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:24,176 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:24,176 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:24,176 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:24,176 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:26,709 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:26,709 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:26,709 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:26,709 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:26,709 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:26,710 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:29,217 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:29,217 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:29,217 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:29,218 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:29,218 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:29,218 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:31,724 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:31,725 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:31,725 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:31,725 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:31,725 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:31,725 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:34,221 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:34,221 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:34,221 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:34,221 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:34,222 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:34,222 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:36,670 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:36,671 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:36,671 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:36,671 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:36,671 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:36,671 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:39,225 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:39,225 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:39,225 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:39,225 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:39,225 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:39,226 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:41,732 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:41,733 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:41,733 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:41,733 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:41,733 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:41,733 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:44,205 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:44,206 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:44,206 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:44,206 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:44,206 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:44,206 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:46,711 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:46,711 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:46,711 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:46,711 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:46,712 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:46,712 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:49,186 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:49,186 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:49,186 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:49,186 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:49,187 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:49,187 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:51,740 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:51,740 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:51,741 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:51,741 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:51,741 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:51,741 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:54,248 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:54,248 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:54,249 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:54,249 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:54,249 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:54,249 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:56,756 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:56,756 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:56,756 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:56,757 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:56,757 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:56,757 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:24:59,229 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:24:59,229 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:24:59,229 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:24:59,229 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:24:59,230 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:24:59,230 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:01,736 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:01,737 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:25:01,737 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:01,737 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:01,737 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:01,737 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:04,209 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:04,210 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:25:04,210 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:04,210 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:04,210 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:04,210 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:06,764 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:06,764 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:25:06,764 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:06,764 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:06,764 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:06,764 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:09,271 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:09,271 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:25:09,271 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:09,271 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:09,271 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:09,271 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:11,779 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:11,779 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:25:11,779 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:11,779 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:11,779 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:11,779 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:14,252 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:14,252 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:25:14,252 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:14,252 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:14,252 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:14,252 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:16,760 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:16,760 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:25:16,760 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:16,760 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:16,760 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:16,760 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:19,233 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:19,233 - INFO - MB Debug - Game State: 0x000F, In Fight Area: False
+2025-07-21 16:25:19,233 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:19,233 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:19,233 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:19,233 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:21,787 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:21,787 - INFO - MB Debug - Game State: 0x0010, In Fight Area: False
+2025-07-21 16:25:21,788 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:21,788 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:21,788 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:21,788 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:24,297 - INFO - MB Debug - Position: (230, 195), Missiles: 0/135
+2025-07-21 16:25:24,297 - INFO - MB Debug - Game State: 0x0008, In Fight Area: False
+2025-07-21 16:25:24,298 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:24,298 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:24,298 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:24,298 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:26,768 - INFO - MB Debug - Position: (235, 140), Missiles: 0/135
+2025-07-21 16:25:26,768 - INFO - MB Debug - Game State: 0x0008, In Fight Area: False
+2025-07-21 16:25:26,768 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:26,769 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:26,769 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:26,769 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:29,276 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:29,276 - INFO - MB Debug - Game State: 0x0008, In Fight Area: False
+2025-07-21 16:25:29,276 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:29,276 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:29,276 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:29,276 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:31,783 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:31,784 - INFO - MB Debug - Game State: 0x0008, In Fight Area: False
+2025-07-21 16:25:31,784 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:31,784 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:31,784 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:31,784 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:34,301 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:34,301 - INFO - MB Debug - Game State: 0x0008, In Fight Area: False
+2025-07-21 16:25:34,301 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:34,301 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:34,301 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:34,301 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:36,810 - INFO - MB Debug - Position: (235, 178), Missiles: 0/135
+2025-07-21 16:25:36,811 - INFO - MB Debug - Game State: 0x0008, In Fight Area: False
+2025-07-21 16:25:36,811 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:36,811 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:36,811 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:36,811 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:39,283 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:39,283 - INFO - MB Debug - Game State: 0x0008, In Fight Area: False
+2025-07-21 16:25:39,283 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:39,283 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:39,283 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:39,283 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:41,791 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:41,792 - INFO - MB Debug - Game State: 0x0008, In Fight Area: False
+2025-07-21 16:25:41,792 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:41,792 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:41,793 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:41,793 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:44,265 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:44,265 - INFO - MB Debug - Game State: 0x0008, In Fight Area: False
+2025-07-21 16:25:44,266 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:44,266 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:44,266 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:44,267 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:46,819 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:46,819 - INFO - MB Debug - Game State: 0x0008, In Fight Area: False
+2025-07-21 16:25:46,819 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:46,819 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:46,819 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:46,820 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:49,324 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:49,324 - INFO - MB Debug - Game State: 0x0008, In Fight Area: False
+2025-07-21 16:25:49,324 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:49,324 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:49,324 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:49,324 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:51,834 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:51,834 - INFO - MB Debug - Game State: 0x0008, In Fight Area: False
+2025-07-21 16:25:51,834 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:51,834 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:51,834 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:51,835 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:54,307 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:54,307 - INFO - MB Debug - Game State: 0x0008, In Fight Area: False
+2025-07-21 16:25:54,307 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:54,307 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:54,307 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:54,307 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:56,780 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:56,780 - INFO - MB Debug - Game State: 0x0008, In Fight Area: False
+2025-07-21 16:25:56,780 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:56,780 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:56,781 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:56,781 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:25:59,334 - INFO - MB Debug - Position: (235, 195), Missiles: 0/135
+2025-07-21 16:25:59,334 - INFO - MB Debug - Game State: 0x0008, In Fight Area: False
+2025-07-21 16:25:59,334 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:25:59,334 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:25:59,334 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:25:59,334 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:26:01,842 - INFO - MB Debug - Position: (235, 153), Missiles: 0/135
+2025-07-21 16:26:01,842 - INFO - MB Debug - Game State: 0x0008, In Fight Area: False
+2025-07-21 16:26:01,842 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:26:01,842 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0003, boss_plus_5: 0x0100
+2025-07-21 16:26:01,843 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:26:01,843 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True
+2025-07-21 16:26:04,349 - INFO - MB Debug - Position: (103, 195), Missiles: 0/135
+2025-07-21 16:26:04,350 - INFO - MB Debug - Game State: 0x0008, In Fight Area: False
+2025-07-21 16:26:04,350 - INFO - MB Debug - boss_plus_1: 0x0703, boss_plus_2: 0x0107
+2025-07-21 16:26:04,350 - INFO - MB Debug - boss_plus_3: 0x0301, boss_plus_4: 0x0203, boss_plus_5: 0x0102
+2025-07-21 16:26:04,350 - INFO - MB Debug - Detected MB1: strong_mem=True, alt_strong=False, missile_strong=True
+2025-07-21 16:26:04,350 - INFO - MB Debug - Detected MB2: all_missiles=True, strong_mb2_memory=False, extreme_usage=True

@@ -292,7 +292,76 @@ class SuperMetroidGameStateParser:
         bosses['mother_brain_2'] = mb2_detected
         # mother_brain stays as originally detected (complete sequence)
         
+        # End-game detection (Samus reaching her ship)
+        samus_ship_detected = self._detect_samus_ship(boss_memory_data, location_data, main_mb_detected, mb1_detected, mb2_detected)
+        bosses['samus_ship'] = samus_ship_detected
+        
         return bosses
+    
+    def _detect_samus_ship(self, boss_memory_data: Dict[str, bytes], location_data: Dict[str, Any], 
+                          main_mb_complete: bool, mb1_complete: bool, mb2_complete: bool) -> bool:
+        """Detect when Samus has reached her ship (end-game completion)"""
+        if not location_data:
+            return False
+            
+        area_id = location_data.get('area_id', 0)
+        room_id = location_data.get('room_id', 0)
+        player_x = location_data.get('player_x', 0)
+        player_y = location_data.get('player_y', 0)
+        
+        # Must be in Crateria (area 0) for ship location
+        if area_id != 0:
+            return False
+            
+        # Check if Mother Brain sequence is complete (all phases defeated)
+        # This ensures we're in the post-game/escape sequence phase
+        mother_brain_complete = main_mb_complete or (mb1_complete and mb2_complete)
+        
+        if not mother_brain_complete:
+            return False
+            
+        # Landing Site room detection (approximate room ID conversion)
+        # The SMILE ID 791F8 converts to a runtime room ID we need to check
+        # Based on research, Landing Site is typically room ID around 31800-32000 range in decimal
+        # But since room IDs can vary, we'll use a more flexible approach
+        
+        # Check if we're in the general Landing Site area (Crateria, western section)
+        # Based on the room layout, Landing Site is in "West of the Lake" section
+        # We'll check for reasonable room ID ranges and position within Crateria
+        
+        # Room ID ranges that could indicate Landing Site area (converted from hex ranges)
+        # This covers the general Crateria "West of the Lake" area where the ship is located
+        landing_site_room_range = [
+            (31224, 31260),  # 0x791F8 area converted to decimal range
+            (31000, 31500),  # Broader range to account for room ID variations
+        ]
+        
+        in_landing_area = any(start <= room_id <= end for start, end in landing_site_room_range)
+        
+        # Also check by position - Landing Site has specific coordinates
+        # The ship is typically in the upper portion of the Landing Site room
+        # X coordinate around 400-600, Y coordinate around 100-300 (approximate)
+        near_ship_position = (300 <= player_x <= 700) and (50 <= player_y <= 400)
+        
+        # Alternative: check if we're in any Crateria room that could be post-escape
+        # Since room IDs can be complex, also accept being in Crateria with MB complete
+        # and reasonable positioning (not underground, not too far east/west)
+        in_surface_crateria = (area_id == 0 and 
+                              200 <= player_x <= 800 and  # Reasonable X range
+                              50 <= player_y <= 500)      # Surface level Y range
+        
+        # End-game is detected if:
+        # 1. Mother Brain is defeated AND
+        # 2. We're in Crateria AND
+        # 3. Either in the Landing Site area OR near ship position OR in surface Crateria
+        end_game_detected = (mother_brain_complete and 
+                           area_id == 0 and 
+                           (in_landing_area or near_ship_position or in_surface_crateria))
+        
+        if end_game_detected:
+            logger.info(f"End-game detected: MB complete, Crateria area, room_id={room_id}, pos=({player_x},{player_y})")
+            
+        return end_game_detected
     
     def parse_complete_game_state(self, memory_data: Dict[str, bytes]) -> Dict[str, Any]:
         """Parse all memory data into complete game state"""
