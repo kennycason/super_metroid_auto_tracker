@@ -78,14 +78,15 @@
         
         /* Item/Boss Grid Styles */
         .tracking-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); 
-            gap: 1px; 
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0px; 
             margin: 8px 0; 
-            padding: 8px;
+            padding: 2px;
             border: 1px solid #00ff00;
             border-radius: 5px;
             background: #001a00;
+            align-items: flex-start;
         }
         .tracking-section { margin: 8px 0; }
         
@@ -360,7 +361,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>SUPER METROID LIVE TRACKER</h1>
+            <!-- <h1>SUPER METROID LIVE TRACKER</h1> -->
             <div class="status-row">
                 <div id="status" class="status disconnected">DISCONNECTED</div>
                 <button id="toggleBtn" onclick="toggleConnection()">CONNECT</button>
@@ -411,7 +412,7 @@
 
         <!-- Quantity Items Section -->
         <div class="tracking-section">
-            <div class="tracking-grid" id="quantityGrid" style="margin-bottom: 15px;">
+            <div class="tracking-grid" id="quantityGrid" style="margin-bottom: 8px;">
                 <div class="quantity-tile" data-item="energy-tank" title="Energy Tanks">
                     <span class="sprite sprite-energy-tank"></span>
                     <div class="quantity-display" id="energyTankCount">0</div>
@@ -472,7 +473,8 @@
                 <div class="item-tile" data-boss="draygon" title="Draygon"><span class="boss-sprite boss-sprite-draygon"></span><div class="item-name">Draygon</div></div>
                 <div class="item-tile" data-boss="golden_torizo" title="Golden Torizo"><span class="boss-sprite boss-sprite-golden-torizo"></span><div class="item-name">G.Torizo</div></div>
                 <div class="item-tile" data-boss="ridley" title="Ridley"><span class="boss-sprite boss-sprite-ridley"></span><div class="item-name">Ridley</div></div>
-                <div class="item-tile" data-boss="mother_brain" title="Mother Brain"><span class="boss-sprite boss-sprite-mother-brain-1"></span><div class="item-name">M.Brain</div></div>
+                <div class="item-tile" data-boss="mother_brain_1" title="Mother Brain Phase 1"><span class="boss-sprite boss-sprite-mother-brain-1"></span><div class="item-name">MB1</div></div>
+                <div class="item-tile" data-boss="mother_brain_2" title="Mother Brain Phase 2"><span class="boss-sprite boss-sprite-mother-brain-2"></span><div class="item-name">MB2</div></div>
             </div>
         </div>
 

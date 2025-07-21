@@ -190,9 +190,10 @@ class SuperMetroidGameStateParser:
                     break
         bosses['draygon'] = draygon_detected
         
-        # Ridley detection - conservative to prevent false positives
-        ridley_addr_5 = boss_scan_results.get('boss_plus_5', 0)
-        ridley_detected = (ridley_addr_5 & 0x01) and (ridley_addr_5 > 0x0200)
+        # Ridley detection - Fixed to check correct memory addresses
+        ridley_addr_2 = boss_scan_results.get('boss_plus_2', 0)
+        ridley_addr_4 = boss_scan_results.get('boss_plus_4', 0)
+        ridley_detected = ((ridley_addr_2 & 0x0001) != 0) or ((ridley_addr_4 & 0x0001) != 0)
         bosses['ridley'] = ridley_detected
         
         # Golden Torizo detection - Fixed threshold to detect 0x0603 pattern
@@ -203,6 +204,24 @@ class SuperMetroidGameStateParser:
         # Removed condition3 that was triggering on Draygon's 0x0301 pattern
         golden_torizo_detected = condition1 or condition2
         bosses['golden_torizo'] = golden_torizo_detected
+        
+        # Mother Brain Phase 1 detection - checks for bit 1 in multiple addresses
+        mb1_addr_1 = boss_scan_results.get('boss_plus_1', 0)
+        mb1_addr_2 = boss_scan_results.get('boss_plus_2', 0)
+        mb1_addr_4 = boss_scan_results.get('boss_plus_4', 0)
+        mb1_detected = ((mb1_addr_1 & 0x0001) != 0) or ((mb1_addr_2 & 0x0001) != 0) or ((mb1_addr_4 & 0x0001) != 0)
+        bosses['mother_brain_1'] = mb1_detected
+        
+        # Mother Brain Phase 2 detection - checks for bit 2 in multiple addresses  
+        mb2_addr_1 = boss_scan_results.get('boss_plus_1', 0)
+        mb2_addr_2 = boss_scan_results.get('boss_plus_2', 0)
+        mb2_addr_4 = boss_scan_results.get('boss_plus_4', 0)
+        mb2_addr_5 = boss_scan_results.get('boss_plus_5', 0)
+        mb2_detected = ((mb2_addr_1 & 0x0002) != 0) or ((mb2_addr_2 & 0x0002) != 0) or ((mb2_addr_4 & 0x0002) != 0) or ((mb2_addr_5 & 0x0002) != 0)
+        bosses['mother_brain_2'] = mb2_detected
+        
+        # Combined Mother Brain detection (for backward compatibility)
+        bosses['mother_brain'] = mb1_detected or mb2_detected
         
         return bosses
     

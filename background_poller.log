@@ -23,3 +23,31 @@
 2025-07-20 22:01:24,421 - INFO - 🎯 Architecture: Background UDP + Instant Cache Serving
 2025-07-20 22:01:24,421 - INFO - ⏹️  Press Ctrl+C to stop
 2025-07-20 22:01:24,421 - INFO - ==================================================
+2025-07-20 22:20:11,950 - INFO - 🛑 Received shutdown signal
+2025-07-20 22:20:13,467 - INFO - 🛑 Background poller stopped
+2025-07-20 22:20:13,467 - INFO - 🏁 Server stopped
+2025-07-20 22:20:19,332 - INFO - 📡 Starting background polling loop...
+2025-07-20 22:20:19,332 - INFO - 🚀 Background poller started (interval: 2.5s)
+2025-07-20 22:20:19,335 - INFO - 🚀 Background Polling Super Metroid Tracker Server
+2025-07-20 22:20:19,335 - INFO - ==================================================
+2025-07-20 22:20:19,335 - INFO - 📱 Tracker UI: http://localhost:3000/
+2025-07-20 22:20:19,335 - INFO - 📊 API Status: http://localhost:3000/api/status
+2025-07-20 22:20:19,336 - INFO - 📈 API Stats:  http://localhost:3000/api/stats
+2025-07-20 22:20:19,336 - INFO - ⚡ Background polling: 2.5s intervals
+2025-07-20 22:20:19,336 - INFO - 🎯 Architecture: Background UDP + Instant Cache Serving
+2025-07-20 22:20:19,336 - INFO - ⏹️  Press Ctrl+C to stop
+2025-07-20 22:20:19,336 - INFO - ==================================================
+2025-07-20 22:42:30,995 - INFO - 🛑 Received shutdown signal
+2025-07-20 22:42:31,811 - INFO - 🛑 Background poller stopped
+2025-07-20 22:42:31,811 - INFO - 🏁 Server stopped
+2025-07-20 22:42:38,563 - INFO - 📡 Starting background polling loop...
+2025-07-20 22:42:38,563 - INFO - 🚀 Background poller started (interval: 2.5s)
+2025-07-20 22:42:38,566 - INFO - 🚀 Background Polling Super Metroid Tracker Server
+2025-07-20 22:42:38,566 - INFO - ==================================================
+2025-07-20 22:42:38,566 - INFO - 📱 Tracker UI: http://localhost:3000/
+2025-07-20 22:42:38,566 - INFO - 📊 API Status: http://localhost:3000/api/status
+2025-07-20 22:42:38,566 - INFO - 📈 API Stats:  http://localhost:3000/api/stats
+2025-07-20 22:42:38,566 - INFO - ⚡ Background polling: 2.5s intervals
+2025-07-20 22:42:38,566 - INFO - 🎯 Architecture: Background UDP + Instant Cache Serving
+2025-07-20 22:42:38,566 - INFO - ⏹️  Press Ctrl+C to stop
+2025-07-20 22:42:38,566 - INFO - ==================================================
