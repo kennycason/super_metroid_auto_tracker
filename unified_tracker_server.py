@@ -347,7 +347,7 @@ class UnifiedSuperMetroidTracker:
                 
                 # Fixed boss detection logic
                 phantoon_addr = boss_scan_results.get('boss_plus_3', 0)
-                phantoon_detected = phantoon_addr and (phantoon_addr & 0x01) and (phantoon_addr & 0x0300)
+                phantoon_detected = phantoon_addr and (phantoon_addr & 0x01)  # Fixed: removed 0x0300 requirement
                 
                 botwoon_addr_1 = boss_scan_results.get('boss_plus_2', 0)
                 botwoon_addr_2 = boss_scan_results.get('boss_plus_4', 0)
@@ -362,19 +362,9 @@ class UnifiedSuperMetroidTracker:
                             draygon_detected = True
                             break
                 
-                ridley_detected = False
-                ridley_candidates = [
-                    ('boss_plus_1', 0x400, 0x0400),
-                    ('boss_plus_1', 0x200, 0x0A00),
-                    ('boss_plus_1', 0x100, 0x0500),
-                    ('boss_plus_2', 0x100, 0x0100),
-                ]
-                
-                for scan_name, bit_mask, min_value in ridley_candidates:
-                    candidate_data = boss_scan_results.get(scan_name, 0)
-                    if (candidate_data & bit_mask) and (candidate_data >= min_value):
-                        ridley_detected = True
-                        break
+                # Fixed Ridley detection - more conservative to prevent false positives
+                ridley_addr_5 = boss_scan_results.get('boss_plus_5', 0)
+                ridley_detected = (ridley_addr_5 & 0x01) and (ridley_addr_5 > 0x0200)  # Only check boss_plus_5
                 
                 boss_plus_1_val = boss_scan_results.get('boss_plus_1', 0)
                 boss_plus_2_val = boss_scan_results.get('boss_plus_2', 0)

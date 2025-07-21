@@ -1,0 +1,411 @@
+#!/usr/bin/env python3
+"""
+Background Polling Super Metroid Tracker Server
+
+NEW ARCHITECTURE:
+- Background UDP poller runs every 2-3 seconds
+- HTTP server serves cached data instantly  
+- No blocking, no request flooding, much more stable
+
+Usage: python background_poller_server.py
+"""
+
+import json
+import socket
+import struct
+import time
+import logging
+import threading
+import queue
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from typing import Dict, Any, Optional
+import sys
+import signal
+
+from game_state_parser import SuperMetroidGameStateParser
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('background_poller.log'),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
+
+class RetroArchUDPReader:
+    """Handles UDP communication with RetroArch - separated from parsing logic"""
+    
+    def __init__(self, host="localhost", port=55355):
+        self.host = host
+        self.port = port
+        self.sock = None
+        self.last_connection_attempt = 0
+        self.connection_retry_delay = 5  # seconds
+        
+    def connect(self) -> bool:
+        """Connect to RetroArch UDP interface"""
+        try:
+            if self.sock:
+                self.sock.close()
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.sock.settimeout(1.0)  # Fast timeout for background polling
+            return True
+        except Exception as e:
+            logger.error(f"UDP connection failed: {e}")
+            return False
+    
+    def send_command(self, command: str) -> Optional[str]:
+        """Send single command to RetroArch"""
+        if not self.sock:
+            if not self.connect():
+                return None
+                
+        try:
+            # Clear any pending data
+            self.sock.settimeout(0.1)
+            try:
+                while True:
+                    self.sock.recv(1024)
+            except socket.timeout:
+                pass
+                
+            # Send command
+            self.sock.settimeout(1.0)
+            self.sock.sendto(command.encode(), (self.host, self.port))
+            data, addr = self.sock.recvfrom(1024)
+            return data.decode().strip()
+            
+        except socket.timeout:
+            logger.debug(f"UDP timeout for command: {command}")
+            return None
+        except Exception as e:
+            logger.debug(f"UDP error for command {command}: {e}")
+            return None
+    
+    def read_memory_range(self, start_address: int, size: int) -> Optional[bytes]:
+        """Read memory range from RetroArch"""
+        command = f"READ_CORE_MEMORY 0x{start_address:X} {size}"
+        response = self.send_command(command)
+        
+        if not response or not response.startswith("READ_CORE_MEMORY"):
+            return None
+            
+        try:
+            parts = response.split(' ', 2)
+            if len(parts) < 3:
+                return None
+            hex_data = parts[2].replace(' ', '')
+            return bytes.fromhex(hex_data)
+        except ValueError:
+            return None
+    
+    def is_game_loaded(self) -> bool:
+        """Check if Super Metroid is loaded"""
+        response = self.send_command("GET_STATUS")
+        if response and "PLAYING" in response:
+            response_lower = response.lower()
+            if "super metroid" in response_lower:
+                return True
+            # Check for ROM hacks and randomizers
+            rom_hack_keywords = [
+                "metroid", "samus", "zebes", "crateria", "norfair", "maridia",
+                "map rando", "rando", "randomizer", "random", "sm ", "super_metroid"
+            ]
+            return any(keyword in response_lower for keyword in rom_hack_keywords)
+        return False
+    
+    def get_retroarch_info(self) -> Dict[str, Any]:
+        """Get RetroArch connection info"""
+        version = self.send_command("VERSION")
+        status = self.send_command("GET_STATUS")
+        
+        return {
+            'connected': version is not None,
+            'retroarch_version': version,
+            'game_info': status,
+            'game_loaded': self.is_game_loaded()
+        }
+
+class BackgroundGamePoller:
+    """Background thread that polls game state and updates cache"""
+    
+    def __init__(self, update_interval=2.5):
+        self.update_interval = update_interval
+        self.udp_reader = RetroArchUDPReader()
+        self.parser = SuperMetroidGameStateParser()
+        self.cache = {
+            'game_state': {},
+            'connection_info': {},
+            'last_update': 0,
+            'poll_count': 0,
+            'error_count': 0
+        }
+        self.cache_lock = threading.Lock()
+        self.running = False
+        self.thread = None
+        
+    def start(self):
+        """Start background polling"""
+        if self.running:
+            return
+            
+        self.running = True
+        self.thread = threading.Thread(target=self._poll_loop, daemon=True)
+        self.thread.start()
+        logger.info(f"🚀 Background poller started (interval: {self.update_interval}s)")
+    
+    def stop(self):
+        """Stop background polling"""
+        self.running = False
+        if self.thread:
+            self.thread.join(timeout=5)
+        logger.info("🛑 Background poller stopped")
+    
+    def get_cached_state(self) -> Dict[str, Any]:
+        """Get current cached game state"""
+        with self.cache_lock:
+            return {
+                'connected': self.cache['connection_info'].get('connected', False),
+                'game_loaded': self.cache['connection_info'].get('game_loaded', False),
+                'retroarch_version': self.cache['connection_info'].get('retroarch_version'),
+                'game_info': self.cache['connection_info'].get('game_info'),
+                'stats': self.cache['game_state'],
+                'last_update': self.cache['last_update'],
+                'poll_count': self.cache['poll_count'],
+                'error_count': self.cache['error_count']
+            }
+    
+    def _poll_loop(self):
+        """Main polling loop - runs in background thread"""
+        logger.info("📡 Starting background polling loop...")
+        
+        while self.running:
+            try:
+                start_time = time.time()
+                
+                # Get connection info
+                connection_info = self.udp_reader.get_retroarch_info()
+                
+                # Read game state if game is loaded
+                game_state = {}
+                if connection_info.get('game_loaded', False):
+                    game_state = self._read_game_state()
+                
+                # Update cache atomically
+                with self.cache_lock:
+                    self.cache['connection_info'] = connection_info
+                    if game_state:  # Only update if we got valid data
+                        self.cache['game_state'] = game_state
+                    self.cache['last_update'] = time.time()
+                    self.cache['poll_count'] += 1
+                
+                poll_duration = time.time() - start_time
+                logger.debug(f"Poll completed in {poll_duration:.2f}s")
+                
+                # Sleep until next poll
+                time.sleep(max(0, self.update_interval - poll_duration))
+                
+            except Exception as e:
+                logger.error(f"Polling error: {e}")
+                with self.cache_lock:
+                    self.cache['error_count'] += 1
+                time.sleep(1)  # Brief pause on error
+    
+    def _read_game_state(self) -> Dict[str, Any]:
+        """Read complete game state via bulk memory operations"""
+        try:
+            # BULK READ: Get all basic stats in one 22-byte read
+            basic_stats = self.udp_reader.read_memory_range(0x7E09C2, 22)
+            
+            # Individual reads for other data
+            room_id = self.udp_reader.read_memory_range(0x7E079B, 2)
+            area_id = self.udp_reader.read_memory_range(0x7E079F, 1)
+            game_state = self.udp_reader.read_memory_range(0x7E0998, 2)
+            player_x = self.udp_reader.read_memory_range(0x7E0AF6, 2)
+            player_y = self.udp_reader.read_memory_range(0x7E0AFA, 2)
+            items = self.udp_reader.read_memory_range(0x7E09A4, 2)
+            beams = self.udp_reader.read_memory_range(0x7E09A8, 2)
+            
+            # Boss memory (multiple addresses for advanced detection)
+            main_bosses = self.udp_reader.read_memory_range(0x7ED828, 2)
+            crocomire = self.udp_reader.read_memory_range(0x7ED829, 2)
+            boss_plus_1 = self.udp_reader.read_memory_range(0x7ED829, 2)  # Fixed: was 0x7ED82A
+            boss_plus_2 = self.udp_reader.read_memory_range(0x7ED82A, 2)  # Fixed: was 0x7ED82B
+            boss_plus_3 = self.udp_reader.read_memory_range(0x7ED82B, 2)  # Fixed: was 0x7ED82C
+            boss_plus_4 = self.udp_reader.read_memory_range(0x7ED82C, 2)  # Added
+            boss_plus_5 = self.udp_reader.read_memory_range(0x7ED82D, 2)  # Added
+            
+            # Package all memory data
+            memory_data = {
+                'basic_stats': basic_stats,
+                'room_id': room_id,
+                'area_id': area_id,
+                'game_state': game_state,
+                'player_x': player_x,
+                'player_y': player_y,
+                'items': items,
+                'beams': beams,
+                'main_bosses': main_bosses,
+                'crocomire': crocomire,
+                'boss_plus_1': boss_plus_1,
+                'boss_plus_2': boss_plus_2,
+                'boss_plus_3': boss_plus_3,
+                'boss_plus_4': boss_plus_4,
+                'boss_plus_5': boss_plus_5,
+            }
+            
+            # Parse into structured game state
+            parsed_state = self.parser.parse_complete_game_state(memory_data)
+            
+            if self.parser.is_valid_game_state(parsed_state):
+                return parsed_state
+            else:
+                logger.warning("Invalid game state parsed")
+                return {}
+                
+        except Exception as e:
+            logger.error(f"Error reading game state: {e}")
+            return {}
+
+class CacheServingHTTPHandler(BaseHTTPRequestHandler):
+    """HTTP handler that serves cached data instantly - no UDP blocking"""
+    
+    def __init__(self, *args, poller=None, **kwargs):
+        self.poller = poller
+        super().__init__(*args, **kwargs)
+    
+    def log_message(self, format, *args):
+        """Suppress default HTTP logging"""
+        pass
+    
+    def do_GET(self):
+        """Handle GET requests"""
+        try:
+            if self.path == '/':
+                self.serve_file('super_metroid_tracker.html')
+            elif self.path == '/api/status':
+                self.serve_status()
+            elif self.path == '/api/stats':
+                self.serve_stats()
+            elif self.path.endswith('.png'):
+                self.serve_static_file(self.path[1:], 'image/png')
+            else:
+                self.send_error(404)
+        except Exception as e:
+            logger.error(f"Request error: {e}")
+            self.send_error(500)
+    
+    def serve_status(self):
+        """Serve status from cache - instant response"""
+        cached_state = self.poller.get_cached_state()
+        self.send_json_response(cached_state)
+    
+    def serve_stats(self):
+        """Serve stats from cache - instant response"""
+        cached_state = self.poller.get_cached_state()
+        stats = cached_state.get('stats', {})
+        if not stats:
+            stats = {'error': 'No game data available'}
+        self.send_json_response(stats)
+    
+    def serve_file(self, filename):
+        """Serve HTML files"""
+        try:
+            with open(filename, 'r') as f:
+                content = f.read()
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html')
+            self.send_header('Content-Length', len(content.encode()))
+            self.end_headers()
+            self.wfile.write(content.encode())
+        except FileNotFoundError:
+            self.send_error(404)
+    
+    def serve_static_file(self, filename, content_type):
+        """Serve static files"""
+        try:
+            with open(filename, 'rb') as f:
+                content = f.read()
+            self.send_response(200)
+            self.send_header('Content-Type', content_type)
+            self.send_header('Content-Length', len(content))
+            self.end_headers()
+            self.wfile.write(content)
+        except FileNotFoundError:
+            self.send_error(404)
+    
+    def send_json_response(self, data, status_code=200):
+        """Send JSON response"""
+        json_data = json.dumps(data, indent=2)
+        self.send_response(status_code)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', len(json_data.encode()))
+        self.end_headers()
+        self.wfile.write(json_data.encode())
+
+class BackgroundPollerServer:
+    """Main server that orchestrates background polling and HTTP serving"""
+    
+    def __init__(self, port=3001, poll_interval=2.5):
+        self.port = port
+        self.poll_interval = poll_interval
+        self.poller = BackgroundGamePoller(poll_interval)
+        self.http_server = None
+        
+    def start(self):
+        """Start the complete server system"""
+        try:
+            # Start background poller
+            self.poller.start()
+            
+            # Create HTTP server with poller reference
+            def handler_factory(*args, **kwargs):
+                return CacheServingHTTPHandler(*args, poller=self.poller, **kwargs)
+            
+            self.http_server = HTTPServer(('localhost', self.port), handler_factory)
+            
+            logger.info("🚀 Background Polling Super Metroid Tracker Server")
+            logger.info("=" * 50)
+            logger.info(f"📱 Tracker UI: http://localhost:{self.port}/")
+            logger.info(f"📊 API Status: http://localhost:{self.port}/api/status")
+            logger.info(f"📈 API Stats:  http://localhost:{self.port}/api/stats")
+            logger.info(f"⚡ Background polling: {self.poll_interval}s intervals")
+            logger.info(f"🎯 Architecture: Background UDP + Instant Cache Serving")
+            logger.info(f"⏹️  Press Ctrl+C to stop")
+            logger.info("=" * 50)
+            
+            # Serve HTTP requests
+            self.http_server.serve_forever()
+            
+        except KeyboardInterrupt:
+            logger.info("🛑 Shutdown requested")
+        except Exception as e:
+            logger.error(f"Server error: {e}")
+        finally:
+            self.stop()
+    
+    def stop(self):
+        """Stop the server system"""
+        if self.poller:
+            self.poller.stop()
+        if self.http_server:
+            self.http_server.shutdown()
+            self.http_server.server_close()
+        logger.info("🏁 Server stopped")
+
+def signal_handler(signum, frame):
+    """Handle shutdown signals"""
+    logger.info("🛑 Received shutdown signal")
+    sys.exit(0)
+
+if __name__ == "__main__":
+    # Handle shutdown signals
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    
+    # Start server on port 3001 to avoid conflicts
+    server = BackgroundPollerServer(port=3001, poll_interval=2.5)
+    server.start() 

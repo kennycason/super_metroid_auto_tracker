@@ -129,3 +129,12 @@
 2025-07-20 19:57:38,503 - INFO -    ⏹️  Press Ctrl+C to stop
 2025-07-20 20:00:38,341 - WARNING - RetroArch command timeout: VERSION (attempt 1)
 2025-07-20 20:07:00,941 - WARNING - RetroArch command timeout: READ_CORE_MEMORY 0x7E079F 1 (attempt 1)
+2025-07-20 20:36:28,918 - WARNING - RetroArch command timeout: VERSION (attempt 1)
+2025-07-20 20:45:28,471 - INFO - 🚀 Starting unified server (attempt 1)
+2025-07-20 20:45:28,471 - INFO - 🚀 Starting Unified Super Metroid Tracker Server...
+2025-07-20 20:45:28,474 - INFO - ✅ Unified server started successfully:
+2025-07-20 20:45:28,474 - INFO -    📱 Tracker UI: http://localhost:3000/
+2025-07-20 20:45:28,474 - INFO -    📊 API Status: http://localhost:3000/api/status
+2025-07-20 20:45:28,474 - INFO -    📈 API Stats:  http://localhost:3000/api/stats
+2025-07-20 20:45:28,474 - INFO -    🎯 Single process - no complexity!
+2025-07-20 20:45:28,474 - INFO -    ⏹️  Press Ctrl+C to stop
