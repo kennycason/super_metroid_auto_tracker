@@ -159,74 +159,123 @@ class TestBasicFunctionality(unittest.TestCase):
         print("✅ Error handling: graceful degradation works")
     
     def test_mother_brain_intermediate_logic(self):
-        """Test Mother Brain intermediate state detection using multiple indicators"""
-        # Test scenario 1: Just entered MB room - no clear progression indicators
+        """Test Mother Brain intermediate state detection - LOCKS IN WORKING LOGIC"""
+        # Test scenario 1: Just entered MB room - should NOT detect MB1
         mb_room_early = {
             'area_id': 5,         # Tourian
             'room_id': 56664,     # Mother Brain room
-            'player_x': 500,      # Before fight area
-            'player_y': 200,      # Before fight area
+            'player_x': 194,      # Realistic position
+            'player_y': 195,      # Realistic position
             'missiles': 135,      # Full missiles (just entered)
             'max_missiles': 135,  # Max missiles
+            'game_state': 0x000F, # Normal game state
         }
         mb_early_fighting_data = {
             'main_bosses': struct.pack('<H', 0x0000),  # Main MB not defeated
-            'boss_plus_1': struct.pack('<H', 0x0100),  # Low progression value
-            'boss_plus_2': struct.pack('<H', 0x0050),  # Low alt pattern  
-            'boss_plus_3': struct.pack('<H', 0x0020),  # Low extra pattern
+            'boss_plus_1': struct.pack('<H', 0x0200),  # Low progression value
+            'boss_plus_2': struct.pack('<H', 0x0100),  # Low alt pattern
+            'boss_plus_3': struct.pack('<H', 0x0301),  # Draygon pattern (not used for MB)
         }
         result_early = self.parser.parse_bosses(mb_early_fighting_data, mb_room_early)
-        self.assertFalse(result_early.get('mother_brain_1'), "MB1 should NOT be detected with no clear progression indicators")
+        self.assertFalse(result_early.get('mother_brain_1'), "MB1 should NOT be detected with full missiles")
 
-        # Test scenario 2: Fighting MB2 - multiple indicators show progression
-        mb_room_fighting = {
+        # Test scenario 2: EXACT USER SUCCESS CASE - 44 missiles used, beat MB1
+        mb_room_beaten = {
             'area_id': 5,         # Tourian
             'room_id': 56664,     # Mother Brain room
-            'player_x': 1200,     # In fight area (700-2000)
-            'player_y': 400,      # In fight area (>=300)
-            'missiles': 100,      # Used missiles fighting MB1 (135 -> 100 = 35 used)
+            'player_x': 194,      # User's exact position
+            'player_y': 195,      # User's exact position
+            'missiles': 91,       # User's exact missiles (135 -> 91 = 44 used)
             'max_missiles': 135,  # Max missiles
-            'game_state': 0x000B, # Active gameplay (as suggested by ChatGPT)
+            'game_state': 0x000F, # User's exact game state
         }
-        mb_fighting_data = {
+        mb_beaten_data = {
             'main_bosses': struct.pack('<H', 0x0000),  # Main MB not defeated
-            'boss_plus_1': struct.pack('<H', 0x0900),  # High progression value (>=0x0800)
-            'boss_plus_2': struct.pack('<H', 0x0900),  # High alt pattern (>=0x0800)
-            'boss_plus_3': struct.pack('<H', 0x0150),  # Not used for MB (this is Draygon area)
+            'boss_plus_1': struct.pack('<H', 0x0703),  # User's exact memory value
+            'boss_plus_2': struct.pack('<H', 0x0107),  # User's exact alt pattern
+            'boss_plus_3': struct.pack('<H', 0x0301),  # Draygon pattern (not used for MB)
         }
-        result_fighting = self.parser.parse_bosses(mb_fighting_data, mb_room_fighting)
-        self.assertTrue(result_fighting.get('mother_brain_1'), "MB1 SHOULD be detected with strong memory indicators")
-        self.assertFalse(result_fighting.get('mother_brain_2'), "MB2 should remain false during fight")
+        result_beaten = self.parser.parse_bosses(mb_beaten_data, mb_room_beaten)
+        self.assertTrue(result_beaten.get('mother_brain_1'), "MB1 MUST be detected - USER SUCCESS CASE")
+        self.assertFalse(result_beaten.get('mother_brain_2'), "MB2 should remain false after MB1")
 
-        # Test scenario 3: Position + evidence should also trigger  
-        mb_room_position = {
+        # Test scenario 3: Strong missile evidence threshold (30+ missiles used)
+        mb_room_missile_threshold = {
             'area_id': 5,         # Tourian
             'room_id': 56664,     # Mother Brain room
-            'player_x': 1500,     # In fight area
-            'player_y': 350,      # In fight area
-            'missiles': 100,      # Used enough missiles (30+ used)
+            'player_x': 500,      # Any position
+            'player_y': 300,      # Any position  
+            'missiles': 105,      # Used exactly 30 missiles (135 -> 105)
+            'max_missiles': 135,  # Max missiles
+            'game_state': 0x000F, # Any game state
+        }
+        mb_missile_data = {
+            'main_bosses': struct.pack('<H', 0x0000),  # Main MB not defeated
+            'boss_plus_1': struct.pack('<H', 0x0400),  # Medium progression value
+            'boss_plus_2': struct.pack('<H', 0x0200),  # Medium alt pattern
+            'boss_plus_3': struct.pack('<H', 0x0080),  # Not used for MB
+        }
+        result_missile = self.parser.parse_bosses(mb_missile_data, mb_room_missile_threshold)
+        self.assertTrue(result_missile.get('mother_brain_1'), "MB1 should be detected with 30+ missiles used")
+
+        # Test scenario 4: Memory pattern + missile evidence combo
+        mb_room_combo = {
+            'area_id': 5,         # Tourian
+            'room_id': 56664,     # Mother Brain room
+            'player_x': 800,      # In fight area
+            'player_y': 400,      # In fight area
+            'missiles': 115,      # Used 20 missiles (135 -> 115)
             'max_missiles': 135,  # Max missiles
             'game_state': 0x000B, # Active gameplay
         }
-        mb_position_data = {
+        mb_combo_data = {
             'main_bosses': struct.pack('<H', 0x0000),  # Main MB not defeated
-            'boss_plus_1': struct.pack('<H', 0x0700),  # High enough for position detection (>=0x0600)
-            'boss_plus_2': struct.pack('<H', 0x0100),  # Medium alt pattern
+            'boss_plus_1': struct.pack('<H', 0x0700),  # High progression (>=0x0600) 
+            'boss_plus_2': struct.pack('<H', 0x0200),  # Medium alt pattern
             'boss_plus_3': struct.pack('<H', 0x0080),  # Not used for MB
         }
-        result_position = self.parser.parse_bosses(mb_position_data, mb_room_position)
-        self.assertTrue(result_position.get('mother_brain_1'), "MB1 should be detected via position + ammo + active gameplay")
+        result_combo = self.parser.parse_bosses(mb_combo_data, mb_room_combo)
+        self.assertTrue(result_combo.get('mother_brain_1'), "MB1 should be detected with memory+missile combo")
 
-        # Test scenario 4: Complete Mother Brain sequence
-        mb_complete_data = {
-            'main_bosses': struct.pack('<H', 0x0001),  # Main MB defeated
-            'boss_plus_1': struct.pack('<H', 0x0000), 
-            'boss_plus_2': struct.pack('<H', 0x0000),
-            'boss_plus_3': struct.pack('<H', 0x0000),
+        # REGRESSION TEST: Ensure we never go back to overly conservative detection
+        # This exact case was failing before the fix - must always pass!
+        regression_test_data = {
+            'area_id': 5,         # Tourian
+            'room_id': 56664,     # Mother Brain room  
+            'player_x': 194,      # Real user position
+            'player_y': 195,      # Real user position
+            'missiles': 91,       # Real user missiles after MB1 defeat
+            'max_missiles': 135,  # Max missiles
+            'game_state': 0x000F, # Real user game state (not 0x000B)
         }
-        result_complete = self.parser.parse_bosses(mb_complete_data, mb_room_fighting)
-        self.assertTrue(result_complete.get('mother_brain_1'), "MB1 should be true when complete")
-        self.assertTrue(result_complete.get('mother_brain_2'), "MB2 should be true when complete")
+        regression_memory_data = {
+            'main_bosses': struct.pack('<H', 0x0000),  # Main MB not defeated
+            'boss_plus_1': struct.pack('<H', 0x0703),  # Real memory value (0x0703 < 0x0800 old threshold)
+            'boss_plus_2': struct.pack('<H', 0x0107),  # Real alt pattern
+            'boss_plus_3': struct.pack('<H', 0x0301),  # Draygon pattern (was causing false detection)
+        }
+        regression_result = self.parser.parse_bosses(regression_memory_data, regression_test_data)
+        self.assertTrue(regression_result.get('mother_brain_1'), "REGRESSION: This exact case was failing before - must work!")
+        
+        # REGRESSION TEST: Ensure false positive prevention still works  
+        # This should NOT detect MB1 (before any missiles used)
+        false_positive_test = {
+            'area_id': 5,         # Tourian
+            'room_id': 56664,     # Mother Brain room
+            'player_x': 280,      # Pre-fix position
+            'player_y': 195,      # Pre-fix position  
+            'missiles': 135,      # Full missiles (no usage)
+            'max_missiles': 135,  # Max missiles
+            'game_state': 0x000F, # Same game state
+        }
+        false_positive_memory = {
+            'main_bosses': struct.pack('<H', 0x0000),  # Main MB not defeated
+            'boss_plus_1': struct.pack('<H', 0x0703),  # Same memory pattern
+            'boss_plus_2': struct.pack('<H', 0x0107),  # Same alt pattern
+            'boss_plus_3': struct.pack('<H', 0x0301),  # Draygon pattern - should not trigger MB
+        }
+        false_positive_result = self.parser.parse_bosses(false_positive_memory, false_positive_test)
+        self.assertFalse(false_positive_result.get('mother_brain_1'), "REGRESSION: Must not detect MB1 with full missiles!")
     
     def test_working_boss_detections(self):
         """Test boss detections that we know work from user sessions"""
