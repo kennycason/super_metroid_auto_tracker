@@ -195,10 +195,10 @@ class SuperMetroidGameStateParser:
         ridley_detected = (ridley_addr_5 & 0x01) and (ridley_addr_5 > 0x0200)
         bosses['ridley'] = ridley_detected
         
-        # Golden Torizo detection - Fixed to prevent false positives from Draygon
+        # Golden Torizo detection - Fixed threshold to detect 0x0603 pattern
         gt_addr_1 = boss_scan_results.get('boss_plus_1', 0)
         gt_addr_2 = boss_scan_results.get('boss_plus_2', 0)
-        condition1 = ((gt_addr_1 & 0x0700) and (gt_addr_1 & 0x0003) and (gt_addr_1 >= 0x0703))
+        condition1 = ((gt_addr_1 & 0x0700) and (gt_addr_1 & 0x0003) and (gt_addr_1 >= 0x0603))  # Lowered from 0x0703
         condition2 = (gt_addr_2 & 0x0100) and (gt_addr_2 >= 0x0500)
         # Removed condition3 that was triggering on Draygon's 0x0301 pattern
         golden_torizo_detected = condition1 or condition2
