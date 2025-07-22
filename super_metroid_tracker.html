@@ -508,7 +508,7 @@
         <div class="game-info" id="gameInfo" style="display:none;">
             <div class="location">
                 <span id="location">Crateria</span> 
-                <span id="roomInfo">Room: 0</span>
+                <span id="roomInfo"></span>
             </div>
         </div>
 
@@ -787,7 +787,8 @@
             56856: "Tourian Escape Room 2", 
             56872: "Tourian Escape Room 3",
             56888: "Tourian Escape Room 4",
-            56904: "Upper Tourian Save Room",
+            56904: "Upper Tourian Save Room", // to confirm
+            57115: "Save Room of No Return", // custom name, get real name
             
             // === CERES STATION ===
             57344: "Ceres Elevator Room",
@@ -1127,7 +1128,7 @@
                 const locationEl = document.getElementById('location');
                 const roomEl = document.getElementById('roomInfo');
                 
-                locationEl.textContent = `${stats.area_name}`;
+                locationEl.textContent = `${stats.area_name}: `;
                 
                 // Use room name if available, otherwise show room ID
                 const roomName = getRoomName(stats.room_id);
