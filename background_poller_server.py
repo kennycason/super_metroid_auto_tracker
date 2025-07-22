@@ -242,7 +242,26 @@ class BackgroundGamePoller:
             boss_plus_2 = self.udp_reader.read_memory_range(0x7ED82A, 2)  # Fixed: was 0x7ED82B
             boss_plus_3 = self.udp_reader.read_memory_range(0x7ED82B, 2)  # Fixed: was 0x7ED82C
             boss_plus_4 = self.udp_reader.read_memory_range(0x7ED82C, 2)  # Added
-            boss_plus_5 = self.udp_reader.read_memory_range(0x7ED82D, 2)  # Added
+            boss_plus_5 = self.udp_reader.read_memory_range(0x7ED82D, 2)
+            
+            # Escape timer for MB2 detection (multiple addresses to try)
+            escape_timer_1 = self.udp_reader.read_memory_range(0x7E0943, 2)  # Common escape timer location
+            escape_timer_2 = self.udp_reader.read_memory_range(0x7E0945, 2)  # Alternative location
+            escape_timer_3 = self.udp_reader.read_memory_range(0x7E09E2, 2)  # Another possible location
+            escape_timer_4 = self.udp_reader.read_memory_range(0x7E09E0, 2)  # Another possible location
+            escape_timer_5 = self.udp_reader.read_memory_range(0x7E0947, 2)  # Sequential check
+            escape_timer_6 = self.udp_reader.read_memory_range(0x7E0949, 2)  # Sequential check
+            
+            # Boss HP for direct detection (MB room boss HP)
+            boss_hp_1 = self.udp_reader.read_memory_range(0x7E0F8C, 2)  # Common boss HP location
+            boss_hp_2 = self.udp_reader.read_memory_range(0x7E0F8E, 2)  # Alternative boss HP
+            boss_hp_3 = self.udp_reader.read_memory_range(0x7E1000, 2)  # Another potential location
+            
+            # OFFICIAL AUTOSPLITTER ADDRESS: Mother Brain HP for phase detection
+            mother_brain_official_hp = self.udp_reader.read_memory_range(0x7E0FCC, 2)  # Official autosplitter address
+            
+            # Game state (escape sequence often changes game state)
+            game_state_extended = self.udp_reader.read_memory_range(0x7E0998, 2)
             
             # Package all memory data
             memory_data = {
@@ -261,6 +280,17 @@ class BackgroundGamePoller:
                 'boss_plus_3': boss_plus_3,
                 'boss_plus_4': boss_plus_4,
                 'boss_plus_5': boss_plus_5,
+                'escape_timer_1': escape_timer_1,
+                'escape_timer_2': escape_timer_2,
+                'escape_timer_3': escape_timer_3,
+                'escape_timer_4': escape_timer_4,
+                'escape_timer_5': escape_timer_5,
+                'escape_timer_6': escape_timer_6,
+                'boss_hp_1': boss_hp_1,
+                'boss_hp_2': boss_hp_2,
+                'boss_hp_3': boss_hp_3,
+                'mother_brain_official_hp': mother_brain_official_hp,
+                'game_state_extended': game_state_extended,
             }
             
             # Parse into structured game state
@@ -331,6 +361,10 @@ class CacheServingHTTPHandler(BaseHTTPRequestHandler):
                 self.serve_stats()
             elif self.path == '/api/bootstrap-mb':
                 self.serve_bootstrap_mb()
+            elif self.path == '/api/manual-mb-complete':
+                self.serve_manual_mb_complete()
+            elif self.path == '/api/reset-mb-cache':
+                self.serve_reset_mb_cache()
             elif self.path.endswith('.png'):
                 self.serve_static_file(self.path[1:], 'image/png')
             else:
@@ -359,6 +393,59 @@ class CacheServingHTTPHandler(BaseHTTPRequestHandler):
         self.send_header('Content-Length', len(json.dumps({'message': 'Bootstrap triggered'}).encode()))
         self.end_headers()
         self.wfile.write(json.dumps({'message': 'Bootstrap triggered'}).encode())
+    
+    def serve_manual_mb_complete(self):
+        """Manually set MB completion for testing/troubleshooting"""
+        try:
+            # Force set MB completion in the parser
+            if hasattr(self.poller, 'parser'):
+                self.poller.parser.mother_brain_phase_state['mb1_detected'] = True
+                self.poller.parser.mother_brain_phase_state['mb2_detected'] = True
+                message = 'MB1 and MB2 manually set to completed'
+                logger.info(f"🔧 Manual MB completion triggered via API")
+            else:
+                message = 'Parser not available'
+            
+            response = {'message': message, 'mb1': True, 'mb2': True}
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', len(json.dumps(response).encode()))
+            self.end_headers()
+            self.wfile.write(json.dumps(response).encode())
+        except Exception as e:
+            error_response = {'error': str(e)}
+            self.send_response(500)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', len(json.dumps(error_response).encode()))
+            self.end_headers()
+            self.wfile.write(json.dumps(error_response).encode())
+    
+    def serve_reset_mb_cache(self):
+        """Reset Mother Brain cache to default (not detected)"""
+        try:
+            if hasattr(self.poller, 'parser'):
+                self.poller.parser.mother_brain_phase_state = {
+                    'mb1_detected': False,
+                    'mb2_detected': False
+                }
+                message = 'MB cache reset to default (not detected)'
+                logger.info(f"🔄 MB cache reset via API")
+            else:
+                message = 'Parser not available'
+            
+            response = {'message': message}
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', len(json.dumps(response).encode()))
+            self.end_headers()
+            self.wfile.write(json.dumps(response).encode())
+        except Exception as e:
+            error_response = {'error': str(e)}
+            self.send_response(500)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', len(json.dumps(error_response).encode()))
+            self.end_headers()
+            self.wfile.write(json.dumps(error_response).encode())
     
     def serve_file(self, filename):
         """Serve HTML files"""
