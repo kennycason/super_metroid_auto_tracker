@@ -9,16 +9,16 @@
             font-family: 'Courier New', monospace; 
             background: #000; 
             color: #00ff00; 
-            margin: 20px; 
+            /* margin: 20px;  */
         }
         .container { max-width: 600px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 8px; }
+        .header { text-align: center; margin-bottom: 1px; }
         .header h1 { font-size: 20px; margin: 5px 0; }
         .status-row { 
             display: flex; 
             align-items: center; 
-            justify-content: center; 
-            gap: 15px; 
+            justify-content: flex-start; /* Changed from center to left-align */
+            gap: 10px; /* Reduced gap */
             margin: 5px 0;
         }
         .status { 
@@ -83,12 +83,16 @@
             gap: 1px; 
             margin: 8px 0; 
             padding: 2px;
-            border: 1px solid #00ff00;
+            /* border: 1px solid #00ff00; */
             border-radius: 5px;
-            background: #001a00;
+            /* background: #001a00; */
             align-items: flex-start;
         }
         .tracking-section { margin: 8px 0; }
+        .green-border {
+            border: 1px solid #00ff00;
+            background: #001a00;
+        }
         
         /* Direct 64x64 Sprite System - no wrapper needed */
         .sprite {
@@ -215,9 +219,9 @@
             display: inline-block;
             /* margin-right: 8px; */
             text-align: center;
-            border: 1px solid #00ff00;
+            /* border: 1px solid #00ff00; */
             border-radius: 5px;
-            background: #001a00;
+            /* background: #001a00; */
             padding: 2px;
         }
 
@@ -364,63 +368,86 @@
             min-width: 55px;
             color: #00ff00;
         }
+        
+        /* Expand button - standardized with other buttons */
+        .expand-btn {
+            background: #003300; 
+            color: #00ff00; 
+            border: 1px solid #00ff00; 
+            border-radius: 3px; 
+            cursor: pointer;
+            padding: 8px 12px; /* Same as standard buttons */
+            margin: 5px;       /* Same as standard buttons */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;   /* Consistent font size */
+            min-width: 44px;   /* Minimum width for square-ish look with icon */
+            transition: background 0.3s ease;
+        }
+        .expand-btn:hover { background: #005500; }
+        
+        /* Debug buttons - same styling as standard buttons */
+        .debug-btn {
+            background: #003300; 
+            color: #00ff00; 
+            border: 1px solid #00ff00; 
+            padding: 8px 12px; /* Same as standard buttons */
+            margin: 5px;       /* Same as standard buttons */
+            border-radius: 3px; 
+            cursor: pointer;
+            font-size: 14px;   /* Same as standard buttons */
+        }
+        .debug-btn:hover { background: #005500; }
+        
+        /* Fullscreen mode styles */
+        .fullscreen-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            z-index: 9999;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: auto;
+        }
+        
+        .fullscreen-mode .container {
+            max-width: none;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .fullscreen-mode .controls-section,
+        .fullscreen-mode .debug-section {
+            display: none; /* Hide controls and debug in fullscreen */
+        }
+        
+        .fullscreen-mode .tracking-grid {
+            gap: 3px; /* Slightly larger gaps in fullscreen */
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <!-- <h1>SUPER METROID LIVE TRACKER</h1> -->
+        <!-- Controls Section (hidden in fullscreen) -->
+        <div class="controls-section">
             <div class="status-row">
-                <div id="status" class="status disconnected">DISCONNECTED</div>
+                <button class="expand-btn" id="expandBtn" onclick="toggleFullscreen()" title="Toggle Fullscreen">⛶</button>
                 <button id="toggleBtn" onclick="toggleConnection()">CONNECT</button>
+                <div id="status" class="status disconnected">DISCONNECTED</div>
             </div>
         </div>
-
-        <div class="game-info" id="gameInfo" style="display:none;">
-            <div class="location">
-                <span id="location">Crateria</span> 
-                <span id="roomInfo">Room: 0</span>
-            </div>
-        </div>
-
-        <!-- <div class="stats-grid">
-            <div class="stat-box">
-                <div class="stat-label">ENERGY</div>
-                <div class="stat-value" id="healthValue">??? / ???</div>
-                <div class="stat-value-reserve" id="reserveValue" style="display:none; font-size: 10px; color: #ffaa00; margin-top: 2px;">Reserve: ??? / ???</div>
-                <div class="stat-bar">
-                    <div class="stat-bar-fill" id="healthBar" style="width: 0%"></div>
-                </div>
-            </div>
-
-            <div class="stat-box">
-                <div class="stat-label">MISSILES</div>
-                <div class="stat-value" id="missileValue">??? / ???</div>
-                <div class="stat-bar">
-                    <div class="stat-bar-fill" id="missileBar" style="width: 0%"></div>
-                </div>
-            </div>
-
-            <div class="stat-box">
-                <div class="stat-label">SUPER MISSILES</div>
-                <div class="stat-value" id="superValue">??? / ???</div>
-                <div class="stat-bar">
-                    <div class="stat-bar-fill" id="superBar" style="width: 0%"></div>
-                </div>
-            </div>
-
-            <div class="stat-box">
-                <div class="stat-label">POWER BOMBS</div>
-                <div class="stat-value" id="powerValue">??? / ???</div>
-                <div class="stat-bar">
-                    <div class="stat-bar-fill" id="powerBar" style="width: 0%"></div>
-                </div>
-            </div>
-        </div> -->
 
         <!-- Quantity Items Section -->
         <div class="tracking-section">
-            <div class="tracking-grid" id="quantityGrid" style="margin-bottom: 8px;">
+            <div class="tracking-grid" id="quantityGrid" style="margin-bottom: 1px;">
                 <div class="quantity-tile" data-item="energy-tank" title="Energy Tanks">
                     <span class="sprite sprite-energy-tank"></span>
                     <div class="quantity-display" id="energyTankCount">0</div>
@@ -486,20 +513,31 @@
             </div>
         </div>
 
-        <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-            <span style="color: #00ff00; font-size: 14px;">🔍 Debug</span>
-            <div>
-                <button onclick="copyLogs()" style="background: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 4px 8px; margin-right: 5px; cursor: pointer; font-size: 12px;">📋 Copy</button>
-                <button onclick="clearLogs()" style="background: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 4px 8px; cursor: pointer; font-size: 12px;">🗑️ Clear</button>
+        <div class="game-info" id="gameInfo" style="display:none;">
+            <div class="location">
+                <span id="location">Crateria</span> 
+                <span id="roomInfo">Room: 0</span>
             </div>
         </div>
-        <div id="debug" style="font-size: 12px; opacity: 0.7; max-height: 200px; overflow-y: auto; border: 1px solid #003300; padding: 8px;"></div>
+
+        <!-- Debug Section (hidden in fullscreen) -->
+        <div class="debug-section">
+            <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                <!-- <span style="color: #00ff00; font-size: 14px;">🔍 Debug</span> -->
+                <div>
+                    <button onclick="copyLogs()" class="debug-btn">📋 Copy</button>
+                    <button onclick="clearLogs()" class="debug-btn">🗑️ Clear</button>
+                </div>
+            </div>
+            <div id="debug" style="font-size: 12px; opacity: 0.7; max-height: 200px; overflow-y: auto; border: 1px solid #003300; padding: 8px;"></div>
+        </div>
     </div>
 
     <script>
         let isConnected = false;
         let updateInterval = null;
         let isAttached = false;
+        let isFullscreen = false; // Track fullscreen state
 
         // Super Metroid memory addresses
         const MEMORY_ADDRESSES = {
@@ -925,6 +963,30 @@
                 barEl.style.width = percentage + '%';
             }
         }
+
+        function toggleFullscreen() {
+            const body = document.body;
+            if (!isFullscreen) {
+                // Enter fullscreen
+                body.classList.add('fullscreen-mode');
+                document.getElementById('expandBtn').textContent = '✕'; // Change to X for exit
+                isFullscreen = true;
+                log("🔍 Entered fullscreen mode - Press ESC to exit");
+            } else {
+                // Exit fullscreen
+                body.classList.remove('fullscreen-mode');
+                document.getElementById('expandBtn').textContent = '⛶'; // Back to expand icon
+                isFullscreen = false;
+                log("🔍 Exited fullscreen mode");
+            }
+        }
+
+        // Handle escape key to exit fullscreen
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && isFullscreen) {
+                toggleFullscreen();
+            }
+        });
 
         // Auto-connect on page load
         window.onload = function() {
