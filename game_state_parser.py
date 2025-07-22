@@ -184,21 +184,37 @@ class SuperMetroidGameStateParser:
         """Parse boss defeat status with advanced detection logic"""
         if not boss_memory_data:
             return {}
-        
+
         # 🧠 MB Cache Debug - Log current cache state
         cached_mb1 = self.mother_brain_phase_state.get('mb1_detected', False)
         cached_mb2 = self.mother_brain_phase_state.get('mb2_detected', False)
         logger.info(f"🧠 MB Cache: MB1={cached_mb1} MB2={cached_mb2}")
-        
+
+        # 🚨 NUCLEAR MB2 CACHE RESET - Force clear if clearly not in escape sequence
+        if location_data:
+            area_id = location_data.get('area_id', 0)
+            room_id = location_data.get('room_id', 0)
+            missiles = location_data.get('missiles', 0)
+            max_missiles = location_data.get('max_missiles', 1)
+            
+            # If in MB room with reasonable missile count, force clear MB2 cache
+            in_mb_room_now = (area_id in [5, 10] and room_id == 56664)
+            has_reasonable_missiles = (missiles > max_missiles * 0.7) if max_missiles > 0 else False
+            
+            if in_mb_room_now and has_reasonable_missiles:
+                logger.info(f"🚨 NUCLEAR RESET: In MB room with {missiles}/{max_missiles} missiles - force clearing MB2")
+                self.mother_brain_phase_state['mb2_detected'] = False
+                cached_mb2 = False
+
         # ❗️1. PREVENT MB CACHE REVERSION - Early return if MB2 permanently cached
         # BUT STILL PARSE OTHER BOSSES! Don't hardcode them to False
         if cached_mb2:
             logger.info("🔒 MB2 permanently cached — skipping MB detection but parsing other bosses")
             # Parse other bosses normally, just skip MB detection later
             pass  # Continue with normal boss parsing
-        
+
         # CRITICAL: Initialize ALL variables at function start to prevent scope errors
-        mb_official_hp = 0
+        mb_official_hp = 0  # Initialize immediately to prevent UnboundLocalError
         mb1_transition = False
         mb2_transition = False
         escape_timer_active = False
@@ -227,7 +243,7 @@ class SuperMetroidGameStateParser:
         # Initialize location variables
         area_id = location_data.get('area_id', 0) if location_data else 0
         room_id = location_data.get('room_id', 0) if location_data else 0
-        in_mb_room = (area_id == 5 and room_id == 56664)  # Tourian Mother Brain room
+        in_mb_room = (area_id in [5, 10] and room_id == 56664)  # Mother Brain room (areas 5 OR 10)
         
         # Initialize detection flags
         mb1_detected = False
@@ -474,11 +490,12 @@ class SuperMetroidGameStateParser:
         # ❗️1. CACHE BYPASS - If MB2 is cached, use cached values and skip complex detection
         mb1_detected = False
         mb2_detected = False
-        if cached_mb2:
-            logger.info("🔒 MB2 permanently cached — using cached values")
-            mb1_detected = True  # MB2 implies MB1
-            mb2_detected = True
-            detection_method = "permanent_cache"
+        # REMOVED: Early return that was preventing conservative detection
+        # if cached_mb2:
+        #     logger.info("🔒 MB2 permanently cached — using cached values")
+        #     mb1_detected = True  # MB2 implies MB1
+        #     mb2_detected = True  # ← This was forcing MB2=True!
+        #     detection_method = "permanent_cache"
         
         # HYPER BEAM DETECTION - Perfect MB1 completion indicator
         hyper_beam_detected = False
@@ -577,63 +594,76 @@ class SuperMetroidGameStateParser:
                 logger.info(f"   boss_plus_2: 0x{mb_alt_pattern:04X} ({mb_alt_pattern})")
                 
                 # FIXED: Check for Mother Brain memory patterns  
-                # 0x0703 IS Mother Brain completion, NOT Golden Torizo!
-                # Golden Torizo is usually much lower (0x0203, 0x0303, etc.)
-                strong_memory_evidence = (mb_progress_val >= 0x0703)  # Lowered threshold, removed exclusion
+                # 0x0703 can mean DIFFERENT things depending on context:
+                # - Outside MB room = Golden Torizo completion  
+                # - In MB room + missile usage = MB1 completion
                 
-                # ENHANCED Smart MB2 inference for escape areas  
+                # Context-aware pattern detection
                 area_id = location_data.get('area_id', 0) if location_data else 0
                 room_id = location_data.get('room_id', 0) if location_data else 0
-                player_x = location_data.get('player_x', 0) if location_data else 0
-                player_y = location_data.get('player_y', 0) if location_data else 0
+                missiles = location_data.get('missiles', 0) if location_data else 0
+                max_missiles = location_data.get('max_missiles', 1) if location_data else 1
                 
-                in_tourian_escape = (area_id == 5 and room_id != 56664)
-                in_crateria_post_escape = (area_id == 0)
-                in_any_escape_area = (area_id in [0, 1, 2, 3, 4, 5] and room_id != 56664)  # Be more permissive
-                no_boss_hp = (boss_hp_1_val == 0 and boss_hp_2_val == 0 and boss_hp_3_val == 0)
+                # Determine if we're in Mother Brain room (area 5 OR 10, room 56664)
+                in_mb_room_context = (area_id in [5, 10] and room_id == 56664)
+                missile_usage = (missiles < max_missiles * 0.9) if max_missiles > 0 else False
                 
-                # Debug smart inference conditions
-                logger.info(f"🧠 Smart Inference Debug:")
-                logger.info(f"   inTourianEscape: {in_tourian_escape} (area={area_id}, room={room_id})")
-                logger.info(f"   inCrateriaPostEscape: {in_crateria_post_escape}")
-                logger.info(f"   inAnyEscapeArea: {in_any_escape_area}")
-                logger.info(f"   noBossHP: {no_boss_hp}")
-                logger.info(f"   originalMB1: {original_mb1_state}")
+                # Context-aware interpretation of 0x0703
+                if mb_progress_val == 0x0703:
+                    if in_mb_room_context and missile_usage:
+                        # In MB room with missiles used = MB1 completion
+                        logger.info(f"🤖 MB1 COMPLETION DETECTED: 0x0703 in MB room with missile usage!")
+                        strong_memory_evidence = True
+                    else:
+                        # Outside MB room or no missile usage = Golden Torizo
+                        logger.info(f"🥇 GOLDEN TORIZO DETECTED: 0x0703 outside MB context")
+                        logger.info(f"🔄 Clearing MB cache due to Golden Torizo false positive")
+                        strong_memory_evidence = False
+                        # Clear any incorrect MB cache immediately
+                        mb1_detected = False
+                        mb2_detected = False
+                        self.mother_brain_phase_state = {'mb1_detected': False, 'mb2_detected': False}
+                elif mb_progress_val >= 0x0704:  # Higher values are likely MB completion
+                    strong_memory_evidence = True
+                else:
+                    strong_memory_evidence = False
                 
-                # GOLDEN TORIZO FALSE POSITIVE DETECTION
-                # If we see 0x0703 (Golden Torizo) but cache says MB1=True, it's likely a false positive
-                golden_torizo_pattern = (mb_progress_val == 0x0703)
-                cache_likely_false_positive = (golden_torizo_pattern and original_mb1_state)
-                
-                if cache_likely_false_positive:
-                    logger.info(f"🚮 CACHE INVALIDATION: Golden Torizo pattern 0x{mb_progress_val:04X} suggests MB1 cache is false positive")
-                    logger.info(f"🔄 Clearing MB cache due to Golden Torizo detection")
-                    mb1_detected = False
-                    mb2_detected = False
-                    # Clear persistent cache immediately
-                    self.mother_brain_phase_state = {'mb1_detected': False, 'mb2_detected': False}
-                elif strong_memory_evidence:
+                # Context-aware detection is now complete
+                if strong_memory_evidence:
                     logger.info(f"🔄 Strong memory evidence: 0x{mb_progress_val:04X}")
                     mb1_detected = True
-                    # ENHANCED Smart MB2 inference - multiple triggers
-                    # Use either cached state OR fresh detection for MB1
-                    mb1_is_complete = original_mb1_state or mb1_detected
-                    smart_mb2_conditions = [
-                        # Original condition: escape areas + no boss HP + MB1 done
-                        (in_tourian_escape or in_crateria_post_escape) and no_boss_hp and mb1_is_complete,
-                        # Enhanced condition: any non-MB room + MB1 done + no escape timer + no boss HP  
-                        in_any_escape_area and mb1_is_complete and no_boss_hp and not escape_timer_active,
-                        # Ultimate fallback: MB1 done + outside MB room + reasonable position data
-                        mb1_is_complete and not in_mb_room and (player_x > 0 or player_y > 0)
-                    ]
                     
-                    if any(smart_mb2_conditions):
+                    # 🚨 CONSERVATIVE MB2 Detection - Only trigger with STRONG evidence
+                    # Don't auto-infer MB2 just because MB1 is complete!
+                    
+                    # MB2 should ONLY be detected with:
+                    # 1. Active escape timer (definitive proof)
+                    # 2. Or being clearly outside Tourian/MB areas with MB1 done
+                    
+                    # Get current position for MB2 analysis
+                    player_x = location_data.get('player_x', 0) if location_data else 0
+                    player_y = location_data.get('player_y', 0) if location_data else 0
+                    
+                    # Conservative MB2 conditions - MUCH more restrictive
+                    clearly_in_escape = escape_timer_active  # Definitive proof
+                    clearly_outside_tourian = (area_id not in [5, 10])  # Not in Tourian areas
+                    
+                    # Only detect MB2 with STRONG evidence
+                    if clearly_in_escape:
                         mb2_detected = True
-                        logger.info(f"🧠 ENHANCED SMART MB2 INFERENCE: MB1 done + logical completion conditions met")
+                        logger.info(f"🚨 MB2 DETECTED: Active escape timer - definitive proof!")
+                    elif clearly_outside_tourian and mb1_detected and (boss_hp_1_val == 0 and boss_hp_2_val == 0 and boss_hp_3_val == 0):
+                        mb2_detected = True
+                        logger.info(f"🚨 MB2 DETECTED: Outside Tourian + MB1 done + no boss HP")
                     else:
-                        # Strong evidence for MB1, but no MB2 evidence yet
-                        logger.info(f"✅ STRONG MB1 EVIDENCE: Detected MB1 completion via memory pattern")
-                        # mb1_detected already set to True above
+                        # MB1 complete but NO evidence for MB2 yet
+                        logger.info(f"✅ MB1 COMPLETE: Strong evidence, but no MB2 proof yet")
+                        # mb2_detected remains False
+                        # 🔄 FORCE CLEAR MB2 cache if no evidence supports it
+                        if original_mb2_state:
+                            logger.info(f"🗑️ CLEARING MB2 CACHE: No evidence supports MB2 completion")
+                            mb2_detected = False
+                            self.mother_brain_phase_state['mb2_detected'] = False
                 else:
                     # No strong memory evidence - rely on cache completely
                     mb1_detected = original_mb1_state
@@ -656,8 +686,12 @@ class SuperMetroidGameStateParser:
         cached_mb2 = self.mother_brain_phase_state.get('mb2_detected', False)
         
         # PERMANENT PERSISTENCE: Once MB2 is achieved, it stays achieved
-        final_mb1 = mb1_detected or cached_mb1
-        final_mb2 = mb2_detected or cached_mb2
+        # BUT respect when conservative detection explicitly clears cache
+        current_mb1_cache = self.mother_brain_phase_state.get('mb1_detected', False)
+        current_mb2_cache = self.mother_brain_phase_state.get('mb2_detected', False)
+        
+        final_mb1 = mb1_detected or current_mb1_cache  # Use current cache state
+        final_mb2 = mb2_detected or current_mb2_cache  # Use current cache state
         
         # ESCAPE SEQUENCE SPECIAL CASE: If we're outside MB room and have MB1, strongly suggest MB2
         if not in_mb_room and final_mb1 and not final_mb2:
