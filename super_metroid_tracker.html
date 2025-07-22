@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super Metroid Live Tracker</title>
     <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
         body { 
             font-family: 'Courier New', monospace; 
             background: #000; 
@@ -309,36 +312,51 @@
             color: #00ff00;
             text-transform: uppercase;
         }
-        .item-tile { 
-            width: 64px; 
-            height: 64px; 
-            border: 1px solid #003300; 
+        .item-tile, .quantity-tile { 
+            width: 66px; 
+            height: 66px; 
+            border: 1px solid transparent; 
             border-radius: 5px; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             font-size: 24px; 
-            background: #001100;
+            background: transparent;
             transition: all 0.3s ease;
             position: relative;
             cursor: pointer;
+            box-sizing: border-box;
             /* margin-bottom: 18px; */
             opacity: 0.4; /* Grayed out by default */
             filter: grayscale(100%);
         }
-        .item-tile.obtained { 
+        .item-tile.obtained, .quantity-tile.obtained { 
             /* border-color: #00ff00; 
             background: #003300; 
             box-shadow: 0 0 8px rgba(0, 255, 0, 0.4); */
             opacity: 1;
             filter: grayscale(0%);
         }
-        .item-tile.boss-defeated { 
+        .item-tile.boss-defeated, .quantity-tile.boss-defeated { 
             /* border-color: #ff0000; 
             background: #330000; 
             box-shadow: 0 0 8px rgba(255, 0, 0, 0.4); */
             opacity: 1;
             filter: grayscale(0%);
+        }
+        
+        /* Quantity display styling */
+        .quantity-display {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            font-size: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            padding: 1px 3px;
+            border-radius: 2px;
+            min-width: 16px;
+            text-align: center;
         }
         .item-name { 
             display: none;
