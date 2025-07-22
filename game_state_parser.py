@@ -280,7 +280,12 @@ class SuperMetroidGameStateParser:
         # OFFICIAL AUTOSPLITTER MOTHER BRAIN HP EXTRACTION
         # Extract official Mother Brain HP early for use throughout detection
         if boss_memory_data.get('mother_brain_official_hp') and len(boss_memory_data['mother_brain_official_hp']) >= 2:
-            mb_official_hp = struct.unpack('<H', boss_memory_data['mother_brain_official_hp'])[0]
+            try:
+                mb_official_hp = struct.unpack('<H', boss_memory_data['mother_brain_official_hp'])[0]
+            except (struct.error, TypeError):
+                mb_official_hp = 0  # Fallback if unpacking fails
+        else:
+            mb_official_hp = 0  # Ensure it's always set
             
         # Get previous HP from cache
         if not hasattr(self, 'previous_mb_hp'):
@@ -451,8 +456,10 @@ class SuperMetroidGameStateParser:
             mb_progress_val = boss_scan_results.get('boss_plus_1', 0)
             mb_alt_pattern = boss_scan_results.get('boss_plus_2', 0)
             
-            # Check for strong memory patterns
-            strong_memory_evidence = (mb_progress_val >= 0x0700)
+            # Check for strong memory patterns (avoid Golden Torizo collision)
+            # 0x0703 is Golden Torizo pattern, not Mother Brain
+            # Mother Brain patterns should be much higher (e.g., >= 0x0800)
+            strong_memory_evidence = (mb_progress_val >= 0x0800 and mb_progress_val != 0x0703)
             
             # Smart MB2 inference for escape areas
             in_tourian_escape = (area_id == 5 and room_id != 56664)

@@ -327,7 +327,10 @@
             cursor: pointer;
             box-sizing: border-box;
             /* margin-bottom: 18px; */
-            opacity: 0.4; /* Grayed out by default */
+        }
+        
+        .grayed-out {
+            opacity: 0.4; /* Grayed out when no items */
             filter: grayscale(100%);
         }
         .item-tile.obtained, .quantity-tile.obtained { 
@@ -437,23 +440,23 @@
         <!-- Quantity Items Section -->
         <div class="tracking-section">
             <div class="tracking-grid" id="quantityGrid">
-                <div class="quantity-tile" data-item="energy-tank" title="Energy Tanks">
+                <div class="quantity-tile grayed-out" data-item="energy-tank" title="Energy Tanks">
                     <span class="sprite sprite-energy-tank"></span>
                     <div class="quantity-display" id="energyTankCount">0</div>
                 </div>
-                <div class="quantity-tile" data-item="reserve-tank" title="Reserve Tanks">
+                <div class="quantity-tile grayed-out" data-item="reserve-tank" title="Reserve Tanks">
                     <span class="sprite sprite-reserve-tank"></span>
                     <div class="quantity-display" id="reserveTankCount">0</div>
                 </div>
-                <div class="quantity-tile" data-item="missile" title="Missiles">
+                <div class="quantity-tile grayed-out" data-item="missile" title="Missiles">
                     <span class="sprite sprite-missile"></span>
                     <div class="quantity-display" id="missileCount">0/0</div>
                 </div>
-                <div class="quantity-tile" data-item="super-missile" title="Super Missiles">
+                <div class="quantity-tile grayed-out" data-item="super-missile" title="Super Missiles">
                     <span class="sprite sprite-super-missile"></span>
                     <div class="quantity-display" id="superMissileCount">0/0</div>
                 </div>
-                <div class="quantity-tile" data-item="power-bomb" title="Power Bombs">
+                <div class="quantity-tile grayed-out" data-item="power-bomb" title="Power Bombs">
                     <span class="sprite sprite-power-bomb"></span>
                     <div class="quantity-display" id="powerBombCount">0/0</div>
                 </div>
@@ -464,22 +467,22 @@
         <div class="tracking-section">
             <!-- <div class="section-title">🔧 Equipment & Items</div> -->
             <div class="tracking-grid" id="itemsGrid">
-                <div class="item-tile" data-item="morph" title="Morph Ball"><span class="sprite sprite-morph-ball"></span><div class="item-name">Morph</div></div>
-                <div class="item-tile" data-item="bombs" title="Bombs"><span class="sprite sprite-bomb"></span><div class="item-name">Bombs</div></div>
-                <div class="item-tile" data-item="charge" title="Charge Beam"><span class="sprite sprite-charge-beam"></span><div class="item-name">Charge</div></div>
-                <div class="item-tile" data-item="spazer" title="Spazer Beam"><span class="sprite sprite-spazer"></span><div class="item-name">Spazer</div></div>
-                <div class="item-tile" data-item="varia" title="Varia Suit"><span class="sprite sprite-varia"></span><div class="item-name">Varia</div></div>
-                <div class="item-tile" data-item="hijump" title="Hi-Jump Boots"><span class="sprite sprite-hijump"></span><div class="item-name">HiJump</div></div>
-                <div class="item-tile" data-item="speed" title="Speed Booster"><span class="sprite sprite-speed"></span><div class="item-name">Speed</div></div>
-                <div class="item-tile" data-item="wave" title="Wave Beam"><span class="sprite sprite-wave"></span><div class="item-name">Wave</div></div>
-                <div class="item-tile" data-item="ice" title="Ice Beam"><span class="sprite sprite-ice"></span><div class="item-name">Ice</div></div>
-                <div class="item-tile" data-item="grapple" title="Grappling Beam"><span class="sprite sprite-grapple"></span><div class="item-name">Grapple</div></div>
-                <div class="item-tile" data-item="xray" title="X-Ray Scope"><span class="sprite sprite-xray"></span><div class="item-name">X-Ray</div></div>
-                <div class="item-tile" data-item="plasma" title="Plasma Beam"><span class="sprite sprite-plasma"></span><div class="item-name">Plasma</div></div>
-                <div class="item-tile" data-item="gravity" title="Gravity Suit"><span class="sprite sprite-gravity"></span><div class="item-name">Gravity</div></div>
-                <div class="item-tile" data-item="space" title="Space Jump"><span class="sprite sprite-space"></span><div class="item-name">Space</div></div>
-                <div class="item-tile" data-item="spring" title="Spring Ball"><span class="sprite sprite-spring"></span><div class="item-name">Spring</div></div>
-                <div class="item-tile" data-item="screw" title="Screw Attack"><span class="sprite sprite-screw"></span><div class="item-name">Screw</div></div>
+                <div class="item-tile grayed-out" data-item="morph" title="Morph Ball"><span class="sprite sprite-morph-ball"></span><div class="item-name">Morph</div></div>
+                <div class="item-tile grayed-out" data-item="bombs" title="Bombs"><span class="sprite sprite-bomb"></span><div class="item-name">Bombs</div></div>
+                <div class="item-tile grayed-out" data-item="charge" title="Charge Beam"><span class="sprite sprite-charge-beam"></span><div class="item-name">Charge</div></div>
+                <div class="item-tile grayed-out" data-item="spazer" title="Spazer Beam"><span class="sprite sprite-spazer"></span><div class="item-name">Spazer</div></div>
+                <div class="item-tile grayed-out" data-item="varia" title="Varia Suit"><span class="sprite sprite-varia"></span><div class="item-name">Varia</div></div>
+                <div class="item-tile grayed-out" data-item="hijump" title="Hi-Jump Boots"><span class="sprite sprite-hijump"></span><div class="item-name">HiJump</div></div>
+                <div class="item-tile grayed-out" data-item="speed" title="Speed Booster"><span class="sprite sprite-speed"></span><div class="item-name">Speed</div></div>
+                <div class="item-tile grayed-out" data-item="wave" title="Wave Beam"><span class="sprite sprite-wave"></span><div class="item-name">Wave</div></div>
+                <div class="item-tile grayed-out" data-item="ice" title="Ice Beam"><span class="sprite sprite-ice"></span><div class="item-name">Ice</div></div>
+                <div class="item-tile grayed-out" data-item="grapple" title="Grappling Beam"><span class="sprite sprite-grapple"></span><div class="item-name">Grapple</div></div>
+                <div class="item-tile grayed-out" data-item="xray" title="X-Ray Scope"><span class="sprite sprite-xray"></span><div class="item-name">X-Ray</div></div>
+                <div class="item-tile grayed-out" data-item="plasma" title="Plasma Beam"><span class="sprite sprite-plasma"></span><div class="item-name">Plasma</div></div>
+                <div class="item-tile grayed-out" data-item="gravity" title="Gravity Suit"><span class="sprite sprite-gravity"></span><div class="item-name">Gravity</div></div>
+                <div class="item-tile grayed-out" data-item="space" title="Space Jump"><span class="sprite sprite-space"></span><div class="item-name">Space</div></div>
+                <div class="item-tile grayed-out" data-item="spring" title="Spring Ball"><span class="sprite sprite-spring"></span><div class="item-name">Spring</div></div>
+                <div class="item-tile grayed-out" data-item="screw" title="Screw Attack"><span class="sprite sprite-screw"></span><div class="item-name">Screw</div></div>
             </div>
         </div>
 
@@ -487,18 +490,18 @@
         <div class="tracking-section">
             <!-- <div class="section-title">👹 Boss Battles</div> -->
             <div class="tracking-grid" id="bossGrid">
-                <div class="item-tile" data-boss="bomb_torizo" title="Bomb Torizo"><span class="boss-sprite boss-sprite-b-torizo"></span><div class="item-name">B.Torizo</div></div>
-                <div class="item-tile" data-boss="spore_spawn" title="Spore Spawn"><span class="boss-sprite boss-sprite-spore-spawn"></span><div class="item-name">Spore</div></div>
-                <div class="item-tile" data-boss="kraid" title="Kraid"><span class="boss-sprite boss-sprite-kraid"></span><div class="item-name">Kraid</div></div>
-                <div class="item-tile" data-boss="crocomire" title="Crocomire"><span class="boss-sprite boss-sprite-crocomire"></span><div class="item-name">Crocomire</div></div>
-                <div class="item-tile" data-boss="phantoon" title="Phantoon"><span class="boss-sprite boss-sprite-phantoon"></span><div class="item-name">Phantoon</div></div>
-                <div class="item-tile" data-boss="botwoon" title="Botwoon"><span class="boss-sprite boss-sprite-botwoon"></span><div class="item-name">Botwoon</div></div>
-                <div class="item-tile" data-boss="draygon" title="Draygon"><span class="boss-sprite boss-sprite-draygon"></span><div class="item-name">Draygon</div></div>
-                <div class="item-tile" data-boss="golden_torizo" title="Golden Torizo"><span class="boss-sprite boss-sprite-golden-torizo"></span><div class="item-name">G.Torizo</div></div>
-                <div class="item-tile" data-boss="ridley" title="Ridley"><span class="boss-sprite boss-sprite-ridley"></span><div class="item-name">Ridley</div></div>
-                <div class="item-tile" data-boss="mother_brain_1" title="Mother Brain Phase 1"><span class="boss-sprite boss-sprite-mother-brain-1"></span><div class="item-name">MB1</div></div>
-                <div class="item-tile" data-boss="mother_brain_2" title="Mother Brain Phase 2"><span class="boss-sprite boss-sprite-mother-brain-2"></span><div class="item-name">MB2</div></div>
-                <div class="item-tile" data-boss="samus_ship" title="Samus Ship - Game Complete!"><span class="boss-sprite boss-sprite-samus-ship"></span><div class="item-name">Ship</div></div>
+                <div class="item-tile grayed-out" data-boss="bomb_torizo" title="Bomb Torizo"><span class="boss-sprite boss-sprite-b-torizo"></span><div class="item-name">B.Torizo</div></div>
+                <div class="item-tile grayed-out" data-boss="spore_spawn" title="Spore Spawn"><span class="boss-sprite boss-sprite-spore-spawn"></span><div class="item-name">Spore</div></div>
+                <div class="item-tile grayed-out" data-boss="kraid" title="Kraid"><span class="boss-sprite boss-sprite-kraid"></span><div class="item-name">Kraid</div></div>
+                <div class="item-tile grayed-out" data-boss="crocomire" title="Crocomire"><span class="boss-sprite boss-sprite-crocomire"></span><div class="item-name">Crocomire</div></div>
+                <div class="item-tile grayed-out" data-boss="phantoon" title="Phantoon"><span class="boss-sprite boss-sprite-phantoon"></span><div class="item-name">Phantoon</div></div>
+                <div class="item-tile grayed-out" data-boss="botwoon" title="Botwoon"><span class="boss-sprite boss-sprite-botwoon"></span><div class="item-name">Botwoon</div></div>
+                <div class="item-tile grayed-out" data-boss="draygon" title="Draygon"><span class="boss-sprite boss-sprite-draygon"></span><div class="item-name">Draygon</div></div>
+                <div class="item-tile grayed-out" data-boss="golden_torizo" title="Golden Torizo"><span class="boss-sprite boss-sprite-golden-torizo"></span><div class="item-name">G.Torizo</div></div>
+                <div class="item-tile grayed-out" data-boss="ridley" title="Ridley"><span class="boss-sprite boss-sprite-ridley"></span><div class="item-name">Ridley</div></div>
+                <div class="item-tile grayed-out" data-boss="mother_brain_1" title="Mother Brain Phase 1"><span class="boss-sprite boss-sprite-mother-brain-1"></span><div class="item-name">MB1</div></div>
+                <div class="item-tile grayed-out" data-boss="mother_brain_2" title="Mother Brain Phase 2"><span class="boss-sprite boss-sprite-mother-brain-2"></span><div class="item-name">MB2</div></div>
+                <div class="item-tile grayed-out" data-boss="samus_ship" title="Samus Ship - Game Complete!"><span class="boss-sprite boss-sprite-samus-ship"></span><div class="item-name">Ship</div></div>
             </div>
         </div>
 
@@ -560,6 +563,241 @@
             5: "Tourian"
         };
 
+        // Super Metroid Room ID to Name Mapping (Speedrunner-friendly names)
+        const ROOM_NAMES = {
+            // === CRATERIA (Area 0) ===
+            31224: "Landing Site",
+            31240: "Gauntlet Entrance", 
+            31256: "Parlor and Alcatraz",
+            31272: "Crateria Power Bomb Room",
+            31288: "Crateria Save Station",
+            31304: "West Ocean",
+            31320: "Bowling Alley Path",
+            31336: "Crateria Kihunter Room",
+            31352: "Forgotten Highway Kago Room",
+            31368: "Crab Maze",
+            31384: "Forgotten Highway Elevator",
+            31400: "Crateria Tube",
+            31416: "The Moat",
+            31432: "Red Brinstar Elevator Room",
+            31448: "Gauntlet Energy Tank Room",
+            31464: "Bomb Torizo Room",
+            31480: "Flyway",
+            31496: "Pre-Map Flyway",
+            31512: "Terminator Room",
+            31528: "Green Pirates Shaft",
+            37368: "Landing Site (Ship)",
+            
+            // === BRINSTAR (Area 1) ===
+            32824: "Green Brinstar Elevator Room",
+            32840: "Green Brinstar Main Shaft",
+            32856: "Spore Spawn Keyhunter Room", 
+            32872: "Brinstar Pre-Map Room",
+            32888: "Green Brinstar Map Room",
+            32904: "Green Hill Zone",
+            32920: "Noob Bridge",
+            32936: "Green Brinstar Beetom Room",
+            32952: "Etecoon Energy Tank Room",
+            32968: "Etecoon Super Room",
+            32984: "Dachora Room",
+            33000: "Big Pink",
+            33016: "Pink Brinstar Power Bomb Room",
+            33032: "Green Brinstar Missile Room",
+            33048: "Construction Zone",
+            33064: "Blue Brinstar Energy Tank Room",
+            33080: "First Missile Room",
+            33096: "Pink Brinstar Hop Room",
+            33112: "Hopper Energy Tank Room",
+            33128: "Big Pink Save Room",
+            33144: "Spore Spawn Room",
+            33160: "Spore Spawn Farming Room",
+            33176: "Kraid Eye Door Room", 
+            33192: "Kraid Room",
+            33208: "Varia Suit Room",
+            33224: "Warehouse Entrance",
+            33240: "Varia Suit Hallway",
+            33256: "Kraid Recharge Station",
+            33272: "Statues Hallway",
+            33288: "Spazer Room",
+            33304: "Kraid Save Room",
+            
+            // === NORFAIR (Area 2) ===
+            34328: "Business Center",
+            34344: "Norfair Elevator Room",
+            34360: "Warehouse Zeela Room",
+            34376: "Frog Speedway",
+            34392: "Red Brinstar Fireflea Room",
+            34408: "X-Ray Scope Room",
+            34424: "Red Brinstar Alpha Power Bomb Room",
+            34440: "Alpha Power Bomb Hallway",
+            34456: "Bat Room",
+            34472: "Below Spazer",
+            34488: "Spazer Hallway",
+            34504: "Hi-Jump Energy Tank Room",
+            34520: "Hi-Jump Room",
+            34536: "Hi-Jump Boots Hall",
+            34552: "Cathedral",
+            34568: "Cathedral Entrance",
+            34584: "Business Center Save Room",
+            34600: "Bubble Mountain",
+            34616: "Speed Booster Escape",
+            34632: "Speed Booster Hall",
+            34648: "Speed Booster Room",
+            34664: "Single Chamber",
+            34680: "Double Chamber",
+            34696: "Wave Beam Room",
+            34712: "Spiky Platforms Tunnel",
+            34728: "Volcano Room",
+            34744: "Kronic Boost Room",
+            34760: "Magdollite Tunnel",
+            34776: "Purple Shaft",
+            34792: "Lava Dive Room",
+            34808: "Upper Norfair Farming Room",
+            34824: "Rising Tide",
+            34840: "Acid Snakes Tunnel",
+            34856: "Spiky Acid Snakes Tunnel",
+            34872: "Croc Room",
+            34888: "Crocomire Speedway",
+            34904: "Crocomire's Room",
+            34920: "Post Crocomire Farming Room",
+            34936: "Post Crocomire Save Room",
+            34952: "Post Crocomire Power Bomb Room",
+            34968: "Post Crocomire Shaft",
+            34984: "Post Crocomire Missile Room",
+            35000: "Grapple Tutorial Room 1",
+            35016: "Grapple Tutorial Room 2",
+            35032: "Grapple Tutorial Room 3",
+            35048: "Grapple Beam Room",
+            35064: "Norfair Reserve Tank Room",
+            35080: "Green Bubbles Missile Room",
+            35096: "Bubble Mountain Save Room",
+            35112: "Frog Savestation",
+            35128: "Red Pirate Shaft",
+            35144: "Acid Statue Room",
+            35160: "Main Hall",
+            35176: "Golden Torizo's Room",
+            35192: "Fast Ripper Room",
+            35208: "Ridley ETank Room",
+            35224: "Screw Attack Room",
+            35240: "Lower Norfair Fireflea Room",
+            35256: "Red Kihunter Shaft",
+            35272: "Wasteland",
+            35288: "Metal Pirates Room",
+            35304: "Plowerhouse Room",
+            35320: "Lower Norfair Spring Ball Maze",
+            35336: "Lower Norfair Escape Power Bomb Room",
+            35352: "Red Kihunter Shaft Save Room",
+            35368: "Three Muskateers Room",
+            35384: "Ridley Room",
+            35400: "Lower Norfair Farming Room",
+            35416: "Fast Pillars Setup Room",
+            35432: "Mickey Mouse Room",
+            35448: "Pillar Room",
+            35464: "The Worst Room In The Game",
+            35480: "Amphitheatre",
+            35496: "Lower Norfair Spring Ball Room",
+            35512: "Lower Norfair Escape Room",
+            
+            // === WRECKED SHIP (Area 3) ===
+            36352: "Wrecked Ship Entrance",
+            36368: "Attic",
+            36384: "Wrecked Ship East Missile Room", 
+            36400: "Wrecked Ship Main Shaft",
+            36416: "Wrecked Ship Energy Tank Room",
+            36432: "Basement",
+            36448: "Wrecked Ship Map Room",
+            36464: "Phantoon's Room",
+            36480: "Wrecked Ship Save Room",
+            36496: "Gravity Suit Room",
+            36512: "Wrecked Ship West Super Room",
+            36528: "Bowling Alley",
+            36544: "Electric Death Room",
+            36560: "Assembly Line",
+            36576: "Wrecked Ship Robot Room",
+            36592: "Spiky Death Room",
+            
+            // === MARIDIA (Area 4) ===
+            37376: "Glass Tunnel",
+            37392: "Glass Tunnel Save Room",
+            37408: "West Tunnel",
+            37424: "East Tunnel",
+            37440: "Main Street",
+            37456: "Fish Tank",
+            37472: "Mama Turtle Room",
+            37488: "Crab Tunnel",
+            37504: "Mt. Everest",
+            37520: "Red Fish Room",
+            37536: "Watering Hole",
+            37552: "Northwest Maridia Bug Room", 
+            37568: "Crab Shaft",
+            37584: "Pseudo Plasma Spark Room",
+            37600: "Crab Hole",
+            37616: "West Sand Hole",
+            37632: "East Sand Hole",
+            37648: "West Sand Hall",
+            37664: "Aqueduct",
+            37680: "Butterfly Room",
+            37696: "Botwoon Hallway",
+            37712: "Pants Room",
+            37728: "East Sand Hall",
+            37744: "West Aqueduct Quicksand Room",
+            37760: "East Aqueduct Quicksand Room",
+            37776: "Aqueduct Save Room",
+            37792: "West Aqueduct Entrance",
+            37808: "East Aqueduct Entrance", 
+            37824: "Plasma Beach Quicksand Room",
+            37840: "Botwoon Energy Tank Room",
+            37856: "Colosseum",
+            37872: "Precious Room",
+            37888: "Botwoon's Room",
+            37904: "Space Jump Room",
+            37920: "Maridia Missile Room",
+            37936: "Pink Maridia Power Bomb Room",
+            37952: "Plasma Room",
+            37968: "Plasma Tutorial",
+            37984: "Toilet Bowl",
+            38000: "Bug Sand Hole",
+            38016: "West Quicksand Entry",
+            38032: "East Quicksand Entry",
+            38048: "Maridia Map Room",
+            38064: "Forgotten Highway Save Room",
+            38080: "Maridia Save Room",
+            38096: "Watering Hole Save Room",
+            38112: "Northwest Maridia Save Room",
+            38128: "West Maridia Save Room",
+            38144: "East Maridia Save Room",
+            38160: "Draygon Save Room",
+            38176: "Draygon's Room",
+            
+            // === TOURIAN (Area 5) ===
+            56632: "Tourian Elevator Room",
+            56648: "Metroid Room 1",
+            56664: "Mother Brain Room", 
+            56680: "Metroid Room 2",
+            56696: "Metroid Room 3",
+            56712: "Metroid Room 4",
+            56728: "Blue Hopper Room",
+            56744: "Dust Torizo Room",
+            56760: "Big Boy Room",
+            56776: "Seaweed Room",
+            56792: "Tourian Recharge Room",
+            56808: "Metroid Room 5",
+            56824: "Tourian Save Room",
+            56840: "Tourian Escape Room 1",
+            56856: "Tourian Escape Room 2", 
+            56872: "Tourian Escape Room 3",
+            56888: "Tourian Escape Room 4",
+            56904: "Upper Tourian Save Room",
+            
+            // === CERES STATION ===
+            57344: "Ceres Elevator Room",
+            57360: "Ceres Jump Tutorial Room",
+            57376: "Ceres Staircase Room",
+            57392: "Ceres Dead Scientists Room",
+            57408: "Ceres Last Corridor",
+            57424: "Ceres Ridley Room"
+        };
+
         // Item bit mappings (itemsCollected address)
         const ITEM_BITS = {
             morph: 0x04,     // Morph Ball
@@ -598,6 +836,11 @@
             mother_brain_1: 0x02,   // Mother Brain Phase 1
             mother_brain_2: 0x08    // Mother Brain Phase 2
         };
+
+        function getRoomName(roomId) {
+            // Return speedrunner-friendly room name if known, otherwise return room ID
+            return ROOM_NAMES[roomId] || `Room ${roomId}`;
+        }
 
         function log(message) {
             const debugDiv = document.getElementById('debug');
@@ -885,7 +1128,10 @@
                 const roomEl = document.getElementById('roomInfo');
                 
                 locationEl.textContent = `${stats.area_name}`;
-                roomEl.textContent = `Room: ${stats.room_id || 'Unknown'}`;
+                
+                // Use room name if available, otherwise show room ID
+                const roomName = getRoomName(stats.room_id);
+                roomEl.textContent = roomName;
             }
         }
 
@@ -896,8 +1142,10 @@
                 if (tile) {
                     if (items[itemName]) {
                         tile.classList.add('obtained');
+                        tile.classList.remove('grayed-out');
                     } else {
                         tile.classList.remove('obtained');
+                        tile.classList.add('grayed-out');
                     }
                 }
             });
@@ -910,8 +1158,10 @@
                 if (tile) {
                     if (bosses[bossName]) {
                         tile.classList.add('boss-defeated');
+                        tile.classList.remove('grayed-out');
                     } else {
                         tile.classList.remove('boss-defeated');
+                        tile.classList.add('grayed-out');
                     }
                 }
             });
