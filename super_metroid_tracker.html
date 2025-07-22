@@ -1284,9 +1284,13 @@
         // Auto-connect on page load
         window.onload = function() {
             log("🚀 Super Metroid UDP Tracker ready");
-            log("📡 Auto-reconnect enabled - will try to connect after failures");
             log("💡 Make sure background_poller_server.py is running");
-            log("🔌 Click CONNECT to start, or auto-reconnect will activate after connection failures");
+            
+            // Auto-connect after a short delay
+            setTimeout(() => {
+                log("📡 Auto-connecting...");
+                connect();
+            }, 1000);
         };
     </script>
 </body>

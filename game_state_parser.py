@@ -466,7 +466,19 @@ class SuperMetroidGameStateParser:
             in_crateria_post_escape = (area_id == 0)
             no_boss_hp = (boss_hp_1_val == 0 and boss_hp_2_val == 0 and boss_hp_3_val == 0)
             
-            if strong_memory_evidence:
+            # GOLDEN TORIZO FALSE POSITIVE DETECTION
+            # If we see 0x0703 (Golden Torizo) but cache says MB1=True, it's likely a false positive
+            golden_torizo_pattern = (mb_progress_val == 0x0703)
+            cache_likely_false_positive = (golden_torizo_pattern and original_mb1_state)
+            
+            if cache_likely_false_positive:
+                logger.info(f"🚮 CACHE INVALIDATION: Golden Torizo pattern 0x{mb_progress_val:04X} suggests MB1 cache is false positive")
+                logger.info(f"🔄 Clearing MB cache due to Golden Torizo detection")
+                mb1_detected = False
+                mb2_detected = False
+                # Clear persistent cache immediately
+                self.mother_brain_phase_state = {'mb1_detected': False, 'mb2_detected': False}
+            elif strong_memory_evidence:
                 logger.info(f"🔄 Strong memory evidence: 0x{mb_progress_val:04X}")
                 mb1_detected = True
                 # Smart MB2 inference
