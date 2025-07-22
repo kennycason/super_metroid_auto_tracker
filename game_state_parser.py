@@ -94,10 +94,10 @@ class SuperMetroidGameStateParser:
         if area_id_data and len(area_id_data) >= 1:
             area_id = area_id_data[0]
             location['area_id'] = area_id
-            location['area_name'] = self.areas.get(area_id, "Unknown")
+            location['area_name'] = self.areas.get(area_id, "")
         else:
             location['area_id'] = 0
-            location['area_name'] = "Unknown"
+            location['area_name'] = ""
             
         if game_state_data and len(game_state_data) >= 2:
             location['game_state'] = struct.unpack('<H', game_state_data)[0]
@@ -601,22 +601,19 @@ class SuperMetroidGameStateParser:
                 # Context-aware pattern detection
                 area_id = location_data.get('area_id', 0) if location_data else 0
                 room_id = location_data.get('room_id', 0) if location_data else 0
-                missiles = location_data.get('missiles', 0) if location_data else 0
-                max_missiles = location_data.get('max_missiles', 1) if location_data else 1
                 
                 # Determine if we're in Mother Brain room (area 5 OR 10, room 56664)
                 in_mb_room_context = (area_id in [5, 10] and room_id == 56664)
-                missile_usage = (missiles < max_missiles * 0.9) if max_missiles > 0 else False
                 
                 # Context-aware interpretation of 0x0703
                 if mb_progress_val == 0x0703:
-                    if in_mb_room_context and missile_usage:
-                        # In MB room with missiles used = MB1 completion
-                        logger.info(f"🤖 MB1 COMPLETION DETECTED: 0x0703 in MB room with missile usage!")
+                    if in_mb_room_context:
+                        # If in MB room, it's DEFINITELY MB1 completion (regardless of missile conservation!)
+                        logger.info(f"🤖 MB1 COMPLETION DETECTED: 0x0703 in MB room - MB1 defeated!")
                         strong_memory_evidence = True
                     else:
-                        # Outside MB room or no missile usage = Golden Torizo
-                        logger.info(f"🥇 GOLDEN TORIZO DETECTED: 0x0703 outside MB context")
+                        # Only if OUTSIDE MB room = Golden Torizo
+                        logger.info(f"🥇 GOLDEN TORIZO DETECTED: 0x0703 outside MB room")
                         logger.info(f"🔄 Clearing MB cache due to Golden Torizo false positive")
                         strong_memory_evidence = False
                         # Clear any incorrect MB cache immediately
@@ -690,8 +687,91 @@ class SuperMetroidGameStateParser:
         current_mb1_cache = self.mother_brain_phase_state.get('mb1_detected', False)
         current_mb2_cache = self.mother_brain_phase_state.get('mb2_detected', False)
         
-        final_mb1 = mb1_detected or current_mb1_cache  # Use current cache state
-        final_mb2 = mb2_detected or current_mb2_cache  # Use current cache state
+        # 🧠 SMART CACHE VALIDATION - Don't blindly trust cache forever!
+        # Validate MB2 cache with supporting evidence before using it
+        if current_mb2_cache:
+            logger.info(f"🔍 VALIDATING MB2 CACHE - checking for supporting evidence...")
+            
+            # Check for supporting evidence that cache is still valid
+            hyper_beam_active = False
+            escape_timer_active = False
+            in_post_mb_location = False
+            
+            try:
+                # 1. Check for hyper beam (strongest evidence)
+                hyper_beam_data = boss_memory_data.get('beams', b'')
+                if len(hyper_beam_data) >= 2:
+                    beam_val = struct.unpack('<H', hyper_beam_data[:2])[0]
+                    hyper_beam_active = bool(beam_val & 0x1000)  # Hyper beam bit
+                
+                # 2. Check escape timer (definitive evidence)
+                escape_timer_active = any([
+                    escape_timer_1_val > 0, escape_timer_2_val > 0,
+                    escape_timer_3_val > 0, escape_timer_4_val > 0,
+                    escape_timer_5_val > 0, escape_timer_6_val > 0
+                ])
+                
+                # 3. Check location context (supporting evidence)
+                area_id = location_data.get('area_id', 0) if location_data else 0
+                room_id = location_data.get('room_id', 0) if location_data else 0
+                
+                # Post-MB locations: Crateria (0), or other areas but NOT in MB room
+                in_post_mb_location = (
+                    (area_id == 0) or  # Crateria (likely escape sequence)
+                    (area_id in [1, 2, 3, 4] and room_id != 56664) or  # Other areas, not MB room
+                    (area_id == 5 and room_id != 56664 and room_id > 0)  # Tourian but not MB room
+                )
+                
+                # 4. Additional context: check if we're clearly in a new game
+                missiles = location_data.get('missiles', 0) if location_data else 0
+                max_missiles = location_data.get('max_missiles', 1) if location_data else 1
+                health = location_data.get('current_health', 0) if location_data else 0
+                
+                # New game indicators (very low progress)
+                seems_like_new_game = (
+                    area_id in [0, 1] and  # Crateria or Brinstar  
+                    room_id < 10000 and    # Early game rooms
+                    missiles <= 10 and     # Very few missiles
+                    health <= 99           # Starting health
+                )
+                
+            except Exception as e:
+                logger.warning(f"Error validating MB2 cache: {e}")
+                hyper_beam_active = False
+                escape_timer_active = False
+                in_post_mb_location = False
+                seems_like_new_game = False
+            
+            # VALIDATE: Cache is only valid if supporting evidence exists
+            cache_supporting_evidence = [
+                hyper_beam_active,      # Hyper beam still active
+                escape_timer_active,    # Escape sequence ongoing  
+                in_post_mb_location,    # In post-MB areas
+                # Add negation of new game indicators
+                not seems_like_new_game
+            ]
+            
+            cache_still_valid = any(cache_supporting_evidence)
+            
+            logger.info(f"🔍 CACHE VALIDATION: hyper_beam={hyper_beam_active}, escape_timer={escape_timer_active}, post_mb_location={in_post_mb_location}, new_game={seems_like_new_game}")
+            
+            if cache_still_valid:
+                logger.info("✅ MB2 cache VALIDATED - supporting evidence found, keeping cache")
+                final_mb2 = True
+                final_mb1 = True  # MB2 implies MB1
+            else:
+                logger.info("❌ MB2 cache INVALID - no supporting evidence, clearing stale cache")
+                logger.info("🗑️ CLEARING STALE CACHE: Likely new game, save state reload, or invalid session")
+                # Clear both MB1 and MB2 cache
+                self.mother_brain_phase_state['mb2_detected'] = False
+                self.mother_brain_phase_state['mb1_detected'] = False
+                # Use fresh detection only
+                final_mb2 = mb2_detected
+                final_mb1 = mb1_detected or current_mb1_cache if not seems_like_new_game else mb1_detected
+        else:
+            # No MB2 cache, use fresh detection
+            final_mb2 = mb2_detected
+            final_mb1 = mb1_detected or current_mb1_cache
         
         # ESCAPE SEQUENCE SPECIAL CASE: If we're outside MB room and have MB1, strongly suggest MB2
         if not in_mb_room and final_mb1 and not final_mb2:
