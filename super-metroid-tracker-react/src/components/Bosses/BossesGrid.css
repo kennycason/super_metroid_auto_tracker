@@ -1,0 +1,27 @@
+.bosses-grid {
+  /* Remove background and borders to match original simple layout */
+}
+
+.bosses-header {
+  display: none; /* Remove headers to match original */
+}
+
+.bosses-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+}
+
+.bosses-row {
+  display: flex;
+  justify-content: flex-start;
+  gap: 0px;
+  flex-wrap: wrap;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .bosses-container {
+    gap: 0px;
+  }
+} 

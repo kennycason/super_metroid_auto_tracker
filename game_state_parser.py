@@ -296,6 +296,16 @@ class SuperMetroidGameStateParser:
         has_live_boss_data = False
         detection_method = "none"
         
+        # OFFICIAL AUTOSPLITTER MOTHER BRAIN HP EXTRACTION
+        # Extract official Mother Brain HP early for use throughout detection
+        if boss_memory_data.get('mother_brain_official_hp') and len(boss_memory_data['mother_brain_official_hp']) >= 2:
+            try:
+                mb_official_hp = struct.unpack('<H', boss_memory_data['mother_brain_official_hp'])[0]
+            except (struct.error, TypeError):
+                mb_official_hp = 0  # Fallback if unpacking fails
+        else:
+            mb_official_hp = 0  # Ensure it's always set
+        
         # Initialize all escape timer values
         escape_timer_1_val = 0
         escape_timer_2_val = 0
@@ -399,16 +409,6 @@ class SuperMetroidGameStateParser:
         # mb1_detected = False
         # mb2_detected = False
         
-        # OFFICIAL AUTOSPLITTER MOTHER BRAIN HP EXTRACTION
-        # Extract official Mother Brain HP early for use throughout detection
-        if boss_memory_data.get('mother_brain_official_hp') and len(boss_memory_data['mother_brain_official_hp']) >= 2:
-            try:
-                mb_official_hp = struct.unpack('<H', boss_memory_data['mother_brain_official_hp'])[0]
-            except (struct.error, TypeError):
-                mb_official_hp = 0  # Fallback if unpacking fails
-        else:
-            mb_official_hp = 0  # Ensure it's always set
-            
         # Get previous HP from cache
         if not hasattr(self, 'previous_mb_hp'):
             self.previous_mb_hp = 0

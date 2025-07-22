@@ -1,0 +1,100 @@
+.boss {
+  position: relative;
+  display: inline-block;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+  background: transparent;
+  padding: 0;
+  border: 1px solid transparent;
+  width: 66px;
+  height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.boss:hover {
+  background: rgba(85, 0, 0, 0.3);
+  transform: none;
+}
+
+.boss-sprite {
+  display: inline-block;
+  width: 64px;
+  height: 64px;
+  background-image: url(/boss_sprites.png);
+  background-repeat: no-repeat;
+  /* Full size 64x64 display */
+  background-size: 768px 64px; /* 12 sprites × 64px each = 768px */
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  vertical-align: middle;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.boss.grayed-out {
+  opacity: 0.4;
+  filter: grayscale(100%);
+}
+
+.boss.boss-defeated {
+  opacity: 1;
+  filter: none;
+  border-color: #ff0000;
+  background: #330000;
+  box-shadow: 0 0 8px rgba(255, 0, 0, 0.4);
+}
+
+/* Boss sprite positions (64px spacing) */
+.boss-sprite-b-torizo {
+  background-position: 0px 0px; /* Col 0 */
+}
+
+.boss-sprite-spore-spawn {
+  background-position: -64px 0px; /* Col 1 */
+}
+
+.boss-sprite-kraid {
+  background-position: -128px 0px; /* Col 2 */
+}
+
+.boss-sprite-crocomire {
+  background-position: -192px 0px; /* Col 3 */
+}
+
+.boss-sprite-phantoon {
+  background-position: -256px 0px; /* Col 4 */
+}
+
+.boss-sprite-botwoon {
+  background-position: -320px 0px; /* Col 5 */
+}
+
+.boss-sprite-draygon {
+  background-position: -384px 0px; /* Col 6 */
+}
+
+.boss-sprite-golden-torizo {
+  background-position: -448px 0px; /* Col 7 */
+}
+
+.boss-sprite-ridley {
+  background-position: -512px 0px; /* Col 8 */
+}
+
+.boss-sprite-mother-brain-1 {
+  background-position: -576px 0px; /* Col 9 - MB1 */
+}
+
+.boss-sprite-mother-brain-2 {
+  background-position: -640px 0px; /* Col 10 - MB2 */
+}
+
+.boss-sprite-samus-ship {
+  background-position: -704px 0px; /* Col 11 - Samus Ship */
+} 

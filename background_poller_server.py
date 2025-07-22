@@ -406,6 +406,8 @@ class CacheServingHTTPHandler(BaseHTTPRequestHandler):
                 self.serve_file('super_metroid_tracker.html')
             elif self.path == '/api/status':
                 self.serve_status()
+            elif self.path == '/game_state':
+                self.serve_game_state()
             elif self.path == '/api/stats':
                 self.serve_stats()
             elif self.path == '/api/bootstrap-mb':
@@ -422,8 +424,21 @@ class CacheServingHTTPHandler(BaseHTTPRequestHandler):
             logger.error(f"Request error: {e}")
             self.send_error(500)
     
+    def do_OPTIONS(self):
+        """Handle OPTIONS preflight requests for CORS"""
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', 'http://localhost:3000')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+    
     def serve_status(self):
         """Serve status from cache - instant response"""
+        cached_state = self.poller.get_cached_state()
+        self.send_json_response(cached_state)
+    
+    def serve_game_state(self):
+        """Serve game state in format expected by React app"""
         cached_state = self.poller.get_cached_state()
         self.send_json_response(cached_state)
     
@@ -523,11 +538,15 @@ class CacheServingHTTPHandler(BaseHTTPRequestHandler):
             self.send_error(404)
     
     def send_json_response(self, data, status_code=200):
-        """Send JSON response"""
+        """Send JSON response with CORS headers"""
         json_data = json.dumps(data, indent=2)
         self.send_response(status_code)
         self.send_header('Content-Type', 'application/json')
         self.send_header('Content-Length', len(json_data.encode()))
+        # Add CORS headers to allow React app access
+        self.send_header('Access-Control-Allow-Origin', 'http://localhost:3000')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
         self.wfile.write(json_data.encode())
 
@@ -591,6 +610,6 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
     
-    # Start server on port 3000 
-    server = BackgroundPollerServer(port=3000, poll_interval=1.0)
+    # Start server on port 8000 (to avoid conflict with React dev server on 3000)
+    server = BackgroundPollerServer(port=8000, poll_interval=1.0)
     server.start() 

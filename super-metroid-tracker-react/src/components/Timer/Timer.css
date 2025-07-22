@@ -1,0 +1,75 @@
+.timer-section {
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #003300;
+  border-radius: 5px;
+  background: rgba(0, 51, 0, 0.05);
+  text-align: center;
+}
+
+.timer-header {
+  display: none; /* Remove header to match original */
+}
+
+.timer-display {
+  font-family: 'Courier New', monospace;
+  font-size: 24px;
+  font-weight: bold;
+  color: #00ff00;
+  text-shadow: 0 0 8px rgba(0, 255, 0, 0.6);
+  margin: 8px 0;
+  letter-spacing: 1px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 6px 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 255, 0, 0.2);
+}
+
+.timer-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.timer-btn {
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: bold;
+  background: #003300;
+  color: #00ff00;
+  border: 1px solid #00ff00;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.timer-btn:hover:not(:disabled) {
+  background: #005500;
+  box-shadow: 0 0 5px #00ff00;
+}
+
+.timer-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.timer-status {
+  color: #888;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .timer-display {
+    font-size: 20px;
+    padding: 4px 8px;
+  }
+  
+  .timer-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+} 

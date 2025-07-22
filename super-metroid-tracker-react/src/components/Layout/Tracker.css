@@ -1,0 +1,210 @@
+.tracker {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+}
+
+.tracker.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+}
+
+.tracker-content {
+  padding: 0 12px 12px;
+  height: 100%;
+}
+
+.tracker.fullscreen .tracker-content {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.tracker-grid {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 8px;
+}
+
+/* Tracking sections */
+.tracking-section {
+  margin: 8px 0;
+}
+
+.tracking-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0px;
+  margin: 8px 0;
+  padding: 0px;
+  border-radius: 5px;
+  align-items: flex-start;
+}
+
+/* Quantity tile styling (Energy Tank, Missiles, etc.) */
+.quantity-tile {
+  position: relative;
+  display: inline-block;
+  text-align: center;
+  border-radius: 5px;
+  padding: 1px;
+  border: 1px solid transparent;
+  width: 66px;
+  height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  background: transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.quantity-display {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 1px 2px;
+  border-radius: 2px;
+  line-height: 1;
+  min-width: 16px;
+  text-align: center;
+}
+
+/* Grayed out styling for uncollected items */
+.quantity-tile.grayed-out {
+  opacity: 0.4;
+  filter: grayscale(100%);
+}
+
+.quantity-tile.grayed-out .quantity-display {
+  color: #666;
+}
+
+.quantity-tile.obtained {
+  border-color: #00ff00;
+  background: #003300;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+  opacity: 1;
+  filter: grayscale(0%);
+}
+
+/* Sprite classes (shared with items) */
+.sprite {
+  display: inline-block;
+  width: 64px;
+  height: 64px;
+  background-image: url(/item_sprites.png);
+  background-repeat: no-repeat;
+  background-size: 512px 512px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  vertical-align: middle;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+/* Fullscreen adjustments */
+.tracker.fullscreen .tracker-grid {
+  max-width: none;
+  padding: 16px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .tracker-content {
+    padding: 0 8px 8px;
+  }
+  
+  .tracker-grid {
+    gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tracker-content {
+    padding: 0 4px 4px;
+  }
+  
+  .tracker-grid {
+    gap: 4px;
+  }
+}
+
+/* Hide scrollbars but maintain scrollability */
+.tracker ::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tracker ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.tracker ::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 0, 0.3);
+  border-radius: 3px;
+}
+
+.tracker ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 0, 0.5);
+} 
+
+/* Debug window styles - matching original tracker */
+.debug-section {
+  margin: 20px 0 0 0;
+}
+
+.debug-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 5px;
+  gap: 8px;
+}
+
+.debug-btn {
+  background: rgba(0, 51, 0, 0.3);
+  border: 1px solid #003300;
+  color: #00ff00;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.debug-btn:hover {
+  background: rgba(0, 85, 0, 0.4);
+}
+
+.debug-log {
+  font-size: 12px;
+  opacity: 0.7;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #003300;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  font-family: 'Courier New', monospace;
+  color: #ffffff;
+  line-height: 1.4;
+}
+
+.debug-log div {
+  margin-bottom: 2px;
+} 
