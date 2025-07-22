@@ -50,7 +50,35 @@ class SuperMetroidGameStateParser:
             3: "Wrecked Ship", 4: "Maridia", 5: "Tourian"
         }
     
-    def parse_basic_stats(self, stats_data: bytes) -> Dict[str, Any]:
+    def _is_intro_scene(self, location_data: Optional[Dict[str, Any]] = None, health: int = 0) -> bool:
+        """
+        Detect if we're in the intro scene where items shouldn't show as activated.
+        Conservative detection to avoid false positives.
+        """
+        if not location_data:
+            return False
+            
+        area_id = location_data.get('area_id', 0)
+        room_id = location_data.get('room_id', 0)
+        
+        # Intro scene indicators (conservative approach):
+        # 1. Very early Crateria (starting area) with minimal progress
+        # 2. Low health (starting health range)  
+        # 3. Early room IDs that indicate intro/opening sequence
+        
+        in_starting_area = (area_id == 0)  # Crateria
+        has_starting_health = (health <= 99)  # Starting health or lower
+        in_intro_rooms = (room_id < 1000 or room_id == 0)  # Very early room IDs or invalid data
+        
+        # Only consider it intro if ALL conditions suggest early game
+        is_intro = (in_starting_area and has_starting_health and in_intro_rooms)
+        
+        if is_intro:
+            logger.info(f"🎬 INTRO SCENE DETECTED: Area={area_id}, Room={room_id}, Health={health} - filtering items")
+            
+        return is_intro
+
+    def parse_basic_stats(self, stats_data: bytes, location_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Parse basic stats from 22-byte health block"""
         if not stats_data or len(stats_data) < 22:
             return {}
@@ -66,6 +94,18 @@ class SuperMetroidGameStateParser:
         max_power_bombs = struct.unpack('<H', stats_data[14:16])[0]
         max_reserve_energy = struct.unpack('<H', stats_data[18:20])[0]
         reserve_energy = struct.unpack('<H', stats_data[20:22])[0]
+        
+        # Check if we're in intro scene - if so, filter non-energy items
+        is_intro = self._is_intro_scene(location_data, health)
+        
+        if is_intro:
+            # During intro: preserve health/energy, zero out missiles/supers/power bombs
+            missiles = 0
+            max_missiles = 0
+            supers = 0
+            max_supers = 0
+            power_bombs = 0
+            max_power_bombs = 0
         
         return {
             'health': health,
@@ -116,12 +156,33 @@ class SuperMetroidGameStateParser:
             
         return location
     
-    def parse_items(self, items_data: bytes) -> Dict[str, bool]:
+    def parse_items(self, items_data: bytes, location_data: Optional[Dict[str, Any]] = None, health: int = 0) -> Dict[str, bool]:
         """Parse item collection status"""
         if not items_data or len(items_data) < 2:
             return {}
             
         items_value = struct.unpack('<H', items_data)[0]
+        
+        # Check if we're in intro scene - if so, filter all items to False
+        is_intro = self._is_intro_scene(location_data, health)
+        
+        if is_intro:
+            # During intro: all items should show as not collected
+            return {
+                "morph": False,
+                "bombs": False,
+                "varia": False,
+                "gravity": False,
+                "hijump": False,
+                "speed": False,
+                "space": False,
+                "screw": False,
+                "spring": False,
+                "xray": False,
+                "grapple": False
+            }
+        
+        # Normal parsing when not in intro
         return {
             "morph": bool(items_value & 0x0004),
             "bombs": bool(items_value & 0x1000),
@@ -136,7 +197,7 @@ class SuperMetroidGameStateParser:
             "grapple": bool(items_value & 0x4000)
         }
     
-    def parse_beams(self, beams_data: bytes) -> Dict[str, bool]:
+    def parse_beams(self, beams_data: bytes, location_data: Optional[Dict[str, Any]] = None, health: int = 0) -> Dict[str, bool]:
         """Parse beam weapon status"""
         if not beams_data or len(beams_data) < 2:
             return {}
@@ -174,6 +235,20 @@ class SuperMetroidGameStateParser:
             hyper_detected = True
         
         beams["hyper"] = hyper_detected
+        
+        # Check if we're in intro scene - if so, filter beams (but allow charge beam)
+        is_intro = self._is_intro_scene(location_data, health)
+        
+        if is_intro:
+            # During intro: only allow charge beam (player starts with it), filter others
+            beams = {
+                "charge": beams["charge"],  # Keep charge beam as-is
+                "ice": False,
+                "wave": False,
+                "spazer": False,
+                "plasma": False,
+                "hyper": False
+            }
         
         # Log final beam analysis
         logger.info(f"🔍 Beam analysis: charge={beams['charge']}, ice={beams['ice']}, wave={beams['wave']}, spazer={beams['spazer']}, plasma={beams['plasma']}, hyper={beams['hyper']}")
@@ -1064,12 +1139,7 @@ class SuperMetroidGameStateParser:
         try:
             game_state = {}
             
-            # Basic stats
-            stats_data = memory_data.get('basic_stats')
-            if stats_data:
-                game_state.update(self.parse_basic_stats(stats_data))
-            
-            # Location data
+            # Location data first (needed for intro scene detection)
             location_data = self.parse_location_data(
                 memory_data.get('room_id'),
                 memory_data.get('area_id'), 
@@ -1079,12 +1149,17 @@ class SuperMetroidGameStateParser:
             )
             game_state.update(location_data)
             
+            # Basic stats (with intro scene detection)
+            stats_data = memory_data.get('basic_stats')
+            if stats_data:
+                game_state.update(self.parse_basic_stats(stats_data, location_data))
+            
             # Optional: reset if new game or file load
             self.maybe_reset_mb_state(location_data, stats_data)
             
             # Items and beams
-            game_state['items'] = self.parse_items(memory_data.get('items'))
-            game_state['beams'] = self.parse_beams(memory_data.get('beams'))
+            game_state['items'] = self.parse_items(memory_data.get('items'), location_data, game_state.get('health', 0))
+            game_state['beams'] = self.parse_beams(memory_data.get('beams'), location_data, game_state.get('health', 0))
             
             # Bosses (pass all boss-related memory data)
             boss_memory = {k: v for k, v in memory_data.items() 

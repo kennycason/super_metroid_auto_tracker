@@ -228,7 +228,7 @@ class BackgroundGamePoller:
             
             # Individual reads for other data
             room_id = self.udp_reader.read_memory_range(0x7E079B, 2)
-            area_id = self.udp_reader.read_memory_range(0x7E079D, 1)  # FIXED: Correct area address
+            area_id = self.udp_reader.read_memory_range(0x7E079F, 1)  # FIXED: Use standard area address (0x7E079F)
             game_state = self.udp_reader.read_memory_range(0x7E0998, 2)
             player_x = self.udp_reader.read_memory_range(0x7E0AF6, 2)
             player_y = self.udp_reader.read_memory_range(0x7E0AFA, 2)

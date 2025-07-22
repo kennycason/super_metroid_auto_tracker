@@ -491,8 +491,7 @@
         }
 
         .splits-list {
-            max-height: 150px;
-            overflow-y: auto;
+            /* Removed max-height and overflow-y to show all splits */
         }
 
         .split-item {
@@ -501,7 +500,7 @@
             align-items: center;
             padding: 4px 8px;
             margin: 2px 0;
-            font-size: 12px;
+            font-size: 14px;
             color: #ffffff;
             background: rgba(0, 51, 0, 0.2);
             border-radius: 3px;
@@ -518,12 +517,6 @@
         .split-time {
             font-family: 'Courier New', monospace;
             color: #00ff00;
-        }
-
-        /* Hide timer in fullscreen mode */
-        .fullscreen-mode .timer-section,
-        .fullscreen-mode .splits-section {
-            display: none;
         }
     </style>
 </head>
@@ -618,7 +611,7 @@
 
         <!-- Splits Section -->
         <div class="splits-section" id="splitsSection" style="display:none;">
-            <div class="splits-header">Recent Splits</div>
+            <div class="splits-header">Splits</div>
             <div class="splits-list" id="splitsList">
                 <!-- Splits will be populated here -->
             </div>
@@ -636,7 +629,7 @@
             <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                 <!-- <span style="color: #00ff00; font-size: 14px;">🔍 Debug</span> -->
                 <div>
-                                            <button onclick="copyLogs(event)" class="debug-btn">📋 Copy</button>
+                                        <button onclick="copyLogs(event)" class="debug-btn">📋 Copy</button>
                     <button onclick="clearLogs()" class="debug-btn">🗑️ Clear</button>
                 </div>
             </div>
@@ -1587,9 +1580,8 @@
             
             splitsSection.style.display = 'block';
             
-            // Show last 5 splits
-            const recentSplits = splits.slice(-5).reverse();
-            splitsContainer.innerHTML = recentSplits.map(split => 
+            // Show all splits from most recent to oldest (reverse the array)
+            splitsContainer.innerHTML = splits.slice().reverse().map(split => 
                 `<div class="split-item">
                     <span class="split-event">${split.event}</span>
                     <span class="split-time">${formatTime(split.time)}</span>
