@@ -558,20 +558,28 @@ class SuperMetroidGameStateParser:
         in_exact_ship_room = room_id in precise_landing_site_rooms
         in_ship_room_range = any(start <= room_id <= end for start, end in reasonable_ship_room_ranges)
         
-        # Position checks (restored from working version)
+        # EXPANDED Position checks - cover actual ship escape sequence positions
+        # During escape sequence, Samus can be at much wider coordinates
+        ship_escape_x_range = (300 <= player_x <= 1200)  # Much wider X range for escape sequence
+        ship_escape_y_range = (150 <= player_y <= 1200)  # Much wider Y range for escape sequence
+        
+        # Traditional ship landing position (narrow)
         precise_ship_position = (350 <= player_x <= 450) and (180 <= player_y <= 250)
-        broad_ship_position = (300 <= player_x <= 500) and (150 <= player_y <= 300)
+        
+        # Broader ship area including escape sequence (wide)
+        broad_ship_position = ship_escape_x_range and ship_escape_y_range
         
         logger.info(f"🚢 POSITION DETECTION - Room: {room_id}, ExactRoom: {in_exact_ship_room}, RangeRoom: {in_ship_room_range}")
         logger.info(f"🚢 POSITION DETECTION - Pos: ({player_x},{player_y}), PrecisePos: {precise_ship_position}, BroadPos: {broad_ship_position}")
         
         # Position-based ship criteria (require BOTH room AND position)
         exact_position_detection = in_exact_ship_room and precise_ship_position
-        reasonable_position_detection = in_ship_room_range and broad_ship_position
-        position_ship_detection = exact_position_detection or reasonable_position_detection
+        escape_sequence_detection = in_exact_ship_room and broad_ship_position  # NEW: Escape sequence detection
+        position_ship_detection = exact_position_detection or escape_sequence_detection
         
         if position_ship_detection:
-            logger.info(f"🚢 ✅ POSITION SHIP DETECTION: MB complete + Crateria + correct room + ship position!")
+            detection_type = "precise" if exact_position_detection else "escape_sequence"
+            logger.info(f"🚢 ✅ POSITION SHIP DETECTION ({detection_type}): MB complete + Crateria + correct room + ship position!")
             return True
         
         logger.info(f"🚢 ❌ Ship not detected by either method")
