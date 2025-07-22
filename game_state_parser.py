@@ -172,7 +172,36 @@ class SuperMetroidGameStateParser:
         """Parse boss defeat status with advanced detection logic"""
         if not boss_memory_data:
             return {}
-            
+        
+        # CRITICAL: Initialize ALL variables at function start to prevent scope errors
+        mb_official_hp = 0
+        mb1_transition = False
+        mb2_transition = False
+        escape_timer_active = False
+        has_live_boss_data = False
+        
+        # Initialize all escape timer values
+        escape_timer_1_val = 0
+        escape_timer_2_val = 0
+        escape_timer_3_val = 0
+        escape_timer_4_val = 0
+        escape_timer_5_val = 0
+        escape_timer_6_val = 0
+        
+        # Initialize all boss HP values
+        boss_hp_1_val = 0
+        boss_hp_2_val = 0
+        boss_hp_3_val = 0
+        
+        # Initialize location variables
+        area_id = location_data.get('area_id', 0) if location_data else 0
+        room_id = location_data.get('room_id', 0) if location_data else 0
+        in_mb_room = (area_id == 5 and room_id == 56664)  # Tourian Mother Brain room
+        
+        # Initialize detection flags
+        mb1_detected = False
+        mb2_detected = False
+        
         bosses = {}
         
         # Basic boss flags
@@ -244,16 +273,12 @@ class SuperMetroidGameStateParser:
         # Advanced Mother Brain detection using multiple reliable indicators
         
         # Define all variables used throughout MB detection to avoid scope issues
-        main_mb_detected = bosses.get('mother_brain', False)
-        mb1_detected = False
-        mb2_detected = False
-        area_id = location_data.get('area_id', 0) if location_data else 0
-        room_id = location_data.get('room_id', 0) if location_data else 0
-        in_mb_room = (area_id == 5 and room_id == 56664)  # Tourian Mother Brain room
+        # main_mb_detected = bosses.get('mother_brain', False)
+        # mb1_detected = False
+        # mb2_detected = False
         
         # OFFICIAL AUTOSPLITTER MOTHER BRAIN HP EXTRACTION
         # Extract official Mother Brain HP early for use throughout detection
-        mb_official_hp = 0
         if boss_memory_data.get('mother_brain_official_hp') and len(boss_memory_data['mother_brain_official_hp']) >= 2:
             mb_official_hp = struct.unpack('<H', boss_memory_data['mother_brain_official_hp'])[0]
             
@@ -292,13 +317,6 @@ class SuperMetroidGameStateParser:
                 logger.info(f"🗑️ Forced cache reset due to contradiction")
             
         # ESCAPE TIMER APPROACH - Much more reliable than memory patterns
-        escape_timer_1_val = 0
-        escape_timer_2_val = 0
-        escape_timer_3_val = 0
-        escape_timer_4_val = 0
-        escape_timer_5_val = 0
-        escape_timer_6_val = 0
-        
         if boss_memory_data.get('escape_timer_1') and len(boss_memory_data['escape_timer_1']) >= 2:
             escape_timer_1_val = struct.unpack('<H', boss_memory_data['escape_timer_1'])[0]
         if boss_memory_data.get('escape_timer_2') and len(boss_memory_data['escape_timer_2']) >= 2:
@@ -325,9 +343,6 @@ class SuperMetroidGameStateParser:
         logger.info(f"   Active: {escape_timer_active}")
         
         # BOSS HP APPROACH - Direct detection via boss health
-        boss_hp_1_val = 0
-        boss_hp_2_val = 0
-        boss_hp_3_val = 0
         if boss_memory_data.get('boss_hp_1') and len(boss_memory_data['boss_hp_1']) >= 2:
             boss_hp_1_val = struct.unpack('<H', boss_memory_data['boss_hp_1'])[0]
         if boss_memory_data.get('boss_hp_2') and len(boss_memory_data['boss_hp_2']) >= 2:
@@ -368,18 +383,17 @@ class SuperMetroidGameStateParser:
             hyper_beam_detected = True
             logger.info(f"🌟 HYPER BEAM DETECTED! This confirms MB1 completion")
         
-        # Initialize transition detection variables
-        mb1_transition = False
-        mb2_transition = False
-        
         # Official autosplitter HP transition detection
         if in_mb_room and mb_official_hp > 0:
             mb1_transition = (self.previous_mb_hp == 0 and mb_official_hp == PHASE_2_HP)
             mb2_transition = (self.previous_mb_hp == 0 and mb_official_hp == PHASE_3_HP)
         
-        # Start with official transition detection
+        # DETECTION PRIORITY SYSTEM (most reliable first)
+        detection_method = "none"
+        
+        # 1. OFFICIAL AUTOSPLITTER DETECTION (highest priority)
         if in_mb_room and (mb1_transition or mb2_transition):
-            # OFFICIAL AUTOSPLITTER DETECTION (highest priority)
+            detection_method = "official_transitions"
             if mb1_transition:
                 mb1_detected = True
                 logger.info(f"🏆 MB1 detected via OFFICIAL autosplitter transition")
@@ -387,181 +401,110 @@ class SuperMetroidGameStateParser:
                 mb1_detected = True  # MB2 implies MB1 complete
                 mb2_detected = True
                 logger.info(f"🏆 MB2 detected via OFFICIAL autosplitter transition")
+        
+        # 2. HYPER BEAM DETECTION (very high priority - perfect MB1 indicator)
         elif hyper_beam_detected:
-            # HYPER BEAM DETECTION (very high priority - perfect MB1 indicator)
-            logger.info(f"🌟 MB1 CONFIRMED via Hyper Beam! MB2 status determined by location/escape")
+            detection_method = "hyper_beam"
+            logger.info(f"🌟 MB1 CONFIRMED via Hyper Beam! MB2 status preserved from cache")
             mb1_detected = True  # Hyper beam = MB1 definitely complete
-            # MB2 depends on escape timer or being in the escape sequence
-            mb2_detected = escape_timer_active or original_mb2_state
+            mb2_detected = original_mb2_state  # Preserve MB2 state from cache
+        
+        # 3. ESCAPE TIMER DETECTION (high priority backup)
         elif escape_timer_active:
-            # ESCAPE TIMER DETECTION (high priority backup)
+            detection_method = "escape_timer"
             logger.info(f"🚨 ESCAPE TIMER DETECTED! MB2 completed, escape sequence active")
             mb1_detected = True  # If MB2 is done, MB1 must be done
             mb2_detected = True
+        
+        # 4. LIVE BOSS HP ANALYSIS (when in MB room with HP data)
         elif in_mb_room and (boss_hp_1_val > 0 or boss_hp_2_val > 0 or boss_hp_3_val > 0):
-            # BOSS HP ANALYSIS (medium priority backup)
+            detection_method = "live_hp_analysis"
             max_hp = max(boss_hp_1_val, boss_hp_2_val, boss_hp_3_val)
             current_hp = boss_hp_3_val if boss_hp_3_val > 0 else max_hp
             
-            logger.info(f"🩸 BACKUP HP Analysis - Max: {max_hp}, Current: {current_hp}")
+            logger.info(f"🩸 LIVE HP Analysis - Current: {current_hp}")
             
-            if current_hp == 0:
-                logger.info(f"🩸 No current HP detected - checking for completion")
+            # MUCH MORE CONSERVATIVE RESET LOGIC
+            # Only reset if we're clearly at the very beginning (original pre-fight HP ~41,760)
+            is_genuine_reset = (current_hp >= 40000 and current_hp <= 42000)  # Very narrow range
+            
+            if is_genuine_reset:
+                # This is clearly a save state reload or new attempt
+                logger.info(f"🔄 GENUINE RESET: Original pre-fight HP ({current_hp}) - clearing cache")
+                mb1_detected = False
+                mb2_detected = False
+                self.mother_brain_phase_state = {'mb1_detected': False, 'mb2_detected': False}
+            elif current_hp <= 15000:
+                # HP is low enough to indicate MB1 progression
+                logger.info(f"🩸 MB1 active/complete: Current HP {current_hp} <= 15000")
                 mb1_detected = True
-                mb2_detected = escape_timer_active
-            elif current_hp > 0 and current_hp <= 15000:
-                logger.info(f"🩸 Current HP <= 15000 - MB1 active or completed")
-                mb1_detected = True
-                mb2_detected = (current_hp < 5000)
+                mb2_detected = (current_hp < 5000) or original_mb2_state  # Preserve MB2 if already detected
             else:
-                # SMART RESET LOGIC - preserve state during phase transitions
-                is_original_full_hp = (current_hp <= 42000)  # True original pre-fight HP
-                is_mb2_phase_hp = (current_hp > 50000)       # MB2 typically has higher HP
-                
-                if is_original_full_hp:
-                    # Back to original pre-fight HP - this is a genuine reset
-                    logger.info(f"🔄 GENUINE RESET: Back to original HP ({current_hp}) - save state reload")
-                    mb1_detected = False
-                    mb2_detected = False
-                    self.mother_brain_phase_state = {
-                        'mb1_detected': False,
-                        'mb2_detected': False
-                    }
-                    logger.info(f"🗑️ Cleared persistent MB cache due to genuine reset")
-                elif is_mb2_phase_hp and not original_mb1_state:
-                    # High HP but no prior MB1 detection - this might be starting at MB2 phase
-                    logger.info(f"🔄 POTENTIAL RESET: High HP ({current_hp}) with no prior MB1")
-                    mb1_detected = False
-                    mb2_detected = False
-                    self.mother_brain_phase_state = {
-                        'mb1_detected': False,
-                        'mb2_detected': False
-                    }
-                    logger.info(f"🗑️ Cleared cache due to no prior MB1 state")
-                else:
-                    # High HP but MB1 was previously detected - preserve MB1, set MB2 active
-                    logger.info(f"🚀 MB2 PHASE PRESERVED: HP={current_hp}, preserving MB1={original_mb1_state}")
-                    mb1_detected = original_mb1_state  # Preserve original state!
-                    mb2_detected = True  # High HP in MB room with MB1 done = MB2 active
-                    # Update cache to preserve MB1
-                    self.mother_brain_phase_state['mb1_detected'] = original_mb1_state
-                    self.mother_brain_phase_state['mb2_detected'] = True
-                    logger.info(f"✅ Preserved MB1 state during MB2 phase transition")
+                # HP is higher but not in reset range - preserve cache state
+                logger.info(f"🔒 PRESERVING CACHE: HP {current_hp} not in reset range, keeping MB1={original_mb1_state}, MB2={original_mb2_state}")
+                mb1_detected = original_mb1_state
+                mb2_detected = original_mb2_state
+        
+        # 5. SMART FALLBACK (outside MB room - rely heavily on cache)
         else:
-            # FALLBACK: Not in MB room - check for strong memory evidence 
+            detection_method = "smart_fallback"
             mb_progress_val = boss_scan_results.get('boss_plus_1', 0)
             mb_alt_pattern = boss_scan_results.get('boss_plus_2', 0)
             
-            # Check for strong memory patterns that indicate completion
+            # Check for strong memory patterns
             strong_memory_evidence = (mb_progress_val >= 0x0700)
-            alt_memory_evidence = (mb_alt_pattern >= 0x0300)
             
-            # SMART MB2 DETECTION: If MB1 is done and we're in Tourian (escape area) 
-            # with no boss HP data, it's very likely MB2 was completed
-            in_tourian_escape = (area_id == 5 and room_id != 56664)  # In Tourian but not MB room
+            # Smart MB2 inference for escape areas
+            in_tourian_escape = (area_id == 5 and room_id != 56664)
+            in_crateria_post_escape = (area_id == 0)
             no_boss_hp = (boss_hp_1_val == 0 and boss_hp_2_val == 0 and boss_hp_3_val == 0)
-            mb1_already_detected = original_mb1_state or strong_memory_evidence
             
-            smart_mb2_inference = (in_tourian_escape and no_boss_hp and mb1_already_detected)
-            
-            if strong_memory_evidence or alt_memory_evidence:
-                logger.info(f"🔄 Fallback MB detection outside room: mem=0x{mb_progress_val:04X}, alt=0x{mb_alt_pattern:04X}")
+            if strong_memory_evidence:
+                logger.info(f"🔄 Strong memory evidence: 0x{mb_progress_val:04X}")
                 mb1_detected = True
-                # Smart MB2 detection: if in Tourian escape area with MB1 done, likely MB2 done too
-                if smart_mb2_inference:
+                # Smart MB2 inference
+                if (in_tourian_escape or in_crateria_post_escape) and no_boss_hp and original_mb1_state:
                     mb2_detected = True
-                    logger.info(f"🧠 SMART MB2 INFERENCE: MB1 done + Tourian escape area + no boss HP = MB2 likely complete")
+                    logger.info(f"🧠 SMART MB2 INFERENCE: MB1 done + escape area + no boss HP")
                 else:
-                    mb2_detected = False  # Conservative - don't assume MB2 outside room
-            elif smart_mb2_inference:
-                # Even without strong memory evidence, if all conditions met, infer MB2
-                logger.info(f"🧠 SMART MB2 INFERENCE: In Tourian escape (room {room_id}) with MB1 complete - assuming MB2 done")
-                mb1_detected = True
-                mb2_detected = True
+                    mb2_detected = original_mb2_state  # Preserve cache
             else:
-                logger.info(f"🔄 No MB evidence outside room")
-                mb1_detected = False
-                mb2_detected = False
+                # No strong evidence - rely on cache completely
+                logger.info(f"🔒 NO EVIDENCE: Preserving cache state MB1={original_mb1_state}, MB2={original_mb2_state}")
+                mb1_detected = original_mb1_state
+                mb2_detected = original_mb2_state
         
-        # Advanced Mother Brain completion state management
-        # Live detection takes precedence when we're in MB room with boss HP data
-        has_live_boss_data = in_mb_room and (boss_hp_1_val > 0 or boss_hp_2_val > 0 or boss_hp_3_val > 0)
+        logger.info(f"🎯 Detection method: {detection_method} → MB1={mb1_detected}, MB2={mb2_detected}")
         
-        if mb1_detected or (not has_live_boss_data and self.mother_brain_phase_state['mb1_detected']):
-            bosses['mother_brain_1'] = True
+        # ROBUST CACHE MANAGEMENT - Once detected, stays detected unless genuine reset
+        
+        # Update cache immediately when phases are detected (prevent loss)
+        if mb1_detected:
             self.mother_brain_phase_state['mb1_detected'] = True
-        else:
-            bosses['mother_brain_1'] = False
-
-        # CRITICAL FIX: Live detection overrides cache when we have reliable boss data
-        if has_live_boss_data:
-            # We're in MB room with live boss data - use live detection, ignore cache
-            if mb1_detected:
-                bosses['mother_brain_1'] = True
-                self.mother_brain_phase_state['mb1_detected'] = True
-                logger.info(f"🔥 Live MB1 detection: HP-based detection confirms MB1")
-            else:
-                # Only clear MB1 if we're truly at the beginning (low HP numbers)
-                current_hp = boss_hp_3_val if boss_hp_3_val > 0 else max(boss_hp_1_val, boss_hp_2_val, boss_hp_3_val)
-                if current_hp > 50000:
-                    # High HP might be MB2 - preserve any existing MB1 state
-                    existing_mb1 = self.mother_brain_phase_state.get('mb1_detected', False)
-                    bosses['mother_brain_1'] = existing_mb1
-                    logger.info(f"🚀 Preserving MB1 state ({existing_mb1}) during high HP phase")
-                else:
-                    bosses['mother_brain_1'] = False
-                    logger.info(f"🩸 Live MB1 detection: Current HP {current_hp} indicates MB1 not completed")
-            
-            if mb2_detected:
-                bosses['mother_brain_2'] = True
-                self.mother_brain_phase_state['mb2_detected'] = True
-                logger.info(f"🔥 Live MB2 detection: HP-based detection confirms MB2")
-            else:
-                bosses['mother_brain_2'] = False
-                # Don't clear cache yet - might be between phases
-                current_hp = boss_hp_3_val if boss_hp_3_val > 0 else max(boss_hp_1_val, boss_hp_2_val, boss_hp_3_val)
-                logger.info(f"🩸 Live MB2 detection: Current HP {current_hp} indicates MB2 not completed")
-        else:
-            # We're outside MB room or no reliable data - use cache for persistence
-            if mb2_detected or self.mother_brain_phase_state['mb2_detected']:
-                bosses['mother_brain_2'] = True
-                self.mother_brain_phase_state['mb2_detected'] = True
-            else:
-                bosses['mother_brain_2'] = False
-        # mother_brain stays as originally detected (complete sequence)
+        if mb2_detected:
+            self.mother_brain_phase_state['mb2_detected'] = True
         
-        # End-game detection (Samus reaching her ship) - AFTER cache logic to get final values
-        final_mb1 = bosses['mother_brain_1']  # Use cached values
-        final_mb2 = bosses['mother_brain_2']  # Use cached values
-        samus_ship_detected = self._detect_samus_ship(boss_memory_data, location_data, main_mb_detected, final_mb1, final_mb2)
+        # Final boss state assignment - prioritize detection over cache for reliability
+        bosses['mother_brain_1'] = mb1_detected or self.mother_brain_phase_state['mb1_detected']
+        bosses['mother_brain_2'] = mb2_detected or self.mother_brain_phase_state['mb2_detected']
+        
+        # Log final state for debugging
+        final_mb1 = bosses['mother_brain_1']
+        final_mb2 = bosses['mother_brain_2']
+        logger.info(f"🎯 FINAL MB STATE: MB1={final_mb1}, MB2={final_mb2} (method: {detection_method})")
+        
+        # End-game detection (Samus reaching her ship)
+        samus_ship_detected = self._detect_samus_ship(boss_memory_data, location_data, original_mb1_state, final_mb1, final_mb2)
         bosses['samus_ship'] = samus_ship_detected
         
-        # OFFICIAL AUTOSPLITTER MOTHER BRAIN DETECTION
-        # Following community standard from: https://github.com/UNHchabo/AutoSplitters
-        
-        # OFFICIAL PHASE THRESHOLDS (from autosplitter community)
-        PHASE_1_HP = 3000    # 0xBB8
-        PHASE_2_HP = 18000   # 0x4650  
-        PHASE_3_HP = 36000   # 0x8CA0
-        
-        # OFFICIAL DETECTION LOGIC: HP transitions indicate phase changes
-        mb1_transition = (self.previous_mb_hp == 0 and mb_official_hp == PHASE_2_HP)  # Glass breaks → Mech form
-        mb2_transition = (self.previous_mb_hp == 0 and mb_official_hp == PHASE_3_HP)  # Mech → Final form
-        
-        logger.info(f"🤖 Official MB HP: Previous={self.previous_mb_hp}, Current={mb_official_hp}")
-        if mb1_transition:
-            logger.info(f"🔥 OFFICIAL MB1 TRANSITION: 0 → {PHASE_2_HP} - Glass container destroyed!")
-        if mb2_transition:
-            logger.info(f"⚡ OFFICIAL MB2 TRANSITION: 0 → {PHASE_3_HP} - Final form activated!")
-            
-        # Update cache for next check
+        # Update previous HP cache for next detection cycle
         self.previous_mb_hp = mb_official_hp
         
         return bosses
     
     def _detect_samus_ship(self, boss_memory_data: Dict[str, bytes], location_data: Dict[str, Any], 
                           main_mb_complete: bool, mb1_complete: bool, mb2_complete: bool) -> bool:
-        """Detect when Samus has reached her ship (end-game completion)"""
+        """Detect when Samus has reached her ship (end-game completion) - hybrid approach"""
         if not location_data:
             logger.debug("Ship detection: No location data")
             return False
@@ -580,100 +523,59 @@ class SuperMetroidGameStateParser:
             logger.info(f"🚢 Ship Debug - Not in Crateria (area={area_id}), ship detection blocked")
             return False
         
-        # ESCAPE SEQUENCE DETECTION - Block ship detection during escape
-        # Check for escape timer activity (indicates active escape, not ship arrival)
-        escape_timer_1_val = 0
-        escape_timer_2_val = 0
-        if boss_memory_data.get('escape_timer_1') and len(boss_memory_data['escape_timer_1']) >= 2:
-            escape_timer_1_val = struct.unpack('<H', boss_memory_data['escape_timer_1'])[0]
-        if boss_memory_data.get('escape_timer_2') and len(boss_memory_data['escape_timer_2']) >= 2:
-            escape_timer_2_val = struct.unpack('<H', boss_memory_data['escape_timer_2'])[0]
-            
-        escape_timer_active = (escape_timer_1_val > 0) or (escape_timer_2_val > 0)
-        if escape_timer_active:
-            logger.info(f"🚢 Ship Debug - ESCAPE TIMER ACTIVE ({escape_timer_1_val:04X}, {escape_timer_2_val:04X}) - blocking ship detection")
-            return False
-            
-        # Check if Mother Brain sequence is complete (all phases defeated)
-        # This ensures we're in the post-game/escape sequence phase
+        # Check if Mother Brain sequence is complete
         mother_brain_complete = main_mb_complete or (mb1_complete and mb2_complete)
-        
-        # More flexible completion check: MB1 completion might be enough if memory shows advanced state
-        # or if we're clearly in end-game scenario (escape sequence)
         partial_mb_complete = mb1_complete  # MB1 completion indicates significant progress
         
         if not mother_brain_complete and not partial_mb_complete:
-            logger.info(f"🚢 Ship Debug - No Mother Brain progress (main={main_mb_complete}, MB1={mb1_complete}, MB2={mb2_complete})")
+            logger.info(f"🚢 Ship Debug - No Mother Brain progress")
             return False
         
-        completion_type = "full" if mother_brain_complete else "partial (MB1)"
-        logger.info(f"🚢 Ship Debug - MB completion: {completion_type}")
+        # METHOD 1: OFFICIAL AUTOSPLITTER DETECTION (high priority)
+        ship_ai_val = 0
+        event_flags_val = 0
+        
+        if boss_memory_data.get('ship_ai') and len(boss_memory_data['ship_ai']) >= 2:
+            ship_ai_val = struct.unpack('<H', boss_memory_data['ship_ai'])[0]
+        if boss_memory_data.get('event_flags') and len(boss_memory_data['event_flags']) >= 1:
+            event_flags_val = struct.unpack('<B', boss_memory_data['event_flags'])[0]
             
-        # PRECISE Landing Site room detection
-        # More precise room ID ranges for actual ship location (not escape sequence)
-        # The ship is specifically in Landing Site room, not general Crateria escape rooms
-        precise_landing_site_rooms = [
-            31224,  # Exact Landing Site room (0x791F8 converted)
-            37368,  # Known working ship room from testing
-        ]
+        zebes_ablaze = (event_flags_val & 0x40) > 0
+        ship_ai_reached = (ship_ai_val == 0xaa4f)
+        official_ship_detection = zebes_ablaze and ship_ai_reached
         
-        # Broader but more controlled ranges (much smaller than before)
-        reasonable_ship_room_ranges = [
-            (31220, 31230),  # Tight range around 0x791F8 conversion
-            (37360, 37375),  # Tight range around known working ship room
-        ]
+        logger.info(f"🚢 OFFICIAL DETECTION - shipAI: 0x{ship_ai_val:04X}, eventFlags: 0x{event_flags_val:02X}")
+        logger.info(f"🚢 zebesAblaze: {zebes_ablaze}, shipAI_reached: {ship_ai_reached}")
         
-        # Check exact rooms first
+        if official_ship_detection:
+            logger.info(f"🚢 ✅ OFFICIAL SHIP DETECTION: Zebes ablaze + shipAI 0xaa4f = SHIP REACHED!")
+            return True
+        
+        # METHOD 2: POSITION-BASED DETECTION (backup - was working before)
+        precise_landing_site_rooms = [31224, 37368]  # Known working rooms
+        reasonable_ship_room_ranges = [(31220, 31230), (37360, 37375)]
+        
         in_exact_ship_room = room_id in precise_landing_site_rooms
-        # Then check reasonable ranges
         in_ship_room_range = any(start <= room_id <= end for start, end in reasonable_ship_room_ranges)
         
-        logger.info(f"🚢 Ship Debug - Exact ship room check: {room_id} exact? {in_exact_ship_room}")
-        logger.info(f"🚢 Ship Debug - Ship range check: {room_id} in ranges? {in_ship_room_range}")
+        # Position checks (restored from working version)
+        precise_ship_position = (350 <= player_x <= 450) and (180 <= player_y <= 250)
+        broad_ship_position = (300 <= player_x <= 500) and (150 <= player_y <= 300)
         
-        # Position-based detection for ship location
-        # The ship is typically in a specific area of the Landing Site
-        # More precise coordinates for ship proximity
-        precise_ship_position = (
-            (350 <= player_x <= 450) and   # Tighter X range around ship
-            (180 <= player_y <= 250)       # Tighter Y range around ship
-        )
+        logger.info(f"🚢 POSITION DETECTION - Room: {room_id}, ExactRoom: {in_exact_ship_room}, RangeRoom: {in_ship_room_range}")
+        logger.info(f"🚢 POSITION DETECTION - Pos: ({player_x},{player_y}), PrecisePos: {precise_ship_position}, BroadPos: {broad_ship_position}")
         
-        # Alternative broader position check (if precise fails)
-        broad_ship_position = (
-            (300 <= player_x <= 500) and   # Broader X range
-            (150 <= player_y <= 300)       # Broader Y range  
-        )
+        # Position-based ship criteria (require BOTH room AND position)
+        exact_position_detection = in_exact_ship_room and precise_ship_position
+        reasonable_position_detection = in_ship_room_range and broad_ship_position
+        position_ship_detection = exact_position_detection or reasonable_position_detection
         
-        logger.info(f"🚢 Ship Debug - Precise position check: ({player_x},{player_y}) at ship? {precise_ship_position}")
-        logger.info(f"🚢 Ship Debug - Broad position check: ({player_x},{player_y}) near ship? {broad_ship_position}")
+        if position_ship_detection:
+            logger.info(f"🚢 ✅ POSITION SHIP DETECTION: MB complete + Crateria + correct room + ship position!")
+            return True
         
-        # STRICT ship detection: Must meet multiple criteria
-        # 1. MB progress (at least MB1) AND
-        # 2. In Crateria AND  
-        # 3. NOT during escape timer AND
-        # 4. Either exact ship room OR (ship room range AND reasonable position)
-        any_mb_progress = mother_brain_complete or partial_mb_complete
-        
-        # Ship room criteria: exact room OR (range + position)
-        ship_room_criteria = in_exact_ship_room or (in_ship_room_range and broad_ship_position)
-        
-        # Alternative: strict position-only detection (if room detection is unreliable)
-        strict_position_only = precise_ship_position
-        
-        end_game_detected = (
-            any_mb_progress and 
-            area_id == 0 and 
-            not escape_timer_active and  # CRITICAL: Not during escape
-            (ship_room_criteria or strict_position_only)
-        )
-        
-        if end_game_detected:
-            logger.info(f"🚢 ✅ SHIP REACHED: MB progress + Crateria + precise location + no escape timer!")
-        else:
-            logger.info(f"🚢 ❌ Not at ship: mb_progress={any_mb_progress}, crateria={area_id==0}, escape_active={escape_timer_active}, location_match={ship_room_criteria or strict_position_only}")
-            
-        return end_game_detected
+        logger.info(f"🚢 ❌ Ship not detected by either method")
+        return False
     
     def maybe_reset_mb_state(self, location_data: Dict[str, Any], stats_data: Optional[bytes]):
         """Reset MB phase tracking on game start, save load, or contradiction detection"""

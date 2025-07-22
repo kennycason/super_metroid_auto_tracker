@@ -258,7 +258,11 @@ class BackgroundGamePoller:
             boss_hp_3 = self.udp_reader.read_memory_range(0x7E1000, 2)  # Another potential location
             
             # OFFICIAL AUTOSPLITTER ADDRESS: Mother Brain HP for phase detection
-            mother_brain_official_hp = self.udp_reader.read_memory_range(0x7E0FCC, 2)  # Official autosplitter address
+            mother_brain_official_hp = self.udp_reader.read_memory_range(0x7E0FCC, 2)
+            
+            # OFFICIAL AUTOSPLITTER ADDRESSES: Ship detection
+            ship_ai = self.udp_reader.read_memory_range(0x7E0FB2, 2)    # Ship AI state
+            event_flags = self.udp_reader.read_memory_range(0x7ED821, 1) # Event flags (zebesAblaze)
             
             # Game state (escape sequence often changes game state)
             game_state_extended = self.udp_reader.read_memory_range(0x7E0998, 2)
@@ -290,6 +294,10 @@ class BackgroundGamePoller:
                 'boss_hp_2': boss_hp_2,
                 'boss_hp_3': boss_hp_3,
                 'mother_brain_official_hp': mother_brain_official_hp,
+                
+                # Official autosplitter ship detection
+                'ship_ai': ship_ai,
+                'event_flags': event_flags,
                 'game_state_extended': game_state_extended,
             }
             
