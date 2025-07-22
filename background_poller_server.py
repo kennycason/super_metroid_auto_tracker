@@ -228,7 +228,7 @@ class BackgroundGamePoller:
             
             # Individual reads for other data
             room_id = self.udp_reader.read_memory_range(0x7E079B, 2)
-            area_id = self.udp_reader.read_memory_range(0x7E079F, 1)
+            area_id = self.udp_reader.read_memory_range(0x7E079D, 1)  # FIXED: Correct area address
             game_state = self.udp_reader.read_memory_range(0x7E0998, 2)
             player_x = self.udp_reader.read_memory_range(0x7E0AF6, 2)
             player_y = self.udp_reader.read_memory_range(0x7E0AFA, 2)
@@ -251,6 +251,19 @@ class BackgroundGamePoller:
             escape_timer_4 = self.udp_reader.read_memory_range(0x7E09E0, 2)  # Another possible location
             escape_timer_5 = self.udp_reader.read_memory_range(0x7E0947, 2)  # Sequential check
             escape_timer_6 = self.udp_reader.read_memory_range(0x7E0949, 2)  # Sequential check
+            
+            # ADDITIONAL ESCAPE TIMER ADDRESSES - commonly known locations
+            escape_timer_7 = self.udp_reader.read_memory_range(0x7E0911, 2)  # Known timer location
+            escape_timer_8 = self.udp_reader.read_memory_range(0x7E0913, 2)  # Alternative timer  
+            escape_timer_9 = self.udp_reader.read_memory_range(0x7E0915, 2)  # Sequential
+            escape_timer_10 = self.udp_reader.read_memory_range(0x7E0917, 2) # Sequential
+            escape_timer_11 = self.udp_reader.read_memory_range(0x7E0919, 2) # Sequential
+            escape_timer_12 = self.udp_reader.read_memory_range(0x7E0921, 2) # Different block
+            
+            # MEMORY SCAN - Look for any non-zero timers in common areas
+            scan_090x = self.udp_reader.read_memory_range(0x7E0900, 32)  # Scan 0x900-0x91F
+            scan_094x = self.udp_reader.read_memory_range(0x7E0940, 32)  # Scan 0x940-0x95F  
+            scan_09Ex = self.udp_reader.read_memory_range(0x7E09E0, 32)  # Scan 0x9E0-0x9FF
             
             # Boss HP for direct detection (MB room boss HP)
             boss_hp_1 = self.udp_reader.read_memory_range(0x7E0F8C, 2)  # Common boss HP location
@@ -290,6 +303,15 @@ class BackgroundGamePoller:
                 'escape_timer_4': escape_timer_4,
                 'escape_timer_5': escape_timer_5,
                 'escape_timer_6': escape_timer_6,
+                'escape_timer_7': escape_timer_7,
+                'escape_timer_8': escape_timer_8,
+                'escape_timer_9': escape_timer_9,
+                'escape_timer_10': escape_timer_10,
+                'escape_timer_11': escape_timer_11,
+                'escape_timer_12': escape_timer_12,
+                'scan_090x': scan_090x,
+                'scan_094x': scan_094x,
+                'scan_09Ex': scan_09Ex,
                 'boss_hp_1': boss_hp_1,
                 'boss_hp_2': boss_hp_2,
                 'boss_hp_3': boss_hp_3,

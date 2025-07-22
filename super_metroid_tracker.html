@@ -424,6 +424,107 @@
         
         .fullscreen-mode .tracking-grid {
         }
+
+        /* Timer Section Styles */
+        .timer-section {
+            text-align: center;
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #003300;
+            border-radius: 5px;
+            background: rgba(0, 51, 0, 0.1);
+        }
+
+        .timer-display {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffffff;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .timer-btn {
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: bold;
+            background: #003300;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .timer-btn:hover:not(:disabled) {
+            background: #005500;
+            box-shadow: 0 0 5px #00ff00;
+        }
+
+        .timer-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Splits Section Styles */
+        .splits-section {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #003300;
+            border-radius: 5px;
+            background: rgba(0, 51, 0, 0.05);
+        }
+
+        .splits-header {
+            font-size: 14px;
+            font-weight: bold;
+            color: #00ff00;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .splits-list {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .split-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            margin: 2px 0;
+            font-size: 12px;
+            color: #ffffff;
+            background: rgba(0, 51, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        .split-item:hover {
+            background: rgba(0, 85, 0, 0.3);
+        }
+
+        .split-event {
+            font-weight: bold;
+        }
+
+        .split-time {
+            font-family: 'Courier New', monospace;
+            color: #00ff00;
+        }
+
+        /* Hide timer in fullscreen mode */
+        .fullscreen-mode .timer-section,
+        .fullscreen-mode .splits-section {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -434,6 +535,16 @@
                 <button class="expand-btn" id="expandBtn" onclick="toggleFullscreen()" title="Toggle Fullscreen">⛶</button>
                 <button id="toggleBtn" onclick="toggleConnection()">CONNECT</button>
                 <div id="status" class="status disconnected">DISCONNECTED</div>
+            </div>
+        </div>
+
+        <!-- Speedrun Timer Section -->
+        <div class="timer-section">
+            <div class="timer-display" id="timerDisplay">0h00m00s000ms</div>
+            <div class="timer-controls">
+                <button onclick="startGame()" class="timer-btn" id="startBtn">START GAME</button>
+                <button onclick="pauseResumeTimer()" class="timer-btn" id="pauseBtn" disabled>PAUSE</button>
+                <button onclick="resetTimer()" class="timer-btn" id="resetBtn">RESET</button>
             </div>
         </div>
 
@@ -505,6 +616,14 @@
             </div>
         </div>
 
+        <!-- Splits Section -->
+        <div class="splits-section" id="splitsSection" style="display:none;">
+            <div class="splits-header">Recent Splits</div>
+            <div class="splits-list" id="splitsList">
+                <!-- Splits will be populated here -->
+            </div>
+        </div>
+
         <div class="game-info" id="gameInfo" style="display:none;">
             <div class="location">
                 <span id="location">Crateria</span> 
@@ -517,7 +636,7 @@
             <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                 <!-- <span style="color: #00ff00; font-size: 14px;">🔍 Debug</span> -->
                 <div>
-                    <button onclick="copyLogs()" class="debug-btn">📋 Copy</button>
+                                            <button onclick="copyLogs(event)" class="debug-btn">📋 Copy</button>
                     <button onclick="clearLogs()" class="debug-btn">🗑️ Clear</button>
                 </div>
             </div>
@@ -534,6 +653,17 @@
         let reconnectDelay = 5000; // Start with 5 seconds
         const maxReconnectDelay = 60000; // Max 1 minute
         let autoReconnectEnabled = true;
+
+        // Timer variables
+        let timerRunning = false;
+        let timerPaused = false;
+        let timerStartTime = 0;
+        let timerPausedTime = 0;
+        let timerAccumulatedTime = 0;
+        let timerInterval = null;
+        let splits = [];
+        let lastTrackedItems = {};
+        let lastTrackedBosses = {};
 
         // Super Metroid memory addresses
         const MEMORY_ADDRESSES = {
@@ -858,26 +988,26 @@
             }
         }
 
-        function copyLogs() {
+        function copyLogs(event) {
             const debugDiv = document.getElementById('debug');
             const text = debugDiv.innerText;
+            const btn = event.target;
             
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(text).then(() => {
                     // Visual feedback
-                    const btn = event.target;
                     const originalText = btn.textContent;
                     btn.textContent = '✅ Copied!';
                     setTimeout(() => btn.textContent = originalText, 1000);
                 }).catch(() => {
-                    fallbackCopy(text);
+                    fallbackCopy(text, btn);
                 });
             } else {
-                fallbackCopy(text);
+                fallbackCopy(text, btn);
             }
         }
 
-        function fallbackCopy(text) {
+        function fallbackCopy(text, btn) {
             const textarea = document.createElement('textarea');
             textarea.value = text;
             document.body.appendChild(textarea);
@@ -886,10 +1016,11 @@
             document.body.removeChild(textarea);
             
             // Visual feedback
-            const btn = event.target;
-            const originalText = btn.textContent;
-            btn.textContent = '✅ Copied!';
-            setTimeout(() => btn.textContent = originalText, 1000);
+            if (btn) {
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => btn.textContent = originalText, 1000);
+            }
         }
 
         function clearLogs() {
@@ -999,11 +1130,38 @@
                     }
                 })
                 .catch(error => {
-                    updateStatus('TRACKER SERVER NOT RUNNING', false);
+                    // Provide specific error messages based on error type
+                    let statusMessage = 'CONNECTION ERROR';
+                    let logMessage = `❌ Connection error: ${error.message}`;
+                    
+                    if (error.message.includes('Failed to fetch') || error.message.includes('fetch')) {
+                        if (error.message.includes('NetworkError') || error.message.includes('network')) {
+                            statusMessage = 'NETWORK ERROR';
+                        } else {
+                            statusMessage = 'SERVER NOT RUNNING';
+                            logMessage = `❌ Tracker server not responding: ${error.message}`;
+                        }
+                    } else if (error.message.includes('ECONNREFUSED') || error.message.includes('refused')) {
+                        statusMessage = 'CONNECTION REFUSED';
+                        logMessage = `❌ Connection refused: ${error.message}`;
+                    } else if (error.message.includes('timeout') || error.message.includes('ETIMEDOUT')) {
+                        statusMessage = 'CONNECTION TIMEOUT';
+                        logMessage = `❌ Connection timeout: ${error.message}`;
+                    } else if (error.message.includes('ENOTFOUND') || error.message.includes('not found')) {
+                        statusMessage = 'HOST NOT FOUND';
+                        logMessage = `❌ Host not found: ${error.message}`;
+                    } else if (error.message.includes('ECONNRESET')) {
+                        statusMessage = 'CONNECTION RESET';
+                        logMessage = `❌ Connection reset: ${error.message}`;
+                    }
+                    
+                    updateStatus(statusMessage, false);
                     updateToggleButton(false);
                     if (!isAutoReconnect) {
-                        log(`❌ Connection error: ${error.message}`);
-                        log("💡 Make sure to run: python background_poller_server.py");
+                        log(logMessage);
+                        if (statusMessage === 'SERVER NOT RUNNING') {
+                            log("💡 Make sure to run: python background_poller_server.py");
+                        }
                     }
                     if (autoReconnectEnabled) {
                         scheduleAutoReconnect();
@@ -1049,6 +1207,9 @@
             const allItems = { ...(stats.items || {}), ...(stats.beams || {}) };
             updateItemTiles(allItems);
             updateBossTiles(stats.bosses || {});
+            
+            // Check for new splits (timer functionality)
+            checkForNewSplits(allItems, stats.bosses || {});
         }
 
         function updateQuantityDisplays(stats) {
@@ -1211,10 +1372,11 @@
                     clearTimeout(timeoutId);
                     if (error.name === 'AbortError') {
                         log(`⏱️ Request timeout - server may be stuck`);
+                        handleConnectionError('timeout - server may be stuck');
                     } else {
                         log(`❌ Failed to fetch stats: ${error.message}`);
+                        handleConnectionError(error.message);
                     }
-                    handleConnectionError(error.message);
                 });
         }
         
@@ -1222,7 +1384,31 @@
             // Mark as disconnected
             isConnected = false;
             isAttached = false;
-            updateStatus('CONNECTION LOST', false);
+            
+            // Provide specific error messages based on error type
+            let statusMessage = 'CONNECTION LOST';
+            
+            if (errorMsg.includes('Failed to fetch') || errorMsg.includes('fetch')) {
+                if (errorMsg.includes('NetworkError') || errorMsg.includes('network')) {
+                    statusMessage = 'NETWORK ERROR';
+                } else {
+                    statusMessage = 'SERVER STOPPED';
+                }
+            } else if (errorMsg.includes('ECONNREFUSED') || errorMsg.includes('refused')) {
+                statusMessage = 'CONNECTION REFUSED';
+            } else if (errorMsg.includes('timeout') || errorMsg.includes('ETIMEDOUT') || errorMsg.includes('AbortError')) {
+                statusMessage = 'CONNECTION TIMEOUT';
+            } else if (errorMsg.includes('ENOTFOUND') || errorMsg.includes('not found')) {
+                statusMessage = 'HOST NOT FOUND';
+            } else if (errorMsg.includes('ECONNRESET')) {
+                statusMessage = 'CONNECTION RESET';
+            } else if (errorMsg.includes('HTTP 5')) {
+                statusMessage = 'SERVER ERROR';
+            } else if (errorMsg.includes('HTTP 4')) {
+                statusMessage = 'CLIENT ERROR';
+            }
+            
+            updateStatus(statusMessage, false);
             updateToggleButton(false);
             
             // Stop current tracking
@@ -1274,10 +1460,232 @@
             }
         }
 
+        // Timer Functions
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            const milliseconds = ms % 1000;
+            
+            return `${hours}h${minutes.toString().padStart(2, '0')}m${seconds.toString().padStart(2, '0')}s${milliseconds.toString().padStart(3, '0')}ms`;
+        }
+
+        function updateTimerDisplay() {
+            if (!timerRunning && !timerPaused) {
+                document.getElementById('timerDisplay').textContent = '0h00m00s000ms';
+                return;
+            }
+
+            let currentTime;
+            if (timerPaused) {
+                currentTime = timerAccumulatedTime;
+            } else {
+                currentTime = timerAccumulatedTime + (Date.now() - timerStartTime);
+            }
+
+            document.getElementById('timerDisplay').textContent = formatTime(currentTime);
+        }
+
+        function startGame() {
+            if (timerRunning) return;
+            
+            timerRunning = true;
+            timerPaused = false;
+            timerStartTime = Date.now();
+            timerAccumulatedTime = 0;
+            splits = [];
+            lastTrackedItems = {};
+            lastTrackedBosses = {};
+            
+            // Clear splits display
+            document.getElementById('splitsList').innerHTML = '';
+            document.getElementById('splitsSection').style.display = 'none';
+            
+            // Update button states
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('pauseBtn').disabled = false;
+            document.getElementById('pauseBtn').textContent = 'PAUSE';
+            
+            // Start timer update interval
+            timerInterval = setInterval(updateTimerDisplay, 10);
+            
+            log("🏁 Speedrun timer started!");
+        }
+
+        function pauseResumeTimer() {
+            if (!timerRunning) return;
+            
+            if (timerPaused) {
+                // Resume
+                timerPaused = false;
+                timerStartTime = Date.now();
+                document.getElementById('pauseBtn').textContent = 'PAUSE';
+                log("▶️ Timer resumed");
+            } else {
+                // Pause
+                timerPaused = true;
+                timerAccumulatedTime += (Date.now() - timerStartTime);
+                document.getElementById('pauseBtn').textContent = 'RESUME';
+                log("⏸️ Timer paused");
+            }
+        }
+
+        function resetTimer() {
+            timerRunning = false;
+            timerPaused = false;
+            timerStartTime = 0;
+            timerPausedTime = 0;
+            timerAccumulatedTime = 0;
+            splits = [];
+            lastTrackedItems = {};
+            lastTrackedBosses = {};
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            // Update button states
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+            document.getElementById('pauseBtn').textContent = 'PAUSE';
+            
+            // Clear displays
+            updateTimerDisplay();
+            document.getElementById('splitsList').innerHTML = '';
+            document.getElementById('splitsSection').style.display = 'none';
+            
+            log("🔄 Timer reset");
+        }
+
+        function addSplit(eventName) {
+            if (!timerRunning || timerPaused) return;
+            
+            const currentTime = timerAccumulatedTime + (Date.now() - timerStartTime);
+            const split = {
+                event: eventName,
+                time: currentTime,
+                timestamp: new Date()
+            };
+            
+            splits.push(split);
+            log(`⭐ Split: ${eventName} at ${formatTime(currentTime)}`);
+            
+            // Update splits display
+            updateSplitsDisplay();
+        }
+
+        function updateSplitsDisplay() {
+            const splitsContainer = document.getElementById('splitsList');
+            const splitsSection = document.getElementById('splitsSection');
+            
+            if (splits.length === 0) {
+                splitsSection.style.display = 'none';
+                return;
+            }
+            
+            splitsSection.style.display = 'block';
+            
+            // Show last 5 splits
+            const recentSplits = splits.slice(-5).reverse();
+            splitsContainer.innerHTML = recentSplits.map(split => 
+                `<div class="split-item">
+                    <span class="split-event">${split.event}</span>
+                    <span class="split-time">${formatTime(split.time)}</span>
+                </div>`
+            ).join('');
+        }
+
+        function checkForNewSplits(items, bosses) {
+            if (!timerRunning || timerPaused) return;
+            
+            // Check for new items (excluding missiles/supers/power bombs/energy tanks/reserve tanks)
+            const trackableItems = ['morph', 'bombs', 'charge', 'spazer', 'varia', 'hijump', 'speed', 'wave', 'ice', 'grapple', 'xray', 'space', 'screw', 'plasma', 'gravity', 'hyper'];
+            
+            for (const item of trackableItems) {
+                if (items[item] && !lastTrackedItems[item]) {
+                    const itemNames = {
+                        'morph': 'Morph Ball',
+                        'bombs': 'Bombs',
+                        'charge': 'Charge Beam',
+                        'spazer': 'Spazer',
+                        'varia': 'Varia Suit',
+                        'hijump': 'Hi-Jump',
+                        'speed': 'Speed Booster',
+                        'wave': 'Wave Beam',
+                        'ice': 'Ice Beam',
+                        'grapple': 'Grapple Beam',
+                        'xray': 'X-Ray Scope',
+                        'space': 'Space Jump',
+                        'screw': 'Screw Attack',
+                        'plasma': 'Plasma Beam',
+                        'gravity': 'Gravity Suit',
+                        'hyper': 'Hyper Beam'
+                    };
+                    addSplit(itemNames[item] || item);
+                }
+                lastTrackedItems[item] = items[item] || false;
+            }
+            
+            // Check for new bosses
+            const trackableBosses = ['bomb_torizo', 'spore_spawn', 'kraid', 'crocomire', 'phantoon', 'botwoon', 'draygon', 'golden_torizo', 'ridley', 'mother_brain_1', 'mother_brain_2'];
+            
+            for (const boss of trackableBosses) {
+                if (bosses[boss] && !lastTrackedBosses[boss]) {
+                    const bossNames = {
+                        'bomb_torizo': 'Bomb Torizo',
+                        'spore_spawn': 'Spore Spawn',
+                        'kraid': 'Kraid',
+                        'crocomire': 'Crocomire',
+                        'phantoon': 'Phantoon',
+                        'botwoon': 'Botwoon',
+                        'draygon': 'Draygon',
+                        'golden_torizo': 'Golden Torizo',
+                        'ridley': 'Ridley',
+                        'mother_brain_1': 'Mother Brain 1',
+                        'mother_brain_2': 'Mother Brain 2'
+                    };
+                    addSplit(bossNames[boss] || boss);
+                }
+                lastTrackedBosses[boss] = bosses[boss] || false;
+            }
+            
+            // Check for ship (game completion)
+            if (bosses['samus_ship'] && !lastTrackedBosses['samus_ship']) {
+                addSplit('GAME COMPLETE!');
+                // Stop timer when reaching ship
+                setTimeout(() => {
+                    timerRunning = false;
+                    timerPaused = true;
+                    if (timerInterval) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                    }
+                    document.getElementById('pauseBtn').disabled = true;
+                    log("🏆 Run completed! Timer stopped.");
+                }, 100);
+            }
+            lastTrackedBosses['samus_ship'] = bosses['samus_ship'] || false;
+        }
+
         // Handle escape key to exit fullscreen
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape' && isFullscreen) {
                 toggleFullscreen();
+            }
+            
+            // Timer controls - ignore if modifier keys are pressed (Cmd+R, Ctrl+R, etc.)
+            const hasModifier = event.ctrlKey || event.metaKey || event.altKey || event.shiftKey;
+            
+            if (event.key.toLowerCase() === 'p' && !hasModifier) {
+                event.preventDefault();
+                pauseResumeTimer();
+            }
+            
+            if (event.key.toLowerCase() === 'r' && !hasModifier) {
+                event.preventDefault();
+                resetTimer();
             }
         });
 
