@@ -344,7 +344,26 @@ class BackgroundGamePoller:
             mb1_current = bosses.get('mother_brain_1', False)
             mb2_current = bosses.get('mother_brain_2', False)
             
-            # If either phase is detected, try bootstrap with raw memory
+            # CONSERVATIVE BOOTSTRAP: Only bootstrap if we're clearly NOT in a new game
+            # Check for new game indicators that would suggest cache should be False
+            current_health = game_state.get('current_health', 0)
+            max_health = game_state.get('max_health', 0)
+            current_missiles = game_state.get('current_missiles', 0)
+            max_missiles = game_state.get('max_missiles', 0)
+            area_id = game_state.get('area_id', 0)
+            room_id = game_state.get('room_id', 0)
+            
+            # If this looks like a new save file, DON'T bootstrap cache
+            new_save_indicators = (
+                current_health <= 99 and max_health <= 99 and  # Starting health
+                current_missiles <= 10 and max_missiles <= 100  # Low missile count
+            )
+            
+            if new_save_indicators:
+                logger.info(f"🚫 SKIPPING BOOTSTRAP: Detected new save file (Health: {current_health}/{max_health}, Missiles: {current_missiles}/{max_missiles})")
+                return
+            
+            # If either phase is detected AND we're not in a new save, try bootstrap with raw memory
             if mb1_current or mb2_current:
                 logger.info(f"🔄 MB phases detected in current state: MB1={mb1_current}, MB2={mb2_current}")
                 logger.info("🔄 Attempting to bootstrap MB cache from current state...")

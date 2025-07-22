@@ -54,18 +54,30 @@ class SuperMetroidGameStateParser:
         """Parse basic stats from 22-byte health block"""
         if not stats_data or len(stats_data) < 22:
             return {}
-            
+        
+        # Parse individual values
+        health = struct.unpack('<H', stats_data[0:2])[0]
+        max_health = struct.unpack('<H', stats_data[2:4])[0]
+        missiles = struct.unpack('<H', stats_data[4:6])[0]
+        max_missiles = struct.unpack('<H', stats_data[6:8])[0]
+        supers = struct.unpack('<H', stats_data[8:10])[0]
+        max_supers = struct.unpack('<H', stats_data[10:12])[0]
+        power_bombs = struct.unpack('<H', stats_data[12:14])[0]
+        max_power_bombs = struct.unpack('<H', stats_data[14:16])[0]
+        max_reserve_energy = struct.unpack('<H', stats_data[18:20])[0]
+        reserve_energy = struct.unpack('<H', stats_data[20:22])[0]
+        
         return {
-            'health': struct.unpack('<H', stats_data[0:2])[0],
-            'max_health': struct.unpack('<H', stats_data[2:4])[0],
-            'missiles': struct.unpack('<H', stats_data[4:6])[0],
-            'max_missiles': struct.unpack('<H', stats_data[6:8])[0],
-            'supers': struct.unpack('<H', stats_data[8:10])[0],
-            'max_supers': struct.unpack('<H', stats_data[10:12])[0],
-            'power_bombs': struct.unpack('<H', stats_data[12:14])[0],
-            'max_power_bombs': struct.unpack('<H', stats_data[14:16])[0],
-            'max_reserve_energy': struct.unpack('<H', stats_data[18:20])[0],
-            'reserve_energy': struct.unpack('<H', stats_data[20:22])[0],
+            'health': health,
+            'max_health': max_health,
+            'missiles': missiles,
+            'max_missiles': max_missiles,
+            'supers': supers,
+            'max_supers': max_supers,
+            'power_bombs': power_bombs,
+            'max_power_bombs': max_power_bombs,
+            'max_reserve_energy': max_reserve_energy,
+            'reserve_energy': reserve_energy,
         }
     
     def parse_location_data(self, room_id_data: bytes, area_id_data: bytes, 
@@ -842,8 +854,9 @@ class SuperMetroidGameStateParser:
         new_game_detected = (
             area_id == 0 and 
             room_id < 32000 and 
-            health <= 99 and
-            not (mb1_cached or mb2_cached)  # Don't reset if we have cached progress
+            health <= 99
+            # REMOVED: and not (mb1_cached or mb2_cached)
+            # If we detect new game conditions, ALWAYS reset cache regardless of current state
         )
         
         # 2. Save state contradiction: ONLY in specific pre-fight scenarios
