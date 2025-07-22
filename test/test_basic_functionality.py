@@ -255,43 +255,45 @@ class TestBasicFunctionality(unittest.TestCase):
         self.assertTrue(result_beaten.get('mother_brain_1'), "MB1 MUST be detected - USER SUCCESS CASE")
         self.assertFalse(result_beaten.get('mother_brain_2'), "MB2 should remain false after MB1")
 
-        # Test scenario 3: Strong missile evidence threshold (35+ missiles used - FIXED THRESHOLD)
-        mb_room_missile_threshold = {
+        # Test scenario 3: Memory pattern based detection (FLEXIBLE APPROACH)
+        mb_room_memory_pattern = {
             'area_id': 5,         # Tourian
             'room_id': 56664,     # Mother Brain room
             'player_x': 500,      # Any position
             'player_y': 300,      # Any position  
-            'missiles': 100,      # Used exactly 35 missiles (135 -> 100)
+            'missiles': 101,      # Any reasonable missile usage
             'max_missiles': 135,  # Max missiles
             'game_state': 0x000F, # Any game state
         }
-        mb_missile_data = {
+        mb_memory_data = {
             'main_bosses': struct.pack('<H', 0x0000),  # Main MB not defeated
-            'boss_plus_1': struct.pack('<H', 0x0400),  # Medium progression value
+            'boss_plus_1': struct.pack('<H', 0x0703),  # Strong memory pattern (>=0x0700)
             'boss_plus_2': struct.pack('<H', 0x0200),  # Medium alt pattern
-            'boss_plus_3': struct.pack('<H', 0x0080),  # Not used for MB
+            'boss_plus_3': struct.pack('<H', 0x0080),  # Not triggering alt pattern
         }
-        result_missile = self.parser.parse_bosses(mb_missile_data, mb_room_missile_threshold)
-        self.assertTrue(result_missile.get('mother_brain_1'), "MB1 should be detected with 35+ missiles used")
-
-        # Test scenario 4: Memory pattern + missile evidence combo
-        mb_room_combo = {
+        result_memory = self.parser.parse_bosses(mb_memory_data, mb_room_memory_pattern)
+        self.assertTrue(result_memory.get('mother_brain_1'), "MB1 should be detected with strong memory pattern")
+        self.assertFalse(result_memory.get('mother_brain_2'), "MB2 should not be detected yet")
+        
+        # Test scenario 4: Alternative memory pattern + supporting evidence
+        mb_room_alt_pattern = {
             'area_id': 5,         # Tourian
             'room_id': 56664,     # Mother Brain room
-            'player_x': 800,      # In fight area
+            'player_x': 800,      # In fight area (supporting evidence)
             'player_y': 400,      # In fight area
-            'missiles': 95,       # Used 40 missiles (135 -> 95) - above 35 threshold
+            'missiles': 120,      # Some missile usage (supporting evidence)
             'max_missiles': 135,  # Max missiles
-            'game_state': 0x000B, # Active gameplay
+            'game_state': 0x000B, # Active gameplay (supporting evidence)
         }
-        mb_combo_data = {
+        mb_alt_data = {
             'main_bosses': struct.pack('<H', 0x0000),  # Main MB not defeated
-            'boss_plus_1': struct.pack('<H', 0x0700),  # High progression (>=0x0600) 
-            'boss_plus_2': struct.pack('<H', 0x0200),  # Medium alt pattern
-            'boss_plus_3': struct.pack('<H', 0x0080),  # Not used for MB
+            'boss_plus_1': struct.pack('<H', 0x0500),  # Below strong threshold
+            'boss_plus_2': struct.pack('<H', 0x0350),  # Alt pattern (>=0x0300)
+            'boss_plus_3': struct.pack('<H', 0x0080),  # Not triggering
         }
-        result_combo = self.parser.parse_bosses(mb_combo_data, mb_room_combo)
-        self.assertTrue(result_combo.get('mother_brain_1'), "MB1 should be detected with memory+missile combo")
+        result_alt = self.parser.parse_bosses(mb_alt_data, mb_room_alt_pattern)
+        self.assertTrue(result_alt.get('mother_brain_1'), "MB1 should be detected with alt pattern + supporting evidence")
+        self.assertFalse(result_alt.get('mother_brain_2'), "MB2 should not be detected yet")
 
         # REGRESSION TEST: Ensure we never go back to overly conservative detection
         # This exact case was failing before the fix - must always pass!
@@ -314,6 +316,9 @@ class TestBasicFunctionality(unittest.TestCase):
         self.assertTrue(regression_result.get('mother_brain_1'), "REGRESSION: This exact case was failing before - must work!")
         
         # REGRESSION TEST: Ensure false positive prevention still works  
+        # Reset cache to ensure clean test (escape sequence protection shouldn't affect regression tests)
+        self.parser.reset_mb_cache()
+        
         # This should NOT detect MB1 (before any missiles used)
         false_positive_test = {
             'area_id': 5,         # Tourian
@@ -422,6 +427,114 @@ class TestBasicFunctionality(unittest.TestCase):
             print(f"  {boss}: {result.get(boss)}")
         
         print("✅ Working boss detections: structure validated")
+
+    def test_mb_persistent_state(self):
+        """Test persistent Mother Brain phase state (escape sequence protection)"""
+        print("\n🔒 Testing MB persistent state caching...")
+        
+        # Test case 1: MB1 gets detected and persists
+        mb1_location = {
+            'area_id': 5,         # Tourian
+            'room_id': 56664,     # Mother Brain room
+            'player_x': 800,      # In fight area
+            'player_y': 400,      # In fight area
+            'missiles': 95,       # Used 40 missiles (135 -> 95)
+            'max_missiles': 135,  # Max missiles
+            'game_state': 0x000B, # Active gameplay
+        }
+        mb1_boss_data = {
+            'main_bosses': struct.pack('<H', 0x0000),  # Main MB not defeated
+            'boss_plus_1': struct.pack('<H', 0x0700),  # High progression (triggers MB1)
+        }
+        
+        # First detection - should detect MB1
+        result1 = self.parser.parse_bosses(mb1_boss_data, mb1_location)
+        self.assertTrue(result1['mother_brain_1'], "MB1 should be detected initially")
+        self.assertFalse(result1['mother_brain_2'], "MB2 should not be detected yet")
+        
+        # Test case 2: Escape sequence (memory changes, position changes)
+        escape_location = {
+            'area_id': 5,         # Still Tourian
+            'room_id': 50000,     # Different room (escape)
+            'player_x': 200,      # Different position
+            'player_y': 100,      # Different position
+            'missiles': 135,      # Missiles restored somehow
+            'max_missiles': 135,  # Max missiles
+            'game_state': 0x000F, # Different game state
+        }
+        escape_boss_data = {
+            'main_bosses': struct.pack('<H', 0x0000),  # Main MB still not flagged
+            'boss_plus_1': struct.pack('<H', 0x0200),  # Memory pattern changed
+        }
+        
+        # Should PERSIST MB1 despite memory changes
+        result2 = self.parser.parse_bosses(escape_boss_data, escape_location)
+        self.assertTrue(result2['mother_brain_1'], "MB1 should PERSIST during escape sequence")
+        self.assertFalse(result2['mother_brain_2'], "MB2 should remain false")
+        
+        print(f"✅ MB1 persisted through escape sequence: {result1['mother_brain_1']} -> {result2['mother_brain_1']}")
+        
+        # Test case 3: Reset on new game
+        new_game_location = {
+            'area_id': 0,         # Crateria (starting area)
+            'room_id': 31224,     # Landing site (starting area)
+            'player_x': 500,      # Starting position
+            'player_y': 200,      # Starting position
+            'health': 99,         # Low health (new game)
+            'max_health': 99,     # Starting health
+        }
+        new_game_stats = struct.pack('<H', 99) + b'\x00' * 20  # Low health stats
+        
+        # Simulate reset by calling the method directly
+        self.parser.maybe_reset_mb_state(new_game_location, new_game_stats)
+        
+        # Now parse with no MB data - should be reset
+        no_mb_data = {
+            'main_bosses': struct.pack('<H', 0x0000),  # No bosses
+        }
+        result3 = self.parser.parse_bosses(no_mb_data, new_game_location)
+        self.assertFalse(result3['mother_brain_1'], "MB1 should be RESET on new game")
+        self.assertFalse(result3['mother_brain_2'], "MB2 should be RESET on new game")
+        
+        print(f"✅ MB state reset on new game detection")
+        print(f"✅ Persistent MB state caching working correctly")
+    
+    def test_mb2_persistent_state(self):
+        """Test MB2 persistent state specifically"""
+        print("\n🔒 Testing MB2 persistent state...")
+        
+        # First get MB1 detected and cached
+        mb1_location = {
+            'area_id': 5, 'room_id': 56664, 'player_x': 800, 'player_y': 400,
+            'missiles': 95, 'max_missiles': 135, 'game_state': 0x000B,
+        }
+        mb1_data = {'main_bosses': struct.pack('<H', 0x0000), 'boss_plus_1': struct.pack('<H', 0x0700)}
+        self.parser.parse_bosses(mb1_data, mb1_location)  # Cache MB1
+        
+        # Now trigger MB2 detection
+        mb2_location = {
+            'area_id': 5, 'room_id': 56664, 'player_x': 800, 'player_y': 400,
+            'missiles': 0, 'max_missiles': 135, 'game_state': 0x000B,  # All missiles used
+        }
+        mb2_data = {
+            'main_bosses': struct.pack('<H', 0x0000),
+            'boss_plus_1': struct.pack('<H', 0x0700),  # Still high
+            'boss_plus_4': struct.pack('<H', 0x0300),  # Strong MB2 pattern
+        }
+        
+        result1 = self.parser.parse_bosses(mb2_data, mb2_location)
+        self.assertTrue(result1['mother_brain_1'], "MB1 should remain true")
+        self.assertTrue(result1['mother_brain_2'], "MB2 should be detected")
+        
+        # Escape sequence - MB2 should persist
+        escape_location = {'area_id': 0, 'room_id': 10000, 'player_x': 100, 'player_y': 100}
+        escape_data = {'main_bosses': struct.pack('<H', 0x0000)}
+        
+        result2 = self.parser.parse_bosses(escape_data, escape_location)
+        self.assertTrue(result2['mother_brain_1'], "MB1 should persist")
+        self.assertTrue(result2['mother_brain_2'], "MB2 should persist")
+        
+        print(f"✅ MB2 persistent state working correctly")
 
 
 def run_basic_tests():

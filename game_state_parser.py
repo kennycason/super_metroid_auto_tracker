@@ -16,6 +16,12 @@ class SuperMetroidGameStateParser:
     """Parses raw Super Metroid memory data into structured game state"""
     
     def __init__(self):
+        self.logger = logging.getLogger(__name__)
+        # Persistent state for Mother Brain phases - once detected, stays detected
+        self.mother_brain_phase_state = {
+            'mb1_detected': False,
+            'mb2_detected': False
+        }
         # Super Metroid memory layout
         self.memory_map = {
             'health': 0x7E09C2,
@@ -223,73 +229,104 @@ class SuperMetroidGameStateParser:
             mb1_detected = True
             mb2_detected = True
         elif in_mb_room:
-            # Multi-indicator detection system: use memory patterns + position + ammo as fallback
-            mb_progress_val = boss_scan_results.get('boss_plus_1', 0)
-            mb_alt_pattern = boss_scan_results.get('boss_plus_2', 0)
-            mb_extra_pattern = boss_scan_results.get('boss_plus_3', 0)
-            mb_pattern_4 = boss_scan_results.get('boss_plus_4', 0)
-            mb_pattern_5 = boss_scan_results.get('boss_plus_5', 0)
+            # CHECK FOR SAVE STATE CONTRADICTIONS BEFORE TRUSTING MEMORY PATTERNS
+            # If we're in MB room with full missiles and high health, this suggests save state load
+            # In this case, don't trust persistent memory patterns that may be stale
+            save_state_contradiction = (
+                location_data.get('missiles', 0) == location_data.get('max_missiles', 0) and  # Full missiles
+                location_data.get('missiles', 0) > 120 and  # High missile count
+                location_data.get('health', 0) > 500 and    # High health
+                player_x < 400  # Not in fight area (pre-fight position)
+            )
             
-            # Position-based indicators: where in MB room
-            in_mb_fight_area = (player_x >= 700 and player_x <= 2000 and player_y >= 300)
-            
-            # Game state validation (active gameplay should be 0x000B according to ChatGPT)
-            game_state_val = location_data.get('game_state', 0) if location_data else 0
-            in_active_gameplay = (game_state_val == 0x000B)
-            
-            # Missile usage as supporting evidence (not primary)
-            initial_missiles = location_data.get('max_missiles', 135) if location_data else 135
-            current_missiles = location_data.get('missiles', 135) if location_data else 135
-            missiles_used = initial_missiles - current_missiles
-            significant_ammo_used = missiles_used >= 35  # Increased from 30 to fix early detection
-            
-            # Log all memory values for debugging
-            logger.info(f"MB Debug - Position: ({player_x}, {player_y}), Missiles: {current_missiles}/{initial_missiles}")
-            logger.info(f"MB Debug - Game State: 0x{game_state_val:04X}, In Fight Area: {in_mb_fight_area}")
-            logger.info(f"MB Debug - boss_plus_1: 0x{mb_progress_val:04X}, boss_plus_2: 0x{mb_alt_pattern:04X}")
-            logger.info(f"MB Debug - boss_plus_3: 0x{mb_extra_pattern:04X}, boss_plus_4: 0x{mb_pattern_4:04X}, boss_plus_5: 0x{mb_pattern_5:04X}")
-            
-            # CONSERVATIVE but PRACTICAL detection - focus on missile usage as primary indicator
-            # Pattern 1: High memory progression value + active gameplay OR good missile evidence
-            strong_memory_pattern = ((mb_progress_val >= 0x0700) and in_active_gameplay) or ((mb_progress_val >= 0x0600) and significant_ammo_used)
-            
-            # Pattern 2: Alternative memory addresses with medium thresholds + evidence
-            alt_strong_pattern = (mb_alt_pattern >= 0x0300) and significant_ammo_used
-            
-            # Pattern 3: Strong missile usage evidence (primary indicator) - increased threshold
-            missile_evidence_strong = missiles_used >= 35  # Increased from 30 to fix early detection
-            
-            # Only detect MB1 if we have strong evidence
-            if strong_memory_pattern or alt_strong_pattern or missile_evidence_strong:
-                logger.info(f"MB Debug - Detected MB1: strong_mem={strong_memory_pattern}, alt_strong={alt_strong_pattern}, missile_strong={missile_evidence_strong}")
-                mb1_detected = True
-                
-                # MB2 detection - MORE CONSERVATIVE to trigger after hyper beam phase
-                # Pattern 1: All missiles used + high memory pattern (stronger requirement)
-                all_missiles_used = (current_missiles == 0 and initial_missiles > 0)
-                strong_mb2_memory = (mb_pattern_4 >= 0x0300) or (mb_pattern_5 >= 0x0150)  # Higher thresholds
-                
-                # Pattern 2: Extreme missile usage + strong memory evidence (for hyper beam phase)
-                extreme_missile_usage = (missiles_used >= 120) and (mb_progress_val >= 0x0700)  # Much higher thresholds
-                
-                # Detect MB2 only with VERY strong evidence (after hyper beam phase)
-                if (all_missiles_used and strong_mb2_memory) or extreme_missile_usage:
-                    logger.info(f"MB Debug - Detected MB2: all_missiles={all_missiles_used}, strong_mb2_memory={strong_mb2_memory}, extreme_usage={extreme_missile_usage}")
-                    mb2_detected = True
-                else:
-                    logger.info(f"MB Debug - MB1 only: insufficient MB2 evidence (pre-hyper beam)")
-                    mb2_detected = False
-            else:
-                logger.info(f"MB Debug - NO MB1 detection: insufficient evidence")
+            if save_state_contradiction:
+                logger.info(f"MB Debug - SAVE STATE CONTRADICTION detected: full missiles + high health in MB room")
+                logger.info(f"MB Debug - Ignoring persistent memory patterns (likely stale from previous run)")
                 mb1_detected = False
                 mb2_detected = False
+            else:
+                # Normal detection logic when no contradiction
+                # Multi-indicator detection system: use memory patterns + position + ammo as fallback
+                mb_progress_val = boss_scan_results.get('boss_plus_1', 0)
+                mb_alt_pattern = boss_scan_results.get('boss_plus_2', 0)
+                mb_extra_pattern = boss_scan_results.get('boss_plus_3', 0)
+                mb_pattern_4 = boss_scan_results.get('boss_plus_4', 0)
+                mb_pattern_5 = boss_scan_results.get('boss_plus_5', 0)
+                
+                # Position-based indicators: where in MB room
+                in_mb_fight_area = (player_x >= 700 and player_x <= 2000 and player_y >= 300)
+                
+                # Game state validation (active gameplay should be 0x000B according to ChatGPT)
+                game_state_val = location_data.get('game_state', 0) if location_data else 0
+                in_active_gameplay = (game_state_val == 0x000B)
+                
+                # Missile usage as supporting evidence (not primary)
+                initial_missiles = location_data.get('max_missiles', 135) if location_data else 135
+                current_missiles = location_data.get('missiles', 135) if location_data else 135
+                missiles_used = initial_missiles - current_missiles
+                
+                # Log all memory values for debugging
+                logger.info(f"MB Debug - Position: ({player_x}, {player_y}), Missiles: {current_missiles}/{initial_missiles}")
+                logger.info(f"MB Debug - Game State: 0x{game_state_val:04X}, In Fight Area: {in_mb_fight_area}")
+                logger.info(f"MB Debug - boss_plus_1: 0x{mb_progress_val:04X}, boss_plus_2: 0x{mb_alt_pattern:04X}")
+                logger.info(f"MB Debug - boss_plus_3: 0x{mb_extra_pattern:04X}, boss_plus_4: 0x{mb_pattern_4:04X}, boss_plus_5: 0x{mb_pattern_5:04X}")
+                
+                # CONSERVATIVE but PRACTICAL detection - focus on memory patterns as primary indicator
+                # Pattern 1: Strong memory progression pattern (tuned for actual values)
+                strong_memory_pattern = (mb_progress_val >= 0x0700)  # Restored to detect 0x0703 (user's actual state)
+                
+                # Pattern 2: Alternative memory addresses with reasonable thresholds  
+                alt_memory_pattern = (mb_alt_pattern >= 0x0300) or (mb_extra_pattern >= 0x0300)  # Restored reasonable thresholds
+                
+                # Pattern 3: Supporting evidence (conservative but not impossible)
+                # - Meaningful missile usage OR position-based evidence
+                # - Must have some indication of MB fight engagement
+                meaningful_missile_usage = missiles_used > 20  # Reasonable missile usage requirement
+                position_evidence = in_mb_fight_area or in_active_gameplay
+                supporting_evidence = meaningful_missile_usage or position_evidence
+                
+                # MB1 Detection: Strong memory pattern OR (Alt memory + supporting evidence)  
+                mb1_detected = strong_memory_pattern or (alt_memory_pattern and supporting_evidence)
+                
+                if mb1_detected:
+                    logger.info(f"MB Debug - Detected MB1: strong_mem={strong_memory_pattern}, alt_mem={alt_memory_pattern}, support={supporting_evidence}")
+                    
+                    # MB2 detection - CONSERVATIVE but achievable 
+                    # Pattern 1: All missiles used + strong memory pattern 
+                    all_missiles_used = (current_missiles == 0 and initial_missiles > 0)
+                    strong_mb2_memory = (mb_pattern_4 >= 0x0300) or (mb_pattern_5 >= 0x0150)  # Achievable thresholds
+                    
+                    # Pattern 2: Very high missile usage (85%+) + strong memory evidence
+                    very_high_usage = (missiles_used >= (initial_missiles * 0.85)) and (mb_progress_val >= 0x0700)
+                    
+                    # Detect MB2 with strong but achievable evidence
+                    if (all_missiles_used and strong_mb2_memory) or very_high_usage:
+                        logger.info(f"MB Debug - Detected MB2: all_missiles={all_missiles_used}, strong_mb2_memory={strong_mb2_memory}, very_high_usage={very_high_usage}")
+                        mb2_detected = True
+                    else:
+                        logger.info(f"MB Debug - MB1 only: insufficient MB2 evidence (pre-hyper beam)")
+                        mb2_detected = False
+                else:
+                    logger.info(f"MB Debug - NO MB1 detection: insufficient memory evidence (mem_val=0x{mb_progress_val:04X}, alt_val=0x{mb_alt_pattern:04X})")
+                    mb1_detected = False
+                    mb2_detected = False
         else:
             # Not in Mother Brain room and main bit not set - no phases defeated
             mb1_detected = False
             mb2_detected = False
             
-        bosses['mother_brain_1'] = mb1_detected
-        bosses['mother_brain_2'] = mb2_detected
+        # Cache logic: once true, always true (persistent state)
+        if mb1_detected or self.mother_brain_phase_state['mb1_detected']:
+            bosses['mother_brain_1'] = True
+            self.mother_brain_phase_state['mb1_detected'] = True
+        else:
+            bosses['mother_brain_1'] = False
+
+        if mb2_detected or self.mother_brain_phase_state['mb2_detected']:
+            bosses['mother_brain_2'] = True
+            self.mother_brain_phase_state['mb2_detected'] = True
+        else:
+            bosses['mother_brain_2'] = False
         # mother_brain stays as originally detected (complete sequence)
         
         # End-game detection (Samus reaching her ship)
@@ -302,6 +339,7 @@ class SuperMetroidGameStateParser:
                           main_mb_complete: bool, mb1_complete: bool, mb2_complete: bool) -> bool:
         """Detect when Samus has reached her ship (end-game completion)"""
         if not location_data:
+            logger.debug("Ship detection: No location data")
             return False
             
         area_id = location_data.get('area_id', 0)
@@ -309,16 +347,29 @@ class SuperMetroidGameStateParser:
         player_x = location_data.get('player_x', 0)
         player_y = location_data.get('player_y', 0)
         
+        # Debug current state
+        logger.info(f"🚢 Ship Debug - Area: {area_id}, Room: {room_id}, Pos: ({player_x},{player_y})")
+        logger.info(f"🚢 Ship Debug - MB Status: main={main_mb_complete}, MB1={mb1_complete}, MB2={mb2_complete}")
+        
         # Must be in Crateria (area 0) for ship location
         if area_id != 0:
+            logger.info(f"🚢 Ship Debug - Not in Crateria (area={area_id}), ship detection blocked")
             return False
             
         # Check if Mother Brain sequence is complete (all phases defeated)
         # This ensures we're in the post-game/escape sequence phase
         mother_brain_complete = main_mb_complete or (mb1_complete and mb2_complete)
         
-        if not mother_brain_complete:
+        # More flexible completion check: MB1 completion might be enough if memory shows advanced state
+        # or if we're clearly in end-game scenario (escape sequence)
+        partial_mb_complete = mb1_complete  # MB1 completion indicates significant progress
+        
+        if not mother_brain_complete and not partial_mb_complete:
+            logger.info(f"🚢 Ship Debug - No Mother Brain progress (main={main_mb_complete}, MB1={mb1_complete}, MB2={mb2_complete})")
             return False
+        
+        completion_type = "full" if mother_brain_complete else "partial (MB1)"
+        logger.info(f"🚢 Ship Debug - MB completion: {completion_type}")
             
         # Landing Site room detection (approximate room ID conversion)
         # The SMILE ID 791F8 converts to a runtime room ID we need to check
@@ -334,14 +385,17 @@ class SuperMetroidGameStateParser:
         landing_site_room_range = [
             (31224, 31260),  # 0x791F8 area converted to decimal range
             (31000, 31500),  # Broader range to account for room ID variations
+            (32000, 32500),  # Extended range for different ROM versions
         ]
         
         in_landing_area = any(start <= room_id <= end for start, end in landing_site_room_range)
+        logger.info(f"🚢 Ship Debug - Room check: {room_id} in landing ranges? {in_landing_area}")
         
         # Also check by position - Landing Site has specific coordinates
         # The ship is typically in the upper portion of the Landing Site room
         # X coordinate around 400-600, Y coordinate around 100-300 (approximate)
         near_ship_position = (300 <= player_x <= 700) and (50 <= player_y <= 400)
+        logger.info(f"🚢 Ship Debug - Position check: ({player_x},{player_y}) near ship? {near_ship_position}")
         
         # Alternative: check if we're in any Crateria room that could be post-escape
         # Since room IDs can be complex, also accept being in Crateria with MB complete
@@ -349,19 +403,124 @@ class SuperMetroidGameStateParser:
         in_surface_crateria = (area_id == 0 and 
                               200 <= player_x <= 800 and  # Reasonable X range
                               50 <= player_y <= 500)      # Surface level Y range
+        logger.info(f"🚢 Ship Debug - Surface Crateria check: {in_surface_crateria}")
         
         # End-game is detected if:
-        # 1. Mother Brain is defeated AND
+        # 1. Mother Brain progress (full OR partial) AND
         # 2. We're in Crateria AND
         # 3. Either in the Landing Site area OR near ship position OR in surface Crateria
-        end_game_detected = (mother_brain_complete and 
+        any_mb_progress = mother_brain_complete or partial_mb_complete
+        end_game_detected = (any_mb_progress and 
                            area_id == 0 and 
                            (in_landing_area or near_ship_position or in_surface_crateria))
         
         if end_game_detected:
-            logger.info(f"End-game detected: MB complete, Crateria area, room_id={room_id}, pos=({player_x},{player_y})")
+            logger.info(f"🚢 END-GAME DETECTED: MB progress + Crateria + position match!")
+        else:
+            logger.info(f"🚢 No end-game: mb_progress={any_mb_progress}, crateria={area_id==0}, position_match={(in_landing_area or near_ship_position or in_surface_crateria)}")
             
         return end_game_detected
+    
+    def maybe_reset_mb_state(self, location_data: Dict[str, Any], stats_data: Optional[bytes]):
+        """Reset MB phase tracking on game start, save load, or contradiction detection"""
+        if not location_data:
+            return
+            
+        area_id = location_data.get('area_id', -1)
+        room_id = location_data.get('room_id', -1)
+        missiles = location_data.get('missiles', 0)
+        max_missiles = location_data.get('max_missiles', 0)
+        
+        # Get health to detect new games (low health = likely new save)
+        health = 0
+        if stats_data and len(stats_data) >= 2:
+            health = struct.unpack('<H', stats_data[0:2])[0]
+        
+        # Reset conditions (expanded for save state detection):
+        
+        # 1. New game detection: Crateria + low room ID + low health
+        new_game_detected = (area_id == 0 and room_id < 32000 and health <= 99)
+        
+        # 2. Save state contradiction: If we have cached MB1/MB2 but are in Crateria with full missiles
+        #    This indicates user loaded an earlier save before MB fight
+        save_contradiction = (
+            (self.mother_brain_phase_state['mb1_detected'] or self.mother_brain_phase_state['mb2_detected']) and
+            area_id == 0 and  # In Crateria (starting area)
+            missiles > 0 and max_missiles > 0 and
+            missiles >= (max_missiles * 0.8)  # Has most/all missiles (inconsistent with MB fight)
+        )
+        
+        # 3. Reset detection: High health + full missiles in early areas (pre-MB areas)
+        early_area_reset = (
+            (self.mother_brain_phase_state['mb1_detected'] or self.mother_brain_phase_state['mb2_detected']) and
+            area_id in [0, 1, 2] and  # Crateria, Brinstar, Norfair (pre-Tourian)
+            health > 200 and  # High health (not post-MB state)
+            missiles > 100    # High missile count (not post-MB state)
+        )
+        
+        # 4. Memory contradiction: Memory shows MB progression but missiles are full (save state load)
+        #    This catches cases where game memory persists but user loaded earlier save
+        memory_contradiction = (
+            missiles > 0 and max_missiles > 0 and
+            missiles == max_missiles and  # Full missiles (inconsistent with MB fight)
+            area_id == 5 and room_id == 56664  # Still in MB room but with full missiles
+        )
+        
+        # 5. General contradiction: Cached state exists but evidence suggests earlier save
+        general_contradiction = (
+            (self.mother_brain_phase_state['mb1_detected'] or self.mother_brain_phase_state['mb2_detected']) and
+            missiles > 120 and  # High missile count suggests pre-fight state
+            area_id in [5] and   # In Tourian but with pre-fight resources
+            health > 500        # High health suggests pre-fight state
+        )
+        
+        if new_game_detected or save_contradiction or early_area_reset or memory_contradiction or general_contradiction:
+            reason = ("new game" if new_game_detected else 
+                     "save state load (Crateria)" if save_contradiction else
+                     "game reset (early area)" if early_area_reset else
+                     "save state load (MB room)" if memory_contradiction else
+                     "save state load (contradiction)")
+            logger.info(f"🔄 Resetting MB state cache - detected {reason}")
+            logger.info(f"   └── Area: {area_id}, Room: {room_id}, Health: {health}, Missiles: {missiles}/{max_missiles}")
+            self.mother_brain_phase_state['mb1_detected'] = False
+            self.mother_brain_phase_state['mb2_detected'] = False
+    
+    def reset_mb_cache(self):
+        """Manually reset Mother Brain phase cache (for testing)"""
+        self.mother_brain_phase_state['mb1_detected'] = False
+        self.mother_brain_phase_state['mb2_detected'] = False
+    
+    def bootstrap_mb_cache(self, boss_memory_data: Dict[str, bytes], location_data: Dict[str, Any] = None):
+        """Bootstrap MB cache by checking current state - useful after implementing persistent state"""
+        logger.info("🔄 Bootstrapping MB cache from current game state...")
+        
+        # Temporarily disable cache to get raw detection
+        old_mb1_state = self.mother_brain_phase_state['mb1_detected']
+        old_mb2_state = self.mother_brain_phase_state['mb2_detected']
+        
+        # Reset to get clean detection
+        self.mother_brain_phase_state['mb1_detected'] = False
+        self.mother_brain_phase_state['mb2_detected'] = False
+        
+        # Parse current state without cache influence
+        current_bosses = self.parse_bosses(boss_memory_data, location_data)
+        
+        # If MB phases are detected now, cache them
+        if current_bosses.get('mother_brain_1', False):
+            self.mother_brain_phase_state['mb1_detected'] = True
+            logger.info("🎯 Bootstrapped MB1 state: detected and cached")
+        else:
+            self.mother_brain_phase_state['mb1_detected'] = old_mb1_state
+            
+        if current_bosses.get('mother_brain_2', False):
+            self.mother_brain_phase_state['mb2_detected'] = True
+            logger.info("🎯 Bootstrapped MB2 state: detected and cached")
+        else:
+            self.mother_brain_phase_state['mb2_detected'] = old_mb2_state
+            
+        logger.info(f"🔄 Bootstrap complete: MB1={self.mother_brain_phase_state['mb1_detected']}, MB2={self.mother_brain_phase_state['mb2_detected']}")
+        
+        return current_bosses
     
     def parse_complete_game_state(self, memory_data: Dict[str, bytes]) -> Dict[str, Any]:
         """Parse all memory data into complete game state"""
@@ -382,6 +541,9 @@ class SuperMetroidGameStateParser:
                 memory_data.get('player_y')
             )
             game_state.update(location_data)
+            
+            # Optional: reset if new game or file load
+            self.maybe_reset_mb_state(location_data, stats_data)
             
             # Items and beams
             game_state['items'] = self.parse_items(memory_data.get('items'))

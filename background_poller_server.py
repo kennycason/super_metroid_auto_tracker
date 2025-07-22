@@ -146,6 +146,7 @@ class BackgroundGamePoller:
         self.cache_lock = threading.Lock()
         self.running = False
         self.thread = None
+        self.bootstrap_attempted = False  # Track if we've tried bootstrapping MB cache
         
     def start(self):
         """Start background polling"""
@@ -193,6 +194,11 @@ class BackgroundGamePoller:
                 game_state = {}
                 if connection_info.get('game_loaded', False):
                     game_state = self._read_game_state()
+                    
+                    # Bootstrap MB cache on first successful game read (if we haven't already)
+                    if game_state and not self.bootstrap_attempted:
+                        self._bootstrap_mb_cache_if_needed(game_state)
+                        self.bootstrap_attempted = True
                 
                 # Update cache atomically
                 with self.cache_lock:
@@ -269,6 +275,39 @@ class BackgroundGamePoller:
         except Exception as e:
             logger.error(f"Error reading game state: {e}")
             return {}
+    
+    def _bootstrap_mb_cache_if_needed(self, game_state: Dict[str, Any]):
+        """Bootstrap Mother Brain cache if current state shows MB phases completed"""
+        try:
+            # Check if current game state shows any MB progress
+            bosses = game_state.get('bosses', {})
+            mb1_current = bosses.get('mother_brain_1', False)
+            mb2_current = bosses.get('mother_brain_2', False)
+            
+            # If either phase is detected, try bootstrap with raw memory
+            if mb1_current or mb2_current:
+                logger.info(f"🔄 MB phases detected in current state: MB1={mb1_current}, MB2={mb2_current}")
+                logger.info("🔄 Attempting to bootstrap MB cache from current state...")
+                
+                # Re-read boss memory to get raw data for bootstrap
+                memory_data = {
+                    'main_bosses': self.udp_reader.read_memory_range(0x7ED828, 2),
+                    'crocomire': self.udp_reader.read_memory_range(0x7ED829, 2),
+                    'boss_plus_1': self.udp_reader.read_memory_range(0x7ED829, 2),
+                    'boss_plus_2': self.udp_reader.read_memory_range(0x7ED82A, 2),
+                    'boss_plus_3': self.udp_reader.read_memory_range(0x7ED82B, 2),
+                    'boss_plus_4': self.udp_reader.read_memory_range(0x7ED82C, 2),
+                    'boss_plus_5': self.udp_reader.read_memory_range(0x7ED82D, 2),
+                }
+                
+                # Use parser's bootstrap method
+                self.parser.bootstrap_mb_cache(memory_data, game_state)
+                logger.info("✅ MB cache bootstrap completed")
+            else:
+                logger.info("ℹ️ No MB phases detected in current state - no bootstrap needed")
+                
+        except Exception as e:
+            logger.error(f"Error during MB cache bootstrap: {e}")
 
 class CacheServingHTTPHandler(BaseHTTPRequestHandler):
     """HTTP handler that serves cached data instantly - no UDP blocking"""
@@ -290,6 +329,8 @@ class CacheServingHTTPHandler(BaseHTTPRequestHandler):
                 self.serve_status()
             elif self.path == '/api/stats':
                 self.serve_stats()
+            elif self.path == '/api/bootstrap-mb':
+                self.serve_bootstrap_mb()
             elif self.path.endswith('.png'):
                 self.serve_static_file(self.path[1:], 'image/png')
             else:
@@ -310,6 +351,14 @@ class CacheServingHTTPHandler(BaseHTTPRequestHandler):
         if not stats:
             stats = {'error': 'No game data available'}
         self.send_json_response(stats)
+    
+    def serve_bootstrap_mb(self):
+        """Serve a dummy response for the bootstrap endpoint"""
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', len(json.dumps({'message': 'Bootstrap triggered'}).encode()))
+        self.end_headers()
+        self.wfile.write(json.dumps({'message': 'Bootstrap triggered'}).encode())
     
     def serve_file(self, filename):
         """Serve HTML files"""
