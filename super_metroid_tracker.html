@@ -30,31 +30,6 @@
         }
         .connected { background-color: #001100; }
         .disconnected { background-color: #110000; color: #ff0000; }
-        .stats-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 10px; 
-            margin: 8px 0; 
-        }
-        .stat-box { 
-            border: 1px solid #00ff00; 
-            padding: 8px; 
-            border-radius: 5px; 
-            background: #001a00;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .stat-label { font-size: 12px; opacity: 0.7; min-width: 60px; }
-        .stat-value { font-size: 16px; font-weight: bold; }
-        .stat-bar { 
-            display: none; /* Hidden for compact overlay */
-        }
-        .stat-bar-fill { 
-            height: 100%; 
-            background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00); 
-            transition: width 0.3s ease;
-        }
         .game-info { 
             text-align: center; 
             margin: 8px 0; 
@@ -80,18 +55,28 @@
         .tracking-grid { 
             display: flex;
             flex-wrap: wrap;
-            gap: 1px; 
+            gap: 0px; 
             margin: 8px 0; 
-            padding: 2px;
+            padding: 0px;
             /* border: 1px solid #00ff00; */
             border-radius: 5px;
             /* background: #001a00; */
             align-items: flex-start;
         }
-        .tracking-section { margin: 8px 0; }
+        .tracking-section { margin: 0px 0; }
         .green-border {
-            border: 1px solid #00ff00;
-            background: #001a00;
+            border-color: #00ff00;
+            background: #003300;
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+            opacity: 1;
+            filter: grayscale(0%);
+        }
+        .red-border {
+            border-color: #ff0000;
+            background: #330000;
+            box-shadow: 0 0 8px rgba(255, 0, 0, 0.4);
+            opacity: 1;
+            filter: grayscale(0%);
         }
         
         /* Direct 64x64 Sprite System - no wrapper needed */
@@ -222,7 +207,7 @@
             /* border: 1px solid #00ff00; */
             border-radius: 5px;
             /* background: #001a00; */
-            padding: 2px;
+            padding: 1px;
         }
 
         .quantity-display {
@@ -342,16 +327,16 @@
             filter: grayscale(100%);
         }
         .item-tile.obtained { 
-            border-color: #00ff00; 
+            /* border-color: #00ff00; 
             background: #003300; 
-            box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.4); */
             opacity: 1;
             filter: grayscale(0%);
         }
         .item-tile.boss-defeated { 
-            border-color: #ff0000; 
+            /* border-color: #ff0000; 
             background: #330000; 
-            box-shadow: 0 0 8px rgba(255, 0, 0, 0.4);
+            box-shadow: 0 0 8px rgba(255, 0, 0, 0.4); */
             opacity: 1;
             filter: grayscale(0%);
         }
@@ -447,7 +432,7 @@
 
         <!-- Quantity Items Section -->
         <div class="tracking-section">
-            <div class="tracking-grid" id="quantityGrid" style="margin-bottom: 1px;">
+            <div class="tracking-grid" id="quantityGrid">
                 <div class="quantity-tile" data-item="energy-tank" title="Energy Tanks">
                     <span class="sprite sprite-energy-tank"></span>
                     <div class="quantity-display" id="energyTankCount">0</div>
@@ -538,6 +523,10 @@
         let updateInterval = null;
         let isAttached = false;
         let isFullscreen = false; // Track fullscreen state
+        let reconnectTimer = null;
+        let reconnectDelay = 5000; // Start with 5 seconds
+        const maxReconnectDelay = 60000; // Max 1 minute
+        let autoReconnectEnabled = true;
 
         // Super Metroid memory addresses
         const MEMORY_ADDRESSES = {
@@ -668,11 +657,65 @@
         }
 
         function updateToggleButton(connected) {
-            document.getElementById('toggleBtn').textContent = connected ? 'DISCONNECT' : 'CONNECT';
+            const toggleBtn = document.getElementById('toggleBtn');
+            toggleBtn.textContent = connected ? 'DISCONNECT' : 'CONNECT';
+            
+            // Hide button when connected, show when disconnected
+            toggleBtn.style.display = connected ? 'none' : 'inline-flex';
         }
 
         function connect() {
-            log("Connecting to UDP Tracker...");
+            clearAutoReconnect(); // Stop auto-reconnect when manually connecting
+            connectInternal(false); // Manual connection attempt
+        }
+
+        function disconnect() {
+            isConnected = false;
+            isAttached = false;
+            updateStatus('DISCONNECTED', false);
+            updateToggleButton(false);
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+            document.getElementById('gameInfo').style.display = 'none';
+            log("🔌 Disconnected");
+            clearAutoReconnect(); // Stop auto-reconnect when manually disconnected
+        }
+
+        function clearAutoReconnect() {
+            if (reconnectTimer) {
+                clearTimeout(reconnectTimer);
+                reconnectTimer = null;
+            }
+        }
+
+        function resetReconnectDelay() {
+            reconnectDelay = 5000; // Reset to 5 seconds
+        }
+
+        function scheduleAutoReconnect() {
+            if (!autoReconnectEnabled || isConnected) return;
+            
+            clearAutoReconnect(); // Clear any existing timer
+            
+            log(`🔄 Auto-reconnect in ${reconnectDelay / 1000}s...`);
+            
+            reconnectTimer = setTimeout(() => {
+                if (!isConnected && autoReconnectEnabled) {
+                    log("🔄 Auto-reconnecting...");
+                    connectInternal(true); // Internal connection attempt
+                }
+            }, reconnectDelay);
+            
+            // Increase delay for next attempt (max 1 minute)
+            reconnectDelay = Math.min(reconnectDelay + 5000, maxReconnectDelay);
+        }
+
+        function connectInternal(isAutoReconnect = false) {
+            if (!isAutoReconnect) {
+                log("Connecting to UDP Tracker...");
+            }
             
             // Test the API connection
             fetch('http://localhost:3000/api/status')
@@ -687,36 +730,37 @@
                         log(`🎯 Game: ${data.game_info}`);
                         document.getElementById('gameInfo').style.display = 'block';
                         startTracking();
+                        resetReconnectDelay(); // Reset backoff on success
+                        clearAutoReconnect(); // Stop auto-reconnect when connected
                     } else if (data.connected) {
                         isConnected = true;
                         updateStatus('CONNECTED - NO GAME', true);
                         updateToggleButton(true);
                         log("✅ Connected to RetroArch but Super Metroid not loaded");
+                        resetReconnectDelay(); // Reset backoff on success
+                        clearAutoReconnect(); // Stop auto-reconnect when connected
                     } else {
                         updateStatus('RETROARCH NOT FOUND', false);
                         updateToggleButton(false);
-                        log("❌ Could not connect to RetroArch");
+                        if (!isAutoReconnect) {
+                            log("❌ Could not connect to RetroArch");
+                        }
+                        if (autoReconnectEnabled) {
+                            scheduleAutoReconnect();
+                        }
                     }
                 })
                 .catch(error => {
                     updateStatus('TRACKER SERVER NOT RUNNING', false);
                     updateToggleButton(false);
-                    log(`❌ Connection error: ${error.message}`);
-                    log("💡 Make sure to run: python tracker_web_server.py");
+                    if (!isAutoReconnect) {
+                        log(`❌ Connection error: ${error.message}`);
+                        log("💡 Make sure to run: python background_poller_server.py");
+                    }
+                    if (autoReconnectEnabled) {
+                        scheduleAutoReconnect();
+                    }
                 });
-        }
-
-        function disconnect() {
-            isConnected = false;
-            isAttached = false;
-            updateStatus('DISCONNECTED', false);
-            updateToggleButton(false);
-            if (updateInterval) {
-                clearInterval(updateInterval);
-                updateInterval = null;
-            }
-            document.getElementById('gameInfo').style.display = 'none';
-            log("🔌 Disconnected");
         }
 
         function toggleConnection() {
@@ -920,14 +964,10 @@
         }
         
         function handleConnectionError(errorMsg) {
-            // Initialize retry counter
-            if (!window.reconnectAttempts) window.reconnectAttempts = 0;
-            window.reconnectAttempts++;
-            
             // Mark as disconnected
             isConnected = false;
             isAttached = false;
-            updateStatus('CONNECTION LOST - RETRYING', false);
+            updateStatus('CONNECTION LOST', false);
             updateToggleButton(false);
             
             // Stop current tracking
@@ -936,15 +976,13 @@
                 updateInterval = null;
             }
             
-            // Exponential backoff: 2s, 4s, 8s, max 30s
-            const delay = Math.min(2000 * Math.pow(2, window.reconnectAttempts - 1), 30000);
+            // Hide game info
+            document.getElementById('gameInfo').style.display = 'none';
             
-            log(`🔄 Auto-reconnecting in ${delay/1000}s (attempt ${window.reconnectAttempts})`);
-            
-            setTimeout(() => {
-                log(`🔄 Attempting reconnection...`);
-                connect();
-            }, delay);
+            // Start auto-reconnect if enabled
+            if (autoReconnectEnabled) {
+                scheduleAutoReconnect();
+            }
         }
 
         function logDebugInfo(stats) {
@@ -991,8 +1029,9 @@
         // Auto-connect on page load
         window.onload = function() {
             log("🚀 Super Metroid UDP Tracker ready");
-            log("📡 Make sure tracker_web_server.py is running");
-            log("📡 Click CONNECT to start tracking");
+            log("📡 Auto-reconnect enabled - will try to connect after failures");
+            log("💡 Make sure background_poller_server.py is running");
+            log("🔌 Click CONNECT to start, or auto-reconnect will activate after connection failures");
         };
     </script>
 </body>
