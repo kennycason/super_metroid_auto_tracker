@@ -652,10 +652,40 @@ class SuperMetroidGameStateParser:
                     mb1_detected = True
                     mb2_detected = (current_hp < 5000) or original_mb2_state  # Preserve MB2 if already detected
                 else:
-                    # HP is higher but not in reset range - preserve cache state
-                    logger.info(f"🔒 PRESERVING CACHE: HP {current_hp} not in reset range, keeping MB1={original_mb1_state}, MB2={original_mb2_state}")
-                    mb1_detected = original_mb1_state
-                    mb2_detected = original_mb2_state
+                    # HP is higher but not in reset range - BUT check for memory signature overrides first
+                    
+                    # 🚨 MEMORY SIGNATURE OVERRIDE: Check for 0x0003 even during HP analysis
+                    mb_progress_val = boss_scan_results.get('boss_plus_1', 0)
+                    area_id = location_data.get('area_id', 0) if location_data else 0
+                    
+                    # Check for 0x0003 signature indicating post-game state
+                    if mb_progress_val == 0x0003:
+                        # Check for Hyper Beam to distinguish between active fight vs post-game
+                        has_hyper_beam = False
+                        if location_data and location_data.get('beams', {}).get('hyper', False):
+                            has_hyper_beam = True
+                        
+                        in_late_game_area = area_id in [2, 4, 5, 10]  # Norfair, Maridia, Tourian areas
+                        
+                        logger.info(f"🔍 LIVE HP + 0x0003 ANALYSIS: HP={current_hp}, area={area_id}, hyper_beam={has_hyper_beam}")
+                        
+                        if in_late_game_area and has_hyper_beam:
+                            # POST-GAME STATE: Override HP analysis with memory signature
+                            logger.info(f"🏆 MEMORY OVERRIDE: 0x0003 + Hyper Beam = POST-GAME STATE (HP analysis ignored)")
+                            mb1_detected = True
+                            mb2_detected = True
+                            self.mother_brain_phase_state['mb1_detected'] = True
+                            self.mother_brain_phase_state['mb2_detected'] = True
+                        else:
+                            # No override, use cache
+                            logger.info(f"🔒 PRESERVING CACHE: HP {current_hp} not in reset range, keeping MB1={original_mb1_state}, MB2={original_mb2_state}")
+                            mb1_detected = original_mb1_state
+                            mb2_detected = original_mb2_state
+                    else:
+                        # No memory signature override, preserve cache state  
+                        logger.info(f"🔒 PRESERVING CACHE: HP {current_hp} not in reset range, keeping MB1={original_mb1_state}, MB2={original_mb2_state}")
+                        mb1_detected = original_mb1_state
+                        mb2_detected = original_mb2_state
         
             # 5. SMART FALLBACK (outside MB room - rely heavily on cache)
             else:
@@ -680,7 +710,7 @@ class SuperMetroidGameStateParser:
                 # Determine if we're in Mother Brain room (area 5 OR 10, room 56664)
                 in_mb_room_context = (area_id in [5, 10] and room_id == 56664)
                 
-                # Context-aware interpretation of 0x0703
+                # Context-aware interpretation of memory patterns
                 if mb_progress_val == 0x0703:
                     if in_mb_room_context:
                         # If in MB room, it's DEFINITELY MB1 completion (regardless of missile conservation!)
@@ -695,6 +725,41 @@ class SuperMetroidGameStateParser:
                         mb1_detected = False
                         mb2_detected = False
                         self.mother_brain_phase_state = {'mb1_detected': False, 'mb2_detected': False}
+                elif mb_progress_val == 0x0003:
+                    # 🚨 0x0003 CONTEXT-AWARE DETECTION
+                    # 0x0003 can mean different things depending on game state:
+                    # 1. Active MB2 fight (no Hyper Beam) - MB1=True, MB2=False
+                    # 2. Post-game state (has Hyper Beam) - MB1=True, MB2=True
+                    
+                    in_late_game_area = area_id in [2, 4, 5, 10]  # Norfair, Maridia, Tourian areas
+                    no_other_boss_hp = (boss_hp_1_val == 0 and boss_hp_2_val == 0 and boss_hp_3_val == 0)
+                    
+                    # Check for Hyper Beam to distinguish between active fight vs post-game
+                    has_hyper_beam = False
+                    if location_data and location_data.get('beams', {}).get('hyper', False):
+                        has_hyper_beam = True
+                    
+                    logger.info(f"🔍 0x0003 ANALYSIS: area={area_id}, late_game={in_late_game_area}, no_boss_hp={no_other_boss_hp}, hyper_beam={has_hyper_beam}")
+                    
+                    if in_late_game_area and no_other_boss_hp:
+                        strong_memory_evidence = True
+                        mb1_detected = True  # 0x0003 always means MB1 is complete
+                        
+                        if has_hyper_beam:
+                            # POST-GAME STATE: User has Hyper Beam, both phases complete
+                            logger.info(f"🏆 POST-GAME STATE DETECTED: 0x0003 + Hyper Beam - both MB phases complete!")
+                            mb2_detected = True
+                            self.mother_brain_phase_state['mb1_detected'] = True
+                            self.mother_brain_phase_state['mb2_detected'] = True
+                        else:
+                            # ACTIVE FIGHT STATE: No Hyper Beam yet, MB2 fight in progress
+                            logger.info(f"🎯 ACTIVE MB2 FIGHT DETECTED: 0x0003 without Hyper Beam - fight in progress!")
+                            mb2_detected = False
+                            self.mother_brain_phase_state['mb1_detected'] = True
+                            self.mother_brain_phase_state['mb2_detected'] = False
+                    else:
+                        logger.info(f"🔍 0x0003 signature but insufficient context (area={area_id}, hp={boss_hp_1_val:04X})")
+                        strong_memory_evidence = False
                 elif mb_progress_val >= 0x0704:  # Higher values are likely MB completion
                     strong_memory_evidence = True
                 else:
@@ -850,16 +915,30 @@ class SuperMetroidGameStateParser:
         
         # ESCAPE SEQUENCE SPECIAL CASE: If we're outside MB room and have MB1, strongly suggest MB2
         if not in_mb_room and final_mb1 and not final_mb2:
-            # Check if we're in escape-like conditions
-            escape_indicators = [
-                area_id in [0, 5],  # Crateria or Tourian
-                room_id != 56664,   # Not in MB room
-                (boss_hp_1_val == 0 and boss_hp_2_val == 0 and boss_hp_3_val == 0)  # No boss HP
-            ]
-            if any(escape_indicators):
-                logger.info(f"🚨 ESCAPE SEQUENCE MB2 INFERENCE: MB1={final_mb1} + escape indicators = MB2=True")
-                final_mb2 = True
-                self.mother_brain_phase_state['mb2_detected'] = True
+            # 🛡️ GOLDEN TORIZO PROTECTION: Check for false positive before escape inference
+            # 0x0703 outside Tourian (area 5) is Golden Torizo, not MB1
+            memory_evidence = 0x0703  # This is the signature causing false positives
+            
+            if mb_progress_val == memory_evidence and area_id != 5:
+                logger.info(f"🥇 GOLDEN TORIZO FALSE POSITIVE BLOCKED: 0x0703 in area {area_id} - not MB1!")
+                # Reset false positive
+                final_mb1 = False
+                self.mother_brain_phase_state['mb1_detected'] = False
+            elif mb_progress_val == 0x0003:
+                # 🛡️ ACTIVE FIGHT PROTECTION: 0x0003 means active MB2 fight, don't infer escape
+                logger.info(f"🎯 ACTIVE FIGHT PROTECTION: 0x0003 detected - not escape sequence, fight in progress!")
+                # Keep current state (MB1=True, MB2=False for active fight)
+            else:
+                # Check if we're in escape-like conditions
+                escape_indicators = [
+                    area_id in [0, 5],  # Crateria or Tourian
+                    room_id != 56664,   # Not in MB room
+                    (boss_hp_1_val == 0 and boss_hp_2_val == 0 and boss_hp_3_val == 0)  # No boss HP
+                ]
+                if any(escape_indicators):
+                    logger.info(f"🚨 ESCAPE SEQUENCE MB2 INFERENCE: MB1={final_mb1} + escape indicators = MB2=True")
+                    final_mb2 = True
+                    self.mother_brain_phase_state['mb2_detected'] = True
         
         # Final boss state assignment
         bosses['mother_brain_1'] = final_mb1

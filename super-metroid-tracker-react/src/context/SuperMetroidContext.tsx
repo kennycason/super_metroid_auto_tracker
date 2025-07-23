@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { GameState } from '../types/gameState';
 import type { TrackerConfig } from '../types/config';
@@ -25,8 +25,14 @@ interface SuperMetroidContextType {
   setConfig: (config: TrackerConfig) => void;
   
   // UI state
-  isFullscreen: boolean;
-  setIsFullscreen: (fullscreen: boolean) => void;
+  isMinimal: boolean;  // Changed from isFullscreen
+  setIsMinimal: (minimal: boolean) => void;  // Changed from setIsFullscreen
+  
+  // Audio controls
+  playBossTrack: (bossId: string) => void;
+  stopAudio: () => void;
+  currentTrack: string | null;
+  isPlaying: boolean;
   
   // Utility functions
   formatTime: (ms: number) => string;
@@ -43,7 +49,7 @@ interface SuperMetroidProviderProps {
 export const SuperMetroidProvider: React.FC<SuperMetroidProviderProps> = ({ children }) => {
   const gameStateHook = useGameState();
   const [config, setConfig] = useState<TrackerConfig>(defaultConfig);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isMinimal, setIsMinimal] = useState(false);  // Changed from isFullscreen
 
   // Utility function to format time in MM:SS.mmm format
   const formatTime = (ms: number): string => {
@@ -132,8 +138,8 @@ export const SuperMetroidProvider: React.FC<SuperMetroidProviderProps> = ({ chil
     setConfig,
     
     // UI state
-    isFullscreen,
-    setIsFullscreen,
+    isMinimal,     // Changed from isFullscreen
+    setIsMinimal,  // Changed from setIsFullscreen
     
     // Utility functions
     formatTime,

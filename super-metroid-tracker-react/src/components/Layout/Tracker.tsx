@@ -2,12 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Header } from '../UI/Header';
 import { Timer } from '../Timer/Timer';
 import { Splits } from '../Timer/Splits';
-import { ItemsGrid } from '../Items/ItemsGrid';
-import { BossesGrid } from '../Bosses/BossesGrid';
-import { QuantityTiles } from '../QuantityTiles/QuantityTiles';
 import { Location } from '../UI/Location';
-import { StatusTest } from '../Status/StatusTest'; // TEST IMPORT
-import { StatusGrid } from '../Status/StatusGrid'; // TEST IMPORT
+import { StatusGrid } from '../Status/StatusGrid';
 import { useSuperMetroid } from '../../context/SuperMetroidContext';
 import './Tracker.css';
 
@@ -79,27 +75,48 @@ const DebugWindow: React.FC = () => {
 };
 
 export const Tracker: React.FC = () => {
-  const { isFullscreen } = useSuperMetroid();
+  const { gameState, isMinimal, setIsMinimal, startTimer, stopTimer } = useSuperMetroid();
+  
+  // Add spacebar functionality for timer
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.code === 'Space') {
+        event.preventDefault(); // Prevent page scroll
+        if (gameState.timer.running) {
+          stopTimer();
+        } else {
+          startTimer();
+        }
+      } else if (event.code === 'Escape') {
+        setIsMinimal(false); // Exit minimal mode on Escape
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [gameState.timer.running, startTimer, stopTimer, setIsMinimal]);
 
   return (
-    <div className={`tracker ${isFullscreen ? 'fullscreen' : ''}`}>
-      {!isFullscreen && <Header />}
-      
-      <div className="tracker-content">
-        <div className="tracker-grid">         
+    <div className="tracker-container">
+      <div className={`tracker ${isMinimal ? 'minimal' : ''}`}>
+        {/* Always show header, but it will hide elements conditionally */}
+        {!isMinimal && <Header />}
+        
+        <div className="main-content">          
+          {/* Status Grid - always show but will hide layout toggle in minimal mode */}
           <StatusGrid />
           
-          {/* Timer Section */}
+          {/* Timer Section - always show */}
           <Timer />
 
           {/* Splits Section - always show */}
           <Splits />
           
-          {/* Location */}
-          <Location />
+          {/* Location - hide in minimal mode */}
+          {!isMinimal && <Location />}
           
-          {/* Debug Window - hide in fullscreen */}
-          {!isFullscreen && <DebugWindow />}
+          {/* Debug Window - hide in minimal mode */}
+          {!isMinimal && <DebugWindow />}
         </div>
       </div>
     </div>

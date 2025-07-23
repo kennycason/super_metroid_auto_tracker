@@ -116,12 +116,12 @@ export const useGameState = () => {
 
   const fetchGameState = useCallback(async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/game_state`);
+      const response = await fetch(`${BACKEND_URL}/api/status`);
       if (response.ok) {
         const data = await response.json();
         
         // Transform the backend data to match our GameState interface
-        const newGameState: GameState = {
+        setGameState(prev => ({
           stats: {
             health: data.stats?.health || 99,
             max_health: data.stats?.max_health || 99,
@@ -170,9 +170,9 @@ export const useGameState = () => {
               botwoon: data.stats?.bosses?.botwoon || false,
               golden_torizo: data.stats?.bosses?.golden_torizo || false,
               bomb_torizo: data.stats?.bosses?.bomb_torizo || false,
-              main: data.stats?.bosses?.main || false,
-              mb1: data.stats?.bosses?.mb1 || false,
-              mb2: data.stats?.bosses?.mb2 || false,
+              main: data.stats?.bosses?.samus_ship || false,
+              mb1: data.stats?.bosses?.mother_brain_1 || false,
+              mb2: data.stats?.bosses?.mother_brain_2 || false,
             },
           },
           items: {
@@ -205,9 +205,9 @@ export const useGameState = () => {
             botwoon: data.stats?.bosses?.botwoon || false,
             golden_torizo: data.stats?.bosses?.golden_torizo || false,
             bomb_torizo: data.stats?.bosses?.bomb_torizo || false,
-            main: data.stats?.bosses?.main || false,
-            mb1: data.stats?.bosses?.mb1 || false,
-            mb2: data.stats?.bosses?.mb2 || false,
+            main: data.stats?.bosses?.samus_ship || false,
+            mb1: data.stats?.bosses?.mother_brain_1 || false,
+            mb2: data.stats?.bosses?.mother_brain_2 || false,
           },
           location: {
             area_id: data.stats?.area_id || 0,
@@ -217,13 +217,11 @@ export const useGameState = () => {
             player_x: data.stats?.player_x || 0,
             player_y: data.stats?.player_y || 0,
           },
-          splits: data.splits || [],
-          timer: gameState.timer, // Keep existing timer state
+          splits: prev.splits, // Keep existing splits state - backend doesn't provide this yet
+          timer: prev.timer, // Keep existing timer state
           connected: true,
           lastUpdate: Date.now(),
-        };
-
-        setGameState(newGameState);
+        }));
       } else {
         // Connection failed
         setGameState(prev => ({ ...prev, connected: false }));
@@ -232,7 +230,7 @@ export const useGameState = () => {
       console.error('Failed to fetch game state:', error);
       setGameState(prev => ({ ...prev, connected: false }));
     }
-  }, [gameState.timer]);
+  }, []); // Removed gameState.timer dependency to fix polling
 
   const startPolling = useCallback(() => {
     setIsPolling(true);

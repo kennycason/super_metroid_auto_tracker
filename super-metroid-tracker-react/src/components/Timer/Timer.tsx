@@ -19,14 +19,14 @@ export const Timer: React.FC = () => {
             className="timer-btn start-btn"
             onClick={startTimer}
           >
-            START GAME
+            START
           </button>
         ) : (
           <button 
             className="timer-btn pause-btn"
             onClick={stopTimer}
           >
-            RESUME
+            PAUSE
           </button>
         )}
         <button 
