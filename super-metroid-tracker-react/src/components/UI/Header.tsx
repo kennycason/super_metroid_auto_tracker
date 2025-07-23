@@ -17,23 +17,20 @@ export const Header: React.FC = () => {
 
   return (
     <div className="header">
-      <div className="header-left">
-        <h1 className="tracker-title">TRACKING SUPER METROID</h1>
-      </div>
-      
+     
       <div className="header-right">
+        <button 
+            className="fullscreen-btn"
+            onClick={toggleFullscreen}
+            title="Toggle Fullscreen"
+          >
+          ⛶
+        </button>
+
         <div className={`connection-status ${gameState.connected ? 'connected' : 'disconnected'}`}>
           <span className="status-dot"></span>
           {gameState.connected ? 'Connected' : 'Disconnected'}
         </div>
-        
-        <button 
-          className="fullscreen-btn"
-          onClick={toggleFullscreen}
-          title="Toggle Fullscreen"
-        >
-          ⛶
-        </button>
       </div>
     </div>
   );

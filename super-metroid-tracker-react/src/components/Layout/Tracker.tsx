@@ -6,6 +6,8 @@ import { ItemsGrid } from '../Items/ItemsGrid';
 import { BossesGrid } from '../Bosses/BossesGrid';
 import { QuantityTiles } from '../QuantityTiles/QuantityTiles';
 import { Location } from '../UI/Location';
+import { StatusTest } from '../Status/StatusTest'; // TEST IMPORT
+import { StatusGrid } from '../Status/StatusGrid'; // TEST IMPORT
 import { useSuperMetroid } from '../../context/SuperMetroidContext';
 import './Tracker.css';
 
@@ -84,19 +86,12 @@ export const Tracker: React.FC = () => {
       {!isFullscreen && <Header />}
       
       <div className="tracker-content">
-        <div className="tracker-grid">
+        <div className="tracker-grid">         
+          <StatusGrid />
+          
           {/* Timer Section */}
           <Timer />
-          
-          {/* Quantity Items Section (Energy, Missiles, etc.) */}
-          <QuantityTiles />
-          
-          {/* Item Tracking Grid */}
-          <ItemsGrid />
-          
-          {/* Boss Tracking Grid */}
-          <BossesGrid />
-          
+
           {/* Splits Section - always show */}
           <Splits />
           

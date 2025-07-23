@@ -33,26 +33,29 @@ export const Item: React.FC<ItemProps> = ({ config, showCount = false }) => {
   // Map item IDs to sprite class names (matching original tracker)
   const getSpriteClass = () => {
     const spriteMapping: Record<string, string> = {
-      morph: 'sprite-morph-ball',
-      bombs: 'sprite-bomb',
-      charge: 'sprite-charge-beam',
-      spazer: 'sprite-spazer',
-      varia: 'sprite-varia',
-      hi_jump: 'sprite-hijump',
-      speed_booster: 'sprite-speed',
-      wave: 'sprite-wave',
-      ice: 'sprite-ice',
-      grapple: 'sprite-grapple',
-      gravity: 'sprite-gravity',
-      space_jump: 'sprite-space',
-      plasma: 'sprite-plasma',
-      screw_attack: 'sprite-screw',
-      x_ray: 'sprite-xray',
       energy_tank: 'sprite-energy-tank',
+      reserve_tank: 'sprite-reserve-tank',
       missile_tank: 'sprite-missile',
       super_tank: 'sprite-super-missile',
       power_bomb_tank: 'sprite-power-bomb',
-      reserve_tank: 'sprite-reserve-tank',
+
+      charge: 'sprite-charge-beam',
+      spazer: 'sprite-spazer',
+      ice: 'sprite-ice',
+      wave: 'sprite-wave',
+      plasma: 'sprite-plasma',
+
+      morph: 'sprite-morph-ball',
+      bombs: 'sprite-bomb',
+      spring_ball: 'sprite-spring-ball',
+      hi_jump: 'sprite-hijump',
+      varia: 'sprite-varia',
+      speed_booster: 'sprite-speed',
+      grapple: 'sprite-grapple',
+      x_ray: 'sprite-xray',
+      gravity: 'sprite-gravity',
+      space_jump: 'sprite-space',
+      screw_attack: 'sprite-screw',
     };
     
     return spriteMapping[config.id] || 'sprite-morph-ball';

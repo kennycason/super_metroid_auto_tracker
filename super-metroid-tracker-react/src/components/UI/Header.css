@@ -72,16 +72,15 @@
   background: rgba(0, 51, 0, 0.8);
   border: 1px solid rgba(0, 255, 0, 0.4);
   color: #00ff00;
-  padding: 8px 12px;
+  padding: 6px 12px;     /* Same as connection-status */
   border-radius: 4px;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 14px;       /* Same as connection-status */
   transition: all 0.2s ease;
-  min-width: 40px;
-  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: bold;     /* Same as connection-status */
 }
 
 .fullscreen-btn:hover {
@@ -122,9 +121,7 @@
   }
   
   .fullscreen-btn {
-    padding: 6px 10px;
-    font-size: 16px;
-    min-width: 36px;
-    height: 36px;
+    padding: 4px 8px;     /* Same as mobile connection-status */
+    font-size: 12px;      /* Same as mobile connection-status */
   }
 } 

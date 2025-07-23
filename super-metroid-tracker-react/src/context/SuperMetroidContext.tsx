@@ -71,6 +71,7 @@ export const SuperMetroidProvider: React.FC<SuperMetroidProviderProps> = ({ chil
       case 'screw_attack': return stats.items?.screw || false;
       case 'grapple': return stats.items?.grapple || false;
       case 'x_ray': return stats.items?.xray || false;
+      case 'spring': return stats.items?.spring || false;
       
       // Beams (from stats.beams)
       case 'charge': return stats.beams?.charge || false;

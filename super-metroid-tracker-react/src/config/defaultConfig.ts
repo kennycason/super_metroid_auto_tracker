@@ -20,11 +20,12 @@ export const defaultConfig: TrackerConfig = {
     { id: 'grapple', name: 'Grappling Beam', sprite: 'grapple.png', enabled: true, row: 1, col: 4, category: 'major' },
 
     // Row 3 - Major Items Row 3
-    { id: 'x_ray', name: 'X-Ray Scope', sprite: 'x_ray.png', enabled: true, row: 2, col: 0, category: 'major' },
-    { id: 'plasma', name: 'Plasma Beam', sprite: 'plasma.png', enabled: true, row: 2, col: 1, category: 'beam' },
-    { id: 'gravity', name: 'Gravity Suit', sprite: 'gravity.png', enabled: true, row: 2, col: 2, category: 'major' },
-    { id: 'space_jump', name: 'Space Jump', sprite: 'space_jump.png', enabled: true, row: 2, col: 3, category: 'major' },
-    { id: 'screw_attack', name: 'Screw Attack', sprite: 'screw_attack.png', enabled: true, row: 2, col: 4, category: 'major' },
+    { id: 'spring', name: 'Spring Ball', sprite: 'sprite-spring', enabled: true, row: 2, col: 0, category: 'major' },
+    { id: 'x_ray', name: 'X-Ray Scope', sprite: 'x_ray.png', enabled: true, row: 2, col: 1, category: 'major' },
+    { id: 'plasma', name: 'Plasma Beam', sprite: 'plasma.png', enabled: true, row: 2, col: 2, category: 'beam' },
+    { id: 'gravity', name: 'Gravity Suit', sprite: 'gravity.png', enabled: true, row: 2, col: 3, category: 'major' },
+    { id: 'space_jump', name: 'Space Jump', sprite: 'space_jump.png', enabled: true, row: 2, col: 4, category: 'major' },
+    { id: 'screw_attack', name: 'Screw Attack', sprite: 'screw_attack.png', enabled: true, row: 2, col: 5, category: 'major' },
   ],
   bosses: [
     // Row 1 - Major bosses
