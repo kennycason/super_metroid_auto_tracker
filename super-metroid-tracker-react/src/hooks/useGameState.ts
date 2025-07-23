@@ -273,6 +273,9 @@ export const useGameState = () => {
       },
       splits: [], // Clear splits when timer resets
     }));
+    
+    // Clear tracking state so splits can be detected again
+    setLastTrackedBosses({});
   }, []);
 
   // Effect for polling
@@ -299,6 +302,88 @@ export const useGameState = () => {
 
     return () => clearInterval(interval);
   }, [gameState.timer.running, gameState.timer.startTime]);
+
+  // Auto-pause timer when ship status becomes true (game completed)
+  useEffect(() => {
+    const isShipCompleted = gameState.stats.bosses.main;
+    
+    // If ship is completed and timer is running, auto-pause
+    if (isShipCompleted && gameState.timer.running) {
+      console.log('🚢 Game completed! Auto-pausing timer...');
+      stopTimer();
+    }
+  }, [gameState.stats.bosses.main, gameState.timer.running, stopTimer]);
+
+  // Track previous state for splits detection
+  const [lastTrackedBosses, setLastTrackedBosses] = useState<Record<string, boolean>>({});
+
+  // Add split functionality (based on original HTML implementation)
+  const addSplit = useCallback((eventName: string) => {
+    if (!gameState.timer.running) return;
+    
+    const currentTime = gameState.timer.elapsed;
+    const split = {
+      event: eventName,
+      time: currentTime,
+      timestamp: Date.now()
+    };
+    
+    setGameState(prev => ({
+      ...prev,
+      splits: [...prev.splits, split]
+    }));
+    
+    console.log(`⭐ Split: ${eventName} at ${Math.floor(currentTime / 60000)}:${String(Math.floor((currentTime % 60000) / 1000)).padStart(2, '0')}.${String(Math.floor((currentTime % 1000) / 100))}`);
+  }, [gameState.timer.running, gameState.timer.elapsed]);
+
+  // Check for new splits (based on original HTML logic)
+  useEffect(() => {
+    if (!gameState.timer.running) return;
+
+    // Check for new bosses (only bosses as per user requirement)
+    const trackableBosses = ['bomb_torizo', 'spore_spawn', 'kraid', 'crocomire', 'phantoon', 'botwoon', 'draygon', 'golden_torizo', 'ridley', 'mb1', 'mb2'];
+    
+    const bossNames: Record<string, string> = {
+      'bomb_torizo': 'Bomb Torizo',
+      'spore_spawn': 'Spore Spawn', 
+      'kraid': 'Kraid',
+      'crocomire': 'Crocomire',
+      'phantoon': 'Phantoon',
+      'botwoon': 'Botwoon',
+      'draygon': 'Draygon',
+      'golden_torizo': 'Golden Torizo',
+      'ridley': 'Ridley',
+      'mb1': 'Mother Brain 1',
+      'mb2': 'Mother Brain 2'
+    };
+
+    // Check for newly defeated bosses
+    for (const boss of trackableBosses) {
+      const currentState = (gameState.stats.bosses as any)[boss];
+      if (currentState && !lastTrackedBosses[boss]) {
+        addSplit(bossNames[boss] || boss);
+      }
+    }
+
+    // Check for ship completion (game complete)
+    if (gameState.stats.bosses.main && !lastTrackedBosses['main']) {
+      addSplit('GAME COMPLETE!');
+    }
+
+    // Update tracking state
+    const newTrackedBosses: Record<string, boolean> = {};
+    for (const boss of trackableBosses) {
+      newTrackedBosses[boss] = (gameState.stats.bosses as any)[boss] || false;
+    }
+    newTrackedBosses['main'] = gameState.stats.bosses.main || false;
+    
+    setLastTrackedBosses(newTrackedBosses);
+  }, [
+    gameState.stats.bosses, 
+    gameState.timer.running, 
+    lastTrackedBosses, 
+    addSplit
+  ]);
 
   // Auto-start polling when hook is used
   useEffect(() => {
