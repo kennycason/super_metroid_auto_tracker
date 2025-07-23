@@ -7,7 +7,7 @@
   transition: all 0.3s ease;
   background: transparent;
   padding: 0;
-  border: 1px solid transparent;
+  /* border: 1px solid transparent; */
   width: 66px;
   height: 66px;
   display: flex;
@@ -45,9 +45,9 @@
 .item.obtained {
   opacity: 1;
   filter: none;
-  border-color: #00ff00;
+  /* border-color: #00ff00;
   background: #003300;
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.4); */
 }
 
 .item-count {

@@ -4,6 +4,7 @@ import { Timer } from '../Timer/Timer';
 import { Splits } from '../Timer/Splits';
 import { ItemsGrid } from '../Items/ItemsGrid';
 import { BossesGrid } from '../Bosses/BossesGrid';
+import { QuantityTiles } from '../QuantityTiles/QuantityTiles';
 import { Location } from '../UI/Location';
 import { useSuperMetroid } from '../../context/SuperMetroidContext';
 import './Tracker.css';
@@ -18,138 +19,65 @@ const DebugWindow: React.FC = () => {
   // Add new log message 
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
-    const logEntry = `[${timestamp}] ${message}`;
-    
-    setLogs(prevLogs => {
-      const newLogs = [...prevLogs, logEntry];
-      // Keep only last 100 messages to prevent memory issues
-      return newLogs.slice(-100);
-    });
+    const newLog = `[${timestamp}] ${message}`;
+    setLogs(prev => [...prev.slice(-49), newLog]); // Keep last 50 messages
   };
 
-  // Auto-scroll to bottom if user was at bottom
+  // Monitor game state changes and log them
+  useEffect(() => {
+    if (gameState.connected) {
+      addLog(`Connected to game - Area: ${gameState.location.area_name}`);
+      if (gameState.stats.health > 0) {
+        addLog(`Health: ${gameState.stats.health}/${gameState.stats.max_health}`);
+      }
+    } else {
+      addLog('Disconnected from game');
+    }
+  }, [gameState.connected, gameState.location.area_name]);
+
+  // Auto-scroll to bottom when new logs are added
   useEffect(() => {
     if (debugRef.current && wasAtBottom) {
       debugRef.current.scrollTop = debugRef.current.scrollHeight;
     }
   }, [logs, wasAtBottom]);
 
-  // Track scroll position
+  // Track if user is at bottom of scroll
   const handleScroll = () => {
     if (debugRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = debugRef.current;
-      setWasAtBottom(scrollTop >= (scrollHeight - clientHeight - 5));
+      setWasAtBottom(scrollTop + clientHeight >= scrollHeight - 5);
     }
   };
 
-  // Add log messages based on game state changes
-  useEffect(() => {
-    if (gameState.connected) {
-      addLog('🔗 Connected to RetroArch');
-    } else {
-      addLog('❌ Disconnected from RetroArch');
-    }
-  }, [gameState.connected]);
-
-  useEffect(() => {
-    if (gameState.location.area_name) {
-      addLog(`📍 Location: ${gameState.location.area_name} - ${gameState.location.room_name}`);
-    }
-  }, [gameState.location.area_name, gameState.location.room_name]);
-
-  useEffect(() => {
-    addLog(`💊 Health: ${gameState.stats.health}/${gameState.stats.max_health}`);
-  }, [gameState.stats.health, gameState.stats.max_health]);
-
-  const copyLogs = () => {
-    const text = logs.join('\n');
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(text).then(() => {
-        addLog('✅ Logs copied to clipboard');
-      });
-    }
-  };
-
-  const clearLogs = () => {
-    setLogs([]);
-    addLog('🗑️ Debug logs cleared');
-  };
+  const clearLogs = () => setLogs([]);
 
   return (
     <div className="debug-section">
       <div className="debug-controls">
-        <button onClick={copyLogs} className="debug-btn">📋 Copy</button>
-        <button onClick={clearLogs} className="debug-btn">🗑️ Clear</button>
+        <button className="debug-btn" onClick={clearLogs}>Clear</button>
+        <span style={{ fontSize: '12px', opacity: 0.7 }}>Debug Log</span>
       </div>
       <div 
+        className="debug-log" 
         ref={debugRef}
-        className="debug-log"
         onScroll={handleScroll}
       >
         {logs.map((log, index) => (
-          <div key={index} dangerouslySetInnerHTML={{ __html: log }} />
+          <div key={index}>{log}</div>
         ))}
-      </div>
-    </div>
-  );
-};
-
-// Quantity tiles component (Energy Tank, Missiles, etc.)
-const QuantityTiles: React.FC = () => {
-  const { gameState, isItemCollected } = useSuperMetroid();
-  const { stats } = gameState;
-
-  const quantityItems = [
-    {
-      id: 'energy_tank',
-      name: 'Energy Tanks',
-      sprite: 'sprite-energy-tank',
-      count: Math.floor((stats.max_health - 99) / 100),
-      collected: stats.max_health > 99
-    },
-    {
-      id: 'missile_tank',
-      name: 'Missiles',
-      sprite: 'sprite-missile',
-      count: `${stats.missiles}/${stats.max_missiles}`,
-      collected: stats.max_missiles > 0
-    },
-    {
-      id: 'super_tank',
-      name: 'Super Missiles', 
-      sprite: 'sprite-super-missile',
-      count: `${stats.supers}/${stats.max_supers}`,
-      collected: stats.max_supers > 0
-    },
-    {
-      id: 'power_bomb_tank',
-      name: 'Power Bombs',
-      sprite: 'sprite-power-bomb', 
-      count: `${stats.power_bombs}/${stats.max_power_bombs}`,
-      collected: stats.max_power_bombs > 0
-    }
-  ];
-
-  return (
-    <div className="tracking-section">
-      <div className="tracking-grid" id="quantityGrid">
-        {quantityItems.map(item => (
-          <div 
-            key={item.id}
-            className={`quantity-tile ${item.collected ? 'obtained' : 'grayed-out'}`}
-            title={item.name}
-          >
-            <span className={`sprite ${item.sprite}`} />
-            <div className="quantity-display">{item.count}</div>
+        {logs.length === 0 && (
+          <div style={{ opacity: 0.5, fontStyle: 'italic' }}>
+            Debug messages will appear here...
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
 };
 
 export const Tracker: React.FC = () => {
-  const { isFullscreen, gameState } = useSuperMetroid();
+  const { isFullscreen } = useSuperMetroid();
 
   return (
     <div className={`tracker ${isFullscreen ? 'fullscreen' : ''}`}>

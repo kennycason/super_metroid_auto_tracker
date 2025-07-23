@@ -7,7 +7,7 @@
   transition: all 0.3s ease;
   background: transparent;
   padding: 0;
-  border: 1px solid transparent;
+  /* border: 1px solid transparent; */
   width: 66px;
   height: 66px;
   display: flex;
@@ -45,9 +45,9 @@
 .boss.boss-defeated {
   opacity: 1;
   filter: none;
-  border-color: #ff0000;
-  background: #330000;
-  box-shadow: 0 0 8px rgba(255, 0, 0, 0.4);
+  /* border-color: #ff0000; */
+  /* background: #330000; */
+  /* box-shadow: 0 0 8px rgba(255, 0, 0, 0.4); */
 }
 
 /* Boss sprite positions (64px spacing) */
