@@ -110,7 +110,7 @@ export const Tracker: React.FC = () => {
           <Timer />
 
           {/* Splits Section - always show */}
-          <Splits />
+          <Splits maxSplitsDisplay={3}/>
           
           {/* Location - hide in minimal mode */}
           {!isMinimal && <Location />}

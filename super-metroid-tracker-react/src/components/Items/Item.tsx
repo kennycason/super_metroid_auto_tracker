@@ -47,7 +47,7 @@ export const Item: React.FC<ItemProps> = ({ config, showCount = false }) => {
 
       morph: 'sprite-morph-ball',
       bombs: 'sprite-bomb',
-      spring_ball: 'sprite-spring-ball',
+      spring: 'sprite-spring-ball',
       hi_jump: 'sprite-hijump',
       varia: 'sprite-varia',
       speed_booster: 'sprite-speed',

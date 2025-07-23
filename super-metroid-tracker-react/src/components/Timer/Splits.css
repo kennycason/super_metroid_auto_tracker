@@ -14,6 +14,13 @@
   text-align: center;
 }
 
+.splits-count {
+  font-size: 12px;
+  font-weight: normal;
+  color: #888888;
+  opacity: 0.8;
+}
+
 .splits-list {
   /* No max-height limit - show all splits */
   display: flex;

@@ -364,14 +364,14 @@ class SuperMetroidGameStateParser:
         
         # Fixed boss detection logic (copied from working unified server)
         phantoon_addr = boss_scan_results.get('boss_plus_3', 0)
-        phantoon_detected = phantoon_addr and (phantoon_addr & 0x01)  # Fixed: removed 0x0300 requirement
+        phantoon_detected = bool(phantoon_addr and (phantoon_addr & 0x01))  # Fixed: removed 0x0300 requirement and ensure boolean
         bosses['phantoon'] = phantoon_detected
         
         # Botwoon detection
         botwoon_addr_1 = boss_scan_results.get('boss_plus_2', 0)
         botwoon_addr_2 = boss_scan_results.get('boss_plus_4', 0)
-        botwoon_detected = ((botwoon_addr_1 & 0x04) and (botwoon_addr_1 > 0x0100)) or \
-                          ((botwoon_addr_2 & 0x02) and (botwoon_addr_2 > 0x0001))
+        botwoon_detected = bool(((botwoon_addr_1 & 0x04) and (botwoon_addr_1 > 0x0100)) or \
+                               ((botwoon_addr_2 & 0x02) and (botwoon_addr_2 > 0x0001)))
         bosses['botwoon'] = botwoon_detected
         
         # Draygon detection - Fixed to detect the 0x0301 pattern
@@ -387,10 +387,25 @@ class SuperMetroidGameStateParser:
                     break
         bosses['draygon'] = draygon_detected
         
-        # Ridley detection - Fixed to check correct memory addresses
+        # Ridley detection - Fixed to avoid false positives from Botwoon/Draygon patterns
         ridley_addr_2 = boss_scan_results.get('boss_plus_2', 0)
         ridley_addr_4 = boss_scan_results.get('boss_plus_4', 0)
-        ridley_detected = ((ridley_addr_2 & 0x0001) != 0) or ((ridley_addr_4 & 0x0001) != 0)
+        
+        # More specific Ridley detection: avoid Botwoon patterns like 0x0003
+        # Ridley should have specific patterns that don't conflict with other bosses
+        ridley_detected = False
+        
+        # Check for specific Ridley patterns while excluding known false positives
+        if ridley_addr_2 & 0x0001:  # Check boss_plus_2 first
+            # Lower threshold but exclude specific false positive patterns
+            # Current Ridley pattern: 0x0107, Draygon false positive: 0x0203
+            if ridley_addr_2 >= 0x0100 and ridley_addr_2 not in [0x0203]:  # Lowered threshold from 0x0201 to 0x0100
+                ridley_detected = True
+        elif ridley_addr_4 & 0x0001:  # Check boss_plus_4 only as fallback
+            # Exclude known Botwoon patterns (0x0003, 0x0007, etc.) and require higher values
+            if ridley_addr_4 >= 0x0011 and ridley_addr_4 not in [0x0003, 0x0007]:
+                ridley_detected = True
+        
         bosses['ridley'] = ridley_detected
         
         # Golden Torizo detection - Fixed threshold to detect 0x0603 pattern
@@ -399,7 +414,7 @@ class SuperMetroidGameStateParser:
         condition1 = ((gt_addr_1 & 0x0700) and (gt_addr_1 & 0x0003) and (gt_addr_1 >= 0x0603))  # Lowered from 0x0703
         condition2 = (gt_addr_2 & 0x0100) and (gt_addr_2 >= 0x0500)
         # Removed condition3 that was triggering on Draygon's 0x0301 pattern
-        golden_torizo_detected = condition1 or condition2
+        golden_torizo_detected = bool(condition1 or condition2)
         bosses['golden_torizo'] = golden_torizo_detected
         
         # Advanced Mother Brain detection using multiple reliable indicators
@@ -560,6 +575,9 @@ class SuperMetroidGameStateParser:
         original_mb1_state = self.mother_brain_phase_state.get('mb1_detected', False)
         original_mb2_state = self.mother_brain_phase_state.get('mb2_detected', False)
         
+        # Initialize variables used across all detection methods
+        golden_torizo_false_positive = False
+        
         logger.info(f"🔄 Original cache state: MB1={original_mb1_state}, MB2={original_mb2_state}")
         
         # ❗️1. CACHE BYPASS - If MB2 is cached, use cached values and skip complex detection
@@ -711,35 +729,38 @@ class SuperMetroidGameStateParser:
                 in_mb_room_context = (area_id in [5, 10] and room_id == 56664)
                 
                 # Context-aware interpretation of memory patterns
+                # CRITICAL: Check for Golden Torizo FALSE POSITIVE first, before any MB detection
                 if mb_progress_val == 0x0703:
-                    if in_mb_room_context:
-                        # If in MB room, it's DEFINITELY MB1 completion (regardless of missile conservation!)
-                        logger.info(f"🤖 MB1 COMPLETION DETECTED: 0x0703 in MB room - MB1 defeated!")
-                        strong_memory_evidence = True
-                    else:
+                    if not in_mb_room_context:
                         # Only if OUTSIDE MB room = Golden Torizo
-                        logger.info(f"🥇 GOLDEN TORIZO DETECTED: 0x0703 outside MB room")
+                        logger.info(f"🥇 GOLDEN TORIZO DETECTED: 0x0703 outside MB context")
                         logger.info(f"🔄 Clearing MB cache due to Golden Torizo false positive")
+                        golden_torizo_false_positive = True
                         strong_memory_evidence = False
                         # Clear any incorrect MB cache immediately
                         mb1_detected = False
                         mb2_detected = False
                         self.mother_brain_phase_state = {'mb1_detected': False, 'mb2_detected': False}
+                    else:
+                        # If in MB room, it's DEFINITELY MB1 completion (regardless of missile conservation!)
+                        logger.info(f"🤖 MB1 COMPLETION DETECTED: 0x0703 in MB room - MB1 defeated!")
+                        strong_memory_evidence = True
                 elif mb_progress_val == 0x0003:
-                    # 🚨 0x0003 CONTEXT-AWARE DETECTION
-                    # 0x0003 can mean different things depending on game state:
-                    # 1. Active MB2 fight (no Hyper Beam) - MB1=True, MB2=False
-                    # 2. Post-game state (has Hyper Beam) - MB1=True, MB2=True
-                    
-                    in_late_game_area = area_id in [2, 4, 5, 10]  # Norfair, Maridia, Tourian areas
-                    no_other_boss_hp = (boss_hp_1_val == 0 and boss_hp_2_val == 0 and boss_hp_3_val == 0)
-                    
-                    # Check for Hyper Beam to distinguish between active fight vs post-game
+                    # 0x0003 detection with context-aware analysis
+                    # Check for late-game context (Norfair/Maridia/Tourian areas)
                     has_hyper_beam = False
                     if location_data and location_data.get('beams', {}).get('hyper', False):
                         has_hyper_beam = True
                     
-                    logger.info(f"🔍 0x0003 ANALYSIS: area={area_id}, late_game={in_late_game_area}, no_boss_hp={no_other_boss_hp}, hyper_beam={has_hyper_beam}")
+                    in_late_game_area = area_id in [2, 4, 5, 10]  # Norfair, Maridia, Tourian areas
+                    no_other_boss_hp = (boss_hp_1_val == 0 and boss_hp_2_val == 0 and boss_hp_3_val == 0)
+                    
+                    logger.info(f"🧠 Smart Inference Debug:")
+                    logger.info(f"   inTourianEscape: {area_id == 5 and room_id != 56664} (area={area_id}, room={room_id})")
+                    logger.info(f"   inCrateriaPostEscape: {area_id == 0}")
+                    logger.info(f"   inAnyEscapeArea: {area_id in [0, 5]}")
+                    logger.info(f"   noBossHP: {no_other_boss_hp}")
+                    logger.info(f"   originalMB1: {original_mb1_state}")
                     
                     if in_late_game_area and no_other_boss_hp:
                         strong_memory_evidence = True
@@ -891,12 +912,20 @@ class SuperMetroidGameStateParser:
                 not seems_like_new_game
             ]
             
-            cache_still_valid = any(cache_supporting_evidence)
+            # 🚨 CRITICAL: If we're back IN the MB room with active HP, CLEAR the cache!
+            # This means the user started a new MB fight and old cache is invalid
+            if in_mb_room and (boss_hp_1_val > 0 or boss_hp_2_val > 0 or boss_hp_3_val > 0):
+                logger.info(f"🔄 IN MB ROOM WITH ACTIVE HP - CLEARING STALE MB2 CACHE")
+                logger.info(f"🔄 HP Values: HP1={boss_hp_1_val}, HP2={boss_hp_2_val}, HP3={boss_hp_3_val}")
+                cache_still_valid = False
+            else:
+                cache_still_valid = any(cache_supporting_evidence)
             
             logger.info(f"🔍 CACHE VALIDATION: hyper_beam={hyper_beam_active}, escape_timer={escape_timer_active}, post_mb_location={in_post_mb_location}, new_game={seems_like_new_game}")
             
             if cache_still_valid:
                 logger.info("✅ MB2 cache VALIDATED - supporting evidence found, keeping cache")
+                logger.info("🐛 DEBUG: Setting final_mb2=True via CACHE VALIDATION path")
                 final_mb2 = True
                 final_mb1 = True  # MB2 implies MB1
             else:
@@ -914,18 +943,10 @@ class SuperMetroidGameStateParser:
             final_mb1 = mb1_detected or current_mb1_cache
         
         # ESCAPE SEQUENCE SPECIAL CASE: If we're outside MB room and have MB1, strongly suggest MB2
-        if not in_mb_room and final_mb1 and not final_mb2:
-            # 🛡️ GOLDEN TORIZO PROTECTION: Check for false positive before escape inference
-            # 0x0703 outside Tourian (area 5) is Golden Torizo, not MB1
-            memory_evidence = 0x0703  # This is the signature causing false positives
-            
-            if mb_progress_val == memory_evidence and area_id != 5:
-                logger.info(f"🥇 GOLDEN TORIZO FALSE POSITIVE BLOCKED: 0x0703 in area {area_id} - not MB1!")
-                # Reset false positive
-                final_mb1 = False
-                self.mother_brain_phase_state['mb1_detected'] = False
-            elif mb_progress_val == 0x0003:
-                # 🛡️ ACTIVE FIGHT PROTECTION: 0x0003 means active MB2 fight, don't infer escape
+        # BUT only if we didn't detect Golden Torizo false positive
+        if not in_mb_room and final_mb1 and not final_mb2 and not golden_torizo_false_positive:
+            # 🛡️ ACTIVE FIGHT PROTECTION: 0x0003 means active MB2 fight, don't infer escape
+            if mb_progress_val == 0x0003:
                 logger.info(f"🎯 ACTIVE FIGHT PROTECTION: 0x0003 detected - not escape sequence, fight in progress!")
                 # Keep current state (MB1=True, MB2=False for active fight)
             else:
@@ -937,8 +958,14 @@ class SuperMetroidGameStateParser:
                 ]
                 if any(escape_indicators):
                     logger.info(f"🚨 ESCAPE SEQUENCE MB2 INFERENCE: MB1={final_mb1} + escape indicators = MB2=True")
+                    logger.info("🐛 DEBUG: Setting final_mb2=True via ESCAPE SEQUENCE path")
                     final_mb2 = True
                     self.mother_brain_phase_state['mb2_detected'] = True
+        elif golden_torizo_false_positive:
+            # Ensure Golden Torizo false positive completely blocks MB detection
+            logger.info(f"🚫 GOLDEN TORIZO PROTECTION: Blocking all MB detection due to false positive")
+            final_mb1 = False
+            final_mb2 = False
         
         # Final boss state assignment
         bosses['mother_brain_1'] = final_mb1
