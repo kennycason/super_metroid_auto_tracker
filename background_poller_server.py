@@ -416,6 +416,8 @@ class CacheServingHTTPHandler(BaseHTTPRequestHandler):
                 self.serve_manual_mb_complete()
             elif self.path == '/api/reset-mb-cache':
                 self.serve_reset_mb_cache()
+            elif self.path == '/api/reset-cache':
+                self.serve_reset_cache()
             elif self.path.endswith('.png'):
                 self.serve_static_file(self.path[1:], 'image/png')
             else:
@@ -496,6 +498,44 @@ class CacheServingHTTPHandler(BaseHTTPRequestHandler):
                 logger.info(f"🔄 MB cache reset via API")
             else:
                 message = 'Parser not available'
+            
+            response = {'message': message}
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', len(json.dumps(response).encode()))
+            self.end_headers()
+            self.wfile.write(json.dumps(response).encode())
+        except Exception as e:
+            error_response = {'error': str(e)}
+            self.send_response(500)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', len(json.dumps(error_response).encode()))
+            self.end_headers()
+            self.wfile.write(json.dumps(error_response).encode())
+    
+    def serve_reset_cache(self):
+        """Reset all caches and force fresh game state read"""
+        try:
+            if hasattr(self.poller, 'parser'):
+                # Reset Mother Brain cache
+                self.poller.parser.mother_brain_phase_state = {
+                    'mb1_detected': False,
+                    'mb2_detected': False
+                }
+                logger.info(f"🔄 MB cache reset via API")
+            
+            # Clear the background poller's cache to force fresh reads
+            if hasattr(self.poller, 'cache_lock') and hasattr(self.poller, 'cache'):
+                with self.poller.cache_lock:
+                    self.poller.cache['game_state'] = {}
+                    logger.info(f"🔄 Background poller cache cleared")
+            
+            # Force bootstrap flag reset so it will re-bootstrap on next read
+            if hasattr(self.poller, 'bootstrap_attempted'):
+                self.poller.bootstrap_attempted = False
+                logger.info(f"🔄 Bootstrap flag reset - will re-bootstrap on next poll")
+            
+            message = 'All caches reset - fresh game state will be read on next poll'
             
             response = {'message': message}
             self.send_response(200)

@@ -156,6 +156,60 @@ class SuperMetroidGameStateParser:
             
         return location
     
+    def _should_reset_item_state(self, location_data: Optional[Dict[str, Any]] = None, health: int = 0, 
+                                missiles: int = 0, max_missiles: int = 0) -> bool:
+        """
+        Detect if item state should be reset due to new game, save state load, or game restart.
+        This prevents old item states from persisting when they shouldn't.
+        CONSERVATIVE: Only reset in very specific scenarios to avoid interfering with active gameplay.
+        """
+        if not location_data:
+            return False
+            
+        area_id = location_data.get('area_id', 0)
+        room_id = location_data.get('room_id', 0)
+        
+        # Reset scenarios - MUCH MORE CONSERVATIVE:
+        
+        # 1. Intro scene (very specific early game indicators)
+        in_starting_area = (area_id == 0)  # Crateria
+        has_starting_health = (health <= 99)  # Starting health or lower
+        in_intro_rooms = (room_id < 1000 or room_id == 0)  # Very early room IDs or invalid data
+        intro_scene = (in_starting_area and has_starting_health and in_intro_rooms)
+        
+        # 2. Save state contradiction: In boss rooms with impossible states
+        # Mother Brain room with depleted resources (likely save state to beginning after completing game)
+        in_mb_room = (area_id == 5 and room_id == 56664)
+        depleted_resources = (missiles == 0 and max_missiles > 100)  # No missiles but high capacity
+        low_health_post_fight = (health < 200 and health > 0)  # Low health suggesting post-fight
+        mb_room_contradiction = in_mb_room and depleted_resources and low_health_post_fight
+        
+        # 3. EXTREMELY CONSERVATIVE new game detection - only if we're SURE it's a new game
+        absolutely_new_game = (
+            health <= 99 and         # Starting health
+            max_missiles == 0 and    # NO missile capacity at all (true new game)
+            missiles == 0 and        # No missiles
+            area_id == 0 and         # In Crateria
+            room_id < 40000          # Early room (not end-game ship area)
+        )
+        
+        # 4. Zero progress indicator (health=0 means disconnected/invalid state)
+        zero_progress = (health == 0 and missiles == 0 and max_missiles == 0)
+        
+        # REMOVED: early_area_reset - too aggressive for active gameplay
+        
+        should_reset = intro_scene or mb_room_contradiction or absolutely_new_game or zero_progress
+        
+        if should_reset:
+            reset_reason = ("intro scene" if intro_scene else
+                          "MB room contradiction" if mb_room_contradiction else
+                          "absolutely new game" if absolutely_new_game else
+                          "zero progress" if zero_progress else
+                          "unknown")
+            logger.info(f"🔄 ITEM STATE RESET: {reset_reason} detected - Area:{area_id}, Room:{room_id}, Health:{health}, Missiles:{missiles}/{max_missiles}")
+        
+        return should_reset
+
     def parse_items(self, items_data: bytes, location_data: Optional[Dict[str, Any]] = None, health: int = 0) -> Dict[str, bool]:
         """Parse item collection status"""
         if not items_data or len(items_data) < 2:
@@ -163,11 +217,15 @@ class SuperMetroidGameStateParser:
             
         items_value = struct.unpack('<H', items_data)[0]
         
-        # Check if we're in intro scene - if so, filter all items to False
-        is_intro = self._is_intro_scene(location_data, health)
+        # Get additional context for reset detection
+        missiles = location_data.get('missiles', 0) if location_data else 0
+        max_missiles = location_data.get('max_missiles', 0) if location_data else 0
         
-        if is_intro:
-            # During intro: all items should show as not collected
+        # Check if we should reset item state
+        should_reset = self._should_reset_item_state(location_data, health, missiles, max_missiles)
+        
+        if should_reset:
+            # Reset all items to False (not collected)
             return {
                 "morph": False,
                 "bombs": False,
@@ -182,7 +240,7 @@ class SuperMetroidGameStateParser:
                 "grapple": False
             }
         
-        # Normal parsing when not in intro
+        # Normal parsing when no reset needed
         return {
             "morph": bool(items_value & 0x0004),
             "bombs": bool(items_value & 0x1000),
@@ -207,48 +265,52 @@ class SuperMetroidGameStateParser:
         # Always log raw beam value for debugging
         logger.info(f"🔍 Raw beam value: 0x{beams_value:04X} ({beams_value})")
         
-        beams = {
-            "charge": bool(beams_value & 0x1000),
-            "ice": bool(beams_value & 0x0002),
-            "wave": bool(beams_value & 0x0001),
-            "spazer": bool(beams_value & 0x0004),
-            "plasma": bool(beams_value & 0x0008)
-        }
+        # Get additional context for reset detection
+        missiles = location_data.get('missiles', 0) if location_data else 0
+        max_missiles = location_data.get('max_missiles', 0) if location_data else 0
         
-        # HYPER BEAM DETECTION - Test multiple bit positions
-        # Hyper beam is only given after MB1 is defeated, making it a perfect indicator
-        hyper_beam_bits = [0x0010, 0x0020, 0x0040, 0x0080, 0x0100, 0x0200, 0x0400, 0x0800]
-        hyper_detected = False
+        # Check if we should reset beam state (same logic as items)
+        should_reset = self._should_reset_item_state(location_data, health, missiles, max_missiles)
         
-        for bit in hyper_beam_bits:
-            if beams_value & bit:
-                hyper_detected = True
-                logger.info(f"🌟 HYPER BEAM detected at bit position 0x{bit:04X} (value: 0x{beams_value:04X})")
-                break
-        
-        # If not detected with common bits, check if any unknown bits are set
-        known_bits = 0x1000 | 0x0002 | 0x0001 | 0x0004 | 0x0008  # charge, ice, wave, spazer, plasma
-        unknown_bits = beams_value & ~known_bits
-        if unknown_bits and not hyper_detected:
-            logger.info(f"🔍 Unknown beam bits detected: 0x{unknown_bits:04X} - could be hyper beam")
-            # Try treating any unknown bit as hyper beam
-            hyper_detected = True
-        
-        beams["hyper"] = hyper_detected
-        
-        # Check if we're in intro scene - if so, filter beams (but allow charge beam)
-        is_intro = self._is_intro_scene(location_data, health)
-        
-        if is_intro:
-            # During intro: only allow charge beam (player starts with it), filter others
-            beams = {
-                "charge": beams["charge"],  # Keep charge beam as-is
+        if should_reset:
+            # Reset all beams to starting state (NO beams - everything must be collected)
+            logger.info(f"🔄 BEAM STATE RESET: Resetting to starting state (no beams)")
+            return {
+                "charge": False,  # Charge beam must be collected
                 "ice": False,
                 "wave": False,
                 "spazer": False,
                 "plasma": False,
                 "hyper": False
             }
+        
+        # HYPER BEAM DETECTION FIRST - Check for context clues that indicate hyper beam state
+        has_hyper_beam = False
+        has_plasma_beam = bool(beams_value & 0x0008)
+        
+        # Context clues that suggest hyper beam (post-MB2 state)
+        has_endgame_beam_combo = bool(beams_value & 0x1000) and bool(beams_value & 0x0002) and bool(beams_value & 0x0001) and bool(beams_value & 0x0004)  # charge+ice+wave+spazer
+        
+        # If we have the endgame beam combo + plasma bit, it's likely hyper beam (since hyper replaces plasma)
+        if has_endgame_beam_combo and has_plasma_beam:
+            # Additional context check: are we post-MB2?
+            area_id = location_data.get('area_id', 0) if location_data else 0
+            room_id = location_data.get('room_id', 0) if location_data else 0
+            in_escape_areas = area_id in [0, 2, 4, 5] or room_id in [37368, 38586, 56999]  # Post-escape areas
+            
+            if in_escape_areas:
+                logger.info(f"🌟 HYPER BEAM detected: endgame beam combo + plasma bit in post-MB2 context (area={area_id}, room={room_id})")
+                has_hyper_beam = True
+                has_plasma_beam = False  # Hyper replaces plasma
+        
+        beams = {
+            "charge": bool(beams_value & 0x1000),
+            "ice": bool(beams_value & 0x0002),
+            "wave": bool(beams_value & 0x0001),
+            "spazer": bool(beams_value & 0x0004),
+            "plasma": has_plasma_beam,
+            "hyper": has_hyper_beam
+        }
         
         # Log final beam analysis
         logger.info(f"🔍 Beam analysis: charge={beams['charge']}, ice={beams['ice']}, wave={beams['wave']}, spazer={beams['spazer']}, plasma={beams['plasma']}, hyper={beams['hyper']}")
@@ -646,64 +708,60 @@ class SuperMetroidGameStateParser:
                 mb1_detected = True  # MB2 completion implies MB1 completion  
                 mb2_detected = True
         
-            # 4. LIVE BOSS HP ANALYSIS (when in MB room with HP data)
+            # 4. LIVE BOSS HP ANALYSIS (when in MB room with HP data) - PHASE-AWARE VERSION
             elif in_mb_room and (boss_hp_1_val > 0 or boss_hp_2_val > 0 or boss_hp_3_val > 0):
                 detection_method = "live_hp_analysis"
                 max_hp = max(boss_hp_1_val, boss_hp_2_val, boss_hp_3_val)
                 current_hp = boss_hp_3_val if boss_hp_3_val > 0 else max_hp
                 
                 logger.info(f"🩸 LIVE HP Analysis - Current: {current_hp}")
+                logger.info(f"🩸 HP Breakdown - HP1: {boss_hp_1_val}, HP2: {boss_hp_2_val}, HP3: {boss_hp_3_val}")
                 
-                # MUCH MORE CONSERVATIVE RESET LOGIC
-                # Only reset if we're clearly at the very beginning (original pre-fight HP ~41,760)
-                is_genuine_reset = (current_hp >= 40000 and current_hp <= 42000)  # Very narrow range
+                # CRITICAL: Always check memory patterns FIRST, even with active HP
+                mb_progress_val = boss_scan_results.get('boss_plus_1', 0)
+                mb_progress_2_val = boss_scan_results.get('boss_plus_2', 0)
+                
+                # Check for MB completion signatures
+                has_mb1_completion_signature = mb_progress_val in [0x0703, 0x0107] or mb_progress_2_val >= 0x0100
+                has_mb2_completion_signature = mb_progress_val == 0x0003 and mb_progress_2_val == 0x0000
+                
+                logger.info(f"🧠 Memory Signatures - boss_plus_1: 0x{mb_progress_val:04X}, boss_plus_2: 0x{mb_progress_2_val:04X}")
+                logger.info(f"🧠 Completion Signatures - MB1: {has_mb1_completion_signature}, MB2: {has_mb2_completion_signature}")
+                
+                # RESET CHECK: Only reset if we're clearly at the very beginning 
+                is_genuine_reset = (current_hp >= 40000 and current_hp <= 42000 and not has_mb1_completion_signature)
                 
                 if is_genuine_reset:
-                    # This is clearly a save state reload or new attempt
                     logger.info(f"🔄 GENUINE RESET: Original pre-fight HP ({current_hp}) - clearing cache")
                     mb1_detected = False
                     mb2_detected = False
                     self.mother_brain_phase_state = {'mb1_detected': False, 'mb2_detected': False}
-                elif current_hp <= 15000:
-                    # HP is low enough to indicate MB1 progression
-                    logger.info(f"🩸 MB1 active/complete: Current HP {current_hp} <= 15000")
+                elif has_mb2_completion_signature:
+                    # Memory shows both phases complete
+                    logger.info(f"🏆 MEMORY OVERRIDE: MB2 completion signature detected during HP analysis")
                     mb1_detected = True
-                    mb2_detected = (current_hp < 5000) or original_mb2_state  # Preserve MB2 if already detected
-                else:
-                    # HP is higher but not in reset range - BUT check for memory signature overrides first
-                    
-                    # 🚨 MEMORY SIGNATURE OVERRIDE: Check for 0x0003 even during HP analysis
-                    mb_progress_val = boss_scan_results.get('boss_plus_1', 0)
-                    area_id = location_data.get('area_id', 0) if location_data else 0
-                    
-                    # Check for 0x0003 signature indicating post-game state
-                    if mb_progress_val == 0x0003:
-                        # Check for Hyper Beam to distinguish between active fight vs post-game
-                        has_hyper_beam = False
-                        if location_data and location_data.get('beams', {}).get('hyper', False):
-                            has_hyper_beam = True
-                        
-                        in_late_game_area = area_id in [2, 4, 5, 10]  # Norfair, Maridia, Tourian areas
-                        
-                        logger.info(f"🔍 LIVE HP + 0x0003 ANALYSIS: HP={current_hp}, area={area_id}, hyper_beam={has_hyper_beam}")
-                        
-                        if in_late_game_area and has_hyper_beam:
-                            # POST-GAME STATE: Override HP analysis with memory signature
-                            logger.info(f"🏆 MEMORY OVERRIDE: 0x0003 + Hyper Beam = POST-GAME STATE (HP analysis ignored)")
-                            mb1_detected = True
-                            mb2_detected = True
-                            self.mother_brain_phase_state['mb1_detected'] = True
-                            self.mother_brain_phase_state['mb2_detected'] = True
-                        else:
-                            # No override, use cache
-                            logger.info(f"🔒 PRESERVING CACHE: HP {current_hp} not in reset range, keeping MB1={original_mb1_state}, MB2={original_mb2_state}")
-                            mb1_detected = original_mb1_state
-                            mb2_detected = original_mb2_state
+                    mb2_detected = True
+                elif has_mb1_completion_signature:
+                    # Memory shows MB1 complete - determine MB2 state by HP and patterns
+                    logger.info(f"🎯 PHASE TRANSITION: MB1 completion signature detected during HP analysis")
+                    mb1_detected = True
+                    # MB2 detection: active if HP2 > 0 or HP3 > 0 (fighting MB2), complete if signatures show it
+                    if boss_hp_2_val > 0 or boss_hp_3_val > 0:
+                        logger.info(f"🩸 MB2 ACTIVE: HP2={boss_hp_2_val}, HP3={boss_hp_3_val} - fighting MB2 phase")
+                        mb2_detected = False  # Still fighting MB2
                     else:
-                        # No memory signature override, preserve cache state  
-                        logger.info(f"🔒 PRESERVING CACHE: HP {current_hp} not in reset range, keeping MB1={original_mb1_state}, MB2={original_mb2_state}")
-                        mb1_detected = original_mb1_state
-                        mb2_detected = original_mb2_state
+                        logger.info(f"🩸 MB2 STATUS: Checking completion based on patterns")
+                        mb2_detected = original_mb2_state  # Preserve existing MB2 state
+                elif current_hp <= 15000:
+                    # HP is low - likely in MB1 progression
+                    logger.info(f"🩸 MB1 PROGRESSION: Current HP {current_hp} <= 15000")
+                    mb1_detected = True
+                    mb2_detected = (current_hp < 5000) or original_mb2_state
+                else:
+                    # Higher HP without clear completion signatures - likely initial fight
+                    logger.info(f"🩸 INITIAL FIGHT: Higher HP without completion signatures")
+                    mb1_detected = False
+                    mb2_detected = False
         
             # 5. SMART FALLBACK (outside MB room - rely heavily on cache)
             else:
@@ -966,6 +1024,54 @@ class SuperMetroidGameStateParser:
             logger.info(f"🚫 GOLDEN TORIZO PROTECTION: Blocking all MB detection due to false positive")
             final_mb1 = False
             final_mb2 = False
+        
+        # 🚀 POST-MB2 OVERRIDE - FINAL SAFETY NET (only outside MB room)
+        # If location data indicates post-MB2 state, MB2 MUST be True regardless of any other logic
+        logger.info(f"🔍 POST-MB2 OVERRIDE: Starting check...")
+        try:
+            # CRITICAL: Only apply this override OUTSIDE the MB room!
+            # If you're IN the MB room, you're fighting - don't override based on beam loadout
+            area_id = location_data.get('area_id', 0) if location_data else 0
+            room_id = location_data.get('room_id', 0) if location_data else 0
+            in_mb_room = (area_id == 5 and room_id == 56664)
+            
+            if in_mb_room:
+                logger.info(f"🔍 POST-MB2 OVERRIDE: IN MB ROOM (area={area_id}, room={room_id}) - skipping beam loadout check")
+            else:
+                # Check if location_data has beam information that indicates post-MB2 state
+                has_endgame_beams = False
+                
+                if location_data:
+                    # Check if we have the full beam loadout that indicates post-MB2 completion
+                    beams = location_data.get('beams', {})
+                    if isinstance(beams, dict):
+                        # Full endgame loadout: charge + ice + wave + spazer + plasma 
+                        endgame_beams = ['charge', 'ice', 'wave', 'spazer', 'plasma']
+                        has_all_beams = all(beams.get(beam, False) for beam in endgame_beams)
+                        
+                        # Also check for hyper beam specifically
+                        has_hyper = beams.get('hyper', False)
+                        
+                        logger.info(f"🔍 Beam loadout check: all_beams={has_all_beams}, hyper={has_hyper}")
+                        logger.info(f"🔍 Individual beams: {beams}")
+                        
+                        # If we have hyper beam OR the full loadout, assume post-MB2
+                        if has_hyper or has_all_beams:
+                            has_endgame_beams = True
+                            logger.info(f"🚀 POST-MB2 OVERRIDE: Endgame beam loadout detected - FORCING MB1=True, MB2=True")
+                            final_mb1 = True
+                            final_mb2 = True
+                            self.mother_brain_phase_state['mb1_detected'] = True
+                            self.mother_brain_phase_state['mb2_detected'] = True
+                
+                # REMOVED DANGEROUS FALLBACK: 0x0703 pattern can appear on new save files
+                # ONLY trust the beam loadout check above - no memory pattern fallbacks
+            
+            if not has_endgame_beams:
+                logger.info(f"🔍 No post-MB2 indicators found")
+                
+        except Exception as e:
+            logger.warning(f"Error in post-MB2 override: {e}")
         
         # Final boss state assignment
         bosses['mother_brain_1'] = final_mb1
@@ -1258,12 +1364,16 @@ class SuperMetroidGameStateParser:
             # Basic stats (with intro scene detection)
             stats_data = memory_data.get('basic_stats')
             if stats_data:
-                game_state.update(self.parse_basic_stats(stats_data, location_data))
+                basic_stats = self.parse_basic_stats(stats_data, location_data)
+                game_state.update(basic_stats)
+                # Add missile info to location_data for item/beam reset detection
+                location_data['missiles'] = basic_stats.get('missiles', 0)
+                location_data['max_missiles'] = basic_stats.get('max_missiles', 0)
             
             # Optional: reset if new game or file load
             self.maybe_reset_mb_state(location_data, stats_data)
             
-            # Items and beams
+            # Items and beams (now with enhanced reset detection)
             game_state['items'] = self.parse_items(memory_data.get('items'), location_data, game_state.get('health', 0))
             game_state['beams'] = self.parse_beams(memory_data.get('beams'), location_data, game_state.get('health', 0))
             
