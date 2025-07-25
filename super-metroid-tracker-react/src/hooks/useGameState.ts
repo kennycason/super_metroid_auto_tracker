@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { GameState } from '../types/gameState';
 
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL = 'http://localhost:8081'; // CONSISTENT PORT - no more hopping!
 const POLL_INTERVAL = 1000; // 1 second
 
 const initialGameState: GameState = {
@@ -120,25 +120,25 @@ export const useGameState = () => {
       if (response.ok) {
         const data = await response.json();
         
-        // Transform the backend data to match our GameState interface
+        // Transform the Kotlin server data to match our GameState interface
         setGameState(prev => ({
           stats: {
             health: data.stats?.health || 99,
-            max_health: data.stats?.max_health || 99,
+            max_health: data.stats?.maxHealth || 99,
             missiles: data.stats?.missiles || 0,
-            max_missiles: data.stats?.max_missiles || 0,
+            max_missiles: data.stats?.maxMissiles || 0,
             supers: data.stats?.supers || 0,
-            max_supers: data.stats?.max_supers || 0,
-            power_bombs: data.stats?.power_bombs || 0,
-            max_power_bombs: data.stats?.max_power_bombs || 0,
-            room_id: data.stats?.room_id || 0,
-            area_id: data.stats?.area_id || 0,
-            area_name: data.stats?.area_name || 'Crateria',
-            game_state: data.stats?.game_state || 0,
-            player_x: data.stats?.player_x || 0,
-            player_y: data.stats?.player_y || 0,
-            max_reserve_energy: data.stats?.max_reserve_energy || 0,
-            reserve_energy: data.stats?.reserve_energy || 0,
+            max_supers: data.stats?.maxSupers || 0,
+            power_bombs: data.stats?.powerBombs || 0,
+            max_power_bombs: data.stats?.maxPowerBombs || 0,
+            room_id: data.stats?.roomId || 0,
+            area_id: data.stats?.areaId || 0,
+            area_name: data.stats?.areaName || 'Crateria',
+            game_state: data.stats?.gameState || 0,
+            player_x: data.stats?.playerX || 0,
+            player_y: data.stats?.playerY || 0,
+            max_reserve_energy: data.stats?.maxReserveEnergy || 0,
+            reserve_energy: data.stats?.reserveEnergy || 0,
             items: {
               morph: data.stats?.items?.morph || false,
               bombs: data.stats?.items?.bombs || false,
@@ -146,7 +146,7 @@ export const useGameState = () => {
               gravity: data.stats?.items?.gravity || false,
               hijump: data.stats?.items?.hijump || false,
               speed: data.stats?.items?.speed || false,
-              space: data.stats?.items?.space || false,
+              space: data.stats?.items?.spacejump || false,
               screw: data.stats?.items?.screw || false,
               grapple: data.stats?.items?.grapple || false,
               xray: data.stats?.items?.xray || false,
@@ -182,7 +182,7 @@ export const useGameState = () => {
             gravity: data.stats?.items?.gravity || false,
             hi_jump: data.stats?.items?.hijump || false,
             speed_booster: data.stats?.items?.speed || false,
-            space_jump: data.stats?.items?.space || false,
+            space_jump: data.stats?.items?.spacejump || false,
             screw_attack: data.stats?.items?.screw || false,
             grapple: data.stats?.items?.grapple || false,
             x_ray: data.stats?.items?.xray || false,
@@ -210,16 +210,16 @@ export const useGameState = () => {
             mb2: data.stats?.bosses?.mother_brain_2 || false,
           },
           location: {
-            area_id: data.stats?.area_id || 0,
-            room_id: data.stats?.room_id || 0,
-            area_name: data.stats?.area_name || 'Crateria',
+            area_id: data.stats?.areaId || 0,
+            room_id: data.stats?.roomId || 0,
+            area_name: data.stats?.areaName || 'Crateria',
             room_name: data.stats?.room_name || 'Unknown',
-            player_x: data.stats?.player_x || 0,
-            player_y: data.stats?.player_y || 0,
+            player_x: data.stats?.playerX || 0,
+            player_y: data.stats?.playerY || 0,
           },
           splits: prev.splits, // Keep existing splits state - backend doesn't provide this yet
           timer: prev.timer, // Keep existing timer state
-          connected: true,
+          connected: data.connected || false,
           lastUpdate: Date.now(),
         }));
       } else {

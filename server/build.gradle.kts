@@ -22,9 +22,7 @@ kotlin {
 
     nativeTarget.apply {
         binaries {
-            executable {
-                entryPoint = "com.supermetroid.main"
-            }
+            executable()
         }
     }
     

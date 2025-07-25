@@ -1,0 +1,92 @@
+🎮 Starting Super Metroid Tracker (Kotlin Native)
+Port: 8082, Poll Interval: 1000ms
+🎭 Mock UDP: Mode changed to STATIC
+🎭 Mock UDP: Static state set to Norfair
+Background poller started with 1000ms interval
+📡 Starting background polling loop...
+🚀 Background Polling Super Metroid Tracker Server
+==================================================
+📱 Tracker UI: http://localhost:8082/
+📊 API Status: http://localhost:8082/api/status
+📈 API Stats:  http://localhost:8082/api/stats
+⚡ Background polling: 1000ms intervals
+🎯 Architecture: Background UDP + Instant Cache Serving
+⏹️  Press Ctrl+C to stop
+==================================================
+🔧 BOOTSTRAP: Post-game state detected, setting MB1+MB2 complete
+✅ Poll #1 completed in 1ms
+[INFO] (ktor.application): Application started in 0.002 seconds.
+[INFO] (ktor.application): Responding at http://0.0.0.0:8082
+✅ Poll #2 completed in 0ms
+✅ Poll #3 completed in 1ms
+✅ Poll #4 completed in 0ms
+✅ Poll #5 completed in 0ms
+✅ Poll #20 completed in 0ms
+✅ Poll #40 completed in 1ms
+✅ Poll #60 completed in 1ms
+✅ Poll #80 completed in 1ms
+✅ Poll #100 completed in 1ms
+✅ Poll #120 completed in 1ms
+✅ Poll #140 completed in 1ms
+✅ Poll #160 completed in 1ms
+✅ Poll #180 completed in 1ms
+✅ Poll #200 completed in 0ms
+✅ Poll #220 completed in 1ms
+✅ Poll #240 completed in 1ms
+✅ Poll #260 completed in 2ms
+✅ Poll #280 completed in 1ms
+✅ Poll #300 completed in 0ms
+✅ Poll #320 completed in 1ms
+✅ Poll #340 completed in 1ms
+✅ Poll #360 completed in 1ms
+✅ Poll #380 completed in 1ms
+✅ Poll #400 completed in 2ms
+✅ Poll #420 completed in 1ms
+✅ Poll #440 completed in 1ms
+✅ Poll #460 completed in 1ms
+✅ Poll #480 completed in 1ms
+✅ Poll #500 completed in 2ms
+✅ Poll #520 completed in 3ms
+✅ Poll #540 completed in 1ms
+✅ Poll #560 completed in 2ms
+✅ Poll #580 completed in 0ms
+✅ Poll #600 completed in 0ms
+✅ Poll #620 completed in 1ms
+✅ Poll #640 completed in 1ms
+✅ Poll #660 completed in 1ms
+✅ Poll #680 completed in 1ms
+✅ Poll #700 completed in 1ms
+✅ Poll #720 completed in 0ms
+✅ Poll #740 completed in 1ms
+✅ Poll #760 completed in 1ms
+✅ Poll #780 completed in 2ms
+✅ Poll #800 completed in 1ms
+✅ Poll #820 completed in 0ms
+✅ Poll #840 completed in 0ms
+✅ Poll #860 completed in 2ms
+✅ Poll #880 completed in 1ms
+✅ Poll #900 completed in 1ms
+✅ Poll #920 completed in 1ms
+✅ Poll #940 completed in 1ms
+✅ Poll #960 completed in 1ms
+✅ Poll #980 completed in 1ms
+✅ Poll #1000 completed in 2ms
+✅ Poll #1020 completed in 0ms
+✅ Poll #1040 completed in 1ms
+✅ Poll #1060 completed in 0ms
+✅ Poll #1080 completed in 0ms
+✅ Poll #1100 completed in 1ms
+✅ Poll #1120 completed in 1ms
+✅ Poll #1140 completed in 1ms
+✅ Poll #1160 completed in 1ms
+✅ Poll #1180 completed in 1ms
+✅ Poll #1200 completed in 3ms
+✅ Poll #1220 completed in 1ms
+✅ Poll #1240 completed in 1ms
+✅ Poll #1260 completed in 0ms
+✅ Poll #1280 completed in 1ms
+✅ Poll #1300 completed in 0ms
+✅ Poll #1320 completed in 0ms
+✅ Poll #1340 completed in 1ms
+
+🛑 Shutdown requested
