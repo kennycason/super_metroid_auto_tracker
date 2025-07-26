@@ -50,7 +50,7 @@ class MockRetroArchUDPClient(
             // Beams - exact match
             "charge" to true, "ice" to true, "wave" to true, "spazer" to false,
             "plasma" to false, "hyper" to false,
-            // Bosses - exact match
+            // Bosses - FIXED to match python_server_reference.json exactly
             "bomb_torizo" to true, "kraid" to false, "spore_spawn" to true,
             "draygon" to false, "mother_brain" to true, "crocomire" to true,
             "phantoon" to false, "botwoon" to false, "ridley" to false,
@@ -137,6 +137,7 @@ class MockRetroArchUDPClient(
             0x7E09A4 -> generateItemsData(currentState) // Items
             0x7E09A8 -> generateBeamsData(currentState) // Beams
             0x7ED828 -> generateBossData(currentState) // Main bosses
+            0x7ED82C -> generateCrocomireData(currentState) // Crocomire (separate address)
             else -> "00".repeat(size) // Default empty data
         }
         
@@ -219,22 +220,37 @@ class MockRetroArchUDPClient(
     }
     
     private fun generateBossData(state: Map<String, Any>): String {
-        // Create boss bitfield to match Python reference exactly
-        // Python target: bomb_torizo=true, spore_spawn=true, mother_brain=true, crocomire=true
-        var bossBits = 0u
+        // Generate MAIN BOSSES data to match Python parser logic exactly
+        // Python: 'bomb_torizo': bool(bosses_value & 0x04) = bit 2
+        // Python: 'kraid': bool(bosses_value & 0x100) = bit 8  
+        // Python: 'spore_spawn': bool(bosses_value & 0x200) = bit 9
+        // Python: 'draygon': bool(bosses_value & 0x1000) = bit 12
+        // Python: 'mother_brain': bool(bosses_value & 0x01) = bit 0
         
-        if (state["kraid"] == true) bossBits = bossBits or 0x01u
-        if (state["phantoon"] == true) bossBits = bossBits or 0x02u
-        if (state["draygon"] == true) bossBits = bossBits or 0x04u
-        if (state["ridley"] == true) bossBits = bossBits or 0x08u
-        if (state["spore_spawn"] == true) bossBits = bossBits or 0x02u
-        if (state["crocomire"] == true) bossBits = bossBits or 0x01u
-        if (state["bomb_torizo"] == true) bossBits = bossBits or 0x04u
+        var mainBossBits = 0u
+        
+        if (state["bomb_torizo"] == true) mainBossBits = mainBossBits or 0x04u     // bit 2
+        if (state["kraid"] == true) mainBossBits = mainBossBits or 0x100u          // bit 8
+        if (state["spore_spawn"] == true) mainBossBits = mainBossBits or 0x200u    // bit 9
+        if (state["draygon"] == true) mainBossBits = mainBossBits or 0x1000u       // bit 12
+        if (state["mother_brain"] == true) mainBossBits = mainBossBits or 0x01u    // bit 0
         
         // Convert to little-endian hex
-        val lowByte = (bossBits and 0xFFu).toInt()
-        val highByte = ((bossBits shr 8) and 0xFFu).toInt()
+        val lowByte = (mainBossBits and 0xFFu).toInt()
+        val highByte = ((mainBossBits shr 8) and 0xFFu).toInt()
         return "${lowByte.toString(16).padStart(2, '0')}${highByte.toString(16).padStart(2, '0')}"
+    }
+    
+    private fun generateCrocomireData(state: Map<String, Any>): String {
+        // Crocomire has separate memory address and logic
+        // Python: 'crocomire': bool(crocomire_value & 0x02) and (crocomire_value >= 0x0202)
+        
+        if (state["crocomire"] == true) {
+            // Generate 0x0202 value: has bit 1 set AND >= 0x0202
+            return "0202"  // Little-endian: 02 02
+        } else {
+            return "0000"  // Not defeated
+        }
     }
     
     private fun generateRoomIdData(state: Map<String, Any>): String {

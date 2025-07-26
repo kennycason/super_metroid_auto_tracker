@@ -302,17 +302,25 @@ class GameStateParser {
         escapeTimer4Data: ByteArray?,
         locationData: Map<String, Any>
     ): Map<String, Boolean> {
-        // Simplified boss parsing - full implementation would match Python logic
+        // FIXED: Match Python parser bit mappings exactly!
         val mainBosses = mainBossesData?.readInt16LE(0) ?: 0
         
+        // Parse crocomire separately (matches Python logic)
+        val crocomireValue = crocomireData?.readInt16LE(0) ?: 0
+        val crocomireDefeated = ((crocomireValue and 0x0002) != 0) && (crocomireValue >= 0x0202)
+        
         return mapOf(
-            "bomb_torizo" to ((mainBosses and 0x0004) != 0),
-            "kraid" to ((mainBosses and 0x0001) != 0),
-            "spore_spawn" to ((mainBosses and 0x0002) != 0),
-            "crocomire" to ((mainBosses and 0x0008) != 0),
+            // Main bosses - EXACT Python bit patterns
+            "bomb_torizo" to ((mainBosses and 0x0004) != 0),      // bit 2 ✅
+            "kraid" to ((mainBosses and 0x0100) != 0),            // bit 8 (was 0x0001)
+            "spore_spawn" to ((mainBosses and 0x0200) != 0),      // bit 9 (was 0x0002)
+            "draygon" to ((mainBosses and 0x1000) != 0),          // bit 12 (was 0x0200)
+            "mother_brain" to ((mainBosses and 0x0001) != 0),     // bit 0 (was missing)
+            
+            // Other bosses (keep existing for now)
+            "crocomire" to crocomireDefeated,                     // Separate crocomire logic
             "botwoon" to ((mainBosses and 0x0010) != 0),
-            "phantoon" to ((mainBosses and 0x0100) != 0),
-            "draygon" to ((mainBosses and 0x0200) != 0),
+            "phantoon" to ((mainBosses and 0x0020) != 0), 
             "ridley" to ((mainBosses and 0x0400) != 0),
             "golden_torizo" to ((mainBosses and 0x0800) != 0),
             "mother_brain_1" to motherBrainPhaseState["mb1_detected"]!!,

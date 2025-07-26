@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { GameState } from '../types/gameState';
 
-const BACKEND_URL = 'http://localhost:8081'; // CONSISTENT PORT - no more hopping!
+const BACKEND_URL = 'http://localhost:8085'; // Updated to working server!
 const POLL_INTERVAL = 1000; // 1 second
 
 const initialGameState: GameState = {
