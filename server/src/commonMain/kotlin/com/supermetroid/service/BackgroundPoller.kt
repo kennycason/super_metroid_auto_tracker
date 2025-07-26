@@ -121,7 +121,7 @@ class BackgroundPoller(
                 
                 // Boss memory (multiple addresses for advanced detection)
                 "main_bosses" to udpClient.readMemoryRange(0x7ED828, 2),
-                "crocomire" to udpClient.readMemoryRange(0x7ED829, 2),
+                "crocomire" to udpClient.readMemoryRange(0x7ED82C, 2), // FIXED: Correct crocomire address!
                 "boss_plus_1" to udpClient.readMemoryRange(0x7ED829, 2),
                 "boss_plus_2" to udpClient.readMemoryRange(0x7ED82A, 2),
                 "boss_plus_3" to udpClient.readMemoryRange(0x7ED82B, 2),
