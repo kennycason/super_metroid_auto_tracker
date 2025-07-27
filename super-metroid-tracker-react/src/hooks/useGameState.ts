@@ -278,6 +278,17 @@ export const useGameState = () => {
     setLastTrackedBosses({});
   }, []);
 
+  const adjustTimer = useCallback((adjustment: number) => {
+    setGameState(prev => ({
+      ...prev,
+      timer: {
+        ...prev.timer,
+        elapsed: Math.max(0, prev.timer.elapsed + adjustment),
+        startTime: prev.timer.running ? Date.now() - (prev.timer.elapsed + adjustment) : prev.timer.startTime,
+      },
+    }));
+  }, []);
+
   // Effect for polling
   useEffect(() => {
     if (!isPolling) return;
@@ -399,6 +410,7 @@ export const useGameState = () => {
     startTimer,
     stopTimer,
     resetTimer,
+    adjustTimer,
     fetchGameState,
   };
 }; 

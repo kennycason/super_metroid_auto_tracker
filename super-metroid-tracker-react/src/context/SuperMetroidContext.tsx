@@ -14,6 +14,7 @@ interface SuperMetroidContextType {
   startTimer: () => void;
   stopTimer: () => void;
   resetTimer: () => void;
+  adjustTimer: (adjustment: number) => void;
   
   // Polling controls
   startPolling: () => void;
@@ -54,11 +55,12 @@ export const SuperMetroidProvider: React.FC<SuperMetroidProviderProps> = ({ chil
   // Utility function to format time in MM:SS.mmm format
   const formatTime = (ms: number): string => {
     const totalSeconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
-    const milliseconds = Math.floor((ms % 1000) / 10); // Show only 2 decimal places
+    const milliseconds = ms % 1000;
     
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`;
+    return `${hours}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}s`;
   };
 
   // Check if an item is collected based on the game state
@@ -127,6 +129,7 @@ export const SuperMetroidProvider: React.FC<SuperMetroidProviderProps> = ({ chil
     startTimer: gameStateHook.startTimer,
     stopTimer: gameStateHook.stopTimer,
     resetTimer: gameStateHook.resetTimer,
+    adjustTimer: gameStateHook.adjustTimer,
     
     // Polling controls
     startPolling: gameStateHook.startPolling,
@@ -140,6 +143,12 @@ export const SuperMetroidProvider: React.FC<SuperMetroidProviderProps> = ({ chil
     // UI state
     isMinimal,     // Changed from isFullscreen
     setIsMinimal,  // Changed from setIsFullscreen
+    
+    // Audio controls (stub implementations)
+    playBossTrack: () => {},
+    stopAudio: () => {},
+    currentTrack: null,
+    isPlaying: false,
     
     // Utility functions
     formatTime,

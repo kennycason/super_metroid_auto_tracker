@@ -61,6 +61,57 @@
   margin-top: 8px;
 }
 
+/* Timer adjustment buttons */
+.timer-adjustments {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(0, 255, 0, 0.2);
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.adjustment-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-direction: column;
+}
+
+.adjustment-label {
+  font-size: 10px;
+  color: #00ff00;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.adjustment-btn {
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: bold;
+  background: #001100;
+  color: #00cc00;
+  border: 1px solid #00cc00;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 32px;
+  margin: 1px;
+}
+
+.adjustment-btn:hover {
+  background: #003300;
+  box-shadow: 0 0 3px #00cc00;
+  transform: translateY(-1px);
+}
+
+.adjustment-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 0 1px #00cc00;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .timer-display {
@@ -71,5 +122,17 @@
   .timer-btn {
     padding: 6px 12px;
     font-size: 11px;
+  }
+  
+  .timer-adjustments {
+    gap: 15px;
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+  
+  .adjustment-btn {
+    padding: 3px 6px;
+    font-size: 9px;
+    min-width: 28px;
   }
 } 
