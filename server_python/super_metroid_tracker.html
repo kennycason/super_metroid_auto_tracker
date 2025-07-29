@@ -1,0 +1,1697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Metroid Live Tracker</title>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: #000; 
+            color: #00ff00; 
+            /* margin: 20px;  */
+        }
+        .container { max-width: 600px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 1px; }
+        .header h1 { font-size: 20px; margin: 5px 0; }
+        .status-row { 
+            display: flex; 
+            align-items: center; 
+            justify-content: flex-start; /* Changed from center to left-align */
+            gap: 10px; /* Reduced gap */
+            margin: 5px 0;
+        }
+        .status { 
+            padding: 8px; 
+            margin: 5px 0; 
+            border: 1px solid #00ff00; 
+            border-radius: 5px; 
+            text-align: center;
+        }
+        .connected { background-color: #001100; }
+        .disconnected { background-color: #110000; color: #ff0000; }
+        .game-info { 
+            text-align: center; 
+            margin: 8px 0; 
+            padding: 8px; 
+            border: 1px solid #00ff00; 
+            border-radius: 5px;
+            background: #001a00;
+        }
+        button { 
+            background: #003300; 
+            color: #00ff00; 
+            border: 1px solid #00ff00; 
+            padding: 8px 12px; 
+            margin: 5px; 
+            border-radius: 3px; 
+            cursor: pointer;
+        }
+        button:hover { background: #005500; }
+        .location { font-size: 14px; margin: 0; }
+        .error { color: #ff0000; }
+        
+        /* Item/Boss Grid Styles */
+        .tracking-grid { 
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0px; 
+            margin: 8px 0; 
+            padding: 0px;
+            /* border: 1px solid #00ff00; */
+            border-radius: 5px;
+            /* background: #001a00; */
+            align-items: flex-start;
+        }
+        .tracking-section { margin: 0px 0; }
+        .green-border {
+            border-color: #00ff00;
+            background: #003300;
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+            opacity: 1;
+            filter: grayscale(0%);
+        }
+        .red-border {
+            border-color: #ff0000;
+            background: #330000;
+            box-shadow: 0 0 8px rgba(255, 0, 0, 0.4);
+            opacity: 1;
+            filter: grayscale(0%);
+        }
+        
+        /* Direct 64x64 Sprite System - no wrapper needed */
+        .sprite {
+            display: inline-block;
+            width: 64px;
+            height: 64px;
+            background-image: url('item_sprites.png');
+            background-repeat: no-repeat;
+            /* Scale the background image 4x: 128x128 -> 512x512 */
+            background-size: 512px 512px;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            vertical-align: middle;
+            /* margin-right: 4px; */
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
+        
+        /* SPRITE SHEET COORDINATE MAPPING
+         * 16x16 tiles, using first tile of each 32x16 item
+         * Row 0: Morph ball, Bomb, Energy tank, Energy Tank V2
+         * Row 1: Missile, Super missile, Power bomb, Reserve tanks
+         * Row 2: Hi jump, Speed booster, Grappling beam, X-ray scope  
+         * Row 3: Spring ball, Space jump, Screw attack, Charge beam
+         * Row 4: Spazer beam, Wave beam, Ice beam, Plasma beam
+         * Row 5: Varia suit
+         */
+        
+        /* === ROW 0 (y=0px) === */
+        .sprite-morph-ball {
+            background-position: 0px 0px; /* Row 0, Col 0 */
+        }
+        
+        .sprite-bomb {
+            background-position: -128px 0px; /* Row 0, Col 1 (32px * 4) */
+        }
+        
+        .sprite-energy-tank {
+            background-position: -256px 0px; /* Row 0, Col 2 (64px * 4) */
+        }
+        
+        /* === ROW 1 (y=-64px) === */
+        .sprite-missile {
+            background-position: 0px -64px; /* Row 1, Col 0 (16px * 4) */
+        }
+        
+        .sprite-super-missile {
+            background-position: -128px -64px; /* Row 1, Col 1 */
+        }
+        
+        .sprite-power-bomb {
+            background-position: -256px -64px; /* Row 1, Col 2 */
+        }
+        
+        .sprite-reserve-tank {
+            background-position: -384px -64px; /* Row 1, Col 3 (96px * 4) */
+        }
+        
+        /* === ROW 2 (y=-128px) === */
+        .sprite-hijump {
+            background-position: 0px -128px; /* Row 2, Col 0 (32px * 4) */
+        }
+        
+        .sprite-speed {
+            background-position: -128px -128px; /* Row 2, Col 1 */
+        }
+        
+        .sprite-grapple {
+            background-position: -256px -128px; /* Row 2, Col 2 */
+        }
+        
+        .sprite-xray {
+            background-position: -384px -128px; /* Row 2, Col 3 */
+        }
+        
+        /* === ROW 3 (y=-192px) === */
+        .sprite-spring {
+            background-position: 0px -192px; /* Row 3, Col 0 (48px * 4) */
+        }
+        
+        .sprite-space {
+            background-position: -128px -192px; /* Row 3, Col 1 */
+        }
+        
+        .sprite-screw {
+            background-position: -256px -192px; /* Row 3, Col 2 */
+        }
+        
+        .sprite-charge-beam {
+            background-position: -384px -192px; /* Row 3, Col 3 */
+        }
+        
+        /* === ROW 4 (y=-256px) === */
+        .sprite-spazer {
+            background-position: 0px -256px; /* Row 4, Col 0 (64px * 4) */
+        }
+        
+        .sprite-wave {
+            background-position: -128px -256px; /* Row 4, Col 1 */
+        }
+        
+        .sprite-ice {
+            background-position: -256px -256px; /* Row 4, Col 2 */
+        }
+        
+        .sprite-plasma {
+            background-position: -384px -256px; /* Row 4, Col 3 */
+        }
+        
+        /* === ROW 5 (y=-320px) === */
+        .sprite-varia {
+            background-position: 0px -320px; /* Row 5, Col 0 (80px * 4) */
+        }
+        
+        .sprite-gravity {
+            background-position: -128px -320px; /* Row 5, Col 1 (32px * 4) */
+        }
+
+
+        /* === QUANTITY TILE STYLING === */
+        .quantity-tile {
+            position: relative;
+            display: inline-block;
+            /* margin-right: 8px; */
+            text-align: center;
+            /* border: 1px solid #00ff00; */
+            border-radius: 5px;
+            /* background: #001a00; */
+            padding: 1px;
+        }
+
+        .quantity-display {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 1px 2px;
+            border-radius: 2px;
+            line-height: 1;
+            min-width: 16px;
+        }
+
+        /* Grayed out styling for uncollected items */
+        .quantity-tile.grayed-out {
+            opacity: 0.4;
+            filter: grayscale(100%);
+        }
+
+        .quantity-tile.grayed-out .quantity-display {
+            color: #666;
+        }
+
+        /* === BOSS SPRITES (64x64 pixels, single row) === */
+        .boss-sprite {
+            display: inline-block;
+            width: 64px;
+            height: 64px;
+            background-image: url('boss_sprites.png');
+            background-repeat: no-repeat;
+            /* Full size 64x64 display */
+            background-size: 768px 64px; /* 12 sprites × 64px each = 768px (was 704px for 11 sprites) */
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            vertical-align: middle;
+            /* margin-right: 4px; */
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
+
+        /* Boss sprite positions (64px spacing) */
+        .boss-sprite-b-torizo {
+            background-position: 0px 0px; /* Col 0 */
+        }
+
+        .boss-sprite-spore-spawn {
+            background-position: -64px 0px; /* Col 1 */
+        }
+
+        .boss-sprite-kraid {
+            background-position: -128px 0px; /* Col 2 */
+        }
+
+        .boss-sprite-crocomire {
+            background-position: -192px 0px; /* Col 3 */
+        }
+
+        .boss-sprite-phantoon {
+            background-position: -256px 0px; /* Col 4 */
+        }
+
+        .boss-sprite-botwoon {
+            background-position: -320px 0px; /* Col 5 */
+        }
+
+        .boss-sprite-draygon {
+            background-position: -384px 0px; /* Col 6 */
+        }
+
+        .boss-sprite-golden-torizo {
+            background-position: -448px 0px; /* Col 7 */
+        }
+
+        .boss-sprite-ridley {
+            background-position: -512px 0px; /* Col 8 */
+        }
+
+        .boss-sprite-mother-brain-1 {
+            background-position: -576px 0px; /* Col 9 - MB1 */
+        }
+
+        .boss-sprite-mother-brain-2 {
+            background-position: -640px 0px; /* Col 10 - MB2 */
+        }
+
+        .boss-sprite-samus-ship {
+            background-position: -704px 0px; /* Col 11 - Samus Ship */
+        }
+
+        .section-title { 
+            font-size: 18px; 
+            margin-bottom: 10px; 
+            text-align: center;
+            color: #00ff00;
+            text-transform: uppercase;
+        }
+        .item-tile, .quantity-tile { 
+            width: 66px; 
+            height: 66px; 
+            border: 1px solid transparent; 
+            border-radius: 5px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 24px; 
+            background: transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+            box-sizing: border-box;
+            /* margin-bottom: 18px; */
+        }
+        
+        .grayed-out {
+            opacity: 0.4; /* Grayed out when no items */
+            filter: grayscale(100%);
+        }
+        .item-tile.obtained, .quantity-tile.obtained { 
+            /* border-color: #00ff00; 
+            background: #003300; 
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.4); */
+            opacity: 1;
+            filter: grayscale(0%);
+        }
+        .item-tile.boss-defeated, .quantity-tile.boss-defeated { 
+            /* border-color: #ff0000; 
+            background: #330000; 
+            box-shadow: 0 0 8px rgba(255, 0, 0, 0.4); */
+            opacity: 1;
+            filter: grayscale(0%);
+        }
+        
+        /* Quantity display styling */
+        .quantity-display {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            font-size: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            padding: 1px 3px;
+            border-radius: 2px;
+            min-width: 16px;
+            text-align: center;
+        }
+        .item-name { 
+            display: none;
+            position: absolute; 
+            bottom: -16px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            font-size: 9px; 
+            opacity: 0.7;
+            white-space: nowrap;
+            text-align: center;
+            min-width: 55px;
+            color: #00ff00;
+        }
+        
+        /* Expand button - standardized with other buttons */
+        .expand-btn {
+            background: #003300; 
+            color: #00ff00; 
+            border: 1px solid #00ff00; 
+            border-radius: 3px; 
+            cursor: pointer;
+            padding: 8px 12px; /* Same as standard buttons */
+            margin: 5px;       /* Same as standard buttons */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;   /* Consistent font size */
+            min-width: 44px;   /* Minimum width for square-ish look with icon */
+            transition: background 0.3s ease;
+        }
+        .expand-btn:hover { background: #005500; }
+        
+        /* Debug buttons - same styling as standard buttons */
+        .debug-btn {
+            background: #003300; 
+            color: #00ff00; 
+            border: 1px solid #00ff00; 
+            padding: 8px 12px; /* Same as standard buttons */
+            margin: 5px;       /* Same as standard buttons */
+            border-radius: 3px; 
+            cursor: pointer;
+            font-size: 14px;   /* Same as standard buttons */
+        }
+        .debug-btn:hover { background: #005500; }
+        
+        /* Fullscreen mode styles */
+        .fullscreen-mode {
+
+        }
+        
+        .fullscreen-mode .container {
+            max-width: none;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .fullscreen-mode .controls-section,
+        .fullscreen-mode .debug-section {
+            display: none; /* Hide controls and debug in fullscreen */
+        }
+        
+        .fullscreen-mode .tracking-grid {
+        }
+
+        /* Timer Section Styles */
+        .timer-section {
+            text-align: center;
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #003300;
+            border-radius: 5px;
+            background: rgba(0, 51, 0, 0.1);
+        }
+
+        .timer-display {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffffff;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .timer-btn {
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: bold;
+            background: #003300;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .timer-btn:hover:not(:disabled) {
+            background: #005500;
+            box-shadow: 0 0 5px #00ff00;
+        }
+
+        .timer-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Splits Section Styles */
+        .splits-section {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #003300;
+            border-radius: 5px;
+            background: rgba(0, 51, 0, 0.05);
+        }
+
+        .splits-header {
+            font-size: 14px;
+            font-weight: bold;
+            color: #00ff00;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .splits-list {
+            /* Removed max-height and overflow-y to show all splits */
+        }
+
+        .split-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            margin: 2px 0;
+            font-size: 14px;
+            color: #ffffff;
+            background: rgba(0, 51, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        .split-item:hover {
+            background: rgba(0, 85, 0, 0.3);
+        }
+
+        .split-event {
+            font-weight: bold;
+        }
+
+        .split-time {
+            font-family: 'Courier New', monospace;
+            color: #00ff00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Controls Section (hidden in fullscreen) -->
+        <div class="controls-section">
+            <div class="status-row">
+                <button class="expand-btn" id="expandBtn" onclick="toggleFullscreen()" title="Toggle Fullscreen">⛶</button>
+                <button id="toggleBtn" onclick="toggleConnection()">CONNECT</button>
+                <div id="status" class="status disconnected">DISCONNECTED</div>
+            </div>
+        </div>
+
+        <!-- Speedrun Timer Section -->
+        <div class="timer-section">
+            <div class="timer-display" id="timerDisplay">0h00m00s000ms</div>
+            <div class="timer-controls">
+                <button onclick="startGame()" class="timer-btn" id="startBtn">START GAME</button>
+                <button onclick="pauseResumeTimer()" class="timer-btn" id="pauseBtn" disabled>PAUSE</button>
+                <button onclick="resetTimer()" class="timer-btn" id="resetBtn">RESET</button>
+            </div>
+        </div>
+
+        <!-- Quantity Items Section -->
+        <div class="tracking-section">
+            <div class="tracking-grid" id="quantityGrid">
+                <div class="quantity-tile grayed-out" data-item="energy-tank" title="Energy Tanks">
+                    <span class="sprite sprite-energy-tank"></span>
+                    <div class="quantity-display" id="energyTankCount">0</div>
+                </div>
+                <div class="quantity-tile grayed-out" data-item="reserve-tank" title="Reserve Tanks">
+                    <span class="sprite sprite-reserve-tank"></span>
+                    <div class="quantity-display" id="reserveTankCount">0</div>
+                </div>
+                <div class="quantity-tile grayed-out" data-item="missile" title="Missiles">
+                    <span class="sprite sprite-missile"></span>
+                    <div class="quantity-display" id="missileCount">0/0</div>
+                </div>
+                <div class="quantity-tile grayed-out" data-item="super-missile" title="Super Missiles">
+                    <span class="sprite sprite-super-missile"></span>
+                    <div class="quantity-display" id="superMissileCount">0/0</div>
+                </div>
+                <div class="quantity-tile grayed-out" data-item="power-bomb" title="Power Bombs">
+                    <span class="sprite sprite-power-bomb"></span>
+                    <div class="quantity-display" id="powerBombCount">0/0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Item Tracking Grid -->
+        <div class="tracking-section">
+            <!-- <div class="section-title">🔧 Equipment & Items</div> -->
+            <div class="tracking-grid" id="itemsGrid">
+                <div class="item-tile grayed-out" data-item="morph" title="Morph Ball"><span class="sprite sprite-morph-ball"></span><div class="item-name">Morph</div></div>
+                <div class="item-tile grayed-out" data-item="bombs" title="Bombs"><span class="sprite sprite-bomb"></span><div class="item-name">Bombs</div></div>
+                <div class="item-tile grayed-out" data-item="charge" title="Charge Beam"><span class="sprite sprite-charge-beam"></span><div class="item-name">Charge</div></div>
+                <div class="item-tile grayed-out" data-item="spazer" title="Spazer Beam"><span class="sprite sprite-spazer"></span><div class="item-name">Spazer</div></div>
+                <div class="item-tile grayed-out" data-item="varia" title="Varia Suit"><span class="sprite sprite-varia"></span><div class="item-name">Varia</div></div>
+                <div class="item-tile grayed-out" data-item="hijump" title="Hi-Jump Boots"><span class="sprite sprite-hijump"></span><div class="item-name">HiJump</div></div>
+                <div class="item-tile grayed-out" data-item="speed" title="Speed Booster"><span class="sprite sprite-speed"></span><div class="item-name">Speed</div></div>
+                <div class="item-tile grayed-out" data-item="wave" title="Wave Beam"><span class="sprite sprite-wave"></span><div class="item-name">Wave</div></div>
+                <div class="item-tile grayed-out" data-item="ice" title="Ice Beam"><span class="sprite sprite-ice"></span><div class="item-name">Ice</div></div>
+                <div class="item-tile grayed-out" data-item="grapple" title="Grappling Beam"><span class="sprite sprite-grapple"></span><div class="item-name">Grapple</div></div>
+                <div class="item-tile grayed-out" data-item="xray" title="X-Ray Scope"><span class="sprite sprite-xray"></span><div class="item-name">X-Ray</div></div>
+                <div class="item-tile grayed-out" data-item="plasma" title="Plasma Beam"><span class="sprite sprite-plasma"></span><div class="item-name">Plasma</div></div>
+                <div class="item-tile grayed-out" data-item="gravity" title="Gravity Suit"><span class="sprite sprite-gravity"></span><div class="item-name">Gravity</div></div>
+                <div class="item-tile grayed-out" data-item="space" title="Space Jump"><span class="sprite sprite-space"></span><div class="item-name">Space</div></div>
+                <div class="item-tile grayed-out" data-item="spring" title="Spring Ball"><span class="sprite sprite-spring"></span><div class="item-name">Spring</div></div>
+                <div class="item-tile grayed-out" data-item="screw" title="Screw Attack"><span class="sprite sprite-screw"></span><div class="item-name">Screw</div></div>
+            </div>
+        </div>
+
+        <!-- Boss Tracking Grid -->
+        <div class="tracking-section">
+            <!-- <div class="section-title">👹 Boss Battles</div> -->
+            <div class="tracking-grid" id="bossGrid">
+                <div class="item-tile grayed-out" data-boss="bomb_torizo" title="Bomb Torizo"><span class="boss-sprite boss-sprite-b-torizo"></span><div class="item-name">B.Torizo</div></div>
+                <div class="item-tile grayed-out" data-boss="spore_spawn" title="Spore Spawn"><span class="boss-sprite boss-sprite-spore-spawn"></span><div class="item-name">Spore</div></div>
+                <div class="item-tile grayed-out" data-boss="kraid" title="Kraid"><span class="boss-sprite boss-sprite-kraid"></span><div class="item-name">Kraid</div></div>
+                <div class="item-tile grayed-out" data-boss="crocomire" title="Crocomire"><span class="boss-sprite boss-sprite-crocomire"></span><div class="item-name">Crocomire</div></div>
+                <div class="item-tile grayed-out" data-boss="phantoon" title="Phantoon"><span class="boss-sprite boss-sprite-phantoon"></span><div class="item-name">Phantoon</div></div>
+                <div class="item-tile grayed-out" data-boss="botwoon" title="Botwoon"><span class="boss-sprite boss-sprite-botwoon"></span><div class="item-name">Botwoon</div></div>
+                <div class="item-tile grayed-out" data-boss="draygon" title="Draygon"><span class="boss-sprite boss-sprite-draygon"></span><div class="item-name">Draygon</div></div>
+                <div class="item-tile grayed-out" data-boss="golden_torizo" title="Golden Torizo"><span class="boss-sprite boss-sprite-golden-torizo"></span><div class="item-name">G.Torizo</div></div>
+                <div class="item-tile grayed-out" data-boss="ridley" title="Ridley"><span class="boss-sprite boss-sprite-ridley"></span><div class="item-name">Ridley</div></div>
+                <div class="item-tile grayed-out" data-boss="mother_brain_1" title="Mother Brain Phase 1"><span class="boss-sprite boss-sprite-mother-brain-1"></span><div class="item-name">MB1</div></div>
+                <div class="item-tile grayed-out" data-boss="mother_brain_2" title="Mother Brain Phase 2"><span class="boss-sprite boss-sprite-mother-brain-2"></span><div class="item-name">MB2</div></div>
+                <div class="item-tile grayed-out" data-boss="samus_ship" title="Samus Ship - Game Complete!"><span class="boss-sprite boss-sprite-samus-ship"></span><div class="item-name">Ship</div></div>
+            </div>
+        </div>
+
+        <!-- Splits Section -->
+        <div class="splits-section" id="splitsSection" style="display:none;">
+            <div class="splits-header">Splits</div>
+            <div class="splits-list" id="splitsList">
+                <!-- Splits will be populated here -->
+            </div>
+        </div>
+
+        <div class="game-info" id="gameInfo" style="display:none;">
+            <div class="location">
+                <span id="location">Crateria</span> 
+                <span id="roomInfo"></span>
+            </div>
+        </div>
+
+        <!-- Debug Section (hidden in fullscreen) -->
+        <div class="debug-section">
+            <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                <!-- <span style="color: #00ff00; font-size: 14px;">🔍 Debug</span> -->
+                <div>
+                                        <button onclick="copyLogs(event)" class="debug-btn">📋 Copy</button>
+                    <button onclick="clearLogs()" class="debug-btn">🗑️ Clear</button>
+                </div>
+            </div>
+            <div id="debug" style="font-size: 12px; opacity: 0.7; max-height: 200px; overflow-y: auto; border: 1px solid #003300; padding: 8px;"></div>
+        </div>
+    </div>
+
+    <script>
+        let isConnected = false;
+        let updateInterval = null;
+        let isAttached = false;
+        let isFullscreen = false; // Track fullscreen state
+        let reconnectTimer = null;
+        let reconnectDelay = 5000; // Start with 5 seconds
+        const maxReconnectDelay = 60000; // Max 1 minute
+        let autoReconnectEnabled = true;
+
+        // Timer variables
+        let timerRunning = false;
+        let timerPaused = false;
+        let timerStartTime = 0;
+        let timerPausedTime = 0;
+        let timerAccumulatedTime = 0;
+        let timerInterval = null;
+        let splits = [];
+        let lastTrackedItems = {};
+        let lastTrackedBosses = {};
+
+        // Super Metroid memory addresses
+        const MEMORY_ADDRESSES = {
+            health: "7E09C2",
+            maxHealth: "7E09C4", 
+            missiles: "7E09C6",
+            maxMissiles: "7E09C8",
+            supers: "7E09CA",
+            maxSupers: "7E09CC",
+            powerBombs: "7E09CE",
+            maxPowerBombs: "7E09D0",
+            gameState: "7E0998",
+            roomID: "7E079B",
+            areaID: "7E079F",
+            // Item bitflags
+            itemsCollected: "7E09A4",  // Collected items bitfield
+            beamsCollected: "7E09A8",  // Beam weapons bitfield  
+            bossesDefeated: "7ED828",  // Bosses defeated bitfield
+        };
+
+        const AREAS = {
+            0: "Crateria",
+            1: "Brinstar", 
+            2: "Norfair",
+            3: "Wrecked Ship",
+            4: "Maridia",
+            5: "Tourian"
+        };
+
+        // Super Metroid Room ID to Name Mapping (Speedrunner-friendly names)
+        const ROOM_NAMES = {
+            // === CRATERIA (Area 0) ===
+            31224: "Landing Site",
+            31240: "Gauntlet Entrance", 
+            31256: "Parlor and Alcatraz",
+            31272: "Crateria Power Bomb Room",
+            31288: "Crateria Save Station",
+            31304: "West Ocean",
+            31320: "Bowling Alley Path",
+            31336: "Crateria Kihunter Room",
+            31352: "Forgotten Highway Kago Room",
+            31368: "Crab Maze",
+            31384: "Forgotten Highway Elevator",
+            31400: "Crateria Tube",
+            31416: "The Moat",
+            31432: "Red Brinstar Elevator Room",
+            31448: "Gauntlet Energy Tank Room",
+            31464: "Bomb Torizo Room",
+            31480: "Flyway",
+            31496: "Pre-Map Flyway",
+            31512: "Terminator Room",
+            31528: "Green Pirates Shaft",
+            37368: "Landing Site (Ship)",
+            
+            // === BRINSTAR (Area 1) ===
+            32824: "Green Brinstar Elevator Room",
+            32840: "Green Brinstar Main Shaft",
+            32856: "Spore Spawn Keyhunter Room", 
+            32872: "Brinstar Pre-Map Room",
+            32888: "Green Brinstar Map Room",
+            32904: "Green Hill Zone",
+            32920: "Noob Bridge",
+            32936: "Green Brinstar Beetom Room",
+            32952: "Etecoon Energy Tank Room",
+            32968: "Etecoon Super Room",
+            32984: "Dachora Room",
+            33000: "Big Pink",
+            33016: "Pink Brinstar Power Bomb Room",
+            33032: "Green Brinstar Missile Room",
+            33048: "Construction Zone",
+            33064: "Blue Brinstar Energy Tank Room",
+            33080: "First Missile Room",
+            33096: "Pink Brinstar Hop Room",
+            33112: "Hopper Energy Tank Room",
+            33128: "Big Pink Save Room",
+            33144: "Spore Spawn Room",
+            33160: "Spore Spawn Farming Room",
+            33176: "Kraid Eye Door Room", 
+            33192: "Kraid Room",
+            33208: "Varia Suit Room",
+            33224: "Warehouse Entrance",
+            33240: "Varia Suit Hallway",
+            33256: "Kraid Recharge Station",
+            33272: "Statues Hallway",
+            33288: "Spazer Room",
+            33304: "Kraid Save Room",
+            
+            // === NORFAIR (Area 2) ===
+            34328: "Business Center",
+            34344: "Norfair Elevator Room",
+            34360: "Warehouse Zeela Room",
+            34376: "Frog Speedway",
+            34392: "Red Brinstar Fireflea Room",
+            34408: "X-Ray Scope Room",
+            34424: "Red Brinstar Alpha Power Bomb Room",
+            34440: "Alpha Power Bomb Hallway",
+            34456: "Bat Room",
+            34472: "Below Spazer",
+            34488: "Spazer Hallway",
+            34504: "Hi-Jump Energy Tank Room",
+            34520: "Hi-Jump Room",
+            34536: "Hi-Jump Boots Hall",
+            34552: "Cathedral",
+            34568: "Cathedral Entrance",
+            34584: "Business Center Save Room",
+            34600: "Bubble Mountain",
+            34616: "Speed Booster Escape",
+            34632: "Speed Booster Hall",
+            34648: "Speed Booster Room",
+            34664: "Single Chamber",
+            34680: "Double Chamber",
+            34696: "Wave Beam Room",
+            34712: "Spiky Platforms Tunnel",
+            34728: "Volcano Room",
+            34744: "Kronic Boost Room",
+            34760: "Magdollite Tunnel",
+            34776: "Purple Shaft",
+            34792: "Lava Dive Room",
+            34808: "Upper Norfair Farming Room",
+            34824: "Rising Tide",
+            34840: "Acid Snakes Tunnel",
+            34856: "Spiky Acid Snakes Tunnel",
+            34872: "Croc Room",
+            34888: "Crocomire Speedway",
+            34904: "Crocomire's Room",
+            34920: "Post Crocomire Farming Room",
+            34936: "Post Crocomire Save Room",
+            34952: "Post Crocomire Power Bomb Room",
+            34968: "Post Crocomire Shaft",
+            34984: "Post Crocomire Missile Room",
+            35000: "Grapple Tutorial Room 1",
+            35016: "Grapple Tutorial Room 2",
+            35032: "Grapple Tutorial Room 3",
+            35048: "Grapple Beam Room",
+            35064: "Norfair Reserve Tank Room",
+            35080: "Green Bubbles Missile Room",
+            35096: "Bubble Mountain Save Room",
+            35112: "Frog Savestation",
+            35128: "Red Pirate Shaft",
+            35144: "Acid Statue Room",
+            35160: "Main Hall",
+            35176: "Golden Torizo's Room",
+            35192: "Fast Ripper Room",
+            35208: "Ridley ETank Room",
+            35224: "Screw Attack Room",
+            35240: "Lower Norfair Fireflea Room",
+            35256: "Red Kihunter Shaft",
+            35272: "Wasteland",
+            35288: "Metal Pirates Room",
+            35304: "Plowerhouse Room",
+            35320: "Lower Norfair Spring Ball Maze",
+            35336: "Lower Norfair Escape Power Bomb Room",
+            35352: "Red Kihunter Shaft Save Room",
+            35368: "Three Muskateers Room",
+            35384: "Ridley Room",
+            35400: "Lower Norfair Farming Room",
+            35416: "Fast Pillars Setup Room",
+            35432: "Mickey Mouse Room",
+            35448: "Pillar Room",
+            35464: "The Worst Room In The Game",
+            35480: "Amphitheatre",
+            35496: "Lower Norfair Spring Ball Room",
+            35512: "Lower Norfair Escape Room",
+            
+            // === WRECKED SHIP (Area 3) ===
+            36352: "Wrecked Ship Entrance",
+            36368: "Attic",
+            36384: "Wrecked Ship East Missile Room", 
+            36400: "Wrecked Ship Main Shaft",
+            36416: "Wrecked Ship Energy Tank Room",
+            36432: "Basement",
+            36448: "Wrecked Ship Map Room",
+            36464: "Phantoon's Room",
+            36480: "Wrecked Ship Save Room",
+            36496: "Gravity Suit Room",
+            36512: "Wrecked Ship West Super Room",
+            36528: "Bowling Alley",
+            36544: "Electric Death Room",
+            36560: "Assembly Line",
+            36576: "Wrecked Ship Robot Room",
+            36592: "Spiky Death Room",
+            
+            // === MARIDIA (Area 4) ===
+            37376: "Glass Tunnel",
+            37392: "Glass Tunnel Save Room",
+            37408: "West Tunnel",
+            37424: "East Tunnel",
+            37440: "Main Street",
+            37456: "Fish Tank",
+            37472: "Mama Turtle Room",
+            37488: "Crab Tunnel",
+            37504: "Mt. Everest",
+            37520: "Red Fish Room",
+            37536: "Watering Hole",
+            37552: "Northwest Maridia Bug Room", 
+            37568: "Crab Shaft",
+            37584: "Pseudo Plasma Spark Room",
+            37600: "Crab Hole",
+            37616: "West Sand Hole",
+            37632: "East Sand Hole",
+            37648: "West Sand Hall",
+            37664: "Aqueduct",
+            37680: "Butterfly Room",
+            37696: "Botwoon Hallway",
+            37712: "Pants Room",
+            37728: "East Sand Hall",
+            37744: "West Aqueduct Quicksand Room",
+            37760: "East Aqueduct Quicksand Room",
+            37776: "Aqueduct Save Room",
+            37792: "West Aqueduct Entrance",
+            37808: "East Aqueduct Entrance", 
+            37824: "Plasma Beach Quicksand Room",
+            37840: "Botwoon Energy Tank Room",
+            37856: "Colosseum",
+            37872: "Precious Room",
+            37888: "Botwoon's Room",
+            37904: "Space Jump Room",
+            37920: "Maridia Missile Room",
+            37936: "Pink Maridia Power Bomb Room",
+            37952: "Plasma Room",
+            37968: "Plasma Tutorial",
+            37984: "Toilet Bowl",
+            38000: "Bug Sand Hole",
+            38016: "West Quicksand Entry",
+            38032: "East Quicksand Entry",
+            38048: "Maridia Map Room",
+            38064: "Forgotten Highway Save Room",
+            38080: "Maridia Save Room",
+            38096: "Watering Hole Save Room",
+            38112: "Northwest Maridia Save Room",
+            38128: "West Maridia Save Room",
+            38144: "East Maridia Save Room",
+            38160: "Draygon Save Room",
+            38176: "Draygon's Room",
+            
+            // === TOURIAN (Area 5) ===
+            56632: "Tourian Elevator Room",
+            56648: "Metroid Room 1",
+            56664: "Mother Brain Room", 
+            56680: "Metroid Room 2",
+            56696: "Metroid Room 3",
+            56712: "Metroid Room 4",
+            56728: "Blue Hopper Room",
+            56744: "Dust Torizo Room",
+            56760: "Big Boy Room",
+            56776: "Seaweed Room",
+            56792: "Tourian Recharge Room",
+            56808: "Metroid Room 5",
+            56824: "Tourian Save Room",
+            56840: "Tourian Escape Room 1",
+            56856: "Tourian Escape Room 2", 
+            56872: "Tourian Escape Room 3",
+            56888: "Tourian Escape Room 4",
+            56904: "Upper Tourian Save Room", // to confirm
+            57115: "Save Room of No Return", // custom name, get real name
+            
+            // === CERES STATION ===
+            57344: "Ceres Elevator Room",
+            57360: "Ceres Jump Tutorial Room",
+            57376: "Ceres Staircase Room",
+            57392: "Ceres Dead Scientists Room",
+            57408: "Ceres Last Corridor",
+            57424: "Ceres Ridley Room"
+        };
+
+        // Item bit mappings (itemsCollected address)
+        const ITEM_BITS = {
+            morph: 0x04,     // Morph Ball
+            bombs: 0x08,     // Bombs  
+            varia: 0x01,     // Varia Suit
+            gravity: 0x20,   // Gravity Suit
+            hijump: 0x100,   // Hi-Jump Boots
+            speed: 0x200,    // Speed Booster
+            space: 0x02,     // Space Jump
+            screw: 0x08,     // Screw Attack (different address)
+            spring: 0x02,    // Spring Ball
+            grapple: 0x40,   // Grappling Beam
+            xray: 0x8000     // X-Ray Scope
+        };
+
+        // Beam bit mappings (beamsCollected address)  
+        const BEAM_BITS = {
+            charge: 0x1000,  // Charge Beam
+            ice: 0x02,       // Ice Beam
+            wave: 0x01,      // Wave Beam
+            spazer: 0x04,    // Spazer Beam
+            plasma: 0x08     // Plasma Beam
+        };
+
+        // Boss bit mappings (bossesDefeated address)
+        const BOSS_BITS = {
+            bomb_torizo: 0x04,      // Bomb Torizo
+            spore_spawn: 0x02,      // Spore Spawn  
+            kraid: 0x01,            // Kraid
+            crocomire: 0x02,        // Crocomire (different byte)
+            phantoon: 0x01,         // Phantoon (different byte)
+            botwoon: 0x04,          // Botwoon (different byte)
+            draygon: 0x04,          // Draygon
+            ridley: 0x01,           // Ridley
+            gold_torizo: 0x04,      // Golden Torizo
+            mother_brain_1: 0x02,   // Mother Brain Phase 1
+            mother_brain_2: 0x08    // Mother Brain Phase 2
+        };
+
+        function getRoomName(roomId) {
+            // Return speedrunner-friendly room name if known, otherwise return room ID
+            return ROOM_NAMES[roomId] || `Room ${roomId}`;
+        }
+
+        function log(message) {
+            const debugDiv = document.getElementById('debug');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            // Check if user is scrolled to bottom before adding message
+            const wasAtBottom = debugDiv.scrollTop >= (debugDiv.scrollHeight - debugDiv.clientHeight - 5);
+            
+            debugDiv.innerHTML += `[${timestamp}] ${message}<br>`;
+            
+            // Only auto-scroll if user was at bottom
+            if (wasAtBottom) {
+                debugDiv.scrollTop = debugDiv.scrollHeight;
+            }
+        }
+
+        function copyLogs(event) {
+            const debugDiv = document.getElementById('debug');
+            const text = debugDiv.innerText;
+            const btn = event.target;
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    // Visual feedback
+                    const originalText = btn.textContent;
+                    btn.textContent = '✅ Copied!';
+                    setTimeout(() => btn.textContent = originalText, 1000);
+                }).catch(() => {
+                    fallbackCopy(text, btn);
+                });
+            } else {
+                fallbackCopy(text, btn);
+            }
+        }
+
+        function fallbackCopy(text, btn) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            // Visual feedback
+            if (btn) {
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => btn.textContent = originalText, 1000);
+            }
+        }
+
+        function clearLogs() {
+            const debugDiv = document.getElementById('debug');
+            debugDiv.innerHTML = '';
+            log('🗑️ Debug logs cleared');
+        }
+
+        function updateStatus(message, connected) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = connected ? 'status connected' : 'status disconnected';
+        }
+
+        function updateToggleButton(connected) {
+            const toggleBtn = document.getElementById('toggleBtn');
+            toggleBtn.textContent = connected ? 'DISCONNECT' : 'CONNECT';
+            
+            // Hide button when connected, show when disconnected
+            toggleBtn.style.display = connected ? 'none' : 'inline-flex';
+        }
+
+        function connect() {
+            clearAutoReconnect(); // Stop auto-reconnect when manually connecting
+            connectInternal(false); // Manual connection attempt
+        }
+
+        function disconnect() {
+            isConnected = false;
+            isAttached = false;
+            updateStatus('DISCONNECTED', false);
+            updateToggleButton(false);
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+            document.getElementById('gameInfo').style.display = 'none';
+            log("🔌 Disconnected");
+            clearAutoReconnect(); // Stop auto-reconnect when manually disconnected
+        }
+
+        function clearAutoReconnect() {
+            if (reconnectTimer) {
+                clearTimeout(reconnectTimer);
+                reconnectTimer = null;
+            }
+        }
+
+        function resetReconnectDelay() {
+            reconnectDelay = 5000; // Reset to 5 seconds
+        }
+
+        function scheduleAutoReconnect() {
+            if (!autoReconnectEnabled || isConnected) return;
+            
+            clearAutoReconnect(); // Clear any existing timer
+            
+            log(`🔄 Auto-reconnect in ${reconnectDelay / 1000}s...`);
+            
+            reconnectTimer = setTimeout(() => {
+                if (!isConnected && autoReconnectEnabled) {
+                    log("🔄 Auto-reconnecting...");
+                    connectInternal(true); // Internal connection attempt
+                }
+            }, reconnectDelay);
+            
+            // Increase delay for next attempt (max 1 minute)
+            reconnectDelay = Math.min(reconnectDelay + 5000, maxReconnectDelay);
+        }
+
+        function connectInternal(isAutoReconnect = false) {
+            if (!isAutoReconnect) {
+                log("Connecting to UDP Tracker...");
+            }
+            
+            // Test the API connection
+            fetch('http://localhost:3000/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.connected && data.game_loaded) {
+                        isConnected = true;
+                        isAttached = true;
+                        updateStatus('SUPER METROID', true);
+                        updateToggleButton(true);
+                        log("✅ Connected to RetroArch via UDP");
+                        log(`🎯 Game: ${data.game_info}`);
+                        document.getElementById('gameInfo').style.display = 'block';
+                        startTracking();
+                        resetReconnectDelay(); // Reset backoff on success
+                        clearAutoReconnect(); // Stop auto-reconnect when connected
+                    } else if (data.connected) {
+                        isConnected = true;
+                        updateStatus('CONNECTED - NO GAME', true);
+                        updateToggleButton(true);
+                        log("✅ Connected to RetroArch but Super Metroid not loaded");
+                        resetReconnectDelay(); // Reset backoff on success
+                        clearAutoReconnect(); // Stop auto-reconnect when connected
+                    } else {
+                        updateStatus('RETROARCH NOT FOUND', false);
+                        updateToggleButton(false);
+                        if (!isAutoReconnect) {
+                            log("❌ Could not connect to RetroArch");
+                        }
+                        if (autoReconnectEnabled) {
+                            scheduleAutoReconnect();
+                        }
+                    }
+                })
+                .catch(error => {
+                    // Provide specific error messages based on error type
+                    let statusMessage = 'CONNECTION ERROR';
+                    let logMessage = `❌ Connection error: ${error.message}`;
+                    
+                    if (error.message.includes('Failed to fetch') || error.message.includes('fetch')) {
+                        if (error.message.includes('NetworkError') || error.message.includes('network')) {
+                            statusMessage = 'NETWORK ERROR';
+                        } else {
+                            statusMessage = 'SERVER NOT RUNNING';
+                            logMessage = `❌ Tracker server not responding: ${error.message}`;
+                        }
+                    } else if (error.message.includes('ECONNREFUSED') || error.message.includes('refused')) {
+                        statusMessage = 'CONNECTION REFUSED';
+                        logMessage = `❌ Connection refused: ${error.message}`;
+                    } else if (error.message.includes('timeout') || error.message.includes('ETIMEDOUT')) {
+                        statusMessage = 'CONNECTION TIMEOUT';
+                        logMessage = `❌ Connection timeout: ${error.message}`;
+                    } else if (error.message.includes('ENOTFOUND') || error.message.includes('not found')) {
+                        statusMessage = 'HOST NOT FOUND';
+                        logMessage = `❌ Host not found: ${error.message}`;
+                    } else if (error.message.includes('ECONNRESET')) {
+                        statusMessage = 'CONNECTION RESET';
+                        logMessage = `❌ Connection reset: ${error.message}`;
+                    }
+                    
+                    updateStatus(statusMessage, false);
+                    updateToggleButton(false);
+                    if (!isAutoReconnect) {
+                        log(logMessage);
+                        if (statusMessage === 'SERVER NOT RUNNING') {
+                            log("💡 Make sure to run: python background_poller_server.py");
+                        }
+                    }
+                    if (autoReconnectEnabled) {
+                        scheduleAutoReconnect();
+                    }
+                });
+        }
+
+        function toggleConnection() {
+            if (isConnected) {
+                disconnect();
+            } else {
+                connect();
+            }
+        }
+
+        function updateAllDisplays(stats) {
+            // Skip update if no valid stats
+            if (!stats) {
+                return;
+            }
+            
+            // Update all stat displays
+            updateStatDisplay('health', stats.health || 0, stats.max_health || 0);
+            updateStatDisplay('missile', stats.missiles || 0, stats.max_missiles || 0);
+            updateStatDisplay('super', stats.supers || 0, stats.max_supers || 0);
+            updateStatDisplay('power', stats.power_bombs || 0, stats.max_power_bombs || 0);
+            
+            // Update reserve energy (show only if available)
+            const reserveEl = document.getElementById('reserveValue');
+            if (reserveEl) {
+                if (stats.max_reserve_energy && stats.max_reserve_energy > 0) {
+                    reserveEl.textContent = `Reserve: ${stats.reserve_energy || 0} / ${stats.max_reserve_energy}`;
+                    reserveEl.style.display = 'block';
+                } else {
+                    reserveEl.style.display = 'none';
+                }
+            }
+            
+            // Update quantity displays
+            updateQuantityDisplays(stats);
+            
+            // Update item and boss tiles
+            const allItems = { ...(stats.items || {}), ...(stats.beams || {}) };
+            updateItemTiles(allItems);
+            updateBossTiles(stats.bosses || {});
+            
+            // Check for new splits (timer functionality)
+            checkForNewSplits(allItems, stats.bosses || {});
+        }
+
+        function updateQuantityDisplays(stats) {
+            // Skip update if no valid stats (when game not loaded)
+            if (!stats || typeof stats.max_health === 'undefined') {
+                return;
+            }
+            
+            try {
+                // Energy Tanks: show current/max energy
+                const energyEl = document.getElementById('energyTankCount');
+                const energyTile = document.querySelector('[data-item="energy-tank"]');
+                if (energyEl && energyTile) {
+                    energyEl.textContent = `${stats.health || 0}/${stats.max_health || 99}`;
+                    // Energy tanks are ALWAYS obtained since you start with at least one
+                    energyTile.classList.remove('grayed-out');
+                }
+                
+                // Reserve Tanks: show current/max reserve energy
+                const reserveEl = document.getElementById('reserveTankCount');
+                const reserveTile = document.querySelector('[data-item="reserve-tank"]');
+                if (reserveEl && reserveTile) {
+                    const maxReserve = stats.max_reserve_energy || 0;
+                    const currentReserve = stats.reserve_energy || 0;
+                    reserveEl.textContent = `${currentReserve}/${maxReserve}`;
+                    // Gray out if no reserve tanks collected
+                    if (maxReserve === 0) {
+                        reserveTile.classList.add('grayed-out');
+                    } else {
+                        reserveTile.classList.remove('grayed-out');
+                    }
+                }
+                
+                // Missiles: gray out if max is 0
+                const missileEl = document.getElementById('missileCount');
+                const missileTile = document.querySelector('[data-item="missile"]');
+                if (missileEl && missileTile) {
+                    missileEl.textContent = `${stats.missiles || 0}/${stats.max_missiles || 0}`;
+                    if ((stats.max_missiles || 0) === 0) {
+                        missileTile.classList.add('grayed-out');
+                    } else {
+                        missileTile.classList.remove('grayed-out');
+                    }
+                }
+                
+                // Super Missiles: gray out if max is 0  
+                const superEl = document.getElementById('superMissileCount');
+                const superTile = document.querySelector('[data-item="super-missile"]');
+                if (superEl && superTile) {
+                    superEl.textContent = `${stats.supers || 0}/${stats.max_supers || 0}`;
+                    if ((stats.max_supers || 0) === 0) {
+                        superTile.classList.add('grayed-out');
+                    } else {
+                        superTile.classList.remove('grayed-out');
+                    }
+                }
+                
+                // Power Bombs: gray out if max is 0
+                const powerEl = document.getElementById('powerBombCount');
+                const powerTile = document.querySelector('[data-item="power-bomb"]');
+                if (powerEl && powerTile) {
+                    powerEl.textContent = `${stats.power_bombs || 0}/${stats.max_power_bombs || 0}`;
+                    if ((stats.max_power_bombs || 0) === 0) {
+                        powerTile.classList.add('grayed-out');
+                    } else {
+                        powerTile.classList.remove('grayed-out');
+                    }
+                }
+                
+            } catch (error) {
+                console.warn('Failed to update quantity displays:', error);
+            }
+        }
+
+        function updateLocationInfo(stats) {
+            if (stats.area_name) {
+                const locationEl = document.getElementById('location');
+                const roomEl = document.getElementById('roomInfo');
+                
+                locationEl.textContent = `${stats.area_name}: `;
+                
+                // Use room name if available, otherwise show room ID
+                const roomName = getRoomName(stats.room_id);
+                roomEl.textContent = roomName;
+            }
+        }
+
+        function updateItemTiles(items) {
+            // Update each item tile based on collected status
+            Object.keys(items).forEach(itemName => {
+                const tile = document.querySelector(`[data-item="${itemName}"]`);
+                if (tile) {
+                    if (items[itemName]) {
+                        tile.classList.add('obtained');
+                        tile.classList.remove('grayed-out');
+                    } else {
+                        tile.classList.remove('obtained');
+                        tile.classList.add('grayed-out');
+                    }
+                }
+            });
+        }
+
+        function updateBossTiles(bosses) {
+            // Update each boss tile based on defeated status
+            Object.keys(bosses).forEach(bossName => {
+                const tile = document.querySelector(`[data-boss="${bossName}"]`);
+                if (tile) {
+                    if (bosses[bossName]) {
+                        tile.classList.add('boss-defeated');
+                        tile.classList.remove('grayed-out');
+                    } else {
+                        tile.classList.remove('boss-defeated');
+                        tile.classList.add('grayed-out');
+                    }
+                }
+            });
+        }
+
+        function startTracking() {
+            if (updateInterval) return;
+            
+            log("🔄 Starting live tracking...");
+            updateToggleButton(true);
+            updateInterval = setInterval(updateStats, 1000);
+            updateStats(); // Initial update
+        }
+
+        function updateStats() {
+            if (!isConnected || !isAttached) return;
+            
+            // Fetch stats from HTTP API with timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+            
+            fetch('http://localhost:3000/api/stats', { 
+                signal: controller.signal,
+                cache: 'no-cache'
+            })
+                .then(response => {
+                    clearTimeout(timeoutId);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(stats => {
+                    if (stats && !stats.error) {
+                        updateAllDisplays(stats);
+                        updateLocationInfo(stats);
+                        // Reset retry counter on success
+                        window.reconnectAttempts = 0;
+                        // logDebugInfo(stats);  // Debug disabled - charge beam should work now
+                    } else {
+                        log(`❌ Stats error: ${stats.error || 'Unknown error'}`);
+                        handleConnectionError(`Server returned error: ${stats.error}`);
+                    }
+                })
+                .catch(error => {
+                    clearTimeout(timeoutId);
+                    if (error.name === 'AbortError') {
+                        log(`⏱️ Request timeout - server may be stuck`);
+                        handleConnectionError('timeout - server may be stuck');
+                    } else {
+                        log(`❌ Failed to fetch stats: ${error.message}`);
+                        handleConnectionError(error.message);
+                    }
+                });
+        }
+        
+        function handleConnectionError(errorMsg) {
+            // Mark as disconnected
+            isConnected = false;
+            isAttached = false;
+            
+            // Provide specific error messages based on error type
+            let statusMessage = 'CONNECTION LOST';
+            
+            if (errorMsg.includes('Failed to fetch') || errorMsg.includes('fetch')) {
+                if (errorMsg.includes('NetworkError') || errorMsg.includes('network')) {
+                    statusMessage = 'NETWORK ERROR';
+                } else {
+                    statusMessage = 'SERVER STOPPED';
+                }
+            } else if (errorMsg.includes('ECONNREFUSED') || errorMsg.includes('refused')) {
+                statusMessage = 'CONNECTION REFUSED';
+            } else if (errorMsg.includes('timeout') || errorMsg.includes('ETIMEDOUT') || errorMsg.includes('AbortError')) {
+                statusMessage = 'CONNECTION TIMEOUT';
+            } else if (errorMsg.includes('ENOTFOUND') || errorMsg.includes('not found')) {
+                statusMessage = 'HOST NOT FOUND';
+            } else if (errorMsg.includes('ECONNRESET')) {
+                statusMessage = 'CONNECTION RESET';
+            } else if (errorMsg.includes('HTTP 5')) {
+                statusMessage = 'SERVER ERROR';
+            } else if (errorMsg.includes('HTTP 4')) {
+                statusMessage = 'CLIENT ERROR';
+            }
+            
+            updateStatus(statusMessage, false);
+            updateToggleButton(false);
+            
+            // Stop current tracking
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+            
+            // Hide game info
+            document.getElementById('gameInfo').style.display = 'none';
+            
+            // Start auto-reconnect if enabled
+            if (autoReconnectEnabled) {
+                scheduleAutoReconnect();
+            }
+        }
+
+        function logDebugInfo(stats) {
+            if (stats.debug) {
+                log(`🔍 DEBUG - Items: ${stats.debug.items_raw}, Beams: ${stats.debug.beams_raw}, Bosses: ${stats.debug.bosses_raw}`);
+            }
+        }
+
+        function updateStatDisplay(type, current, max) {
+            const valueEl = document.getElementById(type + 'Value');
+            const barEl = document.getElementById(type + 'Bar');
+            
+            if (valueEl && barEl) {
+                valueEl.textContent = `${current} / ${max}`;
+                const percentage = max > 0 ? (current / max) * 100 : 0;
+                barEl.style.width = percentage + '%';
+            }
+        }
+
+        function toggleFullscreen() {
+            const body = document.body;
+            if (!isFullscreen) {
+                // Enter fullscreen
+                body.classList.add('fullscreen-mode');
+                document.getElementById('expandBtn').textContent = '✕'; // Change to X for exit
+                isFullscreen = true;
+                log("🔍 Entered fullscreen mode - Press ESC to exit");
+            } else {
+                // Exit fullscreen
+                body.classList.remove('fullscreen-mode');
+                document.getElementById('expandBtn').textContent = '⛶'; // Back to expand icon
+                isFullscreen = false;
+                log("🔍 Exited fullscreen mode");
+            }
+        }
+
+        // Timer Functions
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            const milliseconds = ms % 1000;
+            
+            return `${hours}h${minutes.toString().padStart(2, '0')}m${seconds.toString().padStart(2, '0')}s${milliseconds.toString().padStart(3, '0')}ms`;
+        }
+
+        function updateTimerDisplay() {
+            if (!timerRunning && !timerPaused) {
+                document.getElementById('timerDisplay').textContent = '0h00m00s000ms';
+                return;
+            }
+
+            let currentTime;
+            if (timerPaused) {
+                currentTime = timerAccumulatedTime;
+            } else {
+                currentTime = timerAccumulatedTime + (Date.now() - timerStartTime);
+            }
+
+            document.getElementById('timerDisplay').textContent = formatTime(currentTime);
+        }
+
+        function startGame() {
+            if (timerRunning) return;
+            
+            timerRunning = true;
+            timerPaused = false;
+            timerStartTime = Date.now();
+            timerAccumulatedTime = 0;
+            splits = [];
+            lastTrackedItems = {};
+            lastTrackedBosses = {};
+            
+            // Clear splits display
+            document.getElementById('splitsList').innerHTML = '';
+            document.getElementById('splitsSection').style.display = 'none';
+            
+            // Update button states
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('pauseBtn').disabled = false;
+            document.getElementById('pauseBtn').textContent = 'PAUSE';
+            
+            // Start timer update interval
+            timerInterval = setInterval(updateTimerDisplay, 10);
+            
+            log("🏁 Speedrun timer started!");
+        }
+
+        function pauseResumeTimer() {
+            if (!timerRunning) return;
+            
+            if (timerPaused) {
+                // Resume
+                timerPaused = false;
+                timerStartTime = Date.now();
+                document.getElementById('pauseBtn').textContent = 'PAUSE';
+                log("▶️ Timer resumed");
+            } else {
+                // Pause
+                timerPaused = true;
+                timerAccumulatedTime += (Date.now() - timerStartTime);
+                document.getElementById('pauseBtn').textContent = 'RESUME';
+                log("⏸️ Timer paused");
+            }
+        }
+
+        function resetTimer() {
+            timerRunning = false;
+            timerPaused = false;
+            timerStartTime = 0;
+            timerPausedTime = 0;
+            timerAccumulatedTime = 0;
+            splits = [];
+            lastTrackedItems = {};
+            lastTrackedBosses = {};
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            // Update button states
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+            document.getElementById('pauseBtn').textContent = 'PAUSE';
+            
+            // Clear displays
+            updateTimerDisplay();
+            document.getElementById('splitsList').innerHTML = '';
+            document.getElementById('splitsSection').style.display = 'none';
+            
+            log("🔄 Timer reset");
+        }
+
+        function addSplit(eventName) {
+            if (!timerRunning || timerPaused) return;
+            
+            const currentTime = timerAccumulatedTime + (Date.now() - timerStartTime);
+            const split = {
+                event: eventName,
+                time: currentTime,
+                timestamp: new Date()
+            };
+            
+            splits.push(split);
+            log(`⭐ Split: ${eventName} at ${formatTime(currentTime)}`);
+            
+            // Update splits display
+            updateSplitsDisplay();
+        }
+
+        function updateSplitsDisplay() {
+            const splitsContainer = document.getElementById('splitsList');
+            const splitsSection = document.getElementById('splitsSection');
+            
+            if (splits.length === 0) {
+                splitsSection.style.display = 'none';
+                return;
+            }
+            
+            splitsSection.style.display = 'block';
+            
+            // Show all splits from most recent to oldest (reverse the array)
+            splitsContainer.innerHTML = splits.slice().reverse().map(split => 
+                `<div class="split-item">
+                    <span class="split-event">${split.event}</span>
+                    <span class="split-time">${formatTime(split.time)}</span>
+                </div>`
+            ).join('');
+        }
+
+        function checkForNewSplits(items, bosses) {
+            if (!timerRunning || timerPaused) return;
+            
+            // Check for new items (excluding missiles/supers/power bombs/energy tanks/reserve tanks)
+            const trackableItems = ['morph', 'bombs', 'charge', 'spazer', 'varia', 'hijump', 'speed', 'wave', 'ice', 'grapple', 'xray', 'space', 'screw', 'plasma', 'gravity', 'hyper'];
+            
+            for (const item of trackableItems) {
+                if (items[item] && !lastTrackedItems[item]) {
+                    const itemNames = {
+                        'morph': 'Morph Ball',
+                        'bombs': 'Bombs',
+                        'charge': 'Charge Beam',
+                        'spazer': 'Spazer',
+                        'varia': 'Varia Suit',
+                        'hijump': 'Hi-Jump',
+                        'speed': 'Speed Booster',
+                        'wave': 'Wave Beam',
+                        'ice': 'Ice Beam',
+                        'grapple': 'Grapple Beam',
+                        'xray': 'X-Ray Scope',
+                        'space': 'Space Jump',
+                        'screw': 'Screw Attack',
+                        'plasma': 'Plasma Beam',
+                        'gravity': 'Gravity Suit',
+                        'hyper': 'Hyper Beam'
+                    };
+                    addSplit(itemNames[item] || item);
+                }
+                lastTrackedItems[item] = items[item] || false;
+            }
+            
+            // Check for new bosses
+            const trackableBosses = ['bomb_torizo', 'spore_spawn', 'kraid', 'crocomire', 'phantoon', 'botwoon', 'draygon', 'golden_torizo', 'ridley', 'mother_brain_1', 'mother_brain_2'];
+            
+            for (const boss of trackableBosses) {
+                if (bosses[boss] && !lastTrackedBosses[boss]) {
+                    const bossNames = {
+                        'bomb_torizo': 'Bomb Torizo',
+                        'spore_spawn': 'Spore Spawn',
+                        'kraid': 'Kraid',
+                        'crocomire': 'Crocomire',
+                        'phantoon': 'Phantoon',
+                        'botwoon': 'Botwoon',
+                        'draygon': 'Draygon',
+                        'golden_torizo': 'Golden Torizo',
+                        'ridley': 'Ridley',
+                        'mother_brain_1': 'Mother Brain 1',
+                        'mother_brain_2': 'Mother Brain 2'
+                    };
+                    addSplit(bossNames[boss] || boss);
+                }
+                lastTrackedBosses[boss] = bosses[boss] || false;
+            }
+            
+            // Check for ship (game completion)
+            if (bosses['samus_ship'] && !lastTrackedBosses['samus_ship']) {
+                addSplit('GAME COMPLETE!');
+                // Stop timer when reaching ship
+                setTimeout(() => {
+                    timerRunning = false;
+                    timerPaused = true;
+                    if (timerInterval) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                    }
+                    document.getElementById('pauseBtn').disabled = true;
+                    log("🏆 Run completed! Timer stopped.");
+                }, 100);
+            }
+            lastTrackedBosses['samus_ship'] = bosses['samus_ship'] || false;
+        }
+
+        // Handle escape key to exit fullscreen
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && isFullscreen) {
+                toggleFullscreen();
+            }
+            
+            // Timer controls - ignore if modifier keys are pressed (Cmd+R, Ctrl+R, etc.)
+            const hasModifier = event.ctrlKey || event.metaKey || event.altKey || event.shiftKey;
+            
+            if (event.key.toLowerCase() === 'p' && !hasModifier) {
+                event.preventDefault();
+                pauseResumeTimer();
+            }
+            
+            if (event.key.toLowerCase() === 'r' && !hasModifier) {
+                event.preventDefault();
+                resetTimer();
+            }
+        });
+
+        // Auto-connect on page load
+        window.onload = function() {
+            log("🚀 Super Metroid UDP Tracker ready");
+            log("💡 Make sure background_poller_server.py is running");
+            
+            // Auto-connect after a short delay
+            setTimeout(() => {
+                log("📡 Auto-connecting...");
+                connect();
+            }, 1000);
+        };
+    </script>
+</body>
+</html>

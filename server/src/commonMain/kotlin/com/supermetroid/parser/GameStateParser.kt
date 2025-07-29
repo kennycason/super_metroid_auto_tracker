@@ -229,7 +229,7 @@ class GameStateParser {
                 "gravity" to false,
                 "hijump" to false,
                 "speed" to false,
-                "spacejump" to false,
+                "space" to false,
                 "screw" to false,
                 "spring" to false,
                 "grapple" to false,
@@ -246,7 +246,7 @@ class GameStateParser {
             "gravity" to ((itemValue and 0x0020) != 0),
             "hijump" to ((itemValue and 0x0100) != 0),
             "speed" to ((itemValue and 0x2000) != 0),
-            "spacejump" to ((itemValue and 0x0200) != 0),
+            "space" to ((itemValue and 0x0200) != 0),
             "screw" to ((itemValue and 0x0008) != 0),
             "spring" to ((itemValue and 0x0002) != 0),
             "grapple" to ((itemValue and 0x4000) != 0),
@@ -288,7 +288,7 @@ class GameStateParser {
         )
     }
     
-    private fun parseBosses(
+    internal fun parseBosses(
         mainBossesData: ByteArray?,
         crocomireData: ByteArray?,
         bossPlus1Data: ByteArray?,
@@ -302,29 +302,46 @@ class GameStateParser {
         escapeTimer4Data: ByteArray?,
         locationData: Map<String, Any>
     ): Map<String, Boolean> {
-        // FIXED: Match Python parser bit mappings exactly!
+        // Basic boss flags - EXACT Python bit patterns  
         val mainBosses = mainBossesData?.readInt16LE(0) ?: 0
         
         // Parse crocomire separately (matches Python logic)
         val crocomireValue = crocomireData?.readInt16LE(0) ?: 0
         val crocomireDefeated = ((crocomireValue and 0x0002) != 0) && (crocomireValue >= 0x0202)
         
+        // Advanced boss detection using boss_plus patterns (matches Python logic)
+        val bossPlus1 = bossPlus1Data?.readInt16LE(0) ?: 0
+        val bossPlus2 = bossPlus2Data?.readInt16LE(0) ?: 0  
+        val bossPlus3 = bossPlus3Data?.readInt16LE(0) ?: 0
+        val bossPlus4 = bossPlus4Data?.readInt16LE(0) ?: 0
+        
+        // Phantoon detection - Fixed to match Python logic
+        val phantoonDetected = (bossPlus3 != 0) && ((bossPlus3 and 0x01) != 0)
+        
+        // Botwoon detection - Fixed to match Python logic  
+        val botwoonDetected = (((bossPlus2 and 0x04) != 0) && (bossPlus2 > 0x0100)) ||
+                             (((bossPlus4 and 0x02) != 0) && (bossPlus4 > 0x0001))
+        
+        // Draygon detection - FIXED! Only use boss_plus_3 == 0x0301 pattern
+        val draygonDetected = (bossPlus3 == 0x0301)
+        
         return mapOf(
-            // Main bosses - EXACT Python bit patterns
+            // Basic bosses - Python bit patterns (REMOVED incorrect Draygon detection)
             "bomb_torizo" to ((mainBosses and 0x0004) != 0),      // bit 2 ✅
-            "kraid" to ((mainBosses and 0x0100) != 0),            // bit 8 (was 0x0001)
-            "spore_spawn" to ((mainBosses and 0x0200) != 0),      // bit 9 (was 0x0002)
-            "draygon" to ((mainBosses and 0x1000) != 0),          // bit 12 (was 0x0200)
-            "mother_brain" to ((mainBosses and 0x0001) != 0),     // bit 0 (was missing)
+            "kraid" to ((mainBosses and 0x0100) != 0),            // bit 8 ✅
+            "spore_spawn" to ((mainBosses and 0x0200) != 0),      // bit 9 ✅  
+            "mother_brain" to ((mainBosses and 0x0001) != 0),     // bit 0 ✅
             
-            // Other bosses (keep existing for now)
-            "crocomire" to crocomireDefeated,                     // Separate crocomire logic
-            "botwoon" to ((mainBosses and 0x0010) != 0),
-            "phantoon" to ((mainBosses and 0x0020) != 0), 
-            "ridley" to ((mainBosses and 0x0400) != 0),
-            "golden_torizo" to ((mainBosses and 0x0800) != 0),
+            // Advanced bosses using correct patterns
+            "crocomire" to crocomireDefeated,                     // Special crocomire logic ✅
+            "phantoon" to phantoonDetected,                       // Advanced detection ✅
+            "botwoon" to botwoonDetected,                        // Advanced detection ✅
+            "draygon" to draygonDetected,                        // FIXED: Only 0x0301 pattern ✅
+            "ridley" to ((mainBosses and 0x0400) != 0),          // Keep simple for now
+            "golden_torizo" to ((mainBosses and 0x0800) != 0),   // Keep simple for now
             "mother_brain_1" to motherBrainPhaseState["mb1_detected"]!!,
-            "mother_brain_2" to motherBrainPhaseState["mb2_detected"]!!
+            "mother_brain_2" to motherBrainPhaseState["mb2_detected"]!!,
+            "samus_ship" to false  // End-game detection - keep simple for now
         )
     }
     

@@ -1,0 +1,30 @@
+.location-section {
+  margin: 10px 0;
+  text-align: center;
+}
+
+.location-display {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: normal;
+}
+
+.area-name {
+  color: #00ff00;
+}
+
+.separator {
+  color: #888;
+}
+
+.room-name {
+  color: #ccccff;
+  font-family: 'Courier New', monospace;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .location-display {
+    font-size: 14px;
+  }
+} 

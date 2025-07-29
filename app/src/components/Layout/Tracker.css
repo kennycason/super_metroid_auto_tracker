@@ -1,0 +1,156 @@
+.tracker {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+}
+
+.tracker.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+}
+
+.tracker-content {
+  padding: 0 12px 12px;
+  height: 100%;
+}
+
+.tracker.fullscreen .tracker-content {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.tracker-grid {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 8px;
+}
+
+/* Fullscreen adjustments */
+.tracker.fullscreen .tracker-grid {
+  max-width: none;
+  padding: 16px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .tracker-content {
+    padding: 0 8px 8px;
+  }
+  
+  .tracker-grid {
+    gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tracker-content {
+    padding: 0 4px 4px;
+  }
+  
+  .tracker-grid {
+    gap: 4px;
+  }
+}
+
+/* Hide scrollbars but maintain scrollability */
+.tracker ::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tracker ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.tracker ::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 0, 0.3);
+  border-radius: 3px;
+}
+
+.tracker ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 0, 0.5);
+} 
+
+/* Debug window styles - matching original tracker */
+.debug-section {
+  margin: 20px 0 0 0;
+}
+
+.debug-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 5px;
+  gap: 8px;
+}
+
+.port-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  background: rgba(0, 51, 0, 0.2);
+  border: 1px solid #003300;
+  border-radius: 3px;
+}
+
+.port-control label {
+  color: #00ff00;
+  font-weight: bold;
+}
+
+.port-control input[type="number"] {
+  background: #001100;
+  color: #00ff00;
+  border: 1px solid #00cc00;
+  border-radius: 2px;
+  padding: 2px 4px;
+  font-size: 12px;
+  width: 60px;
+  text-align: center;
+}
+
+.port-control input[type="number"]:focus {
+  outline: none;
+  box-shadow: 0 0 3px #00cc00;
+  background: #002200;
+}
+
+.debug-btn {
+  background: rgba(0, 51, 0, 0.3);
+  border: 1px solid #003300;
+  color: #00ff00;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.debug-btn:hover {
+  background: rgba(0, 85, 0, 0.4);
+}
+
+.debug-log {
+  font-size: 12px;
+  opacity: 0.7;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #003300;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  font-family: 'Courier New', monospace;
+  color: #ffffff;
+  line-height: 1.4;
+}
+
+.debug-log div {
+  margin-bottom: 2px;
+} 

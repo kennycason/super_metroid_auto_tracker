@@ -1,25 +1,26 @@
 package com.supermetroid.model
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 
 @Serializable
 data class GameState(
     val health: Int = 0,
-    val maxHealth: Int = 99,
+    @SerialName("max_health") val maxHealth: Int = 99,
     val missiles: Int = 0,
-    val maxMissiles: Int = 0,
+    @SerialName("max_missiles") val maxMissiles: Int = 0,
     val supers: Int = 0,
-    val maxSupers: Int = 0,
-    val powerBombs: Int = 0,
-    val maxPowerBombs: Int = 0,
-    val reserveEnergy: Int = 0,
-    val maxReserveEnergy: Int = 0,
-    val roomId: Int = 0,
-    val areaId: Int = 0,
-    val areaName: String = "Unknown",
-    val gameState: Int = 0,
-    val playerX: Int = 0,
-    val playerY: Int = 0,
+    @SerialName("max_supers") val maxSupers: Int = 0,
+    @SerialName("power_bombs") val powerBombs: Int = 0,
+    @SerialName("max_power_bombs") val maxPowerBombs: Int = 0,
+    @SerialName("reserve_energy") val reserveEnergy: Int = 0,
+    @SerialName("max_reserve_energy") val maxReserveEnergy: Int = 0,
+    @SerialName("room_id") val roomId: Int = 0,
+    @SerialName("area_id") val areaId: Int = 0,
+    @SerialName("area_name") val areaName: String = "Unknown",
+    @SerialName("game_state") val gameState: Int = 0,
+    @SerialName("player_x") val playerX: Int = 0,
+    @SerialName("player_y") val playerY: Int = 0,
     val items: Map<String, Boolean> = emptyMap(),
     val beams: Map<String, Boolean> = emptyMap(),
     val bosses: Map<String, Boolean> = emptyMap()
@@ -68,19 +69,19 @@ data class Bosses(
 @Serializable
 data class ConnectionInfo(
     val connected: Boolean = false,
-    val gameLoaded: Boolean = false,
-    val retroarchVersion: String? = null,
-    val gameInfo: String? = null
+    @SerialName("game_loaded") val gameLoaded: Boolean = false,
+    @SerialName("retroarch_version") val retroarchVersion: String? = null,
+    @SerialName("game_info") val gameInfo: String? = null
 )
 
 @Serializable
 data class ServerStatus(
     val connected: Boolean = false,
-    val gameLoaded: Boolean = false,
-    val retroarchVersion: String? = null,
-    val gameInfo: String? = null,
+    @SerialName("game_loaded") val gameLoaded: Boolean = false,
+    @SerialName("retroarch_version") val retroarchVersion: String? = null,
+    @SerialName("game_info") val gameInfo: String? = null,
     val stats: GameState = GameState(),
-    val lastUpdate: Long = 0,
-    val pollCount: Int = 0,
-    val errorCount: Int = 0
+    @SerialName("last_update") val lastUpdate: Long = 0,
+    @SerialName("poll_count") val pollCount: Int = 0,
+    @SerialName("error_count") val errorCount: Int = 0
 ) 
