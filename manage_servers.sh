@@ -13,21 +13,34 @@ case "$1" in
         echo "🚀 Starting Super Metroid Tracker servers..."
         
         # Kill any existing processes
-        pkill -f "background_poller_server.py" 2>/dev/null
-        pkill -f "server.kexe" 2>/dev/null
-        sleep 2
+        echo "🧹 Cleaning up existing processes..."
+        pkill -9 -f "background_poller_server.py" 2>/dev/null
+        pkill -9 -f "server.kexe" 2>/dev/null
+        pkill -9 -f "8081" 2>/dev/null
+        pkill -9 -f "8082" 2>/dev/null
+        sleep 3
         
         # Start Python server
         echo "🐍 Starting Python server on port $PYTHON_PORT..."
-        python3 background_poller_server.py > "$PYTHON_LOG" 2>&1 &
-        PYTHON_PID=$!
+        if [ -f "server_python/background_poller_server.py" ]; then
+            python3 server_python/background_poller_server.py > "$PYTHON_LOG" 2>&1 &
+            PYTHON_PID=$!
+            echo "   Python PID: $PYTHON_PID"
+        else
+            echo "❌ Error: server_python/background_poller_server.py not found!"
+        fi
         
         # Start Kotlin server  
         echo "⚡ Starting Kotlin server on port $KOTLIN_PORT..."
-        ./server/build/bin/native/debugExecutable/server.kexe $KOTLIN_PORT > "$KOTLIN_LOG" 2>&1 &
-        KOTLIN_PID=$!
+        if [ -f "./server/build/bin/native/debugExecutable/server.kexe" ]; then
+            ./server/build/bin/native/debugExecutable/server.kexe $KOTLIN_PORT > "$KOTLIN_LOG" 2>&1 &
+            KOTLIN_PID=$!
+            echo "   Kotlin PID: $KOTLIN_PID"
+        else
+            echo "❌ Error: Kotlin server executable not found! Run 'cd server && ./gradlew nativeBinaries' first."
+        fi
         
-        sleep 3
+        sleep 4
         
         # Test servers
         echo "🔍 Testing servers..."

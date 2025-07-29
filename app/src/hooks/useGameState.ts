@@ -243,6 +243,7 @@ export const useGameState = (serverPort: number = 8081) => {
 
   // Timer functions
   const startTimer = useCallback(() => {
+    console.log('⏰ Starting timer...');
     setGameState(prev => ({
       ...prev,
       timer: {
@@ -303,31 +304,39 @@ export const useGameState = (serverPort: number = 8081) => {
     if (!gameState.timer.running || !gameState.timer.startTime) return;
 
     const interval = setInterval(() => {
-      setGameState(prev => ({
-        ...prev,
-        timer: {
-          ...prev.timer,
-          elapsed: Date.now() - (prev.timer.startTime || 0),
-        }
-      }));
+      setGameState(prev => {
+        // Only update if timer is still running to prevent stale updates
+        if (!prev.timer.running || !prev.timer.startTime) return prev;
+        
+        return {
+          ...prev,
+          timer: {
+            ...prev.timer,
+            elapsed: Date.now() - prev.timer.startTime,
+          }
+        };
+      });
     }, 100); // Update every 100ms for smooth timer
 
     return () => clearInterval(interval);
   }, [gameState.timer.running, gameState.timer.startTime]);
 
   // Auto-pause timer when ship status becomes true (game completed)
+  // But only if the timer has been running for more than 10 seconds to avoid false positives
   useEffect(() => {
     const isShipCompleted = gameState.stats.bosses.main;
+    const timerHasBeenRunning = gameState.timer.elapsed > 10000; // 10 seconds
     
-    // If ship is completed and timer is running, auto-pause
-    if (isShipCompleted && gameState.timer.running) {
+    // If ship is completed and timer is running AND has been running for a while, auto-pause
+    if (isShipCompleted && gameState.timer.running && timerHasBeenRunning) {
       console.log('🚢 Game completed! Auto-pausing timer...');
       stopTimer();
     }
-  }, [gameState.stats.bosses.main, gameState.timer.running, stopTimer]);
+  }, [gameState.stats.bosses.main, gameState.timer.running, gameState.timer.elapsed, stopTimer]);
 
   // Track previous state for splits detection
   const [lastTrackedBosses, setLastTrackedBosses] = useState<Record<string, boolean>>({});
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Add split functionality (based on original HTML implementation)
   const addSplit = useCallback((eventName: string) => {
@@ -348,9 +357,26 @@ export const useGameState = (serverPort: number = 8081) => {
     console.log(`⭐ Split: ${eventName} at ${Math.floor(currentTime / 60000)}:${String(Math.floor((currentTime % 60000) / 1000)).padStart(2, '0')}.${String(Math.floor((currentTime % 1000) / 100))}`);
   }, [gameState.timer.running, gameState.timer.elapsed]);
 
+  // Initialize tracking state on first successful data fetch
+  useEffect(() => {
+    if (!isInitialized && gameState.connected) {
+      const trackableBosses = ['bomb_torizo', 'spore_spawn', 'kraid', 'crocomire', 'phantoon', 'botwoon', 'draygon', 'golden_torizo', 'ridley', 'mb1', 'mb2'];
+      const initialTrackedBosses: Record<string, boolean> = {};
+      
+      for (const boss of trackableBosses) {
+        initialTrackedBosses[boss] = (gameState.stats.bosses as any)[boss] || false;
+      }
+      initialTrackedBosses['main'] = gameState.stats.bosses.main || false;
+      
+      setLastTrackedBosses(initialTrackedBosses);
+      setIsInitialized(true);
+      console.log('🎯 Boss tracking initialized with current state');
+    }
+  }, [gameState.connected, isInitialized, gameState.stats.bosses]);
+
   // Check for new splits (based on original HTML logic)
   useEffect(() => {
-    if (!gameState.timer.running) return;
+    if (!gameState.timer.running || !isInitialized) return;
 
     // Check for new bosses (only bosses as per user requirement)
     const trackableBosses = ['bomb_torizo', 'spore_spawn', 'kraid', 'crocomire', 'phantoon', 'botwoon', 'draygon', 'golden_torizo', 'ridley', 'mb1', 'mb2'];
@@ -393,7 +419,7 @@ export const useGameState = (serverPort: number = 8081) => {
   }, [
     gameState.stats.bosses, 
     gameState.timer.running, 
-    lastTrackedBosses, 
+    isInitialized,
     addSplit
   ]);
 

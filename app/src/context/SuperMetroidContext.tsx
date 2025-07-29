@@ -58,6 +58,18 @@ export const SuperMetroidProvider: React.FC<SuperMetroidProviderProps> = ({ chil
   
   const gameStateHook = useGameState(serverPort);
 
+  // Auto-start polling when the provider mounts
+  React.useEffect(() => {
+    console.log('🚀 SuperMetroidProvider mounted - starting polling...');
+    gameStateHook.startPolling();
+    
+    // Cleanup: stop polling when component unmounts
+    return () => {
+      console.log('🛑 SuperMetroidProvider unmounting - stopping polling...');
+      gameStateHook.stopPolling();
+    };
+  }, [gameStateHook.startPolling, gameStateHook.stopPolling]);
+
   // Utility function to format time in MM:SS.mmm format
   const formatTime = (ms: number): string => {
     const totalSeconds = Math.floor(ms / 1000);

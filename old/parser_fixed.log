@@ -1,0 +1,81 @@
+🎮 Starting Super Metroid Tracker (Kotlin Native)
+Port: 8081, Poll Interval: 1000ms
+🎭 Mock UDP: Mode changed to STATIC
+🎭 Mock UDP: Static state set to Norfair
+Background poller started with 1000ms interval
+📡 Starting background polling loop...
+🚀 Background Polling Super Metroid Tracker Server
+==================================================
+📱 Tracker UI: http://localhost:8081/
+📊 API Status: http://localhost:8081/api/status
+📈 API Stats:  http://localhost:8081/api/stats
+⚡ Background polling: 1000ms intervals
+🎯 Architecture: Background UDP + Instant Cache Serving
+⏹️  Press Ctrl+C to stop
+==================================================
+✅ BOOTSTRAP: Save file looks like mid-game, keeping MB cache as-is
+✅ Poll #1 completed in 1ms
+[INFO] (ktor.application): Application started in 0.002 seconds.
+Server error: LazyStandaloneCoroutine is cancelling
+Uncaught Kotlin exception: io.ktor.utils.io.errors.PosixException.AddressAlreadyInUseException: EADDRINUSE (48): Address already in use
+Background poller stopped
+Polling error: StandaloneCoroutine was cancelled
+    at 0   server.kexe                         0x102103669        kfun:kotlin.Throwable#<init>(kotlin.String?){} + 105 (/opt/buildAgent/work/2fed3917837e7e79/kotlin/kotlin-native/runtime/src/main/kotlin/kotlin/Throwable.kt:28:37)
+    at 1   server.kexe                         0x1020fdd85        kfun:kotlin.Exception#<init>(kotlin.String?){} + 101 (/opt/buildAgent/work/2fed3917837e7e79/kotlin/kotlin-native/runtime/src/main/kotlin/kotlin/Exceptions.kt:23:44)
+    at 2   server.kexe                         0x10234280e        kfun:io.ktor.utils.io.errors.PosixException#<init>(kotlin.Int;kotlin.String){} + 110 (/opt/buildAgent/work/8d547b974a7be21f/ktor-io/posix/src/io/ktor/utils/io/errors/PosixErrors.kt:33:78)
+    at 3   server.kexe                         0x102342e1a        kfun:io.ktor.utils.io.errors.PosixException.AddressAlreadyInUseException#<init>(kotlin.String){} + 106 (/opt/buildAgent/work/8d547b974a7be21f/ktor-io/posix/src/io/ktor/utils/io/errors/PosixErrors.kt:56:66)
+    at 4   server.kexe                         0x102343fb9        kfun:io.ktor.utils.io.errors.PosixException.Companion#forErrno(kotlin.Int;kotlin.String?){}io.ktor.utils.io.errors.PosixException + 3497 (/opt/buildAgent/work/8d547b974a7be21f/ktor-io/posix/src/io/ktor/utils/io/errors/PosixErrors.kt:110:31)
+    at 5   server.kexe                         0x10234431c        kfun:io.ktor.utils.io.errors.PosixException.Companion#forErrno$default(kotlin.Int;kotlin.String?;kotlin.Int){}io.ktor.utils.io.errors.PosixException + 380 (/opt/buildAgent/work/8d547b974a7be21f/ktor-io/posix/src/io/ktor/utils/io/errors/PosixErrors.kt:76:16)
+    at 6   server.kexe                         0x1024f2124        kfun:io.ktor.network.sockets.bind$lambda$1#internal + 324 (/opt/buildAgent/work/8d547b974a7be21f/ktor-network/nix/src/io/ktor/network/sockets/ConnectUtilsNative.kt:<unknown>)
+    at 7   server.kexe                         0x1024f2236        kfun:io.ktor.network.sockets.$bind$lambda$1$FUNCTION_REFERENCE$1.invoke#internal + 102 (/opt/buildAgent/work/8d547b974a7be21f/ktor-network/nix/src/io/ktor/network/sockets/ConnectUtilsNative.kt:58:13)
+    at 8   server.kexe                         0x1024f234a        kfun:io.ktor.network.sockets.$bind$lambda$1$FUNCTION_REFERENCE$1.$<bridge-UNNBB>invoke(kotlinx.cinterop.CPointer<platform.posix.sockaddr>;kotlin.UInt){}#internal + 170 (/opt/buildAgent/work/8d547b974a7be21f/ktor-network/nix/src/io/ktor/network/sockets/ConnectUtilsNative.kt:58:13)
+    at 9   server.kexe                         0x10255adc8        kfun:kotlin.Function2#invoke(1:0;1:1){}1:2-trampoline + 88 (/Users/kenny/.gradle/daemon/8.5/[K][Suspend]Functions:1:1)
+    at 10  server.kexe                         0x1024f808e        kfun:io.ktor.network.util.NativeIPv4SocketAddress#nativeAddress(kotlin.Function2<kotlinx.cinterop.CPointer<platform.posix.sockaddr>,kotlin.UInt,kotlin.Unit>){} + 1694 (/opt/buildAgent/work/8d547b974a7be21f/ktor-network/nix/src/io/ktor/network/util/NativeSocketAddress.kt:47:13)
+    at 11  server.kexe                         0x10258d58b        kfun:io.ktor.network.util.NativeSocketAddress#nativeAddress(kotlin.Function2<kotlinx.cinterop.CPointer<platform.posix.sockaddr>,kotlin.UInt,kotlin.Unit>){}-trampoline + 43 (/opt/buildAgent/work/8d547b974a7be21f/ktor-network/nix/src/io/ktor/network/util/NativeSocketAddress.kt:17:23)
+    at 12  server.kexe                         0x1024f1cff        kfun:io.ktor.network.sockets#bind(io.ktor.network.selector.SelectorManager;io.ktor.network.sockets.SocketAddress?;io.ktor.network.sockets.SocketOptions.AcceptorOptions){}io.ktor.network.sockets.ServerSocket + 1215 (/opt/buildAgent/work/8d547b974a7be21f/ktor-network/nix/src/io/ktor/network/sockets/ConnectUtilsNative.kt:58:13)
+    at 13  server.kexe                         0x1024e289d        kfun:io.ktor.network.sockets.TcpSocketBuilder#bind(io.ktor.network.sockets.SocketAddress?;kotlin.Function1<io.ktor.network.sockets.SocketOptions.AcceptorOptions,kotlin.Unit>){}io.ktor.network.sockets.ServerSocket + 557 (/opt/buildAgent/work/8d547b974a7be21f/ktor-network/jvmAndNix/src/io/ktor/network/sockets/TcpSocketBuilder.kt:45:23)
+    at 14  server.kexe                         0x1024e2616        kfun:io.ktor.network.sockets.TcpSocketBuilder#bind(kotlin.String;kotlin.Int;kotlin.Function1<io.ktor.network.sockets.SocketOptions.AcceptorOptions,kotlin.Unit>){}io.ktor.network.sockets.ServerSocket + 326 (/opt/buildAgent/work/8d547b974a7be21f/ktor-network/jvmAndNix/src/io/ktor/network/sockets/TcpSocketBuilder.kt:29:23)
+    at 15  server.kexe                         0x102512903        kfun:io.ktor.server.cio.backend.$httpServer$lambda$3COROUTINE$0.invokeSuspend#internal + 2115 (/opt/buildAgent/work/8d547b974a7be21f/ktor-server/ktor-server-cio/jvmAndNix/src/io/ktor/server/cio/backend/HttpServer.kt:96:6)
+    at 16  server.kexe                         0x102513e47        kfun:io.ktor.server.cio.backend.httpServer$lambda$3#internal + 839 (/opt/buildAgent/work/8d547b974a7be21f/ktor-server/ktor-server-cio/jvmAndNix/src/io/ktor/server/cio/backend/HttpServer.kt:47:82)
+    at 17  server.kexe                         0x102514380        kfun:io.ktor.server.cio.backend.$httpServer$lambda$3$FUNCTION_REFERENCE$1.invoke#internal + 208 (/opt/buildAgent/work/8d547b974a7be21f/ktor-server/ktor-server-cio/jvmAndNix/src/io/ktor/server/cio/backend/HttpServer.kt:47:21)
+    at 18  server.kexe                         0x10255adc8        kfun:kotlin.Function2#invoke(1:0;1:1){}1:2-trampoline + 88 (/Users/kenny/.gradle/daemon/8.5/[K][Suspend]Functions:1:1)
+    at 19  server.kexe                         0x10210a99c        kfun:kotlin.coroutines.intrinsics.object-3.invokeSuspend#internal + 860 (/opt/buildAgent/work/2fed3917837e7e79/kotlin/kotlin-native/runtime/src/main/kotlin/kotlin/coroutines/intrinsics/IntrinsicsNative.kt:254:35)
+    at 20  server.kexe                         0x10255ab63        kfun:kotlin.coroutines.native.internal.BaseContinuationImpl#invokeSuspend(kotlin.Result<kotlin.Any?>){}kotlin.Any?-trampoline + 51 (/opt/buildAgent/work/2fed3917837e7e79/kotlin/kotlin-native/runtime/src/main/kotlin/kotlin/coroutines/ContinuationImpl.kt:50:24)
+    at 21  server.kexe                         0x10210828b        kfun:kotlin.coroutines.native.internal.BaseContinuationImpl#resumeWith(kotlin.Result<kotlin.Any?>){} + 827 (/opt/buildAgent/work/2fed3917837e7e79/kotlin/kotlin-native/runtime/src/main/kotlin/kotlin/coroutines/ContinuationImpl.kt:30:39)
+    at 22  server.kexe                         0x10255ac09        kfun:kotlin.coroutines.Continuation#resumeWith(kotlin.Result<1:0>){}-trampoline + 73 (/opt/buildAgent/work/2fed3917837e7e79/kotlin/libraries/stdlib/src/kotlin/coroutines/Continuation.kt:26:12)
+    at 23  server.kexe                         0x10228ca82        kfun:kotlinx.coroutines.DispatchedTask#run(){} + 2738 (/opt/buildAgent/work/44ec6e850d5c63f0/kotlinx-coroutines-core/common/src/internal/DispatchedTask.kt:108:71)
+    at 24  server.kexe                         0x102569ac0        kfun:kotlinx.coroutines.Runnable#run(){}-trampoline + 64 (/opt/buildAgent/work/44ec6e850d5c63f0/kotlinx-coroutines-core/native/src/Runnable.kt:14:19)
+    at 25  server.kexe                         0x1022c0875        kfun:kotlinx.coroutines.DarwinGlobalQueueDispatcher.dispatch$lambda$0#internal + 101 (/opt/buildAgent/work/44ec6e850d5c63f0/kotlinx-coroutines-core/nativeDarwin/src/Dispatchers.kt:24:23)
+    at 26  server.kexe                         0x1022c08cb        kfun:kotlinx.coroutines.DarwinGlobalQueueDispatcher.$dispatch$lambda$0$FUNCTION_REFERENCE$0.invoke#internal + 75 (/opt/buildAgent/work/44ec6e850d5c63f0/kotlinx-coroutines-core/nativeDarwin/src/Dispatchers.kt:23:13)
+    at 27  server.kexe                         0x1022c099b        kfun:kotlinx.coroutines.DarwinGlobalQueueDispatcher.$dispatch$lambda$0$FUNCTION_REFERENCE$0.$<bridge-UNN>invoke(){}#internal + 75 (/opt/buildAgent/work/44ec6e850d5c63f0/kotlinx-coroutines-core/nativeDarwin/src/Dispatchers.kt:23:13)
+    at 28  server.kexe                         0x102558348        kfun:kotlin.Function0#invoke(){}1:0-trampoline + 72 (/Users/kenny/.gradle/daemon/8.5/[K][Suspend]Functions:1:1)
+    at 29  server.kexe                         0x1022c2ae4        _6f72672e6a6574627261696e732e6b6f746c696e783a6b6f746c696e782d636f726f7574696e65732d636f72652f6f70742f6275696c644167656e742f776f726b2f343465633665383530643563363366302f6b6f746c696e782d636f726f7574696e65732d636f72652f6e617469766544617277696e2f7372632f44697370617463686572732e6b74_knbridge4 + 196 (/opt/buildAgent/work/44ec6e850d5c63f0/kotlinx-coroutines-core/nativeDarwin/src/Dispatchers.kt:23:13)
+    at 30  libdispatch.dylib                   0x7ff81be856b8     _dispatch_call_block_and_release + 11 
+    at 31  libdispatch.dylib                   0x7ff81be9b9fb     _dispatch_client_callout + 5 
+    at 32  libdispatch.dylib                   0x7ff81beb4cb4     _dispatch_queue_override_invoke.cold.3 + 33 
+    at 33  libdispatch.dylib                   0x7ff81be88e5e     _dispatch_queue_override_invoke + 1059 
+    at 34  libdispatch.dylib                   0x7ff81beb62ed     _dispatch_root_queue_drain.cold.3 + 262 
+    at 35  libdispatch.dylib                   0x7ff81be94a95     _dispatch_root_queue_drain + 97 
+    at 36  libdispatch.dylib                   0x7ff81be94f14     _dispatch_worker_thread2 + 146 
+    at 37  libsystem_pthread.dylib             0x7ff81c02d86b     _pthread_wqthread + 232 
+    at 38  libsystem_pthread.dylib             0x7ff81c02c842     start_wqthread + 14 
+    Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [LazyStandaloneCoroutine{Cancelling}@bf38020, DarwinGlobalQueueDispatcher@bdcb088]
+        at 0   server.kexe                         0x102103669        kfun:kotlin.Throwable#<init>(kotlin.String?){} + 105 (/opt/buildAgent/work/2fed3917837e7e79/kotlin/kotlin-native/runtime/src/main/kotlin/kotlin/Throwable.kt:28:37)
+        at 1   server.kexe                         0x1020fdd85        kfun:kotlin.Exception#<init>(kotlin.String?){} + 101 (/opt/buildAgent/work/2fed3917837e7e79/kotlin/kotlin-native/runtime/src/main/kotlin/kotlin/Exceptions.kt:23:44)
+        at 2   server.kexe                         0x1020fe005        kfun:kotlin.RuntimeException#<init>(kotlin.String?){} + 101 (/opt/buildAgent/work/2fed3917837e7e79/kotlin/kotlin-native/runtime/src/main/kotlin/kotlin/Exceptions.kt:34:44)
+        at 3   server.kexe                         0x1022bf000        kfun:kotlinx.coroutines.internal.DiagnosticCoroutineContextException#<init>(kotlin.coroutines.CoroutineContext){} + 192 (/opt/buildAgent/work/44ec6e850d5c63f0/kotlinx-coroutines-core/native/src/internal/CoroutineExceptionHandlerImpl.kt:31:5)
+        at 4   server.kexe                         0x102287d62        kfun:kotlinx.coroutines.internal#handleUncaughtCoroutineException(kotlin.coroutines.CoroutineContext;kotlin.Throwable){} + 930 (/opt/buildAgent/work/44ec6e850d5c63f0/kotlinx-coroutines-core/common/src/internal/CoroutineExceptionHandlerImpl.common.kt:47:33)
+        at 5   server.kexe                         0x102231da3        kfun:kotlinx.coroutines#handleCoroutineException(kotlin.coroutines.CoroutineContext;kotlin.Throwable){} + 723 (/opt/buildAgent/work/44ec6e850d5c63f0/kotlinx-coroutines-core/common/src/CoroutineExceptionHandler.kt:32:5)
+        at 6   server.kexe                         0x1022220e0        kfun:kotlinx.coroutines.StandaloneCoroutine.handleJobException#internal + 192 (/opt/buildAgent/work/44ec6e850d5c63f0/kotlinx-coroutines-core/common/src/Builders.common.kt:194:9)
+        at 7   server.kexe                         0x10256af4b        kfun:kotlinx.coroutines.JobSupport#handleJobException(kotlin.Throwable){}kotlin.Boolean-trampoline + 43 (/opt/buildAgent/work/44ec6e850d5c63f0/kotlinx-coroutines-core/common/src/JobSupport.kt:1031:20)
+        at 8   server.kexe                         0x10223e0b7        kfun:kotlinx.coroutines.JobSupport.finalizeFinishingState#internal + 1511 (/opt/buildAgent/work/44ec6e850d5c63f0/kotlinx-coroutines-core/common/src/JobSupport.kt:231:59)
+        at 9   server.kexe                         0x102248f4e        kfun:kotlinx.coroutines.JobSupport.tryMakeCompletingSlowPath#internal + 2766 (/opt/buildAgent/work/44ec6e850d5c63f0/kotlinx-coroutines-core/common/src/JobSupport.kt:910:16)
+        at 10  server.kexe                         0x102248435        kfun:kotlinx.coroutines.JobSupport.tryMakeCompleting#internal + 709 (/opt/buildAgent/work/44ec6e850d5c63f0/kotlinx-coroutines-core/common/src/JobSupport.kt:867:16)
+        at 11  server.kexe                         0x102247f47        kfun:kotlinx.coroutines.JobSupport#makeCompletingOnce(kotlin.Any?){}kotlin.Any? + 519 (/opt/buildAgent/work/44ec6e850d5c63f0/kotlinx-coroutines-core/common/src/JobSupport.kt:832:30)
+        at 12  server.kexe                         0x1022213e3        kfun:kotlinx.coroutines.AbstractCoroutine#resumeWith(kotlin.Result<1:0>){} + 307 (/opt/buildAgent/work/44ec6e850d5c63f0/kotlinx-coroutines-core/common/src/AbstractCoroutine.kt:100:21)
+        at 13  server.kexe                         0x10255ac09        kfun:kotlin.coroutines.Continuation#resumeWith(kotlin.Result<1:0>){}-trampoline + 73 (/opt/buildAgent/work/2fed3917837e7e79/kotlin/libraries/stdlib/src/kotlin/coroutines/Continuation.kt:26:12)
+        at 14  server.kexe                         0x10210851c        kfun:kotlin.coroutines.native.internal.BaseContinuationImpl#resumeWith(kotlin.Result<kotlin.Any?>){} + 1484 (/opt/buildAgent/work/2fed3917837e7e79/kotlin/kotlin-native/runtime/src/main/kotlin/kotlin/coroutines/ContinuationImpl.kt:43:32)
+        at 15  server.kexe                         0x10255ac09        kfun:kotlin.coroutines.Continuation#resumeWith(kotlin.Result<1:0>){}-trampoline + 73 (/opt/buildAgent/work/2fed3917837e7e79/kotlin/libraries/stdlib/src/kotlin/coroutines/Continuation.kt:26:12)
+        at 16  server.kexe                         0x10228c98d        kfun:kotlinx.coroutines.DispatchedTask#run(){} + 2493 (/opt/buildAgent/work/44ec6e850d5c63f0/kotlinx-coroutines-core/common/src/internal/DispatchedTask.kt:106:58)
+        at 17  server.kexe                         0x102569ac0        kfun:kotlinx.coroutines.Runnable#run(){}-trampoline + 64 (/opt/buildAgent/work/44ec6e850d5c63f0/kotlinx-coroutines-core/native/src/Runnable.kt:14:19)
+        ... and 14 more common stack frames skipped
