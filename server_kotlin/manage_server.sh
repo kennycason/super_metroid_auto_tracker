@@ -3,7 +3,7 @@
 # Kotlin Super Metroid Tracker Server Management
 # Manages Kotlin server
 
-KOTLIN_PORT=8082
+KOTLIN_PORT=8081
 KOTLIN_LOG="kotlin-server.log"
 KOTLIN_EXECUTABLE="./build/bin/native/debugExecutable/server_kotlin.kexe"
 POLL_INTERVAL=1000

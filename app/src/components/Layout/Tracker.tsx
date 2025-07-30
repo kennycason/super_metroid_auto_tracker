@@ -73,11 +73,8 @@ const DebugWindow: React.FC = () => {
             min="1000"
             max="65535"
           />
-          <span style={{ fontSize: '10px', marginLeft: '5px', opacity: 0.7 }}>
-            (8081=Python, 8082=Kotlin)
-          </span>
         </div>
-        <span style={{ fontSize: '12px', opacity: 0.7 }}>Debug Log</span>
+        <span style={{ fontSize: '12px', opacity: 0.7, marginRight: '5px'}}>Debug Log</span>
       </div>
       <div 
         className="debug-log" 

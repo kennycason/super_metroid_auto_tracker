@@ -1,7 +1,42 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { GameState } from '../types/gameState';
 
 const POLL_INTERVAL = 1000; // 1 second
+const TIMER_STORAGE_KEY = 'super-metroid-timer';
+
+// Load timer state from localStorage
+const loadTimerState = () => {
+  try {
+    const stored = localStorage.getItem(TIMER_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return {
+        running: false, // Always start paused to prevent auto-start
+        elapsed: parsed.elapsed || 0,
+        startTime: null,
+      };
+    }
+  } catch (error) {
+    console.warn('Failed to load timer state from localStorage:', error);
+  }
+  return {
+    running: false,
+    elapsed: 0,
+    startTime: null,
+  };
+};
+
+// Save timer state to localStorage
+const saveTimerState = (timer: { running: boolean; elapsed: number; startTime: number | null }) => {
+  try {
+    localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify({
+      elapsed: timer.elapsed,
+      // Don't save running state or startTime - always resume paused
+    }));
+  } catch (error) {
+    console.warn('Failed to save timer state to localStorage:', error);
+  }
+};
 
 const initialGameState: GameState = {
   stats: {
@@ -111,16 +146,30 @@ const initialGameState: GameState = {
 
 export const useGameState = (serverPort: number = 8081) => {
   const BACKEND_URL = `http://localhost:${serverPort}`;
-  
-  const [gameState, setGameState] = useState<GameState>(initialGameState);
+
+  const [gameState, setGameState] = useState<GameState>(() => {
+    // Initialize only once, even in StrictMode
+    const initialTimer = loadTimerState();
+    return {
+      ...initialGameState,
+      timer: initialTimer,
+    };
+  });
   const [isPolling, setIsPolling] = useState(false);
+
+  // Use refs to track timer state and prevent stale closures
+  const timerIntervalRef = useRef<number | null>(null);
+  const isTimerMountedRef = useRef(true);
+  const hasInitialized = useRef(false);
+  const timerStartTimeRef = useRef<number | null>(null);
+  const timerRunningRef = useRef(false);
 
   const fetchGameState = useCallback(async () => {
     try {
       const response = await fetch(`${BACKEND_URL}/api/status`);
       if (response.ok) {
         const data = await response.json();
-        
+
         // Transform the Kotlin server data to match our GameState interface
         setGameState(prev => ({
           stats: {
@@ -219,7 +268,10 @@ export const useGameState = (serverPort: number = 8081) => {
             player_y: data.stats?.player_y || 0,
           },
           splits: prev.splits, // Keep existing splits state - backend doesn't provide this yet
-          timer: prev.timer, // Keep existing timer state
+          timer: {
+            ...prev.timer, // Preserve all timer state completely
+            // Ensure timer state is never accidentally reset by backend data
+          },
           connected: data.connected || false,
           lastUpdate: Date.now(),
         }));
@@ -244,28 +296,72 @@ export const useGameState = (serverPort: number = 8081) => {
   // Timer functions
   const startTimer = useCallback(() => {
     console.log('⏰ Starting timer...');
-    setGameState(prev => ({
-      ...prev,
-      timer: {
+    setGameState(prev => {
+      // Prevent double-starting
+      if (prev.timer.running) {
+        console.log('Timer already running, ignoring start command');
+        return prev;
+      }
+
+      const startTime = Date.now() - prev.timer.elapsed;
+      const newTimer = {
         running: true,
         elapsed: prev.timer.elapsed,
-        startTime: Date.now() - prev.timer.elapsed,
-      }
-    }));
+        startTime,
+      };
+
+      // Update refs for interval
+      timerRunningRef.current = true;
+      timerStartTimeRef.current = startTime;
+
+      saveTimerState(newTimer);
+      return {
+        ...prev,
+        timer: newTimer,
+      };
+    });
   }, []);
 
   const stopTimer = useCallback(() => {
-    setGameState(prev => ({
-      ...prev,
-      timer: {
+    console.log('⏸️ Stopping timer...');
+    setGameState(prev => {
+      // Prevent double-stopping
+      if (!prev.timer.running) {
+        console.log('Timer already stopped, ignoring stop command');
+        return prev;
+      }
+
+      const newTimer = {
         running: false,
         elapsed: prev.timer.elapsed,
         startTime: null,
-      }
-    }));
+      };
+
+      // Update refs for interval
+      timerRunningRef.current = false;
+      timerStartTimeRef.current = null;
+
+      saveTimerState(newTimer);
+      return {
+        ...prev,
+        timer: newTimer,
+      };
+    });
   }, []);
 
   const resetTimer = useCallback(() => {
+    console.log('🔄 Resetting timer and clearing localStorage...');
+    // Clear localStorage
+    try {
+      localStorage.removeItem(TIMER_STORAGE_KEY);
+    } catch (error) {
+      console.warn('Failed to clear timer from localStorage:', error);
+    }
+
+    // Update refs for interval
+    timerRunningRef.current = false;
+    timerStartTimeRef.current = null;
+
     setGameState(prev => ({
       ...prev,
       timer: {
@@ -275,20 +371,26 @@ export const useGameState = (serverPort: number = 8081) => {
       },
       splits: [], // Clear splits when timer resets
     }));
-    
+
     // Clear tracking state so splits can be detected again
     setLastTrackedBosses({});
+    // Disable splits until timer starts again
+    setSplitsEnabled(false);
   }, []);
 
   const adjustTimer = useCallback((adjustment: number) => {
-    setGameState(prev => ({
-      ...prev,
-      timer: {
+    setGameState(prev => {
+      const newTimer = {
         ...prev.timer,
         elapsed: Math.max(0, prev.timer.elapsed + adjustment),
         startTime: prev.timer.running ? Date.now() - (prev.timer.elapsed + adjustment) : prev.timer.startTime,
-      },
-    }));
+      };
+      saveTimerState(newTimer);
+      return {
+        ...prev,
+        timer: newTimer,
+      };
+    });
   }, []);
 
   // Effect for polling
@@ -299,34 +401,72 @@ export const useGameState = (serverPort: number = 8081) => {
     return () => clearInterval(interval);
   }, [isPolling, fetchGameState]);
 
-  // Effect for timer updates
+  // Effect for timer updates - use refs to prevent restart loops
   useEffect(() => {
-    if (!gameState.timer.running || !gameState.timer.startTime) return;
+    // Start a single interval that runs continuously
+    if (timerIntervalRef.current) return; // Already running
 
-    const interval = setInterval(() => {
+    timerIntervalRef.current = window.setInterval(() => {
+      if (!isTimerMountedRef.current) return;
+      if (!timerRunningRef.current || !timerStartTimeRef.current) return;
+
       setGameState(prev => {
-        // Only update if timer is still running to prevent stale updates
-        if (!prev.timer.running || !prev.timer.startTime) return prev;
-        
+        // Use refs for timer checks to avoid stale state
+        if (!timerRunningRef.current || !timerStartTimeRef.current) return prev;
+
+        const newElapsed = Date.now() - timerStartTimeRef.current;
+        const newTimer = {
+          ...prev.timer,
+          elapsed: newElapsed,
+        };
+
+        // Save to localStorage every second (reduce I/O)
+        if (Math.floor(newElapsed / 1000) !== Math.floor(prev.timer.elapsed / 1000)) {
+          saveTimerState(newTimer);
+        }
+
         return {
           ...prev,
-          timer: {
-            ...prev.timer,
-            elapsed: Date.now() - prev.timer.startTime,
-          }
+          timer: newTimer,
         };
       });
     }, 100); // Update every 100ms for smooth timer
 
-    return () => clearInterval(interval);
-  }, [gameState.timer.running, gameState.timer.startTime]);
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    };
+  }, []); // No dependencies - run once and let refs control behavior
+
+  // Sync refs with timer state only when running state changes (not elapsed time)
+  useEffect(() => {
+    timerRunningRef.current = gameState.timer.running;
+    if (gameState.timer.startTime !== timerStartTimeRef.current) {
+      timerStartTimeRef.current = gameState.timer.startTime;
+    }
+  }, [gameState.timer.running]); // Only depend on running state
+
+  // Mount/unmount tracking
+  useEffect(() => {
+    isTimerMountedRef.current = true;
+
+    return () => {
+      isTimerMountedRef.current = false;
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    };
+  }, []);
 
   // Auto-pause timer when ship status becomes true (game completed)
   // But only if the timer has been running for more than 10 seconds to avoid false positives
   useEffect(() => {
     const isShipCompleted = gameState.stats.bosses.main;
     const timerHasBeenRunning = gameState.timer.elapsed > 10000; // 10 seconds
-    
+
     // If ship is completed and timer is running AND has been running for a while, auto-pause
     if (isShipCompleted && gameState.timer.running && timerHasBeenRunning) {
       console.log('🚢 Game completed! Auto-pausing timer...');
@@ -337,50 +477,68 @@ export const useGameState = (serverPort: number = 8081) => {
   // Track previous state for splits detection
   const [lastTrackedBosses, setLastTrackedBosses] = useState<Record<string, boolean>>({});
   const [isInitialized, setIsInitialized] = useState(false);
+  const [splitsEnabled, setSplitsEnabled] = useState(false); // Prevent splits during initialization
 
   // Add split functionality (based on original HTML implementation)
   const addSplit = useCallback((eventName: string) => {
-    if (!gameState.timer.running) return;
-    
+    // Only add splits if timer is running, splits are enabled, and timer has been running for at least 1 second
+    if (!gameState.timer.running || !splitsEnabled || gameState.timer.elapsed < 1000) return;
+
     const currentTime = gameState.timer.elapsed;
     const split = {
       event: eventName,
       time: currentTime,
       timestamp: Date.now()
     };
-    
+
     setGameState(prev => ({
       ...prev,
       splits: [...prev.splits, split]
     }));
-    
-    console.log(`⭐ Split: ${eventName} at ${Math.floor(currentTime / 60000)}:${String(Math.floor((currentTime % 60000) / 1000)).padStart(2, '0')}.${String(Math.floor((currentTime % 1000) / 100))}`);
-  }, [gameState.timer.running, gameState.timer.elapsed]);
+
+    // Format time consistently with new HH:MM:SS.sss format
+    const totalSeconds = Math.floor(currentTime / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const milliseconds = currentTime % 1000;
+    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+
+    console.log(`⭐ Split: ${eventName} at ${timeString}`);
+  }, [gameState.timer.running, splitsEnabled]);
 
   // Initialize tracking state on first successful data fetch
   useEffect(() => {
     if (!isInitialized && gameState.connected) {
       const trackableBosses = ['bomb_torizo', 'spore_spawn', 'kraid', 'crocomire', 'phantoon', 'botwoon', 'draygon', 'golden_torizo', 'ridley', 'mb1', 'mb2'];
       const initialTrackedBosses: Record<string, boolean> = {};
-      
+
       for (const boss of trackableBosses) {
         initialTrackedBosses[boss] = (gameState.stats.bosses as any)[boss] || false;
       }
       initialTrackedBosses['main'] = gameState.stats.bosses.main || false;
-      
+
       setLastTrackedBosses(initialTrackedBosses);
       setIsInitialized(true);
       console.log('🎯 Boss tracking initialized with current state');
     }
   }, [gameState.connected, isInitialized, gameState.stats.bosses]);
 
+  // Enable splits when timer starts for the first time
+  useEffect(() => {
+    if (gameState.timer.running && !splitsEnabled) {
+      // Only enable splits when timer actually starts running
+      setSplitsEnabled(true);
+    }
+  }, [gameState.timer.running, splitsEnabled]);
+
   // Check for new splits (based on original HTML logic)
   useEffect(() => {
-    if (!gameState.timer.running || !isInitialized) return;
+    if (!gameState.timer.running || !isInitialized || !splitsEnabled) return;
 
     // Check for new bosses (only bosses as per user requirement)
     const trackableBosses = ['bomb_torizo', 'spore_spawn', 'kraid', 'crocomire', 'phantoon', 'botwoon', 'draygon', 'golden_torizo', 'ridley', 'mb1', 'mb2'];
-    
+
     const bossNames: Record<string, string> = {
       'bomb_torizo': 'Bomb Torizo',
       'spore_spawn': 'Spore Spawn', 
@@ -414,20 +572,18 @@ export const useGameState = (serverPort: number = 8081) => {
       newTrackedBosses[boss] = (gameState.stats.bosses as any)[boss] || false;
     }
     newTrackedBosses['main'] = gameState.stats.bosses.main || false;
-    
+
     setLastTrackedBosses(newTrackedBosses);
   }, [
     gameState.stats.bosses, 
     gameState.timer.running, 
     isInitialized,
+    splitsEnabled,
     addSplit
+    // Note: lastTrackedBosses removed to prevent infinite loop
   ]);
 
-  // Auto-start polling when hook is used
-  useEffect(() => {
-    startPolling();
-    return () => stopPolling();
-  }, [startPolling, stopPolling]);
+  // Note: Polling is now managed by SuperMetroidContext, not here
 
   return {
     gameState,

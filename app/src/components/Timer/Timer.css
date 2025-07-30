@@ -13,11 +13,11 @@
 
 .timer-display {
   font-family: 'Courier New', monospace;
-  font-size: 24px;
+  font-size: 30px;
   font-weight: bold;
   color: #00ff00;
   text-shadow: 0 0 8px rgba(0, 255, 0, 0.6);
-  margin: 8px 0;
+  margin: 0px 0;
   letter-spacing: 1px;
   background: rgba(0, 0, 0, 0.3);
   padding: 6px 12px;

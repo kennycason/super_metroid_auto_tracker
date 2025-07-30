@@ -55,22 +55,30 @@ export const SuperMetroidProvider: React.FC<SuperMetroidProviderProps> = ({ chil
   const [config, setConfig] = useState<TrackerConfig>(defaultConfig);
   const [isMinimal, setIsMinimal] = useState(false);  // Changed from isFullscreen
   const [serverPort, setServerPort] = useState(8081); // Default to Python server port
+  const pollingStartedRef = useRef(false);
   
   const gameStateHook = useGameState(serverPort);
 
-  // Auto-start polling when the provider mounts
+  // Auto-start polling when the provider mounts (StrictMode safe)
   React.useEffect(() => {
+    if (pollingStartedRef.current) {
+      console.log('🔄 Polling already started, skipping...');
+      return;
+    }
+    
     console.log('🚀 SuperMetroidProvider mounted - starting polling...');
+    pollingStartedRef.current = true;
     gameStateHook.startPolling();
     
     // Cleanup: stop polling when component unmounts
     return () => {
       console.log('🛑 SuperMetroidProvider unmounting - stopping polling...');
+      pollingStartedRef.current = false;
       gameStateHook.stopPolling();
     };
-  }, [gameStateHook.startPolling, gameStateHook.stopPolling]);
+  }, []); // Remove dependencies to prevent re-mounting
 
-  // Utility function to format time in MM:SS.mmm format
+  // Utility function to format time in HH:MM:SS.sss format
   const formatTime = (ms: number): string => {
     const totalSeconds = Math.floor(ms / 1000);
     const hours = Math.floor(totalSeconds / 3600);
@@ -78,7 +86,7 @@ export const SuperMetroidProvider: React.FC<SuperMetroidProviderProps> = ({ chil
     const seconds = totalSeconds % 60;
     const milliseconds = ms % 1000;
     
-    return `${hours}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}s`;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
   };
 
   // Check if an item is collected based on the game state

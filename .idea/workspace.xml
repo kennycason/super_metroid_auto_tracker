@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="b5929a9e-87b3-41dd-81dc-2a39f0e3a664" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/app/src/components/Layout/Tracker.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/components/Layout/Tracker.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/components/Timer/Timer.css" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/components/Timer/Timer.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/context/SuperMetroidContext.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/context/SuperMetroidContext.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/hooks/useGameState.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/hooks/useGameState.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server_kotlin/explore/UDP_CLIENT_FIX.md" beforeDir="false" afterPath="$PROJECT_DIR$/server_kotlin/explore/UDP_CLIENT_FIX.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server_kotlin/explore/port_check.sh" beforeDir="false" afterPath="$PROJECT_DIR$/server_kotlin/explore/port_check.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server_kotlin/manage_server.sh" beforeDir="false" afterPath="$PROJECT_DIR$/server_kotlin/manage_server.sh" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 8
+}]]></component>
+  <component name="ProjectId" id="30cAO1KUeMpa1bqcoHhs1l4G677" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "/Users/kenny/code/super_metroid_hud",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-f27c65a3e318-JavaScript-WS-251.23774.424" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="b5929a9e-87b3-41dd-81dc-2a39f0e3a664" name="Changes" comment="" />
+      <created>1753916451986</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1753916451986</updated>
+      <workItem from="1753916453218" duration="1000" />
+    </task>
+    <servers />
+  </component>
+</project>

@@ -33,10 +33,9 @@ while [[ $# -gt 0 ]]; do
       echo "  -h, --help         Show this help message"
       echo ""
       echo "Examples:"
-      echo "  $0                 Check if port 8081 is in use"
-      echo "  $0 -p 8082         Check if port 8082 is in use"
+      echo "  $0 -p 8081         Check if port 8081 is in use"
       echo "  $0 -k              Kill processes using port 8081"
-      echo "  $0 -p 8082 -k -f   Force kill processes using port 8082"
+      echo "  $0 -p 8081 -k -f   Force kill processes using port 8081"
       exit 0
       ;;
     *)

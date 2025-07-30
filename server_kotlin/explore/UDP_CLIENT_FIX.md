@@ -141,9 +141,9 @@ bash manage_server.sh start
 
 The server will start on port 8082 by default. You can access the API at:
 
-- API Status: http://localhost:8082/api/status
-- API Stats: http://localhost:8082/api/stats
-- Tracker UI: http://localhost:8082/
+- API Status: http://localhost:8081/api/status
+- API Stats: http://localhost:8081/api/stats
+- Tracker UI: http://localhost:8081/
 
 ### Stopping the Server
 
