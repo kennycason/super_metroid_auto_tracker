@@ -430,7 +430,7 @@ export const useGameState = (serverPort: number = 8081) => {
           timer: newTimer,
         };
       });
-    }, 100); // Update every 100ms for smooth timer
+    }, 50); // Update every 50ms for smooth timer
 
     return () => {
       if (timerIntervalRef.current) {
@@ -496,13 +496,13 @@ export const useGameState = (serverPort: number = 8081) => {
       splits: [...prev.splits, split]
     }));
 
-    // Format time consistently with new HH:MM:SS.sss format
+    // Format time consistently with new HH:MM:SS.ss format
     const totalSeconds = Math.floor(currentTime / 1000);
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
-    const milliseconds = currentTime % 1000;
-    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+    const milliseconds = Math.floor((currentTime % 1000) / 10);
+    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`;
 
     console.log(`⭐ Split: ${eventName} at ${timeString}`);
   }, [gameState.timer.running, splitsEnabled]);
