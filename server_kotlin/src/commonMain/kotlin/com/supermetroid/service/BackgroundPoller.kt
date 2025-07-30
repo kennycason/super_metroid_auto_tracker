@@ -156,8 +156,8 @@ class BackgroundPoller(
             println("🔄 ReadGameState: Reading main_bosses (0x7ED828)...")
             val mainBosses = udpClient.readMemoryRange(0x7ED828, 2)
 
-            println("🔄 ReadGameState: Reading crocomire (0x7ED82C)...")
-            val crocomire = udpClient.readMemoryRange(0x7ED82C, 2)
+            println("🔄 ReadGameState: Reading crocomire (0x7ED829)...")
+            val crocomire = udpClient.readMemoryRange(0x7ED829, 2)
 
             println("🔄 ReadGameState: Reading boss_plus_1 (0x7ED829)...")
             val bossPlus1 = udpClient.readMemoryRange(0x7ED829, 2)

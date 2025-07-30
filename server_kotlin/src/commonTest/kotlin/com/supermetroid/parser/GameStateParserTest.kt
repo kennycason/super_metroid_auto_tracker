@@ -234,4 +234,28 @@ class GameStateParserTest {
         assertEquals(0, gameState.health)
         assertEquals(0, gameState.maxHealth)
     }
+
+    @Test
+    fun testReserveEnergyParsing() = runTest {
+        // Create mock basic stats data with specific reserve energy values
+        val basicStatsData = byteArrayOf(
+            0x63, 0x00, // health = 99
+            0x63, 0x00, // max_health = 99
+            0x00, 0x00, // missiles = 0
+            0x05, 0x00, // max_missiles = 5
+            0x00, 0x00, // supers = 0
+            0x00, 0x00, // max_supers = 0
+            0x00, 0x00, // power_bombs = 0
+            0x00, 0x00, // max_power_bombs = 0
+            0x2C, 0x01, // max_reserve_energy = 300
+            0x2C, 0x01  // reserve_energy = 300
+        )
+
+        val memoryData = mapOf("basic_stats" to basicStatsData)
+        val gameState = parser.parseCompleteGameState(memoryData)
+
+        // Assert that reserve energy values are parsed correctly
+        assertEquals(300, gameState.maxReserveEnergy, "Max reserve energy should be 300")
+        assertEquals(300, gameState.reserveEnergy, "Reserve energy should be 300")
+    }
 }

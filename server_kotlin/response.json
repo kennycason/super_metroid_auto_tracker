@@ -1,0 +1,61 @@
+{
+    "connected": true,
+    "game_loaded": true,
+    "retroarch_version": "1.21.0",
+    "game_info": "GET_STATUS PLAYING super_nes,Super Metroid (Japan, USA) (En,Ja),crc32=d63ed5f8",
+    "stats": {
+        "health": 1099,
+        "max_health": 1099,
+        "missiles": 135,
+        "max_missiles": 135,
+        "supers": 22,
+        "max_supers": 30,
+        "power_bombs": 30,
+        "max_power_bombs": 30,
+        "reserve_energy": 300,
+        "room_id": 56867,
+        "area_id": 5,
+        "area_name": "Tourian",
+        "game_state": 15,
+        "player_x": 111,
+        "player_y": 155,
+        "items": {
+            "morph": true,
+            "bombs": true,
+            "varia": true,
+            "gravity": true,
+            "hijump": true,
+            "speed": true,
+            "space": true,
+            "screw": true,
+            "spring": true,
+            "grapple": true,
+            "xray": true
+        },
+        "beams": {
+            "charge": true,
+            "ice": true,
+            "wave": true,
+            "spazer": true,
+            "plasma": true,
+            "hyper": false
+        },
+        "bosses": {
+            "bomb_torizo": true,
+            "kraid": true,
+            "spore_spawn": true,
+            "mother_brain": false,
+            "crocomire": true,
+            "phantoon": true,
+            "botwoon": true,
+            "draygon": true,
+            "ridley": true,
+            "golden_torizo": true,
+            "mother_brain_1": false,
+            "mother_brain_2": false,
+            "samus_ship": false
+        }
+    },
+    "last_update": 1753908688251,
+    "poll_count": 73
+}

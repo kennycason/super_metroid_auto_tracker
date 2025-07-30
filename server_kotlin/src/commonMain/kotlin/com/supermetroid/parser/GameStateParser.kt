@@ -144,8 +144,8 @@ class GameStateParser {
                 "max_supers" to data.readInt16LE(10),
                 "power_bombs" to data.readInt16LE(12),
                 "max_power_bombs" to data.readInt16LE(14),
-                "reserve_energy" to data.readInt16LE(18),
-                "max_reserve_energy" to data.readInt16LE(16)
+                "max_reserve_energy" to data.readInt16LE(18),
+                "reserve_energy" to data.readInt16LE(20)
             )
         } catch (e: Exception) {
             println("Error parsing basic stats: ${e.message}")
@@ -326,6 +326,30 @@ class GameStateParser {
         // Draygon detection - FIXED! Only use boss_plus_3 == 0x0301 pattern
         val draygonDetected = (bossPlus3 == 0x0301)
 
+        // Ridley detection - Fixed to match Python logic and avoid false positives
+        var ridleyDetected = false
+        // Check for specific Ridley patterns while excluding known false positives
+        if ((bossPlus2 and 0x0001) != 0) {  // Check boss_plus_2 first
+            // Current Ridley pattern: 0x0107, Draygon false positive: 0x0203
+            if (bossPlus2 >= 0x0100 && bossPlus2 != 0x0203) {
+                ridleyDetected = true
+            }
+        } else if ((bossPlus4 and 0x0001) != 0) {  // Check boss_plus_4 only as fallback
+            // Exclude known Botwoon patterns (0x0003, 0x0007, etc.) and require higher values
+            if (bossPlus4 >= 0x0011 && bossPlus4 != 0x0003 && bossPlus4 != 0x0007) {
+                ridleyDetected = true
+            }
+        }
+
+        // Golden Torizo detection - More liberal detection patterns to match Python logic
+        // Multiple detection patterns for Golden Torizo
+        val condition1 = ((bossPlus1 and 0x0700) != 0) && ((bossPlus1 and 0x0003) != 0)  // Basic pattern matching
+        val condition2 = ((bossPlus2 and 0x0100) != 0) && (bossPlus2 >= 0x0400)  // Lowered threshold
+        val condition3 = (bossPlus1 >= 0x0603)  // Direct value check
+        val condition4 = ((bossPlus3 and 0x0100) != 0)  // Alternative address pattern
+
+        val goldenTorizoDetected = (condition1 || condition2 || condition3 || condition4)
+
         // Mother Brain phase detection
         val motherBrainDefeated = (mainBosses and 0x0001) != 0
 
@@ -378,8 +402,8 @@ class GameStateParser {
             "phantoon" to phantoonDetected,                       // Advanced detection ✅
             "botwoon" to botwoonDetected,                        // Advanced detection ✅
             "draygon" to draygonDetected,                        // FIXED: Only 0x0301 pattern ✅
-            "ridley" to ((mainBosses and 0x0400) != 0),          // Keep simple for now
-            "golden_torizo" to ((mainBosses and 0x0800) != 0),   // Keep simple for now
+            "ridley" to ridleyDetected,                          // Advanced detection with multiple patterns ✅
+            "golden_torizo" to goldenTorizoDetected,             // Advanced detection with multiple conditions ✅
             "mother_brain_1" to motherBrainPhaseState["mb1_detected"]!!,
             "mother_brain_2" to motherBrainPhaseState["mb2_detected"]!!,
             "samus_ship" to false  // End-game detection - keep simple for now
