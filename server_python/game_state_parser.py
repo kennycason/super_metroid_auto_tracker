@@ -287,20 +287,24 @@ class SuperMetroidGameStateParser:
         has_hyper_beam = False
         has_plasma_beam = bool(beams_value & 0x0008)
         
-        # Context clues that suggest hyper beam (post-MB2 state)
-        has_endgame_beam_combo = bool(beams_value & 0x1000) and bool(beams_value & 0x0002) and bool(beams_value & 0x0001) and bool(beams_value & 0x0004)  # charge+ice+wave+spazer
+        # Hyper beam detection - only detect when truly in post-game escape sequence
+        # Be much more conservative about hyper beam detection
+        area_id = location_data.get('area_id', 0) if location_data else 0
+        room_id = location_data.get('room_id', 0) if location_data else 0
         
-        # If we have the endgame beam combo + plasma bit, it's likely hyper beam (since hyper replaces plasma)
-        if has_endgame_beam_combo and has_plasma_beam:
-            # Additional context check: are we post-MB2?
-            area_id = location_data.get('area_id', 0) if location_data else 0
-            room_id = location_data.get('room_id', 0) if location_data else 0
-            in_escape_areas = area_id in [0, 2, 4, 5] or room_id in [37368, 38586, 56999]  # Post-escape areas
-            
-            if in_escape_areas:
-                logger.info(f"🌟 HYPER BEAM detected: endgame beam combo + plasma bit in post-MB2 context (area={area_id}, room={room_id})")
-                has_hyper_beam = True
-                has_plasma_beam = False  # Hyper replaces plasma
+        # Hyper beam should ONLY be detected in very specific escape sequence contexts
+        # Current logic is too aggressive and conflicts with normal plasma beam gameplay
+        in_escape_sequence = (area_id == 5 and room_id in [56867]) # Very specific escape rooms only
+        has_all_beams = bool(beams_value & 0x1000) and bool(beams_value & 0x0002) and bool(beams_value & 0x0001) and bool(beams_value & 0x0004) and has_plasma_beam
+        
+        # Only detect hyper beam in the actual escape sequence, not normal gameplay
+        if in_escape_sequence and has_all_beams and self.mother_brain_phase_state.get('mb2_detected', False):
+            logger.info(f"🌟 HYPER BEAM detected in escape sequence: area={area_id}, room={room_id}")
+            has_hyper_beam = True
+            has_plasma_beam = False  # Hyper replaces plasma only in escape
+        else:
+            # Normal gameplay - user has plasma beam normally
+            logger.info(f"🔫 PLASMA BEAM detected in normal gameplay: area={area_id}, room={room_id}")
         
         beams = {
             "charge": bool(beams_value & 0x1000),
@@ -461,14 +465,21 @@ class SuperMetroidGameStateParser:
         
         bosses['ridley'] = ridley_detected
         
-        # Golden Torizo detection - Fixed threshold to detect 0x0603 pattern
+        # Golden Torizo detection - More liberal detection patterns
         gt_addr_1 = boss_scan_results.get('boss_plus_1', 0)
         gt_addr_2 = boss_scan_results.get('boss_plus_2', 0)
-        condition1 = ((gt_addr_1 & 0x0700) and (gt_addr_1 & 0x0003) and (gt_addr_1 >= 0x0603))  # Lowered from 0x0703
-        condition2 = (gt_addr_2 & 0x0100) and (gt_addr_2 >= 0x0500)
-        # Removed condition3 that was triggering on Draygon's 0x0301 pattern
-        golden_torizo_detected = bool(condition1 or condition2)
+        gt_addr_3 = boss_scan_results.get('boss_plus_3', 0)
+        
+        # Multiple detection patterns for Golden Torizo
+        condition1 = ((gt_addr_1 & 0x0700) and (gt_addr_1 & 0x0003))  # Basic pattern matching
+        condition2 = (gt_addr_2 & 0x0100) and (gt_addr_2 >= 0x0400)  # Lowered threshold
+        condition3 = (gt_addr_1 >= 0x0603)  # Direct value check
+        condition4 = (gt_addr_3 & 0x0100)  # Alternative address pattern
+        
+        golden_torizo_detected = bool(condition1 or condition2 or condition3 or condition4)
         bosses['golden_torizo'] = golden_torizo_detected
+        
+        logger.info(f"🏆 Golden Torizo check: addr1=0x{gt_addr_1:04x}, addr2=0x{gt_addr_2:04x}, addr3=0x{gt_addr_3:04x} → detected={golden_torizo_detected}")
         
         # Advanced Mother Brain detection using multiple reliable indicators
         
@@ -1025,6 +1036,7 @@ class SuperMetroidGameStateParser:
             area_id = location_data.get('area_id', 0) if location_data else 0
             room_id = location_data.get('room_id', 0) if location_data else 0
             in_mb_room = (area_id == 5 and room_id == 56664)
+            in_escape_sequence = (area_id == 5 and room_id in [56867])  # Specific escape sequence rooms
             
             if in_mb_room:
                 logger.info(f"🔍 POST-MB2 OVERRIDE: IN MB ROOM (area={area_id}, room={room_id}) - skipping beam loadout check")
@@ -1046,14 +1058,17 @@ class SuperMetroidGameStateParser:
                         logger.info(f"🔍 Beam loadout check: all_beams={has_all_beams}, hyper={has_hyper}")
                         logger.info(f"🔍 Individual beams: {beams}")
                         
-                        # If we have hyper beam OR the full loadout, assume post-MB2
-                        if has_hyper or has_all_beams:
+                        # DISABLED: Only force MB detection based on actual escape sequence, not just beam loadout
+                        # Having all beams doesn't mean MB is defeated - could be 100% run or randomizer
+                        if has_hyper and in_escape_sequence:
                             has_endgame_beams = True
-                            logger.info(f"🚀 POST-MB2 OVERRIDE: Endgame beam loadout detected - FORCING MB1=True, MB2=True")
+                            logger.info(f"🚀 POST-MB2 OVERRIDE: Hyper beam in escape sequence - FORCING MB1=True, MB2=True")
                             final_mb1 = True
                             final_mb2 = True
                             self.mother_brain_phase_state['mb1_detected'] = True
                             self.mother_brain_phase_state['mb2_detected'] = True
+                        else:
+                            logger.info(f"🔫 Normal gameplay: Full beam loadout detected but NOT forcing MB completion")
                 
                 # REMOVED DANGEROUS FALLBACK: 0x0703 pattern can appear on new save files
                 # ONLY trust the beam loadout check above - no memory pattern fallbacks
