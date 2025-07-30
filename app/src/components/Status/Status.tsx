@@ -47,7 +47,7 @@ export const Status: React.FC<StatusProps> = ({ type, config }) => {
     const { stats } = gameState;
     switch (config.id) {
       case 'energy_tank': 
-        return stats.max_health > 99;
+        return true; // Always highlighted since players always have life
       case 'missile_tank': 
         return stats.max_missiles > 0;
       case 'super_tank': 

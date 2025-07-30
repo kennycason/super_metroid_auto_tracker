@@ -115,7 +115,7 @@ export const SuperMetroidProvider: React.FC<SuperMetroidProviderProps> = ({ chil
       case 'plasma': return stats.beams?.plasma || false;
 
       // Expansion items (special handling)
-      case 'energy_tank': return (stats.max_health || 99) > 99;
+      case 'energy_tank': return true; // Always highlighted since players always have life
       case 'missile_tank': return (stats.max_missiles || 0) > 0;
       case 'super_tank': return (stats.max_supers || 0) > 0;
       case 'power_bomb_tank': return (stats.max_power_bombs || 0) > 0;
