@@ -1,0 +1,17 @@
+*.class
+*.DS_store
+.classpath
+.project
+.metadata
+.settings
+.settings/*
+bin
+/target
+*/target/*
+*.log
+.idea/*
+*.iml
+
+classes/
+build/
+.gradle/*
