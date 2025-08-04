@@ -376,15 +376,29 @@ export const useGameState = (serverPort: number = 8081) => {
     setLastTrackedBosses({});
     // Disable splits until timer starts again
     setSplitsEnabled(false);
+    // Reset manual adjustments flag
+    setHasManualAdjustments(false);
   }, []);
 
   const adjustTimer = useCallback((adjustment: number) => {
+    // Mark that manual adjustments have been made
+    setHasManualAdjustments(true);
+
     setGameState(prev => {
+      const newElapsed = Math.max(0, prev.timer.elapsed + adjustment);
+      const newStartTime = prev.timer.running ? Date.now() - newElapsed : prev.timer.startTime;
+
       const newTimer = {
         ...prev.timer,
-        elapsed: Math.max(0, prev.timer.elapsed + adjustment),
-        startTime: prev.timer.running ? Date.now() - (prev.timer.elapsed + adjustment) : prev.timer.startTime,
+        elapsed: newElapsed,
+        startTime: newStartTime,
       };
+
+      // Update refs immediately to prevent state inconsistencies
+      if (prev.timer.running && newStartTime) {
+        timerStartTimeRef.current = newStartTime;
+      }
+
       saveTimerState(newTimer);
       return {
         ...prev,
@@ -461,23 +475,30 @@ export const useGameState = (serverPort: number = 8081) => {
     };
   }, []);
 
-  // Auto-pause timer when ship status becomes true (game completed)
-  // But only if the timer has been running for more than 10 seconds to avoid false positives
-  useEffect(() => {
-    const isShipCompleted = gameState.stats.bosses.main;
-    const timerHasBeenRunning = gameState.timer.elapsed > 10000; // 10 seconds
-
-    // If ship is completed and timer is running AND has been running for a while, auto-pause
-    if (isShipCompleted && gameState.timer.running && timerHasBeenRunning) {
-      console.log('🚢 Game completed! Auto-pausing timer...');
-      stopTimer();
-    }
-  }, [gameState.stats.bosses.main, gameState.timer.running, gameState.timer.elapsed, stopTimer]);
-
   // Track previous state for splits detection
   const [lastTrackedBosses, setLastTrackedBosses] = useState<Record<string, boolean>>({});
   const [isInitialized, setIsInitialized] = useState(false);
   const [splitsEnabled, setSplitsEnabled] = useState(false); // Prevent splits during initialization
+  const [hasManualAdjustments, setHasManualAdjustments] = useState(false); // Track if timer has been manually adjusted
+
+  // Auto-pause timer when ship status becomes true (game completed)
+  // Made more robust to prevent false positives - requires multiple conditions
+  useEffect(() => {
+    const isShipCompleted = gameState.stats.bosses.main;
+    const timerHasBeenRunning = gameState.timer.elapsed > 300000; // 5 minutes minimum
+    const hasMultipleBossesDefeated = Object.values(gameState.stats.bosses).filter(Boolean).length >= 4;
+
+    // Only auto-pause if ALL conditions are met:
+    // 1. Ship is completed
+    // 2. Timer has been running for at least 5 minutes (not 10 seconds)
+    // 3. Multiple bosses have been defeated (indicates real gameplay)
+    // 4. Timer is currently running
+    // 5. No manual adjustments have been made (to avoid false positives from manual time changes)
+    if (isShipCompleted && gameState.timer.running && timerHasBeenRunning && hasMultipleBossesDefeated && !hasManualAdjustments) {
+      console.log('🚢 Game completed! Auto-pausing timer... (5+ min runtime, multiple bosses defeated, no manual adjustments)');
+      stopTimer();
+    }
+  }, [gameState.stats.bosses.main, gameState.timer.running, gameState.timer.elapsed, stopTimer, hasManualAdjustments]);
 
   // Add split functionality (based on original HTML implementation)
   const addSplit = useCallback((eventName: string) => {
