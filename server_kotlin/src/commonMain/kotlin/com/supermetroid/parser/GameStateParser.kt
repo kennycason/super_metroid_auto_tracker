@@ -341,14 +341,24 @@ class GameStateParser {
             }
         }
 
-        // Golden Torizo detection - More liberal detection patterns to match Python logic
+        // Golden Torizo detection - More specific patterns to avoid false positives
         // Multiple detection patterns for Golden Torizo
-        val condition1 = ((bossPlus1 and 0x0700) != 0) && ((bossPlus1 and 0x0003) != 0)  // Basic pattern matching
+        println("🏆 GOLDEN TORIZO DEBUG: Memory values - bossPlus1: 0x${bossPlus1.toString(16).uppercase().padStart(4, '0')}, bossPlus2: 0x${bossPlus2.toString(16).uppercase().padStart(4, '0')}, bossPlus3: 0x${bossPlus3.toString(16).uppercase().padStart(4, '0')}, bossPlus4: 0x${bossPlus4.toString(16).uppercase().padStart(4, '0')}")
+
+        // FIXED: Make condition1 more specific to avoid false positives with bossPlus1 = 0x0207
+        // Original: val condition1 = ((bossPlus1 and 0x0700) != 0) && ((bossPlus1 and 0x0003) != 0)
+        val condition1 = (bossPlus1 and 0x0700) == 0x0700  // Require all bits in 0x0700 to be set
         val condition2 = ((bossPlus2 and 0x0100) != 0) && (bossPlus2 >= 0x0400)  // Lowered threshold
         val condition3 = (bossPlus1 >= 0x0603)  // Direct value check
         val condition4 = ((bossPlus3 and 0x0100) != 0)  // Alternative address pattern
 
+        println("🏆 GOLDEN TORIZO DEBUG: Conditions - condition1: $condition1 (bossPlus1 & 0x0700 == 0x0700)")
+        println("🏆 GOLDEN TORIZO DEBUG: Conditions - condition2: $condition2 (bossPlus2 & 0x0100 != 0 && bossPlus2 >= 0x0400)")
+        println("🏆 GOLDEN TORIZO DEBUG: Conditions - condition3: $condition3 (bossPlus1 >= 0x0603)")
+        println("🏆 GOLDEN TORIZO DEBUG: Conditions - condition4: $condition4 (bossPlus3 & 0x0100 != 0)")
+
         val goldenTorizoDetected = (condition1 || condition2 || condition3 || condition4)
+        println("🏆 GOLDEN TORIZO DEBUG: Final detection result: $goldenTorizoDetected")
 
         // Mother Brain phase detection
         val motherBrainDefeated = (mainBosses and 0x0001) != 0
