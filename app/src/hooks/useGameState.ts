@@ -160,7 +160,6 @@ export const useGameState = (serverPort: number = 8081) => {
   // Use refs to track timer state and prevent stale closures
   const timerIntervalRef = useRef<number | null>(null);
   const isTimerMountedRef = useRef(true);
-  const hasInitialized = useRef(false);
   const timerStartTimeRef = useRef<number | null>(null);
   const timerRunningRef = useRef(false);
 
@@ -222,7 +221,7 @@ export const useGameState = (serverPort: number = 8081) => {
               bomb_torizo: data.stats?.bosses?.bomb_torizo || false,
               mb1: data.stats?.bosses?.mother_brain_1 || false,
               mb2: data.stats?.bosses?.mother_brain_2 || false,
-              main: data.stats?.bosses?.mother_brain || false,
+              main: data.stats?.bosses?.samus_ship || false,
             },
           },
           items: {
@@ -255,7 +254,7 @@ export const useGameState = (serverPort: number = 8081) => {
             botwoon: data.stats?.bosses?.botwoon || false,
             golden_torizo: data.stats?.bosses?.golden_torizo || false,
             bomb_torizo: data.stats?.bosses?.bomb_torizo || false,
-            main: data.stats?.bosses?.mother_brain || false,
+            main: data.stats?.bosses?.samus_ship || false,
             mb1: data.stats?.bosses?.mother_brain_1 || false,
             mb2: data.stats?.bosses?.mother_brain_2 || false,
           },
