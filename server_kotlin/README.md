@@ -142,10 +142,37 @@ The Kotlin Native server provides the same API endpoints as the Python backend:
 
 ## 🧪 Testing
 
-### Run All Tests
+### Run All Tests from Command Line
 ```bash
-./gradlew test
+# Run all tests
+./gradlew nativeTest
+
+# Run all tests and generate an aggregated report
+./gradlew allTests
+
+# For running specific tests, you may need to use the IntelliJ IDEA approach below
+# as the Kotlin/Native test runner doesn't support the --tests flag directly
 ```
+
+### Running Tests in IntelliJ IDEA
+If you're not seeing the run test popup in IntelliJ IDEA, follow these steps:
+
+1. **Configure Kotlin Test Framework**:
+   - Go to `File > Settings > Build, Execution, Deployment > Build Tools > Gradle`
+   - Set "Run tests using" to "IntelliJ IDEA"
+   - Click "Apply" and "OK"
+
+2. **Run Tests via Gutter Icons**:
+   - Open any test file (e.g., `src/commonTest/kotlin/com/supermetroid/parser/ShipDetectionTest.kt`)
+   - Look for the green "play" icons in the gutter (left margin) next to test classes or methods
+   - Click the icon and select "Run" or "Debug"
+
+3. **Run Tests via Project View**:
+   - In the Project view, right-click on the `src/commonTest` directory
+   - Select "Run Tests in 'commonTest'" or "Debug Tests in 'commonTest'"
+
+4. **Run Tests via Terminal**:
+   - Use the Gradle commands above in the IntelliJ terminal
 
 ### Test Coverage
 
@@ -153,6 +180,7 @@ The Kotlin Native server provides the same API endpoints as the Python backend:
 - **Model Tests**: Data serialization and structure validation  
 - **Service Tests**: Background polling and caching logic
 - **Integration Tests**: End-to-end API functionality
+- **Ship Detection Tests**: End-game ship detection in various game states
 
 ### Test Example
 ```kotlin

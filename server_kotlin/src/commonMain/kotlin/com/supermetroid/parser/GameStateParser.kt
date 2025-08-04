@@ -38,6 +38,8 @@ class GameStateParser {
         "items" to 0x7E09A4,
         "beams" to 0x7E09A8,
         "bosses" to 0x7ED828,
+        "ship_ai" to 0x7E0FB2,       // Ship AI state (0xaa4f when at ship)
+        "event_flags" to 0x7ED821,   // Event flags (bit 0x40 set when Zebes is ablaze)
     )
 
     // Area names mapping
@@ -100,7 +102,9 @@ class GameStateParser {
                 memoryData["escape_timer_2"],
                 memoryData["escape_timer_3"],
                 memoryData["escape_timer_4"],
-                locationData
+                locationData,
+                memoryData["ship_ai"],
+                memoryData["event_flags"]
             )
 
             return GameState(
@@ -300,7 +304,9 @@ class GameStateParser {
         escapeTimer2Data: ByteArray?,
         escapeTimer3Data: ByteArray?,
         escapeTimer4Data: ByteArray?,
-        locationData: Map<String, Any>
+        locationData: Map<String, Any>,
+        shipAiData: ByteArray? = null,
+        eventFlagsData: ByteArray? = null
     ): Map<String, Boolean> {
         // Basic boss flags - EXACT Python bit patterns
         val mainBosses = mainBossesData?.readInt16LE(0) ?: 0
@@ -416,7 +422,14 @@ class GameStateParser {
             "golden_torizo" to goldenTorizoDetected,             // Advanced detection with multiple conditions ✅
             "mother_brain_1" to motherBrainPhaseState["mb1_detected"]!!,
             "mother_brain_2" to motherBrainPhaseState["mb2_detected"]!!,
-            "samus_ship" to false  // End-game detection - keep simple for now
+            "samus_ship" to detectSamusShip(                     // End-game detection
+                shipAiData = shipAiData,
+                eventFlagsData = eventFlagsData,
+                locationData = locationData,
+                motherBrainDefeated = motherBrainDefeated,
+                mb1Detected = motherBrainPhaseState["mb1_detected"]!!,
+                mb2Detected = motherBrainPhaseState["mb2_detected"]!!
+            )
         )
     }
 
@@ -430,5 +443,150 @@ class GameStateParser {
     private fun ByteArray.readInt16LE(offset: Int): Int {
         if (offset + 1 >= size) return 0
         return (this[offset].toInt() and 0xFF) or ((this[offset + 1].toInt() and 0xFF) shl 8)
+    }
+
+    /**
+     * Detect when Samus has reached her ship (end-game completion)
+     * Based on the Python implementation's _detect_samus_ship method
+     */
+    private fun detectSamusShip(
+        shipAiData: ByteArray?,
+        eventFlagsData: ByteArray?,
+        locationData: Map<String, Any>,
+        motherBrainDefeated: Boolean,
+        mb1Detected: Boolean,
+        mb2Detected: Boolean
+    ): Boolean {
+        // Debug logging
+        println("🚢 Ship Detection: Starting detection process")
+
+        // Check if we have location data
+        if (locationData.isEmpty()) {
+            println("🚢 Ship Detection: No location data available")
+            return false
+        }
+
+        // Extract location data
+        val areaId = locationData["area_id"] as? Int ?: 0
+        val roomId = locationData["room_id"] as? Int ?: 0
+        val playerX = locationData["player_x"] as? Int ?: 0
+        val playerY = locationData["player_y"] as? Int ?: 0
+        val health = locationData["health"] as? Int ?: 0
+        val missiles = locationData["missiles"] as? Int ?: 0
+        val maxMissiles = locationData["max_missiles"] as? Int ?: 0
+
+        // Debug current state
+        println("🚢 Ship Debug - Area: $areaId, Room: $roomId, Pos: ($playerX,$playerY)")
+        println("🚢 Ship Debug - MB Status: main=$motherBrainDefeated, MB1=$mb1Detected, MB2=$mb2Detected")
+        println("🚢 Ship Debug - Stats: Health=$health, Missiles=$missiles/$maxMissiles")
+
+        // RESET DETECTION: Check if we're in a new game or early game scenario
+        // Similar to shouldResetItemState logic
+        val inStartingArea = areaId == 0 // Crateria
+        val hasStartingHealth = health <= 99
+        val inStartingRooms = roomId < 1000
+        val definiteNewGame = (health == 99 && missiles == 0 && maxMissiles == 0 && roomId < 1000)
+
+        if ((inStartingArea && hasStartingHealth && inStartingRooms) || definiteNewGame) {
+            println("🚢 Ship Detection RESET: New game or early game detected - Area:$areaId, Room:$roomId, Health:$health, Missiles:$missiles/$maxMissiles")
+            return false
+        }
+
+        // Check if Mother Brain sequence is complete
+        val motherBrainComplete = motherBrainDefeated || (mb1Detected && mb2Detected)
+        val partialMbComplete = mb1Detected  // MB1 completion indicates significant progress
+
+        if (!motherBrainComplete && !partialMbComplete) {
+            println("🚢 Ship Debug - No Mother Brain progress")
+            return false
+        }
+
+        // METHOD 1: OFFICIAL AUTOSPLITTER DETECTION (high priority)
+        var shipAiVal = 0
+        var eventFlagsVal = 0
+
+        if (shipAiData != null && shipAiData.size >= 2) {
+            shipAiVal = shipAiData.readInt16LE(0)
+        }
+
+        if (eventFlagsData != null && eventFlagsData.isNotEmpty()) {
+            eventFlagsVal = eventFlagsData[0].toInt() and 0xFF
+        }
+
+        val zebesAblaze = (eventFlagsVal and 0x40) != 0
+        val shipAiReached = (shipAiVal == 0xaa4f)
+        val officialShipDetection = zebesAblaze && shipAiReached
+
+        println("🚢 OFFICIAL DETECTION - shipAI: 0x${shipAiVal.toString(16).uppercase().padStart(4, '0')}, eventFlags: 0x${eventFlagsVal.toString(16).uppercase().padStart(2, '0')}")
+        println("🚢 zebesAblaze: $zebesAblaze, shipAI_reached: $shipAiReached")
+
+        if (officialShipDetection) {
+            println("🚢 ✅ OFFICIAL SHIP DETECTION: Zebes ablaze + shipAI 0xaa4f = SHIP REACHED!")
+            return true
+        }
+
+        // METHOD 2: RELAXED AREA DETECTION
+        // Try both traditional Crateria (area 0) AND escape sequence areas
+        val inCrateria = (areaId == 0)
+        val inPossibleEscapeArea = (areaId in 0..5)  // Be more permissive with areas
+
+        println("🚢 AREA CHECK - inCrateria: $inCrateria, inPossibleEscape: $inPossibleEscapeArea")
+
+        // METHOD 3: EMERGENCY SHIP DETECTION - If MB2 complete + reasonable position data
+        val emergencyConditions = (
+            mb2Detected &&  // MB2 must be complete
+            (areaId == 0 || areaId == 5) &&  // Common areas during escape/ship sequence
+            (playerX > 1200 && playerY > 1300)  // Must be in very specific ship coordinates
+        )
+
+        if (emergencyConditions) {
+            println("🚢 🚨 EMERGENCY SHIP DETECTION: MB2 complete + valid area/position!")
+            return true
+        }
+
+        // If we have MB2 complete, be VERY permissive with area detection
+        val areaCheckPassed = if (mb2Detected) {
+            println("🚢 MB2 COMPLETE - Using relaxed area detection")
+            inPossibleEscapeArea
+        } else {
+            inCrateria
+        }
+
+        if (!areaCheckPassed) {
+            println("🚢 Ship Debug - Area check failed (area=$areaId), ship detection blocked")
+            return false
+        }
+
+        // METHOD 3: POSITION-BASED DETECTION (backup - was working before)
+        val preciseLandingSiteRooms = listOf(31224, 37368)  // Known working rooms
+        val reasonableShipRoomRanges = listOf(31220..31230, 37360..37375, 0..100)  // Added room 0 range for escape
+
+        val inExactShipRoom = preciseLandingSiteRooms.contains(roomId)
+        val inShipRoomRange = reasonableShipRoomRanges.any { roomId in it }
+
+        // Position-based criteria (RELAXED for escape sequence)
+        val shipExactXRange = (1150 <= playerX && playerX <= 1350)  // Precise ship coordinates
+        val shipExactYRange = (1080 <= playerY && playerY <= 1380)  // Extended downward for ship entry
+        val preciseShipPosition = shipExactXRange && shipExactYRange
+        val shipEscapeXRange = (1100 <= playerX && playerX <= 1400)  // Much more restrictive X range for ship area
+        val shipEscapeYRange = (1050 <= playerY && playerY <= 1400)  // Extended downward for ship area
+        val broadShipPosition = shipEscapeXRange && shipEscapeYRange
+
+        println("🚢 POSITION DETECTION - Room: $roomId, ExactRoom: $inExactShipRoom, RangeRoom: $inShipRoomRange")
+        println("🚢 POSITION DETECTION - Pos: ($playerX,$playerY), PrecisePos: $preciseShipPosition, BroadPos: $broadShipPosition")
+
+        // Position-based ship criteria
+        val exactPositionDetection = inExactShipRoom && preciseShipPosition
+        val escapeSequenceDetection = inShipRoomRange && broadShipPosition  // RELAXED: Any reasonable room + broad position
+        val positionShipDetection = exactPositionDetection || escapeSequenceDetection
+
+        if (positionShipDetection) {
+            println("🚢 ✅ POSITION-BASED SHIP DETECTION: Valid room + position = SHIP REACHED!")
+            return true
+        }
+
+        // If we get here, no detection method succeeded
+        println("🚢 ❌ SHIP NOT DETECTED: All detection methods failed")
+        return false
     }
 }

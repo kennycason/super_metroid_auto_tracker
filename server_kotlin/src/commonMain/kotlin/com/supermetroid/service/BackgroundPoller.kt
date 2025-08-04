@@ -187,6 +187,13 @@ class BackgroundPoller(
             println("🔄 ReadGameState: Reading escape_timer_4 (0x7E09E0)...")
             val escapeTimer4 = udpClient.readMemoryRange(0x7E09E0, 2)
 
+            // Read end game detection memory addresses
+            println("🔄 ReadGameState: Reading ship_ai (0x7E0FB2)...")
+            val shipAi = udpClient.readMemoryRange(0x7E0FB2, 2)
+
+            println("🔄 ReadGameState: Reading event_flags (0x7ED821)...")
+            val eventFlags = udpClient.readMemoryRange(0x7ED821, 1)
+
             // Create memory data map
             println("🔄 ReadGameState: Creating memory data map...")
             val memoryData = mapOf(
@@ -208,7 +215,9 @@ class BackgroundPoller(
                 "escape_timer_1" to escapeTimer1,
                 "escape_timer_2" to escapeTimer2,
                 "escape_timer_3" to escapeTimer3,
-                "escape_timer_4" to escapeTimer4
+                "escape_timer_4" to escapeTimer4,
+                "ship_ai" to shipAi,
+                "event_flags" to eventFlags
             ).filterValues { it != null }.mapValues { (_, value) -> value!! }
 
             println("🔄 ReadGameState: Memory data map created with ${memoryData.size} entries")
