@@ -44,7 +44,7 @@ class SuperMetroidGameplayChaos:
         self.modification_count = 0
         self.last_room_id = None
         
-        # Super Metroid memory addresses (ONLY VERIFIED REAL ADDRESSES!)
+        # Super Metroid memory addresses (VERIFIED + MOMENTUM PHYSICS!)
         self.memory_map = {
             # Basic stats (VERIFIED from game_state_parser.py)
             'health': 0x7E09C2,
@@ -74,7 +74,12 @@ class SuperMetroidGameplayChaos:
             'area_id': 0x7E079F,
             'game_state': 0x7E0998,
             
-            # Note: All fake/invented addresses removed!
+            # 🏃‍♀️ MOMENTUM & PHYSICS (USER PROVIDED ADDRESSES!)
+            'non_spinning_jump_speed': 0x81F71,      # Horizontal speed for non-spinning jumps
+            'spinning_jump_speed': 0x81F7D,          # Horizontal speed for spinning jumps
+            'running_max_speed': 0x81F65,            # Maximum running speed
+            'ledge_fall_speed': 0x81FA1,             # Horizontal speed after falling off ledge
+            'wall_jump_speed': 0x82049,             # Horizontal speed from wall jumps
         }
         
         # Item bit flags (from items address 0x7E09A4)
@@ -120,6 +125,11 @@ class SuperMetroidGameplayChaos:
             'power_bombs': (0, 50),
             'physics_multiplier': (0.7, 1.5),  # SAFER: 0.7x to 1.5x (still noticeable)
             'damage_multiplier': (0.7, 2.0),   # SAFER: 0.7x to 2x damage max
+            
+            # 🏃‍♀️ MOMENTUM/PHYSICS MICRO-CHANGES (very conservative!)
+            'momentum_byte': (0, 3),           # Original values are 0, 1, or 2, so max 3
+            'speed_increment': (-1, 2),        # Only ±1 or +2 changes max
+            'jump_increment': (-1, 1),         # Only ±1 for jump speeds (micro changes!)
         }
         
         # SAFETY SETTINGS
@@ -160,25 +170,25 @@ class SuperMetroidGameplayChaos:
 
     def read_memory(self, address: int, length: int) -> bytes:
         """Read memory from RetroArch"""
-        command = f"READ_CORE_MEMORY {address:X} {length}"
+        command = f"READ_CORE_MEMORY 0x{address:X} {length}"
         response = self.send_command(command)
         
         if response.startswith("-1"):
             return b""
         
         try:
-            # Parse hex response
-            hex_data = response.strip()
+            # Parse hex response - RetroArch echoes the command, so take the last part
+            hex_data = response.split()[-1]
             return bytes.fromhex(hex_data)
-        except ValueError:
+        except (ValueError, IndexError):
             return b""
 
     def write_memory(self, address: int, data: bytes) -> bool:
         """Write memory to RetroArch"""
         hex_data = data.hex().upper()
-        command = f"WRITE_CORE_MEMORY {address:X} {hex_data}"
+        command = f"WRITE_CORE_MEMORY 0x{address:X} {hex_data}"
         response = self.send_command(command)
-        return not response.startswith("-1")
+        return "WRITE_CORE_MEMORY" in response
 
     def backup_value(self, address: int, size: int = 2):
         """Backup original value for restoration"""
@@ -361,9 +371,14 @@ class SuperMetroidGameplayChaos:
         
         current_data = self.read_memory(address, 2)
         if not current_data or len(current_data) != 2:
+            print(f"❌ POSITION FAILED: Cannot read {physics_name} at 0x{address:X} (got {len(current_data) if current_data else 0} bytes)")
             return False
         
-        current_value = struct.unpack('<H', current_data)[0]
+        try:
+            current_value = struct.unpack('<H', current_data)[0]
+        except struct.error as e:
+            print(f"❌ POSITION FAILED: Unpack error for {physics_name}: {e}")
+            return False
         
         # MUCH SAFER multipliers to prevent game-breaking physics
         if self.insane_mode:
@@ -392,6 +407,62 @@ class SuperMetroidGameplayChaos:
             actual_multiplier = new_value / current_value if current_value > 0 else 1.0
             print(f"🌪️  PHYSICS: {physics_name.replace('_', ' ').title()} {current_value} → {new_value} (×{actual_multiplier:.2f})")
             return True
+        
+        return False
+
+    def modify_momentum(self) -> bool:
+        """🏃‍♀️ Randomly modify momentum/physics with MICRO-CHANGES"""
+        # Momentum addresses (USER PROVIDED - these control how Samus moves!)
+        # Note: wall_jump_speed sometimes fails on certain ROM versions, so weighted lower
+        momentum_choices_weighted = [
+            ('non_spinning_jump_speed', 3),   # 0x81F71 - Non-spinning jump horizontal speed
+            ('spinning_jump_speed', 3),       # 0x81F7D - Spinning jump horizontal speed  
+            ('running_max_speed', 3),         # 0x81F65 - Running max speed
+            ('ledge_fall_speed', 3),          # 0x81FA1 - Horizontal speed after ledge fall
+            ('wall_jump_speed', 1),           # 0x82049 - Wall jump horizontal speed (may fail on some ROMs)
+        ]
+        
+        # Use weighted random selection
+        momentum_choices, weights = zip(*momentum_choices_weighted)
+        momentum_name = random.choices(momentum_choices, weights=weights)[0]
+        address = self.memory_map[momentum_name]
+        
+        # These are SINGLE BYTES (not 16-bit values like health/missiles!)
+        self.backup_value(address, 1)
+        
+        current_data = self.read_memory(address, 1)
+        if not current_data or len(current_data) != 1:
+            print(f"❌ MOMENTUM FAILED: Could not read {momentum_name} at 0x{address:X}")
+            return False
+        
+        current_value = current_data[0]  # Single byte value (0-255)
+        
+        # MICRO-CHANGES ONLY! Based on original values (0, 1, 2 typically)
+        if self.insane_mode:
+            # Insane: ±2 change max
+            increment = random.randint(-2, 3)
+        elif self.gentle_mode:
+            # Gentle: ±1 change only
+            increment = random.choice([-1, 0, 1])
+        else:
+            # Normal: ±1 change, sometimes ±2
+            increment = random.randint(-1, 2)
+        
+        new_value = current_value + increment
+        
+        # SAFETY: Keep values in reasonable byte range (0-4 max for these physics values)
+        new_value = max(0, min(4, new_value))
+        
+        # Only apply if there's actually a change
+        if new_value == current_value:
+            return False
+        
+        if self.write_memory(address, bytes([new_value])):
+            change_str = f"+{increment}" if increment > 0 else str(increment)
+            print(f"🏃‍♀️ MOMENTUM: {momentum_name.replace('_', ' ').title()} {current_value} → {new_value} ({change_str})")
+            return True
+        else:
+            print(f"❌ MOMENTUM FAILED: Could not write {momentum_name} at 0x{address:X}")
         
         return False
 
@@ -500,11 +571,11 @@ class SuperMetroidGameplayChaos:
         if self.equipment_only:
             print("🎒 EQUIPMENT ONLY MODE")
         elif self.physics_only:
-            print("🌪️  PHYSICS ONLY MODE")
+            print("🏃‍♀️ PHYSICS ONLY MODE: Momentum + Movement Changes")
         elif self.stats_only:
             print("📊 STATS ONLY MODE")
         else:
-            print("🌈 FULL CHAOS MODE: Equipment + Stats + Physics + Damage")
+            print("🌈 FULL CHAOS MODE: Equipment + Stats + Momentum + Physics + Damage")
         
         if self.insane_mode:
             print("🤯 INSANE MODE: Maximum chaos!")
@@ -529,14 +600,24 @@ class SuperMetroidGameplayChaos:
                 if self.equipment_only:
                     success = self.modify_equipment()
                 elif self.physics_only:
-                    success = self.modify_physics()
+                    # Physics mode: MOMENTUM + position chaos
+                    physics_type = random.choices(
+                        ['momentum', 'position'],
+                        weights=[4, 1],  # Heavily favor momentum changes
+                        k=1
+                    )[0]
+                    
+                    if physics_type == 'momentum':
+                        success = self.modify_momentum()  # NEW: Real physics momentum!
+                    else:
+                        success = self.modify_physics()   # Position teleportation
                 elif self.stats_only:
                     success = self.modify_stats()
                 else:
                     # Full chaos mode - REALISTIC selection with ONLY WORKING functions!
                     modification_type = random.choices(
-                        ['equipment', 'stats', 'physics', 'damage', 'position', 'gamestate'],
-                        weights=[4, 4, 2, 3, 2, 1],  # Equipment/stats most reliable, position fun, gamestate risky
+                        ['equipment', 'stats', 'momentum', 'physics', 'damage', 'position', 'gamestate'],
+                        weights=[4, 4, 5, 1, 3, 2, 1],  # Momentum gets high weight (NEW!), equipment/stats most reliable
                         k=1
                     )[0]
                     
@@ -544,14 +625,16 @@ class SuperMetroidGameplayChaos:
                         success = self.modify_equipment()
                     elif modification_type == 'stats':
                         success = self.modify_stats()
+                    elif modification_type == 'momentum':
+                        success = self.modify_momentum()  # 🏃‍♀️ NEW: Real momentum/physics changes!
                     elif modification_type == 'physics':
-                        success = self.modify_physics()
+                        success = self.modify_physics()   # Position teleportation
                     elif modification_type == 'damage':
                         success = self.modify_damage()
                     elif modification_type == 'position':
-                        success = self.modify_position()  # NEW: Teleport Samus around!
+                        success = self.modify_position()  # Teleport Samus around!
                     elif modification_type == 'gamestate':
-                        success = self.modify_gamestate()  # NEW: Basic game state chaos!
+                        success = self.modify_gamestate()  # Basic game state chaos!
                 
                 if success:
                     self.modification_count += 1
@@ -582,7 +665,9 @@ class SuperMetroidGameplayChaos:
                 print("\n🛑 Chaos stopped by user")
                 break
             except Exception as e:
-                print(f"❌ Error during chaos: {e}")
+                # Suppress common position reading errors (happens during transitions/pauses)
+                if "unpack requires a buffer of 2 bytes" not in str(e):
+                    print(f"❌ Error during chaos: {e}")
                 time.sleep(1.0)
         
         print(f"\n✅ Chaos session ended! {self.modification_count} total modifications applied")
