@@ -1,6 +1,6 @@
 plugins {
-    kotlin("multiplatform") version "1.9.21"
-    kotlin("plugin.serialization") version "1.9.21"
+    kotlin("jvm") version "1.9.21"
+    application
 }
 
 group = "com.supermetroid"
@@ -10,51 +10,26 @@ repositories {
     mavenCentral()
 }
 
-kotlin {
-    val hostOs = System.getProperty("os.name")
-    val isMingwX64 = hostOs.startsWith("Windows")
-    val nativeTarget = when {
-        hostOs == "Mac OS X" -> macosX64("native")
-        hostOs == "Linux" -> linuxX64("native")
-        isMingwX64 -> mingwX64("native")
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-    }
+dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+}
 
-    nativeTarget.apply {
-        binaries {
-            executable()
-        }
-    }
-    
-    sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation("io.ktor:ktor-server-core:2.3.6")
-                implementation("io.ktor:ktor-server-content-negotiation:2.3.6")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.6")
-                implementation("io.ktor:ktor-server-cors:2.3.6")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
-            }
-        }
-        
-        val nativeMain by getting {
-            dependencies {
-                implementation("io.ktor:ktor-server-cio:2.3.6")
-                implementation("io.ktor:ktor-network:2.3.6")
-            }
-        }
-        
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-            }
-        }
+application {
+    mainClass.set("MainKt")
+}
+
+sourceSets {
+    main {
+        kotlin.srcDir("src/main/kotlin")
     }
 }
 
-tasks.withType<Wrapper> {
-    gradleVersion = "8.5"
-} 
+tasks.register<Copy>("copyGrapplingBeamScript") {
+    from("explore/GrapplingBeamEnabler.kt")
+    into("src/main/kotlin")
+    rename { "Main.kt" }
+}
+
+tasks.named("compileKotlin") {
+    dependsOn("copyGrapplingBeamScript")
+}
