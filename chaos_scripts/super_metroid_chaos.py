@@ -41,63 +41,64 @@ class SuperMetroidChaosGenerator:
         self.speed_multiplier = speed_multiplier
         self.max_corruptions = max_corruptions
         
-        # Memory regions to target for corruption (graphics/visual only)
+        # SAFE memory regions - only visual map tiles and graphics that won't crash the game
         self.corruption_targets = [
-            # VRAM regions (graphics tiles, sprites, palettes)
-            {"name": "VRAM Tiles 1", "start": 0x7E2000, "end": 0x7E4000, "weight": 3},
-            {"name": "VRAM Tiles 2", "start": 0x7E4000, "end": 0x7E6000, "weight": 3},
-            {"name": "VRAM Tiles 3", "start": 0x7E6000, "end": 0x7E8000, "weight": 2},
+            # ONLY safe palette regions (colors only, no critical data)
+            {"name": "Safe Palette Colors", "start": 0x7EC020, "end": 0x7EC180, "weight": 4},
             
-            # Sprite tables and animation data
-            {"name": "Sprite Tables", "start": 0x7E1000, "end": 0x7E1800, "weight": 2},
-            {"name": "Animation Data", "start": 0x7E1800, "end": 0x7E2000, "weight": 1},
+            # ONLY safe sprite graphics (visual data, not logic)  
+            {"name": "Safe Sprite Graphics 1", "start": 0x7E2200, "end": 0x7E2800, "weight": 3},
+            {"name": "Safe Sprite Graphics 2", "start": 0x7E3200, "end": 0x7E3800, "weight": 3},
             
-            # Graphics buffers
-            {"name": "Graphics Buffer 1", "start": 0x7F0000, "end": 0x7F2000, "weight": 2},
-            {"name": "Graphics Buffer 2", "start": 0x7F2000, "end": 0x7F4000, "weight": 2},
+            # ONLY safe map visual tiles (not map logic or collision data)
+            {"name": "Safe Map Visual Tiles", "start": 0x7E8200, "end": 0x7E8800, "weight": 5},
             
-            # Palette data (careful corruption for color effects)
-            {"name": "Palette Data", "start": 0x7EC000, "end": 0x7EC200, "weight": 1},
-            
-            # Background tile maps
-            {"name": "BG Tilemap 1", "start": 0x7F8000, "end": 0x7F9000, "weight": 1},
-            {"name": "BG Tilemap 2", "start": 0x7F9000, "end": 0x7FA000, "weight": 1},
-            
-            # Map screen corruption targets 🗺️💀
-            {"name": "Map Graphics Data", "start": 0x7E8000, "end": 0x7EA000, "weight": 2},
-            {"name": "Map Tile Data", "start": 0x7EA000, "end": 0x7EC000, "weight": 2},
-            {"name": "HUD Graphics", "start": 0x7F4000, "end": 0x7F6000, "weight": 1},
-            {"name": "UI Elements", "start": 0x7F6000, "end": 0x7F8000, "weight": 1},
-            
-            # Additional corruption for maximum chaos
-            {"name": "OAM Sprite Data", "start": 0x7F8000, "end": 0x7F8400, "weight": 1},
-            {"name": "Mode 7 Matrix", "start": 0x7F8400, "end": 0x7F8500, "weight": 1},
+            # Very conservative HUD graphics (display only)
+            {"name": "Safe HUD Display", "start": 0x7EC180, "end": 0x7EC1C0, "weight": 2},
         ]
         
-        # Memory regions to NEVER touch (critical game logic)
+        # COMPREHENSIVE protected regions - NEVER touch these or game will crash!
         self.protected_regions = [
-            # Player stats and items
-            {"start": 0x7E09A0, "end": 0x7E09E0, "name": "Items/Stats"},
+            # Core game engine and state
+            {"start": 0x7E0000, "end": 0x7E2000, "name": "Core Game Engine"},
             
-            # Boss states and progression
-            {"start": 0x7ED820, "end": 0x7ED860, "name": "Boss States"},
+            # Player stats, items, and progression (CRITICAL!)
+            {"start": 0x7E0900, "end": 0x7E0A00, "name": "Player Data"},
             
-            # Room and area data
-            {"start": 0x7E0790, "end": 0x7E07B0, "name": "Room/Area Data"},
+            # Boss states and game progression (CRITICAL!)
+            {"start": 0x7ED800, "end": 0x7EDA00, "name": "Boss States"},
             
-            # Game state and save data
-            {"start": 0x7E0990, "end": 0x7E09A0, "name": "Game State"},
+            # Room, area, and map logic data (CRITICAL!)
+            {"start": 0x7E0700, "end": 0x7E0900, "name": "Room/Area Logic"},
+            
+            # Memory management and pointers (CRITICAL!)
+            {"start": 0x7F0000, "end": 0x7FFFFF, "name": "High Memory"},
+            
+            # Map collision and logic data (CRITICAL!)
+            {"start": 0x7E8000, "end": 0x7E8200, "name": "Map Logic"},
+            {"start": 0x7E8800, "end": 0x7EA000, "name": "Map Collision"},
+            {"start": 0x7EA000, "end": 0x7EC000, "name": "Map Data"},
+            
+            # Sprite logic and AI (not just graphics)
+            {"start": 0x7E2000, "end": 0x7E2200, "name": "Sprite Logic"},
+            {"start": 0x7E2800, "end": 0x7E3200, "name": "Sprite AI"},
+            {"start": 0x7E3800, "end": 0x7E4000, "name": "Sprite Systems"},
+            {"start": 0x7E4000, "end": 0x7E8000, "name": "Extended Graphics"},
+            
+            # Critical palette headers and control data
+            {"start": 0x7EC000, "end": 0x7EC020, "name": "Palette Headers"},
+            {"start": 0x7EC1C0, "end": 0x7EC200, "name": "Palette Control"},
             
             # Critical system memory
             {"start": 0x7E0000, "end": 0x7E0100, "name": "System Memory"},
             {"start": 0x7FFF00, "end": 0x800000, "name": "Stack/System"},
         ]
         
-        # SAFER Corruption settings (adjusted by speed multiplier)
-        self.corruption_intensity = 1  # Start gentle
-        self.max_intensity = 6  # Reduced from 10 to prevent extreme corruption
-        self.corruption_interval = 2.0 / speed_multiplier  # Faster with higher multiplier
-        self.bytes_per_corruption = max(1, min(int(speed_multiplier), 4))  # Cap at 4 bytes max
+        # ULTRA-SAFE Corruption settings - prioritize stability over speed
+        self.corruption_intensity = 1  # Start very gentle
+        self.max_intensity = 3  # MUCH lower max intensity to prevent crashes
+        self.corruption_interval = max(3.0, 5.0 / speed_multiplier)  # Slower and more careful
+        self.bytes_per_corruption = 1  # ONLY 1 byte at a time (safest possible)
         self.map_chaos_mode = False  # Special mode for extra map corruption
         self.corruption_count = 0  # Track total corruptions
         
@@ -162,26 +163,29 @@ class SuperMetroidChaosGenerator:
         return target
     
     def generate_corruption_bytes(self, count: int) -> List[int]:
-        """Generate SAFER corruption byte values to prevent game crashes"""
-        # MUCH MORE CONSERVATIVE corruption to keep game playable
-        safe_corruption_types = [
-            # Gentle bit flips (only flip 1-2 bits)
-            lambda: random.randint(0, 200) ^ (1 << random.randint(0, 3)),
+        """Generate ULTRA-SAFE corruption byte values - prioritize stability over chaos"""
+        # EXTREMELY CONSERVATIVE corruption to prevent ANY crashes
+        ultra_safe_corruption_types = [
+            # Only flip single bits (safest possible corruption)
+            lambda: random.randint(0, 127) ^ (1 << random.randint(0, 2)),
             
-            # Safe random values (avoid high values that often crash)
-            lambda: random.randint(0, 180),
+            # Very limited random values (0-100 range only)
+            lambda: random.randint(0, 100),
             
-            # Safe pattern corruption (visual but not game-breaking)
-            lambda: random.choice([0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA]),
+            # Only safe visual patterns (guaranteed not to crash)
+            lambda: random.choice([0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66]),
             
-            # Very gentle shifts
-            lambda: max(0, min((random.randint(0, 150) + random.randint(-16, 16)), 200)),
+            # Tiny shifts only (±8 max)
+            lambda: max(0, min((random.randint(0, 80) + random.randint(-8, 8)), 100)),
             
-            # Palette-safe values (for graphics corruption)
-            lambda: random.choice([0x00, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80, 0x90, 0xA0]),
+            # Conservative palette values (visual only, safe colors)
+            lambda: random.choice([0x00, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60]),
+            
+            # Zero corruption (safest - just sets to zero)
+            lambda: 0x00,
         ]
         
-        return [random.choice(safe_corruption_types)() for _ in range(count)]
+        return [random.choice(ultra_safe_corruption_types)() for _ in range(count)]
     
     def corrupt_memory_region(self, target: dict) -> bool:
         """Corrupt a specific memory region"""
@@ -230,27 +234,23 @@ class SuperMetroidChaosGenerator:
         return success
     
     def escalate_chaos(self):
-        """Gradually increase corruption intensity over time"""
+        """VERY gradually increase corruption intensity over time - stability first!"""
         if self.corruption_intensity < self.max_intensity:
-            self.corruption_intensity += 0.1 * self.speed_multiplier  # Faster escalation with speed
+            # MUCH slower escalation to keep game stable
+            self.corruption_intensity += 0.02 * self.speed_multiplier  # Much slower escalation
             
-            # Increase bytes per corruption occasionally (more aggressive with speed)
-            escalation_chance = 0.1 * self.speed_multiplier
-            max_bytes = min(8, int(4 * self.speed_multiplier))  # Allow more bytes with higher speed
-            if random.random() < escalation_chance and self.bytes_per_corruption < max_bytes:
-                self.bytes_per_corruption += 1
-                print(f"🌊 Chaos escalated! Now corrupting {self.bytes_per_corruption} bytes at once")
+            # NEVER increase bytes per corruption - keep it at 1 byte only for safety
+            # (bytes_per_corruption stays at 1 always)
             
-            # Activate map chaos mode earlier with higher speed
-            map_threshold = 7.0 / self.speed_multiplier  # Earlier activation with higher speed
-            if self.corruption_intensity > map_threshold and not self.map_chaos_mode:
+            # MUCH more conservative map chaos activation (only at max intensity)
+            if self.corruption_intensity >= self.max_intensity and not self.map_chaos_mode:
                 self.map_chaos_mode = True
-                print(f"🗺️💀 MAP CHAOS MODE ACTIVATED! Map will decay into digital hell!")
+                print(f"🗺️✨ Gentle Map Visual Effects Activated!")
             
-            # Decrease interval for more frequent corruption (respect speed multiplier)
-            min_interval = 0.1 / self.speed_multiplier  # Faster minimum with higher speed
+            # VERY conservative interval reduction - keep corruption slow
+            min_interval = max(2.0, 3.0 / self.speed_multiplier)  # Never faster than 2 seconds
             if self.corruption_interval > min_interval:
-                self.corruption_interval *= 0.98
+                self.corruption_interval *= 0.995  # Very gradual speed increase
     
     def corruption_loop(self):
         """Main corruption loop"""

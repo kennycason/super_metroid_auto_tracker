@@ -47,76 +47,48 @@ class SuperMetroidAudioChaos:
         self.audio_intensity = 1.0       # Progressive corruption intensity
         self.last_room_id = None
         
-        # Super Metroid audio memory regions
+        # WORKING approach: Corrupt main CPU memory that affects audio behavior
+        # These are accessible via RetroArch and will actually impact sound!
         self.audio_memory_map = {
-            # Sound Program Counter and data (SNES APU)
-            'apu_ram_start': 0x7F0000,      # APU RAM start
-            'apu_ram_end': 0x7F00FF,        # APU RAM end (256 bytes)
+            # Audio-related game state variables (main CPU RAM)
+            'current_music_track': 0x7E07C0,     # Current music track ID
+            'music_queue': 0x7E07C2,             # Music track queue/next
+            'sfx_queue_1': 0x7E07E0,             # Sound effect queue 1
+            'sfx_queue_2': 0x7E07E2,             # Sound effect queue 2
+            'sfx_queue_3': 0x7E07E4,             # Sound effect queue 3
+            'sfx_parameters_1': 0x7E07F0,        # SFX parameters 1
+            'sfx_parameters_2': 0x7E07F2,        # SFX parameters 2
+            'sfx_parameters_3': 0x7E07F4,        # SFX parameters 3
+            'audio_engine_state': 0x7E0700,     # Audio engine state variables
+            'music_tempo': 0x7E0702,             # Music tempo/timing
+            'music_volume': 0x7E0704,            # Music volume level
+            'sfx_volume': 0x7E0706,              # SFX volume level
             
-            # Music and sound effect data regions
-            'music_data_1': 0x7F0040,       # Music sequence data
-            'music_data_2': 0x7F0060,       # Music pattern data  
-            'music_data_3': 0x7F0080,       # Music instrument data
-            
-            'sfx_data_1': 0x7F0020,         # Sound effect samples
-            'sfx_data_2': 0x7F0030,         # Sound effect parameters
-            'sfx_data_3': 0x7F0050,         # Sound effect mixing
-            
-            # Audio processing parameters
-            'volume_main': 0x7F0000,        # Main volume
-            'volume_music': 0x7F0001,       # Music volume
-            'volume_sfx': 0x7F0002,         # SFX volume
-            'echo_volume': 0x7F0003,        # Echo/reverb volume
-            'echo_delay': 0x7F0004,         # Echo delay time
-            'echo_feedback': 0x7F0005,      # Echo feedback amount
-            
-            # Channel-specific data (8 SNES audio channels)
-            'channel_0_freq': 0x7F0010,     # Channel 0 frequency
-            'channel_0_vol': 0x7F0011,      # Channel 0 volume
-            'channel_1_freq': 0x7F0012,     # Channel 1 frequency
-            'channel_1_vol': 0x7F0013,      # Channel 1 volume
-            'channel_2_freq': 0x7F0014,     # Channel 2 frequency
-            'channel_2_vol': 0x7F0015,      # Channel 2 volume
-            'channel_3_freq': 0x7F0016,     # Channel 3 frequency
-            'channel_3_vol': 0x7F0017,      # Channel 3 volume
-            'channel_4_freq': 0x7F0018,     # Channel 4 frequency
-            'channel_4_vol': 0x7F0019,      # Channel 4 volume
-            'channel_5_freq': 0x7F001A,     # Channel 5 frequency
-            'channel_5_vol': 0x7F001B,      # Channel 5 volume
-            'channel_6_freq': 0x7F001C,     # Channel 6 frequency
-            'channel_6_vol': 0x7F001D,      # Channel 6 volume
-            'channel_7_freq': 0x7F001E,     # Channel 7 frequency
-            'channel_7_vol': 0x7F001F,      # Channel 7 volume
-            
-            # Game-specific audio tracking
-            'room_id': 0x7E079B,            # Current room (for music changes)
-            'current_music_track': 0x7E0782, # Current music ID
-            'sfx_queue': 0x7E0784,          # Sound effect queue
+            # Room-based audio triggers
+            'room_music_data': 0x7E0710,         # Room-specific music data
+            'ambient_sound_data': 0x7E0720,      # Ambient sound parameters
+            'environmental_audio': 0x7E0730,     # Environmental audio settings
         }
         
-        # Audio corruption targets with weights
+        # Audio corruption targets using accessible main CPU memory
         self.music_targets = [
-            {"name": "Music Sequence", "start": 0x7F0040, "end": 0x7F0050, "weight": 4},
-            {"name": "Music Patterns", "start": 0x7F0060, "end": 0x7F0070, "weight": 3},
-            {"name": "Music Instruments", "start": 0x7F0080, "end": 0x7F0090, "weight": 3},
-            {"name": "Music Volume", "start": 0x7F0001, "end": 0x7F0002, "weight": 2},
+            {"name": "Music Track Control", "start": 0x7E07C0, "end": 0x7E07C8, "weight": 4},
+            {"name": "Music Tempo/Timing", "start": 0x7E0702, "end": 0x7E0708, "weight": 3},
+            {"name": "Music Volume", "start": 0x7E0704, "end": 0x7E0706, "weight": 3},
+            {"name": "Room Music Data", "start": 0x7E0710, "end": 0x7E0718, "weight": 2},
         ]
         
         self.sfx_targets = [
-            {"name": "SFX Samples", "start": 0x7F0020, "end": 0x7F0030, "weight": 4},
-            {"name": "SFX Parameters", "start": 0x7F0030, "end": 0x7F0040, "weight": 3},
-            {"name": "SFX Mixing", "start": 0x7F0050, "end": 0x7F0060, "weight": 3},
-            {"name": "SFX Volume", "start": 0x7F0002, "end": 0x7F0003, "weight": 2},
+            {"name": "SFX Queue 1", "start": 0x7E07E0, "end": 0x7E07E6, "weight": 4},
+            {"name": "SFX Queue 2", "start": 0x7E07E2, "end": 0x7E07E8, "weight": 4},
+            {"name": "SFX Parameters", "start": 0x7E07F0, "end": 0x7E07F8, "weight": 3},
+            {"name": "SFX Volume", "start": 0x7E0706, "end": 0x7E0708, "weight": 2},
         ]
         
-        self.channel_targets = [
-            {"name": "Channel Frequencies", "start": 0x7F0010, "end": 0x7F0020, "weight": 3},
-            {"name": "Channel Volumes", "start": 0x7F0011, "end": 0x7F001F, "weight": 2},
-        ]
-        
-        self.effect_targets = [
-            {"name": "Echo/Reverb", "start": 0x7F0003, "end": 0x7F0006, "weight": 2},
-            {"name": "Main Volume", "start": 0x7F0000, "end": 0x7F0001, "weight": 1},
+        self.environment_targets = [
+            {"name": "Audio Engine State", "start": 0x7E0700, "end": 0x7E0708, "weight": 3},
+            {"name": "Ambient Sound Data", "start": 0x7E0720, "end": 0x7E0728, "weight": 2},
+            {"name": "Environmental Audio", "start": 0x7E0730, "end": 0x7E0738, "weight": 2},
         ]
         
         # Corruption modes
@@ -131,14 +103,14 @@ class SuperMetroidAudioChaos:
             'progressive',   # Gradual corruption
         ]
         
-        # Settings
-        self.corruption_interval = 0.5 / speed_multiplier
-        self.intensity_growth_rate = 0.02  # How fast chaos grows
+        # Settings - MUCH slower to prevent system overload
+        self.corruption_interval = max(2.0, 5.0 / speed_multiplier)  # Minimum 2 seconds between corruptions
+        self.intensity_growth_rate = 0.01  # Slower chaos growth
+        self.max_bytes_per_corruption = 2  # Limit bytes corrupted per operation
         
         # Mode flags
         self.music_only = False
         self.sfx_only = False
-        self.channels_only = False
         self.gentle_mode = False
         self.insane_mode = False
         self.progressive_mode = False
@@ -149,7 +121,7 @@ class SuperMetroidAudioChaos:
             if self.sock:
                 self.sock.close()
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.sock.settimeout(2.0)
+            self.sock.settimeout(5.0)  # Longer timeout to prevent rushing
             return True
         except Exception as e:
             print(f"❌ Connection failed: {e}")
@@ -381,13 +353,13 @@ class SuperMetroidAudioChaos:
         
         print(f"🎯 ATTEMPTING audio corruption in {target['name']} (0x{target['start']:X}-0x{target['end']:X})")
         
-        # Choose corruption size based on intensity
+        # Choose corruption size based on intensity - LIMITED to prevent network overload
         if self.insane_mode:
-            bytes_to_corrupt = random.randint(1, min(8, region_size))
+            bytes_to_corrupt = random.randint(1, min(self.max_bytes_per_corruption, region_size))
         elif self.gentle_mode:
             bytes_to_corrupt = 1
         else:
-            max_bytes = max(1, int(self.audio_intensity))
+            max_bytes = max(1, min(self.max_bytes_per_corruption, int(self.audio_intensity)))
             bytes_to_corrupt = random.randint(1, min(max_bytes, region_size))
         
         corrupted_bytes = 0
@@ -422,6 +394,9 @@ class SuperMetroidAudioChaos:
                 print(f"   Value: 0x{original_val:02X} → 0x{new_val:02X} ({original_val} → {new_val})")
                 print(f"   Region: {target['name']} (0x{target['start']:X}-0x{target['end']:X})")
                 corrupted_bytes += 1
+                
+                # IMPORTANT: Add delay between network operations to prevent system overload
+                time.sleep(0.1)  # 100ms delay between each memory operation
         
         success = corrupted_bytes > 0
         if success:
@@ -458,10 +433,8 @@ class SuperMetroidAudioChaos:
             print("🎼 MUSIC ONLY MODE")
         elif self.sfx_only:
             print("🔊 SFX ONLY MODE")
-        elif self.channels_only:
-            print("📻 CHANNELS ONLY MODE")
         else:
-            print("🌈 FULL AUDIO CHAOS: Music + SFX + Channels + Effects")
+            print("🌈 FULL AUDIO CHAOS: Music + SFX + Environment")
         
         if self.insane_mode:
             print("🤯 INSANE MODE: Maximum audio destruction!")
@@ -491,16 +464,12 @@ class SuperMetroidAudioChaos:
                 elif self.sfx_only:
                     target = self.select_audio_target(self.sfx_targets)
                     success = self.corrupt_audio_region(target)
-                elif self.channels_only:
-                    target = self.select_audio_target(self.channel_targets)
-                    success = self.corrupt_audio_region(target)
                 else:
-                    # Full chaos mode - weighted selection
+                    # Full chaos mode - weighted selection from all audio-related memory
                     all_targets = (
                         self.music_targets +
                         self.sfx_targets +
-                        self.channel_targets +
-                        self.effect_targets
+                        self.environment_targets
                     )
                     target = self.select_audio_target(all_targets)
                     success = self.corrupt_audio_region(target)
@@ -527,15 +496,15 @@ class SuperMetroidAudioChaos:
                         time.sleep(1.0)
                         consecutive_failures = 0
                 
-                # Dynamic interval adjustment
+                # Dynamic interval adjustment - MUCH slower to prevent system overload
                 current_interval = self.corruption_interval
                 if self.insane_mode:
-                    current_interval *= 0.4  # Much faster corruption
+                    current_interval = max(3.0, current_interval * 0.8)  # Still slow even in insane mode
                 elif self.gentle_mode:
-                    current_interval *= 1.5  # Slower corruption
+                    current_interval *= 2.0  # Very slow and gentle
                 elif self.progressive_mode:
-                    # Speed up as intensity increases
-                    current_interval *= max(0.3, 1.0 / self.audio_intensity)
+                    # Speed up gradually but with limits
+                    current_interval *= max(0.8, 2.0 / max(1.0, self.audio_intensity))
                 
                 time.sleep(current_interval)
                 
@@ -602,7 +571,6 @@ Examples:
     mode_group = parser.add_mutually_exclusive_group()
     mode_group.add_argument('--music-only', action='store_true', help='Only corrupt music data')
     mode_group.add_argument('--sfx-only', action='store_true', help='Only corrupt sound effects')
-    mode_group.add_argument('--channels-only', action='store_true', help='Only corrupt audio channels')
     
     # Intensity selection (mutually exclusive)
     intensity_group = parser.add_mutually_exclusive_group()
@@ -644,7 +612,6 @@ Examples:
     # Set modes
     chaos.music_only = args.music_only
     chaos.sfx_only = args.sfx_only
-    chaos.channels_only = args.channels_only
     chaos.gentle_mode = args.gentle
     chaos.progressive_mode = args.progressive
     chaos.insane_mode = args.insane
@@ -654,8 +621,6 @@ Examples:
         print("🎼 Music-only mode activated")
     elif args.sfx_only:
         print("🔊 SFX-only mode activated")
-    elif args.channels_only:
-        print("📻 Channels-only mode activated")
     
     # Start chaos
     try:
