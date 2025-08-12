@@ -144,7 +144,7 @@ const initialGameState: GameState = {
   lastUpdate: 0,
 };
 
-export const useGameState = (serverPort: number = 8081) => {
+export const useGameState = (serverPort: number = 8080) => {
   const BACKEND_URL = `http://localhost:${serverPort}`;
 
   const [gameState, setGameState] = useState<GameState>(() => {
@@ -274,12 +274,31 @@ export const useGameState = (serverPort: number = 8081) => {
           connected: data.connected || false,
           lastUpdate: Date.now(),
         }));
+      } else if (response.status === 404) {
+        // Backend server is not running - provide helpful message
+        console.warn('🚫 Backend server not found. The frontend is running in standalone mode.');
+        console.warn('💡 To connect to RetroArch, you need to start the backend server:');
+        console.warn('   npm run server:dev  (development)');
+        console.warn('   npm run server      (production)');
+        console.warn('   npm run dev:full    (both frontend + backend)');
+
+        setGameState(prev => ({ ...prev, connected: false }));
       } else {
-        // Connection failed
+        // Other connection failures
+        console.error('Failed to fetch game state:', response.status, response.statusText);
         setGameState(prev => ({ ...prev, connected: false }));
       }
     } catch (error) {
-      console.error('Failed to fetch game state:', error);
+      // Network error - likely backend is not running
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.warn('🚫 Cannot connect to backend server. Running in standalone mode.');
+        console.warn('💡 To connect to RetroArch, start the backend server with:');
+        console.warn('   npm run dev:full    (recommended - starts both frontend + backend)');
+        console.warn('   npm run server:dev  (backend only)');
+      } else {
+        console.error('Failed to fetch game state:', error);
+      }
+
       setGameState(prev => ({ ...prev, connected: false }));
     }
   }, [BACKEND_URL]); // Removed gameState.timer dependency to fix polling

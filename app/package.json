@@ -1,22 +1,34 @@
 {
-  "name": "super-metroid-tracker-react",
+  "name": "super-metroid-tracker-unified",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "tsx src/server/main.ts",
+    "server:dev": "tsx watch src/server/main.ts",
+    "start": "npm run build && npm run server",
+    "start:unified": "npm run build && npm run server 3000",
+    "dev:full": "concurrently \"npm run dev\" \"npm run server:dev\"",
+    "test": "vitest",
+    "test:server": "vitest run --config vitest.config.server.ts"
   },
   "dependencies": {
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "@types/node": "^20.10.0",
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
     "@vitejs/plugin-react": "^4.6.0",
     "eslint": "^9.30.1",
     "eslint-plugin-react-hooks": "^5.2.0",
@@ -24,6 +36,9 @@
     "globals": "^16.3.0",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.35.1",
-    "vite": "^7.0.4"
+    "vite": "^7.0.4",
+    "tsx": "^4.7.0",
+    "concurrently": "^8.2.2",
+    "vitest": "^1.2.0"
   }
 }

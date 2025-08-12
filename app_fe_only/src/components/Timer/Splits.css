@@ -1,0 +1,89 @@
+.splits-section {
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #003300;
+  border-radius: 5px;
+  background: rgba(0, 51, 0, 0.05);
+}
+
+.splits-header {
+  font-size: 14px;
+  font-weight: bold;
+  color: #00ff00;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.splits-count {
+  font-size: 12px;
+  font-weight: normal;
+  color: #888888;
+  opacity: 0.8;
+}
+
+.splits-list {
+  /* No max-height limit - show all splits */
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.split-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  margin: 2px 0;
+  font-size: 14px;
+  color: #ffffff;
+  background: rgba(0, 51, 0, 0.2);
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.split-item:hover {
+  background: rgba(0, 85, 0, 0.3);
+}
+
+.split-event {
+  font-weight: bold;
+  flex: 1;
+  text-align: left;
+}
+
+.split-time {
+  font-family: 'Courier New', monospace;
+  color: #00ff00;
+  font-weight: bold;
+}
+
+.split-item.placeholder {
+  opacity: 0.5;
+  font-style: italic;
+  color: #888888;
+}
+
+.split-item.placeholder .split-event {
+  color: #666666;
+}
+
+.split-item.placeholder .split-time {
+  color: #666666;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .splits-section {
+    padding: 8px;
+    margin: 4px 0;
+  }
+  
+  .splits-header {
+    font-size: 12px;
+  }
+  
+  .split-item {
+    font-size: 12px;
+    padding: 3px 6px;
+  }
+} 

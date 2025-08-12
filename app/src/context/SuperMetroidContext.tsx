@@ -54,7 +54,7 @@ interface SuperMetroidProviderProps {
 export const SuperMetroidProvider: React.FC<SuperMetroidProviderProps> = ({ children }) => {
   const [config, setConfig] = useState<TrackerConfig>(defaultConfig);
   const [isMinimal, setIsMinimal] = useState(false);  // Changed from isFullscreen
-  const [serverPort, setServerPort] = useState(8081); // Default to Python server port
+  const [serverPort, setServerPort] = useState(8080); // Default to TypeScript server port
   const pollingStartedRef = useRef(false);
 
   const gameStateHook = useGameState(serverPort);

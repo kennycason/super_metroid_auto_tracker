@@ -55,18 +55,19 @@ export interface Beams {
 }
 
 export interface Bosses {
+  bomb_torizo: boolean;
   kraid: boolean;
+  spore_spawn: boolean;
+  mother_brain: boolean;
+  crocomire: boolean;
   phantoon: boolean;
+  botwoon: boolean;
   draygon: boolean;
   ridley: boolean;
-  spore_spawn: boolean;
-  crocomire: boolean;
-  botwoon: boolean;
   golden_torizo: boolean;
-  bomb_torizo: boolean;
-  main: boolean;
-  mb1: boolean;
-  mb2: boolean;
+  mother_brain_1: boolean;
+  mother_brain_2: boolean;
+  samus_ship: boolean;
 }
 
 export interface LocationData {

@@ -8,7 +8,7 @@ interface SplitsProps {
 
 export const Splits: React.FC<SplitsProps> = ({ maxSplitsDisplay = 3 }) => {
   const { gameState, formatTime } = useSuperMetroid();
-  
+
   const { splits } = gameState;
 
   // Show only the latest N splits from newest to oldest (most recent first)
@@ -28,7 +28,7 @@ export const Splits: React.FC<SplitsProps> = ({ maxSplitsDisplay = 3 }) => {
         )}
       </div>
       <div className="splits-list">
-        {sortedSplits.map((split, index) => (
+        {sortedSplits.map((split, _index) => (
           <div key={`${split.event}-${split.timestamp}`} className="split-item">
             <span className="split-event">{split.event}</span>
             <span className="split-time">{formatTime(split.time)}</span>

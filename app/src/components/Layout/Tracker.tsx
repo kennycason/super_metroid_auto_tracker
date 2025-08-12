@@ -95,8 +95,8 @@ const DebugWindow: React.FC = () => {
 };
 
 export const Tracker: React.FC = () => {
-  const { gameState, isMinimal, setIsMinimal, startTimer, stopTimer, serverPort, setServerPort } = useSuperMetroid();
-  
+  const { gameState, isMinimal, setIsMinimal, startTimer, stopTimer } = useSuperMetroid();
+
   // Add spacebar functionality for timer
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -121,20 +121,20 @@ export const Tracker: React.FC = () => {
       <div className={`tracker ${isMinimal ? 'minimal' : ''}`}>
         {/* Always show header, but it will hide elements conditionally */}
         {!isMinimal && <Header />}
-        
+
         <div className="main-content">          
           {/* Status Grid - always show but will hide layout toggle in minimal mode */}
           <StatusGrid />
-          
+
           {/* Timer Section - always show */}
           <Timer />
 
           {/* Splits Section - always show */}
           <Splits maxSplitsDisplay={3}/>
-          
+
           {/* Location - hide in minimal mode */}
           {!isMinimal && <Location />}
-          
+
           {/* Debug Window - hide in minimal mode */}
           {!isMinimal && <DebugWindow />}
         </div>

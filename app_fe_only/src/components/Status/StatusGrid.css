@@ -1,0 +1,80 @@
+/* Status Grid Container */
+.status-grid-container {
+  width: 100%;
+}
+
+/* Layout Toggle */
+.layout-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.toggle-btn {
+  background: rgba(0, 51, 0, 0.3);
+  border: 1px solid #003300;
+  color: #00ff00;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.toggle-btn:hover {
+  background: rgba(0, 85, 0, 0.4);
+}
+
+.toggle-btn.active {
+  background: rgba(0, 102, 0, 0.6);
+  border-color: #00ff00;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+}
+
+/* By Type Layout */
+.status-grid-by-type {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.status-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: flex-start;
+}
+
+/* One Grid Layout */
+.status-grid-one-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: flex-start;
+}
+
+/* Remove any outer borders and extra padding */
+.status-grid-container * {
+  /* border: none !important; */
+}
+
+/* Ensure consistent spacing like original */
+.status-row .quantity-tile,
+.status-row .item-tile,
+.status-row .boss {
+  margin: 0;
+  padding: 1px;
+}
+
+.status-grid-one-grid .quantity-tile,
+.status-grid-one-grid .item-tile, 
+.status-grid-one-grid .boss {
+  margin: 0;
+  padding: 1px;
+} 
