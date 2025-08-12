@@ -4,7 +4,213 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b5929a9e-87b3-41dd-81dc-2a39f0e3a664" name="Changes" comment="" />
+    <list default="true" id="b5929a9e-87b3-41dd-81dc-2a39f0e3a664" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/PROGRESS_REPORT.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/README_chaos.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/SUMMARY.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid (JU) [!].smc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_001.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_001.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_002.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_002.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_003.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_003.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_004.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_004.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_005.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_005.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_006.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_006.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_007.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_007.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_008.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_008.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_009.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_009.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_010.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_010.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_011.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_011.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_012.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_012.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_013.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_013.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_014.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_014.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_015.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_015.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_016.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_016.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_017.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_017.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_018.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_018.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_019.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_019.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_020.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_020.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_021.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_021.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_022.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_022.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_023.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_023.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_024.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_024.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_025.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_025.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_026.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_026.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_027.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_027.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_028.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_028.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_029.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_029.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_030.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_030.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_031.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_031.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_032.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_032.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_033.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_033.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_034.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_034.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_035.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_035.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_036.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_036.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_037.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_037.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_038.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_038.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_039.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_039.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_040.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_040.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_041.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_041.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_042.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_042.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_043.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_043.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_044.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_044.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_045.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_045.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_046.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_046.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_047.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_047.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_048.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_048.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_049.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_049.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_050.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_050.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_051.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_051.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_052.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_052.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_053.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_053.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_054.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_054.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_055.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_055.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_056.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_056.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_057.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_057.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_058.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_058.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_059.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_059.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_060.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_060.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_061.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_061.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_062.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_062.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_063.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_063.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_064.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_064.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_065.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_065.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_066.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_066.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_067.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_067.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_068.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_068.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_069.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_069.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_070.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_070.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_071.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_071.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_072.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_072.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_073.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_073.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_074.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_074.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_075.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_075.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_076.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_076.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_077.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_077.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_078.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_078.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_079.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_079.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_080.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_080.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_081.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_081.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_082.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_082.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_083.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_083.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_084.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_084.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_085.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_085.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_086.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_086.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_087.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_087.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_088.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_088.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_089.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_089.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_090.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_090.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_091.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_091.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_092.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_092.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_093.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_093.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_094.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_094.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_095.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_095.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_096.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_096.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_097.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_097.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_098.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_098.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_099.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_099.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_100.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_100.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_101.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_101.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_102.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_102.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_103.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_103.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_104.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_104.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_105.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_105.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_106.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_106.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_107.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_107.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_108.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_108.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_109.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_109.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_110.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_110.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_111.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_111.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_112.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_112.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_113.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_113.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_114.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_114.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_115.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_115.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_116.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_116.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_117.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_117.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_118.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_118.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_119.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_119.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_120.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_120.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_121.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_121.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_122.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_122.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_123.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_123.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_124.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_124.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_125.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_125.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_126.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_126.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_127.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_127.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_128.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_128.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_129.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_129.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_130.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_130.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_131.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_131.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_132.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_132.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_133.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_133.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_134.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_134.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_135.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_135.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_136.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_136.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_137.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_137.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_138.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_138.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_139.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_139.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_140.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_140.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_141.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_141.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_142.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_142.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_143.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_143.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/IMG_144.png" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/IMG_144.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/SMMM_black.html" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/SMMM_black.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/SMMM_white.html" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/SMMM_white.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/Super_Metroid_logo.gif" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/Super_Metroid_logo.gif" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/Super Metroid Mod 3.0.80/favicon.gif" beforeDir="false" afterPath="$PROJECT_DIR$/Super Metroid Mod 3.0.80/favicon.gif" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/debug_game_detection.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/ips_patcher.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/ips_patcher_aggressive_90b5.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/ips_patcher_documented_hooks.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/ips_patcher_empty.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/ips_patcher_execution_counter.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/ips_patcher_execution_test.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/ips_patcher_main_loop.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/ips_patcher_memory_verify.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/ips_patcher_minimal_test.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/ips_patcher_new_hook.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/ips_patcher_nmi_vector.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/ips_patcher_palette_test.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/ips_patcher_step_by_step.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/old/README_grappling_beam.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/old/find_room_id.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/old/give_grappling_beam.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/old/give_super_missiles.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/old/super_metroid_chaos_hell.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/old/super_metroid_map_color_chaos.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/old/super_metroid_persistent_chaos.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_accumulating_test.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_chaos.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_chaos.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_chaos.smc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_chaos_audio.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_chaos_gameplay.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_chaos_v2.smc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_comprehensive_palette_test.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_critical_areas.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_direct_cgram.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_execution_proof.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_frame_counter.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_frequent_hook.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_gradient_chaos.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_main_loop_8290.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_main_loop_minimal.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_main_loop_test.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_map_structure_chaos.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_massive_corruption.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_nmi_vector_test.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_palette_focused.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_simple_tile_test.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_step1_registers.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_step2_bank.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_step3_safe_write.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_step4_sprite.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_ultra_minimal_test.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_vblank_808f.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_vblank_test.ips" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chaos_scripts/super_metroid_working_tile_chaos.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/smmm_guide/index.html" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -31,7 +237,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "main",
     "junie.onboarding.icon.badge.shown": "true",
-    "last_opened_file_path": "/Users/kenny/code/super_metroid_hud",
+    "last_opened_file_path": "/Users/kenny/code/super_metroid_auto_tracker",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -61,6 +267,7 @@
       <updated>1753916451986</updated>
       <workItem from="1753916453218" duration="1000" />
       <workItem from="1754940522528" duration="789000" />
+      <workItem from="1755038208062" duration="7000" />
     </task>
     <servers />
   </component>
