@@ -138,11 +138,26 @@ class SuperMetroidGradientChaos:
             return ""
 
     def check_game_status(self) -> bool:
-        """Check if Super Metroid is loaded"""
+        """Check if Super Metroid or ROM hack is loaded"""
         response = self.send_command("GET_STATUS")
         if response and "PLAYING" in response:
             response_lower = response.lower()
+            # Accept original Super Metroid
             if "super metroid" in response_lower:
+                return True
+            # Accept common Super Metroid ROM hacks
+            metroid_hacks = [
+                "fusion", "x-fusion", "redesign", "zero mission", 
+                "legacy", "impossible", "limit", "project base",
+                "mockingbird", "hyper", "super zero", "phazon"
+            ]
+            for hack in metroid_hacks:
+                if hack in response_lower:
+                    print(f"🎯 Detected Super Metroid ROM hack: {hack}")
+                    return True
+            # Fallback: accept anything with "metroid" for unknown hacks
+            if "metroid" in response_lower:
+                print(f"🎯 Detected Metroid game: {response}")
                 return True
         return False
 

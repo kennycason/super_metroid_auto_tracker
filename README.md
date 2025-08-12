@@ -1,16 +1,16 @@
-# Super Metroid Live Tracker - Unified Web App
+# Super Metroid Live Tracker - All-in-One Web App
 
-A real-time Super Metroid item and boss tracker that reads game memory from RetroArch via UDP. **Now unified as a single web application** with TypeScript backend and React frontend!
+A real-time Super Metroid item and boss tracker that reads game memory from RetroArch via UDP. **The `app/` directory contains everything you need** - a complete all-in-one solution with TypeScript backend and React frontend!
 
-## 🚀 What's New - Unified Architecture
+## 🚀 All-in-One Solution
 
-This project has been **migrated from separate backend + frontend** to a **unified web application**:
+The `app/` directory is your **complete, self-contained solution**:
 
-- ✅ **TypeScript Backend** - Migrated from Kotlin/Python to TypeScript (Node.js)
-- ✅ **React Frontend** - Modern React 19 with TypeScript
-- ✅ **Single Application** - One-stop shop to run everything
-- ✅ **Perfect Migration** - All functionality preserved from original backends
-- ✅ **Comprehensive Tests** - Full test coverage with Vitest
+- 🎯 **Everything in One Place** - Frontend, backend, and all dependencies
+- ⚡ **Single Command Setup** - `npm install` and you're ready
+- 🚀 **One Server to Rule Them All** - Unified TypeScript backend + React frontend
+- 🧪 **Built-in Testing** - Comprehensive test suite included
+- 📦 **Production Ready** - Build and deploy from one directory
 
 ## Features
 
@@ -194,24 +194,22 @@ app/
 └── vitest.config.server.ts  # Backend test configuration
 ```
 
-### Migration Details
+### What's Inside the All-in-One App
 
-The unified app perfectly migrates functionality from:
+The `app/` directory contains a complete, unified solution:
 
-1. **Kotlin Backend** (`server_kotlin/`) → **TypeScript Backend** (`app/src/server/`)
-   - ✅ RetroArch UDP client
-   - ✅ Game state parser with exact bit patterns
-   - ✅ Background polling architecture
-   - ✅ HTTP server with all endpoints
-   - ✅ Mother Brain detection logic
-   - ✅ Boss detection algorithms
+**Backend** (`app/src/server/`):
+- ✅ RetroArch UDP client for game memory reading
+- ✅ Advanced game state parser with precise bit patterns
+- ✅ Background polling with efficient caching
+- ✅ Full HTTP API with all endpoints
+- ✅ Sophisticated boss detection algorithms
 
-2. **React Frontend** (`app_fe_only/`) → **Unified Frontend** (`app/src/`)
-   - ✅ All React components
-   - ✅ Game state management
-   - ✅ Real-time updates
-   - ✅ Timer functionality
-   - ✅ Configuration system
+**Frontend** (`app/src/`):
+- ✅ Modern React 19 components with TypeScript
+- ✅ Real-time game state management
+- ✅ Live timer and split tracking
+- ✅ Responsive, compact UI design
 
 ## Troubleshooting
 
@@ -291,16 +289,17 @@ npm run build
 - **Comprehensive Testing** - Full test coverage
 - **Modern TypeScript** - Type-safe development
 
-## Legacy Backends
-
-The original backends are preserved for reference:
-
-- `server_kotlin/` - Original Kotlin Native backend
-- `server_python/` - Original Python backend
-- `app_fe_only/` - Original frontend-only React app
-
 ## Credits
 
-Built for live Super Metroid speedrun/randomizer tracking with RetroArch integration. 
+Built for live Super Metroid speedrun/randomizer tracking with RetroArch integration.
 
-**Migration completed**: Separate BE + FE → Unified TypeScript Web App ✅
+---
+
+## Legacy Components
+
+**Note**: This repository also contains a Kotlin Native server implementation (`server_kotlin/`) that provides the same functionality as the TypeScript backend. However, **the Kotlin server is not currently being used** - the all-in-one `app/` directory with TypeScript backend is the active, maintained solution.
+
+The original separate components are preserved for reference:
+- `server_kotlin/` - Kotlin Native backend (not in use)
+- `server_python/` - Original Python backend (deprecated)
+- `app_fe_only/` - Original frontend-only React app (deprecated)
