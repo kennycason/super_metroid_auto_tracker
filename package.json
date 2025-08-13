@@ -13,6 +13,8 @@
     "start": "npm run build && npm run server",
     "start:unified": "npm run build && npm run server 3000",
     "dev:full": "concurrently \"npm run dev\" \"npm run server:dev\"",
+    "dev:full:mesen": "concurrently \"npm run dev\" \"npm run server:dev -- --backend=mesen\"",
+    "dev:full:retroarch": "concurrently \"npm run dev\" \"npm run server:dev -- --backend=retroarch\"",
     "test": "vitest",
     "test:server": "vitest run --config vitest.config.server.ts"
   },

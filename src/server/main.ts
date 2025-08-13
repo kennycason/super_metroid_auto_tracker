@@ -1,4 +1,5 @@
 import { HttpServer } from './httpServer';
+import { parseBackendConfig } from './emulatorBackend';
 
 /**
  * Main entry point for Super Metroid Tracker TypeScript server
@@ -6,13 +7,20 @@ import { HttpServer } from './httpServer';
  */
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
-  const port = args[0] ? parseInt(args[0]) : 8080;
-  const pollInterval = args[1] ? parseInt(args[1]) : 1000;
+
+  // Parse named arguments first
+  const backendConfig = parseBackendConfig(args);
+
+  // Parse positional arguments (skip named arguments)
+  const positionalArgs = args.filter(arg => !arg.startsWith('--'));
+  const port = positionalArgs[0] ? parseInt(positionalArgs[0]) : 8080;
+  const pollInterval = positionalArgs[1] ? parseInt(positionalArgs[1]) : 1000;
 
   console.log('🎮 Starting Super Metroid Tracker (TypeScript)');
   console.log(`Port: ${port}, Poll Interval: ${pollInterval}ms`);
+  console.log(`Backend: ${backendConfig.type}`);
 
-  const server = new HttpServer(port, pollInterval);
+  const server = new HttpServer(port, pollInterval, backendConfig);
 
   // Handle shutdown signals
   process.on('SIGINT', () => {

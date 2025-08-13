@@ -4,6 +4,8 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { BackgroundPoller } from './backgroundPoller';
+import { createEmulatorBackend, DEFAULT_BACKEND_CONFIG } from './emulatorBackend';
+import type { BackendConfig } from './emulatorBackend';
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -15,18 +17,35 @@ const __dirname = path.dirname(__filename);
  */
 export class HttpServer {
   private app: express.Application;
-  private poller: BackgroundPoller;
+  private poller: BackgroundPoller | null = null;
   private port: number;
   private pollInterval: number;
+  private backendConfig: BackendConfig;
   private server: any = null;
+  private initialized: boolean = false;
 
-  constructor(port: number = 8000, pollInterval: number = 1000) {
+  constructor(port: number = 8000, pollInterval: number = 1000, backendConfig: BackendConfig = DEFAULT_BACKEND_CONFIG) {
     this.port = port;
     this.pollInterval = pollInterval;
-    this.poller = new BackgroundPoller(pollInterval);
+    this.backendConfig = backendConfig;
+
     this.app = express();
     this.configureServer();
     this.configureRouting();
+  }
+
+  /**
+   * Initialize the backend and poller (async initialization)
+   */
+  private async initialize(): Promise<void> {
+    if (this.initialized) return;
+
+    console.log('🔧 HttpServer: Initializing backend...');
+    // Create the appropriate backend using the factory
+    const backend = await createEmulatorBackend(this.backendConfig);
+    this.poller = new BackgroundPoller(backend, this.pollInterval);
+    this.initialized = true;
+    console.log('✅ HttpServer: Backend initialized successfully');
   }
 
   /**
@@ -34,8 +53,15 @@ export class HttpServer {
    */
   async start(): Promise<void> {
     try {
+      // Initialize backend and poller first
+      await this.initialize();
+
       // Start background poller
-      await this.poller.start();
+      if (this.poller) {
+        await this.poller.start();
+      } else {
+        throw new Error('Poller not initialized');
+      }
 
       // Start HTTP server
       this.server = this.app.listen(this.port, () => {
@@ -60,7 +86,9 @@ export class HttpServer {
    * Stop the HTTP server and background poller
    */
   stop(): void {
-    this.poller.stop();
+    if (this.poller) {
+      this.poller.stop();
+    }
     if (this.server) {
       this.server.close();
     }
@@ -117,21 +145,37 @@ export class HttpServer {
     });
 
     this.app.get('/api/status', (_req: Request, res: Response) => {
+      if (!this.poller) {
+        res.status(503).json({ error: 'Server not initialized' });
+        return;
+      }
       const status = this.poller.getCachedState();
       res.json(status);
     });
 
     this.app.get('/api/stats', (_req: Request, res: Response) => {
+      if (!this.poller) {
+        res.status(503).json({ error: 'Server not initialized' });
+        return;
+      }
       const status = this.poller.getCachedState();
       res.json(status.stats);
     });
 
     this.app.get('/game_state', (_req: Request, res: Response) => {
+      if (!this.poller) {
+        res.status(503).json({ error: 'Server not initialized' });
+        return;
+      }
       const status = this.poller.getCachedState();
       res.json(status.stats);
     });
 
     this.app.post('/api/reset-cache', (_req: Request, res: Response) => {
+      if (!this.poller) {
+        res.status(503).json({ error: 'Server not initialized' });
+        return;
+      }
       this.poller.resetCache();
       res.json({ message: 'Cache reset successfully' });
     });
@@ -169,6 +213,10 @@ export class HttpServer {
     // Add /api/reset endpoint that redirects to /api/reset-cache
     // This is for compatibility with existing calls
     this.app.get('/api/reset', (_req: Request, res: Response) => {
+      if (!this.poller) {
+        res.status(503).json({ error: 'Server not initialized' });
+        return;
+      }
       this.poller.resetCache();
       res.json({ message: 'Cache reset successfully via /api/reset' });
       console.log('🔄 Cache reset via /api/reset endpoint');

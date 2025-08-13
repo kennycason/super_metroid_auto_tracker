@@ -1,5 +1,5 @@
-import { RetroArchUDPClient } from './retroArchUdpClient';
 import { GameStateParser } from './gameStateParser';
+import type { EmulatorBackend } from './emulatorBackend';
 import type { ServerStatus, GameState, MemoryData } from './types';
 
 /**
@@ -8,7 +8,7 @@ import type { ServerStatus, GameState, MemoryData } from './types';
  * Equivalent to the Kotlin BackgroundPoller
  */
 export class BackgroundPoller {
-  private udpClient: RetroArchUDPClient;
+  private backend: EmulatorBackend;
   private parser: GameStateParser;
   private updateInterval: number;
   private cache: ServerStatus;
@@ -16,9 +16,9 @@ export class BackgroundPoller {
   private pollingInterval: NodeJS.Timeout | null = null;
   private isPolling: boolean = false;
 
-  constructor(updateInterval: number = 2500) {
+  constructor(backend: EmulatorBackend, updateInterval: number = 2500) {
     this.updateInterval = updateInterval; // 2.5 seconds
-    this.udpClient = new RetroArchUDPClient();
+    this.backend = backend;
     this.parser = new GameStateParser();
     this.cache = this.getEmptyServerStatus();
   }
@@ -91,9 +91,9 @@ export class BackgroundPoller {
       const startTime = Date.now();
 
       // Get connection info
-      console.log('🔄 Poll: Getting RetroArch info...');
-      const connectionInfo = await this.udpClient.getRetroArchInfo();
-      console.log(`🔄 Poll: RetroArch info received: connected=${connectionInfo.connected}, game_loaded=${connectionInfo.gameLoaded}`);
+      console.log(`🔄 Poll: Getting ${this.backend.getBackendType()} info...`);
+      const connectionInfo = await this.backend.getConnectionInfo();
+      console.log(`🔄 Poll: ${this.backend.getBackendType()} info received: connected=${connectionInfo.connected}, game_loaded=${connectionInfo.gameLoaded}`);
 
       // Read game state if game is loaded
       let gameState = this.getEmptyGameState();
@@ -144,15 +144,15 @@ export class BackgroundPoller {
   }
 
   /**
-   * Read game state from RetroArch
+   * Read game state from emulator
    */
   private async readGameState(): Promise<GameState> {
     try {
-      console.log('🔄 ReadGameState: Reading game state from RetroArch...');
+      console.log(`🔄 ReadGameState: Reading game state from ${this.backend.getBackendType()}...`);
 
       // BULK READ: Get all basic stats in one 22-byte read
       console.log('🔄 ReadGameState: Reading basic stats (0x7E09C2, 22 bytes)...');
-      const basicStats = await this.udpClient.readMemoryRange(0x7E09C2, 22);
+      const basicStats = await this.backend.readMemoryRange(0x7E09C2, 22);
       if (!basicStats) {
         console.log('❌ ReadGameState: Failed to read basic stats');
         return this.getEmptyGameState();
@@ -163,26 +163,26 @@ export class BackgroundPoller {
       console.log('🔄 ReadGameState: Reading other memory addresses...');
 
       const memoryReads = await Promise.all([
-        this.udpClient.readMemoryRange(0x7E079B, 2), // room_id
-        this.udpClient.readMemoryRange(0x7E079F, 1), // area_id
-        this.udpClient.readMemoryRange(0x7E0998, 2), // game_state
-        this.udpClient.readMemoryRange(0x7E0AF6, 2), // player_x
-        this.udpClient.readMemoryRange(0x7E0AFA, 2), // player_y
-        this.udpClient.readMemoryRange(0x7E09A4, 2), // items
-        this.udpClient.readMemoryRange(0x7E09A8, 2), // beams
-        this.udpClient.readMemoryRange(0x7ED828, 2), // main_bosses
-        this.udpClient.readMemoryRange(0x7ED829, 2), // crocomire
-        this.udpClient.readMemoryRange(0x7ED829, 2), // boss_plus_1
-        this.udpClient.readMemoryRange(0x7ED82A, 2), // boss_plus_2
-        this.udpClient.readMemoryRange(0x7ED82B, 2), // boss_plus_3
-        this.udpClient.readMemoryRange(0x7ED82C, 2), // boss_plus_4
-        this.udpClient.readMemoryRange(0x7ED82D, 2), // boss_plus_5
-        this.udpClient.readMemoryRange(0x7E0943, 2), // escape_timer_1
-        this.udpClient.readMemoryRange(0x7E0945, 2), // escape_timer_2
-        this.udpClient.readMemoryRange(0x7E09E2, 2), // escape_timer_3
-        this.udpClient.readMemoryRange(0x7E09E0, 2), // escape_timer_4
-        this.udpClient.readMemoryRange(0x7E0FB2, 2), // ship_ai
-        this.udpClient.readMemoryRange(0x7ED821, 1), // event_flags
+        this.backend.readMemoryRange(0x7E079B, 2), // room_id
+        this.backend.readMemoryRange(0x7E079F, 1), // area_id
+        this.backend.readMemoryRange(0x7E0998, 2), // game_state
+        this.backend.readMemoryRange(0x7E0AF6, 2), // player_x
+        this.backend.readMemoryRange(0x7E0AFA, 2), // player_y
+        this.backend.readMemoryRange(0x7E09A4, 2), // items
+        this.backend.readMemoryRange(0x7E09A8, 2), // beams
+        this.backend.readMemoryRange(0x7ED828, 2), // main_bosses
+        this.backend.readMemoryRange(0x7ED829, 2), // crocomire
+        this.backend.readMemoryRange(0x7ED829, 2), // boss_plus_1
+        this.backend.readMemoryRange(0x7ED82A, 2), // boss_plus_2
+        this.backend.readMemoryRange(0x7ED82B, 2), // boss_plus_3
+        this.backend.readMemoryRange(0x7ED82C, 2), // boss_plus_4
+        this.backend.readMemoryRange(0x7ED82D, 2), // boss_plus_5
+        this.backend.readMemoryRange(0x7E0943, 2), // escape_timer_1
+        this.backend.readMemoryRange(0x7E0945, 2), // escape_timer_2
+        this.backend.readMemoryRange(0x7E09E2, 2), // escape_timer_3
+        this.backend.readMemoryRange(0x7E09E0, 2), // escape_timer_4
+        this.backend.readMemoryRange(0x7E0FB2, 2), // ship_ai
+        this.backend.readMemoryRange(0x7ED821, 1), // event_flags
       ]);
 
       // Create memory data map
