@@ -1,305 +1,173 @@
-# Super Metroid Live Tracker - All-in-One Web App
+# Super Metroid Tracker (React)
 
-A real-time Super Metroid item and boss tracker that reads game memory from RetroArch via UDP. **The `app/` directory contains everything you need** - a complete all-in-one solution with TypeScript backend and React frontend!
+A modern, component-based Super Metroid tracker built with React and TypeScript. This is the next-generation version of the tracker, designed to be modular, extensible, and maintainable.
 
-## 🚀 All-in-One Solution
+## 🎯 Features
 
-The `app/` directory is your **complete, self-contained solution**:
+- **Real-time tracking** of items, bosses, and game stats
+- **Timer and splits** with automatic detection
+- **Fullscreen mode** for streaming/recording
+- **Responsive design** that works on all screen sizes
+- **Modular components** for easy customization
+- **Configuration-based** different speedrun categories
+- **Live connection** to existing backend server
 
-- 🎯 **Everything in One Place** - Frontend, backend, and all dependencies
-- ⚡ **Single Command Setup** - `npm install` and you're ready
-- 🚀 **One Server to Rule Them All** - Unified TypeScript backend + React frontend
-- 🧪 **Built-in Testing** - Comprehensive test suite included
-- 📦 **Production Ready** - Build and deploy from one directory
+## 🏗️ Architecture
 
-## Features
+### Component Structure
 
-- 🎮 **Live Game Tracking** - Real-time item and boss status
-- 🔧 **RetroArch Integration** - Connects via UDP to read game memory  
-- 🌐 **Modern Web Interface** - Clean, responsive React UI
-- 🎯 **Accurate Detection** - Advanced boss detection using multiple memory addresses
-- ⚡ **Compact Layout** - 1px spacing between tiles for maximum efficiency
-- 🔄 **Background Polling** - Efficient UDP polling with instant cache serving
-- 🧪 **Full Test Coverage** - Comprehensive test suite
+```
+src/
+├── components/
+│   ├── Items/           # Item tracking components
+│   │   ├── Item.tsx     # Individual item component
+│   │   └── ItemsGrid.tsx # Grid layout for items
+│   ├── Bosses/          # Boss tracking components
+│   │   ├── Boss.tsx     # Individual boss component
+│   │   └── BossesGrid.tsx # Grid layout for bosses
+│   ├── Timer/           # Timer and splits
+│   │   ├── Timer.tsx    # Timer display and controls
+│   │   └── Splits.tsx   # Splits list
+│   ├── UI/              # General UI components
+│   │   ├── Header.tsx   # App header with status
+│   │   ├── Stats.tsx    # Player stats display
+│   │   └── Location.tsx # Current area/room
+│   └── Layout/          # Layout components
+│       └── Tracker.tsx  # Main tracker layout
+├── context/             # React Context for state management
+│   └── SuperMetroidContext.tsx
+├── hooks/               # Custom React hooks
+│   └── useGameState.ts  # Game state fetching hook
+├── types/               # TypeScript type definitions
+│   ├── gameState.ts     # Game state interfaces
+│   └── config.ts        # Configuration interfaces
+└── config/              # Configuration files
+    └── defaultConfig.ts # Default tracker configuration
+```
 
-## Prerequisites
+### Key Design Patterns
 
-1. **Node.js 18+** with npm
-2. **RetroArch** with network commands enabled
-3. **Super Metroid ROM** loaded in RetroArch
+1. **Context Pattern**: `SuperMetroidContext` provides game state to all components
+2. **Custom Hooks**: `useGameState` handles backend communication and state management
+3. **Configuration-Driven**: JSON configs define which items/bosses to show and layouts
+4. **Component Composition**: Small, focused components that can be reused
+5. **TypeScript First**: Full type safety throughout the application
 
-## Quick Start
+## 🚀 Getting Started
 
-### 1. Install Dependencies
+### Prerequisites
+
+- Node.js 20+ (currently using 22.0.0)
+- Backend server running on `localhost:8000`
+
+### Development
+
 ```bash
-cd app/
+# Install dependencies
 npm install
-```
 
-### 2. Configure RetroArch
-Enable network commands in RetroArch:
-- Settings → Network → Network Commands → ON
-- Default port: 55355
-
-### 3. Start the Unified App
-```bash
-# Development mode (frontend + backend)
-npm run dev:full
-
-# Or production mode
-npm run start
-```
-
-### 4. Open Browser
-Navigate to `http://localhost:3000/` (frontend) or `http://localhost:8080/` (backend API)
-
-## 🏠 Unified Server Architecture
-
-**NEW**: The app now supports a **true unified server** approach! Instead of running separate frontend and backend servers, you can run a single Node.js server that:
-
-✅ **Serves the React app** (built static files)  
-✅ **Provides all API endpoints** (RetroArch communication)  
-✅ **Handles background polling** (game state updates)  
-✅ **Single port, single process** (homogeneous solution)
-
-### Single Server Mode
-
-```bash
-# Build and run unified server (recommended for production)
-npm run start
-
-# The server will:
-# 1. Build the React app (npm run build)
-# 2. Start the unified server on port 8080
-# 3. Serve both the web app AND the API from the same server
-```
-
-**Access everything from one URL**: `http://localhost:8080/`
-- **Web App**: `http://localhost:8080/` (React interface)
-- **API**: `http://localhost:8080/api/status` (JSON endpoints)
-- **Game State**: `http://localhost:8080/game_state` (RetroArch data)
-
-### Architecture Comparison
-
-**Before (Separate Servers)**:
-```
-Frontend (Vite) :3000  →  Backend (Node.js) :8080  →  RetroArch :55355
-```
-
-**Now (Unified Server)**:
-```
-Unified Server :8080  →  RetroArch :55355
-     ↓
-  React App + API
-```
-
-### Benefits
-
-- 🎯 **Single deployment** - One server to rule them all
-- 🔧 **Easier setup** - No port juggling or CORS issues  
-- 📦 **Production ready** - Built React app served efficiently
-- 🚀 **Better performance** - No cross-origin requests
-- 🏠 **Homogeneous** - Frontend + Backend in perfect harmony
-
-## Available Scripts
-
-### 🚀 Development
-```bash
-# Start both frontend and backend in development mode
-npm run dev:full
-
-# Start only frontend (Vite dev server)
+# Start development server
 npm run dev
-
-# Start only backend (TypeScript server with hot reload)
-npm run server:dev
 ```
 
-### 🏗️ Production
-```bash
-# Build and start production server
-npm run start
+The app will start on `http://localhost:3000`
 
-# Build frontend only
+### Production Build
+
+```bash
+# Build for production
 npm run build
-
-# Start production server only
-npm run server
-```
-
-### 🧪 Testing
-```bash
-# Run all tests
-npm test
-
-# Run server tests only
-npm run test:server
-
-# Run tests in watch mode
-npm run test -- --watch
-```
-
-### 🔧 Utilities
-```bash
-# Lint code
-npm run lint
 
 # Preview production build
 npm run preview
 ```
 
-## Usage
+## 🔧 Configuration
 
-1. **Start RetroArch** with Super Metroid loaded
-2. **Run the unified app**: `npm run dev:full` (development) or `npm run start` (production)
-3. **Open browser**: Navigate to `http://localhost:3000/`
-4. **Play the game** - the tracker updates in real-time!
+The tracker uses JSON configuration files to define:
 
-## API Endpoints
+- **Items**: Which items to track, their positions, and categories
+- **Bosses**: Which bosses to track and their layout
+- **Layout**: How components are arranged on screen
+- **Settings**: Feature toggles and UI preferences
 
-The TypeScript backend provides the same API as the original backends:
+### Example Configuration
 
-- `GET /` - React web interface
-- `GET /api/status` - Server and RetroArch connection status
-- `GET /api/stats` - Current game statistics (items, bosses, etc.)
-- `GET /game_state` - Game state (alias for /api/stats)
-- `POST /api/reset-cache` - Reset the game state cache
-- `GET /api/reset` - Reset cache (compatibility endpoint)
-- `GET /health` - Health check endpoint
-
-## Architecture
-
-### Unified File Structure
-```
-app/
-├── src/
-│   ├── components/          # React components
-│   ├── hooks/              # React hooks
-│   ├── context/            # React context providers
-│   ├── types/              # TypeScript type definitions
-│   ├── config/             # Configuration files
-│   └── server/             # TypeScript backend
-│       ├── main.ts         # Server entry point
-│       ├── httpServer.ts   # Express HTTP server
-│       ├── backgroundPoller.ts  # Background UDP polling
-│       ├── retroArchUdpClient.ts  # RetroArch UDP client
-│       ├── gameStateParser.ts     # Game state parser
-│       ├── types.ts        # Server type definitions
-│       └── __tests__/      # Server tests
-├── public/                 # Static assets
-├── dist/                   # Built frontend (after npm run build)
-├── package.json           # Dependencies and scripts
-├── vite.config.ts         # Vite configuration
-├── vitest.config.ts       # Frontend test configuration
-└── vitest.config.server.ts  # Backend test configuration
+```typescript
+{
+  id: 'any-percent',
+  name: 'Any% Items Only',
+  items: [
+    { id: 'morph', name: 'Morph Ball', enabled: true, row: 0, col: 0 },
+    { id: 'bombs', name: 'Bombs', enabled: true, row: 0, col: 1 },
+    // ... more items
+  ],
+  bosses: [
+    { id: 'kraid', name: 'Kraid', enabled: true, row: 0, col: 0 },
+    // ... more bosses
+  ],
+  settings: {
+    showStats: true,
+    showTimer: true,
+    showSplits: true,
+    // ... more settings
+  }
+}
 ```
 
-### What's Inside the All-in-One App
+## 🎮 Usage
 
-The `app/` directory contains a complete, unified solution:
+1. **Start the backend server** (Python-based) on port 8000
+2. **Start the React app** with `npm run dev`
+3. **Open your browser** to `http://localhost:3000`
+4. **Connect your emulator** using the existing UDP connection
+5. **Start tracking** your speedrun!
 
-**Backend** (`app/src/server/`):
-- ✅ RetroArch UDP client for game memory reading
-- ✅ Advanced game state parser with precise bit patterns
-- ✅ Background polling with efficient caching
-- ✅ Full HTTP API with all endpoints
-- ✅ Sophisticated boss detection algorithms
+### Controls
 
-**Frontend** (`app/src/`):
-- ✅ Modern React 19 components with TypeScript
-- ✅ Real-time game state management
-- ✅ Live timer and split tracking
-- ✅ Responsive, compact UI design
+- **Timer**: Start/Stop/Reset buttons in the timer section
+- **Fullscreen**: Click the ⛶ button in the header
+- **Connection Status**: Shows in the header (green = connected)
 
-## Troubleshooting
+## 🔄 Backend Integration
 
-### 404 Errors When Running Frontend Only
+The React app connects to the existing Python backend server:
 
-If you see 404 errors like this when running `npm run dev`:
+- **Endpoint**: `http://localhost:8000/game_state`
+- **Polling**: Every 1 second for real-time updates
+- **Format**: JSON with all game state information
+
+### Data Flow
 
 ```
-Request URL: http://localhost:8080/api/status
-Status Code: 404 Not Found
+Emulator → UDP → Python Backend → HTTP API → React Frontend
 ```
 
-**This is because browsers cannot directly communicate with RetroArch via UDP.** The frontend needs the backend server to act as a bridge.
+## 🎨 Styling
 
-**Quick Fix:**
-```bash
-# Instead of just: npm run dev
-# Use this to start both frontend and backend:
-npm run dev:full
-```
+- **CSS Modules**: Component-scoped styling
+- **Dark Theme**: Retro green terminal aesthetic
+- **Responsive**: Mobile-first design
+- **Pixelated Graphics**: Crisp sprite rendering
 
-**Why This Happens:**
-- Browsers have security restrictions that prevent direct UDP communication
-- RetroArch only supports UDP connections (port 55355)
-- The backend server bridges HTTP (browser) ↔ UDP (RetroArch)
+## 🧪 Future Extensions
 
-**Architecture:**
-```
-Browser (HTTP) → Backend Server (UDP) → RetroArch
-```
+The modular design allows for easy additions:
 
-For more details, see `app/BROWSER_LIMITATIONS.md`.
+- **New Speedrun Categories**: Add config files for Low%, 100%, etc.
+- **Custom Layouts**: Different arrangements for different use cases
+- **Additional Tracking**: Room transitions, route optimization
+- **Themes**: Light mode, custom color schemes
+- **Integrations**: Twitch, LiveSplit, etc.
 
-### Port Issues
-```bash
-# Kill processes on port 3000 (frontend)
-lsof -ti :3000 | xargs kill -9 2>/dev/null
+## 🔧 Development Notes
 
-# Kill processes on port 8080 (backend)
-lsof -ti :8080 | xargs kill -9 2>/dev/null
-```
+- **Legacy Compatibility**: The original `super_metroid_tracker.html` remains untouched
+- **Type Safety**: Full TypeScript coverage for reliability
+- **Modern React**: Uses functional components, hooks, and context
+- **Performance**: Optimized polling and minimal re-renders
+- **Accessibility**: Keyboard navigation and screen reader support
 
-### RetroArch Not Connecting
-- Ensure RetroArch network commands are enabled
-- Check RetroArch is using port 55355
-- Verify Super Metroid is loaded and playing
+## 📝 License
 
-### Development Issues
-```bash
-# Clear node_modules and reinstall
-rm -rf node_modules package-lock.json
-npm install
-
-# Check if TypeScript compiles
-npm run build
-```
-
-## Features Implemented
-
-### ✅ Items Tracked
-- Morph Ball, Bombs, Varia Suit, Gravity Suit
-- Hi-Jump Boots, Speed Booster, Space Jump, Screw Attack
-- Spring Ball, Grappling Beam, X-Ray Scope
-- Charge Beam, Ice Beam, Wave Beam, Spazer, Plasma Beam
-- Energy Tanks (always colored), Missiles, Super Missiles, Power Bombs
-
-### ✅ Bosses Tracked  
-- Bomb Torizo, Kraid, Spore Spawn, Crocomire
-- Phantoon, Botwoon, Draygon, Ridley, Golden Torizo
-- Mother Brain (with advanced phase detection)
-
-### ✅ Technical Features
-- **Background UDP Polling** - Efficient RetroArch communication
-- **Instant Cache Serving** - Sub-millisecond API responses
-- **Advanced Boss Detection** - Multiple memory address validation
-- **Game State Persistence** - Timer and state management
-- **Comprehensive Testing** - Full test coverage
-- **Modern TypeScript** - Type-safe development
-
-## Credits
-
-Built for live Super Metroid speedrun/randomizer tracking with RetroArch integration.
-
----
-
-## Legacy Components
-
-**Note**: This repository also contains a Kotlin Native server implementation (`server_kotlin/`) that provides the same functionality as the TypeScript backend. However, **the Kotlin server is not currently being used** - the all-in-one `app/` directory with TypeScript backend is the active, maintained solution.
-
-The original separate components are preserved for reference:
-- `server_kotlin/` - Kotlin Native backend (not in use)
-- `server_python/` - Original Python backend (deprecated)
-- `app_fe_only/` - Original frontend-only React app (deprecated)
+Same as the original tracker project.
