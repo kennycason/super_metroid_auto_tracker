@@ -4,6 +4,7 @@ import { Timer } from '../Timer/Timer';
 import { Splits } from '../Timer/Splits';
 import { Location } from '../UI/Location';
 import { StatusGrid } from '../Status/StatusGrid';
+import { ItemVisibilitySelector } from '../UI/ItemVisibilitySelector';
 import { useSuperMetroid } from '../../context/SuperMetroidContext';
 import './Tracker.css';
 
@@ -123,6 +124,9 @@ export const Tracker: React.FC = () => {
         {!isMinimal && <Header />}
 
         <div className="main-content">          
+          {/* Item Visibility Selector - hide in minimal mode */}
+          {!isMinimal && <ItemVisibilitySelector />}
+
           {/* Status Grid - always show but will hide layout toggle in minimal mode */}
           <StatusGrid />
 

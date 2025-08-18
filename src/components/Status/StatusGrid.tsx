@@ -7,7 +7,7 @@ import './StatusGrid.css';
 type LayoutMode = 'by-type' | 'one-grid';
 
 export const StatusGrid: React.FC = () => {
-  const { gameState, isMinimal } = useSuperMetroid();
+  const { gameState, isMinimal, isItemVisible } = useSuperMetroid();
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('by-type');
   const { stats } = gameState;
 
@@ -86,49 +86,59 @@ export const StatusGrid: React.FC = () => {
     { id: 'draygon', name: 'Draygon', sprite: 'boss-sprite-draygon', enabled: true },
     { id: 'golden_torizo', name: 'G.Torizo', sprite: 'boss-sprite-golden-torizo', enabled: true },
     { id: 'ridley', name: 'Ridley', sprite: 'boss-sprite-ridley', enabled: true },
-    { id: 'mb1', name: 'MB1', sprite: 'boss-sprite-mother-brain-1', enabled: true },
-    { id: 'mb2', name: 'MB2', sprite: 'boss-sprite-mother-brain-2', enabled: true },
-    { id: 'main', name: 'Ship', sprite: 'boss-sprite-samus-ship', enabled: true },
+    { id: 'mother_brain_1', name: 'MB1', sprite: 'boss-sprite-mother-brain-1', enabled: true },
+    { id: 'mother_brain_2', name: 'MB2', sprite: 'boss-sprite-mother-brain-2', enabled: true },
+    { id: 'samus_ship', name: 'Ship', sprite: 'boss-sprite-samus-ship', enabled: true },
   ];
 
-  const allItems = layoutMode === 'by-type' ? [] : [...quantityItems, ...items, ...bosses];
+  // Filter items based on visibility
+  const visibleQuantityItems = quantityItems.filter(item => isItemVisible(item.id));
+  const visibleItems = items.filter(item => isItemVisible(item.id));
+  const visibleBosses = bosses.filter(boss => isItemVisible(boss.id));
+  const allItems = layoutMode === 'by-type' ? [] : [...visibleQuantityItems, ...visibleItems, ...visibleBosses];
 
   return (
     <div className="status-grid-container">
       {layoutMode === 'by-type' ? (
         <div className="status-grid-by-type">
           {/* Quantity Items Section */}
-          <div className="status-section">
-            <div className="status-row">
-              {quantityItems.map((item) => (
-                <Status key={item.id} type="quantity" config={item} />
-              ))}
+          {visibleQuantityItems.length > 0 && (
+            <div className="status-section">
+              <div className="status-row">
+                {visibleQuantityItems.map((item) => (
+                  <Status key={item.id} type="quantity" config={item} />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Items Section */}
-          <div className="status-section">
-            <div className="status-row">
-              {items.map((item) => (
-                <Status key={item.id} type="powerup" config={item} />
-              ))}
+          {visibleItems.length > 0 && (
+            <div className="status-section">
+              <div className="status-row">
+                {visibleItems.map((item) => (
+                  <Status key={item.id} type="powerup" config={item} />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Bosses Section */}
-          <div className="status-section">
-            <div className="status-row">
-              {bosses.map((boss) => (
-                <Status key={boss.id} type="boss" config={boss} />
-              ))}
+          {visibleBosses.length > 0 && (
+            <div className="status-section">
+              <div className="status-row">
+                {visibleBosses.map((boss) => (
+                  <Status key={boss.id} type="boss" config={boss} />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       ) : (
         <div className="status-grid-one-grid">
           {allItems.map((item) => {
-            const type = quantityItems.includes(item) ? 'quantity' : 
-                        items.includes(item) ? 'powerup' : 'boss';
+            const type = visibleQuantityItems.includes(item) ? 'quantity' : 
+                        visibleItems.includes(item) ? 'powerup' : 'boss';
             return (
               <Status key={item.id} type={type} config={item} />
             );

@@ -33,6 +33,13 @@ interface SuperMetroidContextType {
   isMinimal: boolean;  // Changed from isFullscreen
   setIsMinimal: (minimal: boolean) => void;  // Changed from setIsFullscreen
 
+  // Item visibility controls
+  visibleItems: Set<string>;
+  setItemVisibility: (itemId: string, visible: boolean) => void;
+  toggleItemVisibility: (itemId: string) => void;
+  setAllItemsVisibility: (visible: boolean) => void;
+  isItemVisible: (itemId: string) => boolean;
+
   // Audio controls
   playBossTrack: (bossId: string) => void;
   stopAudio: () => void;
@@ -55,6 +62,14 @@ export const SuperMetroidProvider: React.FC<SuperMetroidProviderProps> = ({ chil
   const [config, setConfig] = useState<TrackerConfig>(defaultConfig);
   const [isMinimal, setIsMinimal] = useState(false);  // Changed from isFullscreen
   const [serverPort, setServerPort] = useState(8080); // Default to TypeScript server port
+  const [visibleItems, setVisibleItems] = useState<Set<string>>(new Set([
+    // Default all items to visible
+    'energy_tank', 'reserve_tank', 'missile_tank', 'super_tank', 'power_bomb_tank',
+    'morph', 'bombs', 'charge', 'spazer', 'varia', 'hi_jump', 'speed_booster', 'wave',
+    'ice', 'grapple', 'x_ray', 'plasma', 'gravity', 'space_jump', 'spring', 'screw_attack',
+    'bomb_torizo', 'spore_spawn', 'kraid', 'crocomire', 'phantoon', 'botwoon', 'draygon',
+    'golden_torizo', 'ridley', 'mother_brain_1', 'mother_brain_2', 'samus_ship'
+  ]));
   const pollingStartedRef = useRef(false);
 
   const gameStateHook = useGameState(serverPort);
@@ -139,11 +154,54 @@ export const SuperMetroidProvider: React.FC<SuperMetroidProviderProps> = ({ chil
       case 'botwoon': return stats.bosses?.botwoon || false;
       case 'golden_torizo': return stats.bosses?.golden_torizo || false;
       case 'bomb_torizo': return stats.bosses?.bomb_torizo || false;
-      case 'mb1': return stats.bosses?.mb1 || false;
-      case 'mb2': return stats.bosses?.mb2 || false;
-      case 'main': return stats.bosses?.main || false;
+      case 'mother_brain_1': return stats.bosses?.mother_brain_1 || false;
+      case 'mother_brain_2': return stats.bosses?.mother_brain_2 || false;
+      case 'samus_ship': return stats.bosses?.samus_ship || false;
       default: return false;
     }
+  };
+
+  // Item visibility control functions
+  const setItemVisibility = (itemId: string, visible: boolean): void => {
+    setVisibleItems(prev => {
+      const newSet = new Set(prev);
+      if (visible) {
+        newSet.add(itemId);
+      } else {
+        newSet.delete(itemId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleItemVisibility = (itemId: string): void => {
+    setVisibleItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  };
+
+  const setAllItemsVisibility = (visible: boolean): void => {
+    if (visible) {
+      setVisibleItems(new Set([
+        'energy_tank', 'reserve_tank', 'missile_tank', 'super_tank', 'power_bomb_tank',
+        'morph', 'bombs', 'charge', 'spazer', 'varia', 'hi_jump', 'speed_booster', 'wave',
+        'ice', 'grapple', 'x_ray', 'plasma', 'gravity', 'space_jump', 'spring', 'screw_attack',
+        'bomb_torizo', 'spore_spawn', 'kraid', 'crocomire', 'phantoon', 'botwoon', 'draygon',
+        'golden_torizo', 'ridley', 'mother_brain_1', 'mother_brain_2', 'samus_ship'
+      ]));
+    } else {
+      setVisibleItems(new Set());
+    }
+  };
+
+  const isItemVisible = (itemId: string): boolean => {
+    return visibleItems.has(itemId);
   };
 
   const contextValue: SuperMetroidContextType = {
@@ -173,6 +231,13 @@ export const SuperMetroidProvider: React.FC<SuperMetroidProviderProps> = ({ chil
     // UI state
     isMinimal,     // Changed from isFullscreen
     setIsMinimal,  // Changed from setIsFullscreen
+
+    // Item visibility controls
+    visibleItems,
+    setItemVisibility,
+    toggleItemVisibility,
+    setAllItemsVisibility,
+    isItemVisible,
 
     // Audio controls (stub implementations)
     playBossTrack: () => {},
