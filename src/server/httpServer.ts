@@ -2,6 +2,11 @@ import express from 'express';
 import type { Request, Response } from 'express';
 import cors from 'cors';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 import { BackgroundPoller } from './backgroundPoller';
 import { createEmulatorBackend, DEFAULT_BACKEND_CONFIG } from './emulatorBackend';

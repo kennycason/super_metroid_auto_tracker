@@ -48,10 +48,10 @@ function createWindow() {
   console.log('🪟 Creating main window...');
 
   mainWindow = new BrowserWindow({
-    width: 1400,
-    height: 900,
-    minWidth: 800,
-    minHeight: 600,
+    width: 480,
+    height: 640,
+    minWidth: 250,
+    minHeight: 200,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -60,6 +60,8 @@ function createWindow() {
     },
     icon: path.join(__dirname, '..', 'public', 'item_sprites.png'), // Using your existing sprite as icon
     titleBarStyle: 'default',
+    resizable: true,
+    alwaysOnTop: false, // Set to true if you want it to stay on top while gaming
     show: false // Don't show until ready
   });
 
@@ -134,7 +136,19 @@ function createMenu() {
       label: 'Window',
       submenu: [
         { role: 'minimize' },
-        { role: 'close' }
+        { role: 'close' },
+        { type: 'separator' },
+        {
+          label: 'Always on Top',
+          type: 'checkbox',
+          checked: false,
+          accelerator: 'CmdOrCtrl+T',
+          click: (menuItem) => {
+            if (mainWindow) {
+              mainWindow.setAlwaysOnTop(menuItem.checked);
+            }
+          }
+        }
       ]
     }
   ];
