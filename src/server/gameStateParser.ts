@@ -209,6 +209,9 @@ export class GameStateParser {
 
     // Check if we should reset item state
     if (this.shouldResetItemState(locationData, health, missiles, maxMissiles)) {
+      // ALSO reset Mother Brain cache for new game
+      this.resetMotherBrainCache();
+      
       return {
         morph: false,
         bombs: false,
