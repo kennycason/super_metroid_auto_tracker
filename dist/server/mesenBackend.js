@@ -15,7 +15,7 @@ class MesenBackend {
     httpPort;
     baseUrl;
     timeoutMs;
-    constructor(host = 'localhost', httpPort = 8080) {
+    constructor(host = 'localhost', httpPort = 9876) {
         this.host = host;
         this.httpPort = httpPort;
         this.baseUrl = `http://${host}:${httpPort}`;

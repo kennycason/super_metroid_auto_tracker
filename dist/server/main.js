@@ -13,7 +13,7 @@ async function main() {
     const backendConfig = (0, emulatorBackend_1.parseBackendConfig)(args);
     // Parse positional arguments (skip named arguments)
     const positionalArgs = args.filter(arg => !arg.startsWith('--'));
-    const port = positionalArgs[0] ? parseInt(positionalArgs[0]) : 8080;
+    const port = positionalArgs[0] ? parseInt(positionalArgs[0]) : 9876;
     const pollInterval = positionalArgs[1] ? parseInt(positionalArgs[1]) : 1000;
     console.log('🎮 Starting Super Metroid Tracker (TypeScript)');
     console.log(`Port: ${port}, Poll Interval: ${pollInterval}ms`);

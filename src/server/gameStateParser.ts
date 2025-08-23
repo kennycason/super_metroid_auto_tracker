@@ -410,14 +410,13 @@ export class GameStateParser {
       }
     }
 
-    // MB1 detection - more robust: check escape timer OR in MB room with high stats
-    // If escape timer is active, it means you've at least beaten MB1
-    if (escapeTimerActive && inMotherBrainRoom) {
+    // MB1 detection - glass case broken OR escape timer active (you're at least past phase 1)
+    if (motherBrainGlassBroken && inMotherBrainRoom) {
+      this.motherBrainPhaseState.mb1_detected = true;
+      console.log('🧠 MB1 DETECTED: Glass case broken in MB room');
+    } else if (escapeTimerActive && inMotherBrainRoom) {
       this.motherBrainPhaseState.mb1_detected = true;
       console.log('🧠 MB1 DETECTED: Escape timer active in MB room (backup method)');
-    } else if (motherBrainGlassBroken && inMotherBrainRoom) {
-      this.motherBrainPhaseState.mb1_detected = true;
-      console.log('🧠 MB1 DETECTED: In MB room with glass case broken');
     }
 
     // MB2 detection - only if final Mother Brain bit is set (full defeat)

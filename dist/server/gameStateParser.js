@@ -271,17 +271,22 @@ class GameStateParser {
         const golden_torizo_detected = (condition1 || condition2 || condition3 || condition4);
         console.log(`🏆 GOLDEN TORIZO DEBUG: Final detection result: ${golden_torizo_detected}`);
         // Mother Brain phase detection
-        const motherBrainDefeated = (mainBosses & 0x0001) !== 0;
+        // According to SMMM reference: 0002 = Mother Brain's glass case is broken (bit 1, not bit 0)
+        const motherBrainGlassBroken = (mainBosses & 0x0002) !== 0; // bit 1 - glass case broken
+        const motherBrainDefeated = (mainBosses & 0x0001) !== 0; // bit 0 - final defeat
+        console.log(`🧠 MB DEBUG: mainBosses=0x${mainBosses.toString(16)}, glassBroken=${motherBrainGlassBroken}, defeated=${motherBrainDefeated}`);
         // Check if we're in the Mother Brain room
         const areaId = locationData.area_id || 0;
         const roomId = locationData.room_id || 0;
         const inMotherBrainRoom = (areaId === 5 && roomId === 56664);
+        console.log(`🧠 MB DEBUG: area=${areaId}, room=${roomId}, inMBRoom=${inMotherBrainRoom}`);
         // Check escape timers for MB2 detection
         const escapeTimer1 = escapeTimer1Data ? this.readInt16LE(escapeTimer1Data, 0) : 0;
         const escapeTimer2 = escapeTimer2Data ? this.readInt16LE(escapeTimer2Data, 0) : 0;
         const escapeTimer3 = escapeTimer3Data ? this.readInt16LE(escapeTimer3Data, 0) : 0;
         const escapeTimer4 = escapeTimer4Data ? this.readInt16LE(escapeTimer4Data, 0) : 0;
         const escapeTimerActive = escapeTimer1 > 0 || escapeTimer2 > 0 || escapeTimer3 > 0 || escapeTimer4 > 0;
+        console.log(`🧠 MB DEBUG: escapeTimers=[${escapeTimer1}, ${escapeTimer2}, ${escapeTimer3}, ${escapeTimer4}], active=${escapeTimerActive}`);
         // Nuclear reset scenario - reset MB2 if we're back in MB room with reasonable missile count
         if (inMotherBrainRoom && this.motherBrainPhaseState.mb2_detected === true) {
             // Check if we have reasonable missile count (indicating a new fight)
@@ -293,15 +298,21 @@ class GameStateParser {
                 this.motherBrainPhaseState.mb2_detected = false;
             }
         }
-        // MB1 detection - if in MB room and MB bit set
-        if (motherBrainDefeated && inMotherBrainRoom) {
+        // MB1 detection - glass case broken OR escape timer active (you're at least past phase 1)
+        if (motherBrainGlassBroken && inMotherBrainRoom) {
             this.motherBrainPhaseState.mb1_detected = true;
-            console.log('🧠 MB1 DETECTED: In MB room with MB bit set');
+            console.log('🧠 MB1 DETECTED: Glass case broken in MB room');
         }
-        // MB2 detection - if MB1 detected and escape timer active
-        if (this.motherBrainPhaseState.mb1_detected === true && escapeTimerActive) {
+        else if (escapeTimerActive && inMotherBrainRoom) {
+            this.motherBrainPhaseState.mb1_detected = true;
+            console.log('🧠 MB1 DETECTED: Escape timer active in MB room (backup method)');
+        }
+        // MB2 detection - only if final Mother Brain bit is set (full defeat)
+        // The escape timer can be active during MB2 fight, but MB2 is only complete when mainBosses bit 0 is set
+        if (motherBrainDefeated && inMotherBrainRoom) {
+            this.motherBrainPhaseState.mb1_detected = true; // Ensure MB1 is also set
             this.motherBrainPhaseState.mb2_detected = true;
-            console.log('🧠 MB2 DETECTED: MB1 already detected and escape timer active');
+            console.log('🧠 MB2 DETECTED: Mother Brain fully defeated (bit 0 set)');
         }
         return {
             // Basic bosses - Kotlin bit patterns (REMOVED incorrect Draygon detection)

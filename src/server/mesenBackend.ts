@@ -17,7 +17,7 @@ export class MesenBackend implements EmulatorBackend {
   private baseUrl: string;
   private timeoutMs: number;
 
-  constructor(host: string = 'localhost', httpPort: number = 8080) {
+  constructor(host: string = 'localhost', httpPort: number = 9876) {
     this.host = host;
     this.httpPort = httpPort;
     this.baseUrl = `http://${host}:${httpPort}`;

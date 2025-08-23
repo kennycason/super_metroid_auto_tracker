@@ -146,7 +146,7 @@ const initialGameState: GameState = {
   lastUpdate: 0,
 };
 
-export const useGameState = (serverPort: number = 8080) => {
+export const useGameState = (serverPort: number = 9876) => {
   const BACKEND_URL = `http://localhost:${serverPort}`;
 
   const [gameState, setGameState] = useState<GameState>(() => {

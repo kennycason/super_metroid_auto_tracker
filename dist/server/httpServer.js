@@ -7,6 +7,8 @@ exports.HttpServer = void 0;
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const path_1 = __importDefault(require("path"));
+// __dirname is available in CommonJS builds (production)
+// In development with tsx, we'll fallback to a sensible default if needed
 const backgroundPoller_1 = require("./backgroundPoller");
 const emulatorBackend_1 = require("./emulatorBackend");
 // CommonJS __dirname is available in CommonJS modules

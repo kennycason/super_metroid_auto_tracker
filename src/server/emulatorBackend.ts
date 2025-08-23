@@ -77,7 +77,7 @@ export const DEFAULT_BACKEND_CONFIG: BackendConfig = {
   },
   mesen: {
     host: 'localhost',
-    httpPort: 8080,
+    httpPort: 9876,
     websocketPort: 8081
   }
 };

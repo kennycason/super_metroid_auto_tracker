@@ -61,7 +61,7 @@ interface SuperMetroidProviderProps {
 export const SuperMetroidProvider: React.FC<SuperMetroidProviderProps> = ({ children }) => {
   const [config, setConfig] = useState<TrackerConfig>(defaultConfig);
   const [isMinimal, setIsMinimal] = useState(false);  // Changed from isFullscreen
-  const [serverPort, setServerPort] = useState(8080); // Default to TypeScript server port
+  const [serverPort, setServerPort] = useState(9876); // Default to TypeScript server port
   const [visibleItems, setVisibleItems] = useState<Set<string>>(new Set([
     // Default all items to visible
     'energy_tank', 'reserve_tank', 'missile_tank', 'super_tank', 'power_bomb_tank',

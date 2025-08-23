@@ -53,7 +53,7 @@ exports.DEFAULT_BACKEND_CONFIG = {
     },
     mesen: {
         host: 'localhost',
-        httpPort: 8080,
+        httpPort: 9876,
         websocketPort: 8081
     }
 };
