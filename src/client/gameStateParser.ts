@@ -116,18 +116,19 @@ export class FrontendGameStateParser {
           hyper: beams.hyper || false,
         },
         bosses: {
+          bomb_torizo: bosses.bomb_torizo || false,
           kraid: bosses.kraid || false,
+          spore_spawn: bosses.spore_spawn || false,
+          mother_brain: bosses.mother_brain || false,
+          crocomire: bosses.crocomire || false,
           phantoon: bosses.phantoon || false,
+          botwoon: bosses.botwoon || false,
           draygon: bosses.draygon || false,
           ridley: bosses.ridley || false,
-          spore_spawn: bosses.spore_spawn || false,
-          crocomire: bosses.crocomire || false,
-          botwoon: bosses.botwoon || false,
           golden_torizo: bosses.golden_torizo || false,
-          bomb_torizo: bosses.bomb_torizo || false,
-          main: bosses.main || false,
-          mb1: bosses.mb1 || false,
-          mb2: bosses.mb2 || false,
+          mother_brain_1: bosses.mother_brain_1 || false,
+          mother_brain_2: bosses.mother_brain_2 || false,
+          samus_ship: bosses.samus_ship || false,
         }
       };
     } catch (err) {

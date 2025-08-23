@@ -318,8 +318,29 @@ export class GameStateParser {
     const botwoonDetected = (((bossPlus2 & 0x04) !== 0) && (bossPlus2 > 0x0100)) ||
                            (((bossPlus4 & 0x02) !== 0) && (bossPlus4 > 0x0001));
 
-    // Draygon detection - FIXED! Only use boss_plus_3 == 0x0301 pattern
-    const draygonDetected = (bossPlus3 === 0x0301);
+    // Draygon detection - Use event flags (0x0008 = Draygon statue is grey) + fallback to boss_plus pattern
+    let draygonDetected = false;
+    
+    // Primary method: Check event flags for "Draygon statue is grey" (event 0x0008)
+    if (eventFlagsData && eventFlagsData.length > 0) {
+      // Event flags are stored as a bitmask. Event 0x0008 would be bit 8
+      // We need to check if this bit is set in the event flags
+      const eventFlags = this.readInt16LE(eventFlagsData, 0);
+      const draygonStatueGrey = (eventFlags & 0x0100) !== 0; // Bit 8 (0x0008 = 1 << 8 = 0x0100)
+      
+      if (draygonStatueGrey) {
+        draygonDetected = true;
+        console.log(`🐉 DRAYGON DEBUG: Detected via event flags - eventFlags: 0x${eventFlags.toString(16).toUpperCase().padStart(4, '0')}, bit 8 set: ${draygonStatueGrey}`);
+      }
+    }
+    
+    // Fallback method: Use boss_plus_3 pattern (in case event flags aren't working)
+    if (!draygonDetected && (bossPlus3 === 0x0301)) {
+      draygonDetected = true;
+      console.log(`🐉 DRAYGON DEBUG: Detected via fallback boss_plus_3 pattern: 0x${bossPlus3.toString(16).toUpperCase().padStart(4, '0')}`);
+    }
+    
+    console.log(`🐉 DRAYGON DEBUG: Final detection result: ${draygonDetected}`);
 
     // Ridley detection - Fixed to match Kotlin logic and avoid false positives
     let ridleyDetected = false;

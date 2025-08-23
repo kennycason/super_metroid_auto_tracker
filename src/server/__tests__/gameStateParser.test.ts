@@ -8,8 +8,8 @@ describe('GameStateParser', () => {
     const result = parser.parseCompleteGameState({});
 
     expect(result.health).toBe(0);
-    expect(result.maxHealth).toBe(99);
-    expect(result.areaName).toBe('Unknown');
+    expect(result.max_health).toBe(99);
+    expect(result.area_name).toBe('Unknown');
     expect(result.items).toEqual({});
     expect(result.beams).toEqual({});
     expect(result.bosses).toEqual({});
@@ -33,7 +33,7 @@ describe('GameStateParser', () => {
     });
 
     expect(result.health).toBe(150);
-    expect(result.maxHealth).toBe(199);
+    expect(result.max_health).toBe(199);
     expect(result.missiles).toBe(50);
   });
 

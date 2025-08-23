@@ -87,9 +87,10 @@ const initialGameState: GameState = {
       botwoon: false,
       golden_torizo: false,
       bomb_torizo: false,
-      main: false,
-      mb1: false,
-      mb2: false,
+      mother_brain: false,
+      mother_brain_1: false,
+      mother_brain_2: false,
+      samus_ship: false,
     },
   },
   items: {
@@ -122,9 +123,10 @@ const initialGameState: GameState = {
     botwoon: false,
     golden_torizo: false,
     bomb_torizo: false,
-    main: false,
-    mb1: false,
-    mb2: false,
+    mother_brain: false,
+    mother_brain_1: false,
+    mother_brain_2: false,
+    samus_ship: false,
   },
   location: {
     area_id: 0,
@@ -210,18 +212,19 @@ export const useGameState = (serverPort: number = 8080) => {
               hyper: data.stats?.beams?.hyper || false,
             },
             bosses: {
+              bomb_torizo: data.stats?.bosses?.bomb_torizo || false,
               kraid: data.stats?.bosses?.kraid || false,
+              spore_spawn: data.stats?.bosses?.spore_spawn || false,
+              mother_brain: data.stats?.bosses?.mother_brain || false,
+              crocomire: data.stats?.bosses?.crocomire || false,
               phantoon: data.stats?.bosses?.phantoon || false,
+              botwoon: data.stats?.bosses?.botwoon || false,
               draygon: data.stats?.bosses?.draygon || false,
               ridley: data.stats?.bosses?.ridley || false,
-              crocomire: data.stats?.bosses?.crocomire || false,
-              spore_spawn: data.stats?.bosses?.spore_spawn || false,
-              botwoon: data.stats?.bosses?.botwoon || false,
               golden_torizo: data.stats?.bosses?.golden_torizo || false,
-              bomb_torizo: data.stats?.bosses?.bomb_torizo || false,
-              mb1: data.stats?.bosses?.mother_brain_1 || false,
-              mb2: data.stats?.bosses?.mother_brain_2 || false,
-              main: data.stats?.bosses?.samus_ship || false,
+              mother_brain_1: data.stats?.bosses?.mother_brain_1 || false,
+              mother_brain_2: data.stats?.bosses?.mother_brain_2 || false,
+              samus_ship: data.stats?.bosses?.samus_ship || false,
             },
           },
           items: {
@@ -245,18 +248,19 @@ export const useGameState = (serverPort: number = 8080) => {
             hyper: data.stats?.beams?.hyper || false,
           },
           bosses: {
+            bomb_torizo: data.stats?.bosses?.bomb_torizo || false,
             kraid: data.stats?.bosses?.kraid || false,
+            spore_spawn: data.stats?.bosses?.spore_spawn || false,
+            mother_brain: data.stats?.bosses?.mother_brain || false,
+            crocomire: data.stats?.bosses?.crocomire || false,
             phantoon: data.stats?.bosses?.phantoon || false,
+            botwoon: data.stats?.bosses?.botwoon || false,
             draygon: data.stats?.bosses?.draygon || false,
             ridley: data.stats?.bosses?.ridley || false,
-            spore_spawn: data.stats?.bosses?.spore_spawn || false,
-            crocomire: data.stats?.bosses?.crocomire || false,
-            botwoon: data.stats?.bosses?.botwoon || false,
             golden_torizo: data.stats?.bosses?.golden_torizo || false,
-            bomb_torizo: data.stats?.bosses?.bomb_torizo || false,
-            main: data.stats?.bosses?.samus_ship || false,
-            mb1: data.stats?.bosses?.mother_brain_1 || false,
-            mb2: data.stats?.bosses?.mother_brain_2 || false,
+            mother_brain_1: data.stats?.bosses?.mother_brain_1 || false,
+            mother_brain_2: data.stats?.bosses?.mother_brain_2 || false,
+            samus_ship: data.stats?.bosses?.samus_ship || false,
           },
           location: {
             area_id: data.stats?.area_id || 0,
@@ -502,7 +506,7 @@ export const useGameState = (serverPort: number = 8080) => {
   // Auto-pause timer when ship status becomes true (game completed)
   // Made more robust to prevent false positives - requires multiple conditions
   useEffect(() => {
-    const isShipCompleted = gameState.stats.bosses.main;
+    const isShipCompleted = gameState.stats.bosses.samus_ship;
     const timerHasBeenRunning = gameState.timer.elapsed > 300000; // 5 minutes minimum
     const hasMultipleBossesDefeated = Object.values(gameState.stats.bosses).filter(Boolean).length >= 4;
 
@@ -516,7 +520,7 @@ export const useGameState = (serverPort: number = 8080) => {
       console.log('🚢 Game completed! Auto-pausing timer... (5+ min runtime, multiple bosses defeated, no manual adjustments)');
       stopTimer();
     }
-  }, [gameState.stats.bosses.main, gameState.timer.running, gameState.timer.elapsed, stopTimer, hasManualAdjustments]);
+  }, [gameState.stats.bosses.samus_ship, gameState.timer.running, gameState.timer.elapsed, stopTimer, hasManualAdjustments]);
 
   // Add split functionality (based on original HTML implementation)
   const addSplit = useCallback((eventName: string) => {
@@ -555,7 +559,7 @@ export const useGameState = (serverPort: number = 8080) => {
       for (const boss of trackableBosses) {
         initialTrackedBosses[boss] = (gameState.stats.bosses as any)[boss] || false;
       }
-      initialTrackedBosses['main'] = gameState.stats.bosses.main || false;
+      initialTrackedBosses['samus_ship'] = gameState.stats.bosses.samus_ship || false;
 
       setLastTrackedBosses(initialTrackedBosses);
       setIsInitialized(true);
@@ -601,7 +605,7 @@ export const useGameState = (serverPort: number = 8080) => {
     }
 
     // Check for ship completion (game complete)
-    if (gameState.stats.bosses.main && !lastTrackedBosses['main']) {
+    if (gameState.stats.bosses.samus_ship && !lastTrackedBosses['samus_ship']) {
       addSplit('GAME COMPLETE!');
     }
 
@@ -610,7 +614,7 @@ export const useGameState = (serverPort: number = 8080) => {
     for (const boss of trackableBosses) {
       newTrackedBosses[boss] = (gameState.stats.bosses as any)[boss] || false;
     }
-    newTrackedBosses['main'] = gameState.stats.bosses.main || false;
+    newTrackedBosses['samus_ship'] = gameState.stats.bosses.samus_ship || false;
 
     setLastTrackedBosses(newTrackedBosses);
   }, [

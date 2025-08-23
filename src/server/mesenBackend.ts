@@ -100,12 +100,12 @@ export class MesenBackend implements EmulatorBackend {
       // Mesen might return data in different formats, so we need to handle various cases
       let bytes: number[] = [];
       
-      if (data.bytes && Array.isArray(data.bytes)) {
+      if ((data as any).bytes && Array.isArray((data as any).bytes)) {
         // Format: { bytes: [0x12, 0x34, ...] }
-        bytes = data.bytes;
-      } else if (data.data && Array.isArray(data.data)) {
+        bytes = (data as any).bytes;
+      } else if ((data as any).data && Array.isArray((data as any).data)) {
         // Format: { data: [0x12, 0x34, ...] }
-        bytes = data.data;
+        bytes = (data as any).data;
       } else if (Array.isArray(data)) {
         // Format: [0x12, 0x34, ...]
         bytes = data;
@@ -177,16 +177,16 @@ export class MesenBackend implements EmulatorBackend {
           
           // Check if a game is loaded
           gameLoaded = gameData && (
-            gameData.loaded === true || 
-            gameData.running === true || 
-            gameData.name || 
-            gameData.title ||
-            stateData.running === true ||
-            stateData.loaded === true
+            (gameData as any).loaded === true || 
+            (gameData as any).running === true || 
+            (gameData as any).name || 
+            (gameData as any).title ||
+            (stateData as any).running === true ||
+            (stateData as any).loaded === true
           );
           
           if (gameLoaded) {
-            gameInfo = gameData.name || gameData.title || 'Game loaded';
+            gameInfo = (gameData as any).name || (gameData as any).title || 'Game loaded';
           }
         }
       } catch (gameError) {

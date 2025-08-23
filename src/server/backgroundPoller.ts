@@ -100,7 +100,7 @@ export class BackgroundPoller {
       if (connectionInfo.gameLoaded) {
         console.log('🔄 Poll: Game is loaded, reading game state...');
         gameState = await this.readGameState();
-        console.log(`🔄 Poll: Game state read: health=${gameState.health}, missiles=${gameState.missiles}, area=${gameState.areaName}`);
+        console.log(`🔄 Poll: Game state read: health=${gameState.health}, missiles=${gameState.missiles}, area=${gameState.area_name}`);
 
         // Bootstrap MB cache on first successful game read (if we haven't already)
         if (gameState.health > 0 && !this.bootstrapAttempted) {
@@ -182,7 +182,7 @@ export class BackgroundPoller {
         this.backend.readMemoryRange(0x7E09E2, 2), // escape_timer_3
         this.backend.readMemoryRange(0x7E09E0, 2), // escape_timer_4
         this.backend.readMemoryRange(0x7E0FB2, 2), // ship_ai
-        this.backend.readMemoryRange(0x7ED821, 1), // event_flags
+        this.backend.readMemoryRange(0x7ED821, 2), // event_flags
       ]);
 
       // Create memory data map

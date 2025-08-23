@@ -15,6 +15,12 @@
     "dev:full": "concurrently \"npm run dev\" \"npm run server:dev\"",
     "dev:full:mesen": "concurrently \"npm run dev\" \"npm run server:dev -- --backend=mesen\"",
     "dev:full:retroarch": "concurrently \"npm run dev\" \"npm run server:dev -- --backend=retroarch\"",
+    "electron": "NODE_ENV=production electron electron/main.js",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && NODE_ENV=development ELECTRON_DEBUG=1 electron electron/main.js\"",
+    "electron:build": "npm run build && npm run server:build && electron-builder",
+    "electron:dist": "npm run electron:build --publish=never",
+    "electron:pack": "electron-builder --dir",
+    "server:build": "tsc -p tsconfig.server.json",
     "test": "vitest",
     "test:server": "vitest run --config vitest.config.server.ts"
   },
@@ -41,6 +47,62 @@
     "vite": "^7.0.4",
     "tsx": "^4.7.0",
     "concurrently": "^8.2.2",
-    "vitest": "^1.2.0"
+    "vitest": "^1.2.0",
+    "electron": "^37.3.0",
+    "electron-builder": "^26.0.12",
+    "wait-on": "^8.0.4"
+  },
+  "main": "electron/main.js",
+  "homepage": "./",
+  "build": {
+    "appId": "com.kenny.super-metroid-tracker",
+    "productName": "Super Metroid Auto Tracker",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "src/server/**/*.js",
+      "node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "dist/server",
+        "to": "server"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "public/item_sprites.png"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "public/item_sprites.png"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "public/item_sprites.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }
