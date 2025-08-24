@@ -37,6 +37,42 @@
   text-align: center;
 }
 
+.header-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.preset-btn {
+  background: rgba(102, 51, 0, 0.3);
+  border: 1px solid #663300;
+  color: #ffaa00;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: bold;
+}
+
+.preset-btn:hover {
+  background: rgba(153, 85, 0, 0.4);
+  border-color: #ffaa00;
+  color: #ffcc00;
+}
+
+.kpdr-preset {
+  background: rgba(68, 34, 102, 0.3);
+  border-color: #442266;
+  color: #aa66ff;
+}
+
+.kpdr-preset:hover {
+  background: rgba(102, 51, 153, 0.4);
+  border-color: #aa66ff;
+  color: #cc88ff;
+}
+
 .toggle-all-btn {
   background: rgba(0, 51, 0, 0.3);
   border: 1px solid #003300;
@@ -210,5 +246,16 @@
   
   .selector-toggle {
     justify-content: center;
+  }
+  
+  .header-buttons {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .preset-btn,
+  .toggle-all-btn {
+    font-size: 10px;
+    padding: 3px 6px;
   }
 }

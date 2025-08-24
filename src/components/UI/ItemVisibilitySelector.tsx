@@ -81,6 +81,42 @@ export const ItemVisibilitySelector: React.FC = () => {
     setItemVisibility(itemId, !isItemVisible(itemId));
   };
 
+  const handleKPDRPreset = () => {
+    // Define KPDR Any% preset items
+    const kpdrItems = new Set([
+      // Items
+      'energy_tank',       // energy tanks
+      'reserve_tank',      // reserve tanks
+      'missile_tank',      // missiles
+      'super_tank',        // super missiles  
+      'power_bomb_tank',   // power bombs
+      'morph',             // morph ball
+      'bombs',             // bombs
+      'charge',            // charge
+      'varia',             // varia
+      'hi_jump',           // hi jump
+      'speed_booster',     // speed booster
+      'wave',              // wave
+      'ice',               // ice
+      'gravity',           // gravity
+      'space_jump',        // space jump
+      'plasma',            // plasma
+      // Bosses
+      'kraid',             // Kraid
+      'phantoon',          // Phantoon
+      'draygon',           // Draygon
+      'ridley',            // Ridley
+      'mother_brain_1',    // MB1
+      'mother_brain_2',    // MB2
+      'samus_ship'         // ship
+    ]);
+
+    // Set visibility: show KPDR items, hide others
+    allItemIds.forEach(itemId => {
+      setItemVisibility(itemId, kpdrItems.has(itemId));
+    });
+  };
+
   return (
     <div className="item-visibility-selector">
       <div className="selector-header">
@@ -91,13 +127,22 @@ export const ItemVisibilitySelector: React.FC = () => {
           <span className="toggle-icon">{isExpanded ? '▼' : '▶'}</span>
           Item Visibility ({visibleCount}/{totalCount})
         </button>
-        <button 
-          className="toggle-all-btn"
-          onClick={handleToggleAll}
-          title={visibleCount === totalCount ? 'Hide All' : 'Show All'}
-        >
-          {visibleCount === totalCount ? 'Hide All' : 'Show All'}
-        </button>
+        <div className="header-buttons">
+          <button 
+            className="preset-btn kpdr-preset"
+            onClick={handleKPDRPreset}
+            title="Show only KPDR Any% items"
+          >
+            KPDR Any%
+          </button>
+          <button 
+            className="toggle-all-btn"
+            onClick={handleToggleAll}
+            title={visibleCount === totalCount ? 'Hide All' : 'Show All'}
+          >
+            {visibleCount === totalCount ? 'Hide All' : 'Show All'}
+          </button>
+        </div>
       </div>
 
       {isExpanded && (

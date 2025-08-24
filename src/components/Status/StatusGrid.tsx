@@ -8,7 +8,7 @@ type LayoutMode = 'by-type' | 'one-grid';
 
 export const StatusGrid: React.FC = () => {
   const { gameState, isMinimal, isItemVisible } = useSuperMetroid();
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>('by-type');
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>('one-grid');
   const { stats } = gameState;
 
   // Early return if game state isn't loaded yet
