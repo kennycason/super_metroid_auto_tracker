@@ -1,0 +1,38 @@
+directories:
+  output: dist-electron
+  buildResources: build
+appId: com.kenny.super-metroid-tracker
+productName: Super Metroid Auto Tracker
+files:
+  - filter:
+      - dist/**/*
+      - electron/**/*
+      - src/server/**/*.js
+      - node_modules/**/*
+extraResources:
+  - from: dist/server
+    to: server
+mac:
+  category: public.app-category.utilities
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  icon: public/metroid_1024x1024.jpeg
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: public/metroid_1024x1024.jpeg
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  icon: public/metroid_1024x1024.jpeg
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+electronVersion: 37.3.1

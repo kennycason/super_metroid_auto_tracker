@@ -16,15 +16,31 @@ let serverProcess;
 function startBackendServer() {
   console.log('🚀 Starting backend server...');
   
-  const serverScript = isDev 
-    ? path.join(__dirname, '..', 'src', 'server', 'main.ts')
-    : path.join(__dirname, '..', 'dist', 'server', 'main.js');
+  let serverScript;
+  let isPackaged = false;
+  
+  if (isDev) {
+    serverScript = path.join(__dirname, '..', 'src', 'server', 'main.ts');
+  } else {
+    // Check if we're in a packaged app
+    isPackaged = __dirname.includes('.app/Contents/Resources');
+    if (isPackaged) {
+      serverScript = path.join(process.resourcesPath, 'server', 'main.js');
+    } else {
+      serverScript = path.join(__dirname, '..', 'dist', 'server', 'main.js');
+    }
+  }
 
   const command = isDev ? 'tsx' : 'node';
   const args = isDev ? [serverScript] : [serverScript];
 
+  // Set correct working directory for packaged apps
+  const cwd = isPackaged 
+    ? path.dirname(serverScript)  // Use the server directory as cwd for packaged apps
+    : path.join(__dirname, '..');
+
   serverProcess = spawn(command, args, {
-    cwd: path.join(__dirname, '..'),
+    cwd: cwd,
     stdio: 'inherit',
     env: {
       ...process.env,

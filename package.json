@@ -80,7 +80,7 @@
           "arch": ["x64", "arm64"]
         }
       ],
-      "icon": "public/item_sprites.png"
+      "icon": "public/metroid_1024x1024.jpeg"
     },
     "win": {
       "target": [
@@ -89,7 +89,7 @@
           "arch": ["x64"]
         }
       ],
-      "icon": "public/item_sprites.png"
+      "icon": "public/metroid_1024x1024.jpeg"
     },
     "linux": {
       "target": [
@@ -98,7 +98,7 @@
           "arch": ["x64"]
         }
       ],
-      "icon": "public/item_sprites.png"
+      "icon": "public/metroid_1024x1024.jpeg"
     },
     "nsis": {
       "oneClick": false,
