@@ -23,6 +23,7 @@ build/
 
 # Electron
 out/
+dist-electron/
 
 # IDE
 .vscode/
