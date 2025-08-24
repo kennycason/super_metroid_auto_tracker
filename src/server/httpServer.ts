@@ -110,8 +110,21 @@ export class HttpServer {
     this.app.use(express.json());
 
     // Serve static files from React build (if available)
-    const buildPath = path.join(__dirname, '../../dist');
+    const buildPath = this.getStaticFilesPath();
     this.app.use(express.static(buildPath));
+  }
+
+  private getStaticFilesPath(): string {
+    // Check if we're in a packaged Electron app by looking at our own path
+    const isPackaged = __dirname.includes('.app/Contents/Resources');
+    
+    if (isPackaged) {
+      // We're in the packaged app - frontend files are extracted to Resources/frontend
+      const resourcesPath = path.resolve(__dirname, '..');
+      return path.join(resourcesPath, 'frontend');
+    } else {
+      return path.join(__dirname, '../../dist');
+    }
   }
 
   /**
@@ -121,7 +134,7 @@ export class HttpServer {
     // Main endpoints
     this.app.get('/', (_req: Request, res: Response) => {
       // Serve React app if built, otherwise show simple HTML
-      const buildPath = path.join(__dirname, '../../dist/index.html');
+      const buildPath = path.join(this.getStaticFilesPath(), 'index.html');
       try {
         res.sendFile(buildPath);
       } catch {

@@ -90,8 +90,8 @@ function createWindow() {
       mainWindow.webContents.openDevTools();
     }
   } else {
-    // Production: load built React app
-    mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
+    // Production: load from our server (both local and packaged)
+    mainWindow.loadURL('http://localhost:9876');
   }
 
   // Show window when ready to prevent visual flash
@@ -243,8 +243,9 @@ app.on('web-contents-created', (event, contents) => {
   contents.on('will-navigate', (event, navigationUrl) => {
     const parsedUrl = new URL(navigationUrl);
     
-    // Allow localhost navigation in development
-    if (isDev && parsedUrl.origin === 'http://localhost:3000') {
+    // Allow localhost navigation
+    if ((isDev && parsedUrl.origin === 'http://localhost:3000') || 
+        parsedUrl.origin === 'http://localhost:9876') {
       return;
     }
     

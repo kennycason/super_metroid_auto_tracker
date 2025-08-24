@@ -28,6 +28,7 @@ export declare class HttpServer {
      * Configure Express server middleware
      */
     private configureServer;
+    private getStaticFilesPath;
     /**
      * Configure API routes
      */

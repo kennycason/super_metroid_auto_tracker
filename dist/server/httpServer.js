@@ -102,8 +102,20 @@ class HttpServer {
         // Parse JSON bodies
         this.app.use(express_1.default.json());
         // Serve static files from React build (if available)
-        const buildPath = path_1.default.join(__dirname, '../../dist');
+        const buildPath = this.getStaticFilesPath();
         this.app.use(express_1.default.static(buildPath));
+    }
+    getStaticFilesPath() {
+        // Check if we're in a packaged Electron app by looking at our own path
+        const isPackaged = __dirname.includes('.app/Contents/Resources');
+        if (isPackaged) {
+            // We're in the packaged app - frontend files are extracted to Resources/frontend
+            const resourcesPath = path_1.default.resolve(__dirname, '..');
+            return path_1.default.join(resourcesPath, 'frontend');
+        }
+        else {
+            return path_1.default.join(__dirname, '../../dist');
+        }
     }
     /**
      * Configure API routes
@@ -112,7 +124,7 @@ class HttpServer {
         // Main endpoints
         this.app.get('/', (_req, res) => {
             // Serve React app if built, otherwise show simple HTML
-            const buildPath = path_1.default.join(__dirname, '../../dist/index.html');
+            const buildPath = path_1.default.join(this.getStaticFilesPath(), 'index.html');
             try {
                 res.sendFile(buildPath);
             }
