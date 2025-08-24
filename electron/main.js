@@ -91,7 +91,13 @@ function createWindow() {
     }
   } else {
     // Production: load from our server (both local and packaged)
-    mainWindow.loadURL('http://localhost:9876');
+    mainWindow.loadURL('http://localhost:9876').catch((error) => {
+      console.error('Failed to load URL:', error);
+      // Fallback: try again after a delay
+      setTimeout(() => {
+        mainWindow.loadURL('http://localhost:9876');
+      }, 2000);
+    });
   }
 
   // Show window when ready to prevent visual flash
@@ -188,7 +194,7 @@ app.whenReady().then(async () => {
   // Wait a moment for server to start, then create window
   setTimeout(() => {
     createWindow();
-  }, isDev ? 3000 : 2000); // Longer wait in dev for Vite to start
+  }, isDev ? 3000 : 4000); // Longer wait for server to fully start
 
   // macOS: Re-create window when dock icon clicked
   app.on('activate', () => {
