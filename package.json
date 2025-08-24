@@ -1,5 +1,5 @@
 {
-  "name": "super-metroid-tracker-unified",
+  "name": "super-metroid-tracker",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -20,7 +20,7 @@
     "electron:build": "npm run build && npm run server:build && electron-builder",
     "electron:dist": "npm run electron:build --publish=never",
     "electron:pack": "electron-builder --dir",
-    "server:build": "tsc -p tsconfig.server.json",
+    "server:build": "tsc -p tsconfig.server.json && echo '{\"type\": \"commonjs\"}' > dist/server/package.json",
     "test": "vitest",
     "test:server": "vitest run --config vitest.config.server.ts"
   },

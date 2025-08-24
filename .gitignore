@@ -24,6 +24,8 @@ build/
 # Electron
 out/
 dist-electron/
+*.app
+*.dmg
 
 # IDE
 .vscode/
