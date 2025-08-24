@@ -124,8 +124,6 @@ export const Tracker: React.FC = () => {
         {!isMinimal && <Header />}
 
         <div className="main-content">          
-          {/* Item Visibility Selector - hide in minimal mode */}
-          {!isMinimal && <ItemVisibilitySelector />}
 
           {/* Status Grid - always show but will hide layout toggle in minimal mode */}
           <StatusGrid />
@@ -138,6 +136,9 @@ export const Tracker: React.FC = () => {
 
           {/* Location - hide in minimal mode */}
           {!isMinimal && <Location />}
+
+          {/* Item Visibility Selector - hide in minimal mode */}
+          {!isMinimal && <ItemVisibilitySelector />}
 
           {/* Debug Window - hide in minimal mode */}
           {!isMinimal && <DebugWindow />}

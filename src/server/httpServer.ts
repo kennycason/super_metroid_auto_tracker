@@ -115,15 +115,20 @@ export class HttpServer {
   }
 
   private getStaticFilesPath(): string {
+    // Get current directory - works in both ESM and CommonJS
+    const currentDir = typeof __dirname !== 'undefined' 
+      ? __dirname 
+      : path.dirname(new URL(import.meta.url).pathname);
+    
     // Check if we're in a packaged Electron app by looking at our own path
-    const isPackaged = __dirname.includes('.app/Contents/Resources');
+    const isPackaged = currentDir.includes('.app/Contents/Resources');
     
     if (isPackaged) {
       // We're in the packaged app - frontend files are extracted to Resources/frontend
-      const resourcesPath = path.resolve(__dirname, '..');
+      const resourcesPath = path.resolve(currentDir, '..');
       return path.join(resourcesPath, 'frontend');
     } else {
-      return path.join(__dirname, '../../dist');
+      return path.join(currentDir, '../../dist');
     }
   }
 
@@ -246,7 +251,7 @@ export class HttpServer {
 
     // Catch-all handler: send back React's index.html file for client-side routing
     this.app.get('*', (_req: Request, res: Response) => {
-      const buildPath = path.join(__dirname, '../../dist/index.html');
+      const buildPath = path.join(this.getStaticFilesPath(), 'index.html');
       try {
         res.sendFile(buildPath);
       } catch {
