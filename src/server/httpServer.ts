@@ -115,10 +115,22 @@ export class HttpServer {
   }
 
   private getStaticFilesPath(): string {
-    // Get current directory - works in both ESM and CommonJS
-    const currentDir = typeof __dirname !== 'undefined' 
-      ? __dirname 
-      : path.dirname(new URL(import.meta.url).pathname);
+    // Get current directory - handle both ESM and CommonJS
+    let currentDir: string;
+    
+    try {
+      if (typeof __dirname !== 'undefined') {
+        // CommonJS mode (production build)
+        currentDir = __dirname;
+      } else {
+        // ESM mode (development) - use a fallback approach
+        // In development, we know we're running from src/server
+        currentDir = process.cwd() + '/src/server';
+      }
+    } catch (e) {
+      // Fallback to process.cwd if everything else fails
+      currentDir = process.cwd() + '/src/server';
+    }
     
     // Check if we're in a packaged Electron app by looking at our own path
     const isPackaged = currentDir.includes('.app/Contents/Resources');

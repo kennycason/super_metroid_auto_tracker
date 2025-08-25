@@ -64,7 +64,7 @@ function createWindow() {
   console.log('🪟 Creating main window...');
 
   mainWindow = new BrowserWindow({
-    width: 480,
+    width: 488,
     height: 640,
     minWidth: 250,
     minHeight: 200,
