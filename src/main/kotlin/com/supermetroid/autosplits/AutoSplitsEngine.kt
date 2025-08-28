@@ -1,0 +1,770 @@
+package com.supermetroid.autosplits
+
+import com.supermetroid.gamestate.GameStateConstants
+import com.supermetroid.gamestate.RoomIds
+import com.supermetroid.model.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.datetime.Clock
+import io.github.oshai.kotlinlogging.KotlinLogging
+
+private val logger = KotlinLogging.logger {}
+
+/**
+ * AutoSplits engine for detecting split conditions and managing run sessions
+ */
+class AutoSplitsEngine {
+    private var previousGameState: GameState? = null
+    private var currentProfile: SplitProfile? = null
+    private var currentSplitIndex = 0
+    private var pauseStartTime: kotlinx.datetime.Instant? = null
+    
+    // State flows for reactive UI
+    private val _splitsState = MutableStateFlow(SplitsState())
+    val splitsState: StateFlow<SplitsState> = _splitsState.asStateFlow()
+    
+    /**
+     * Load a split profile
+     */
+    fun loadProfile(profile: SplitProfile) {
+        currentProfile = profile
+        logger.info { "📋 Loaded split profile: ${profile.name} with ${profile.splits.size} splits" }
+    }
+    
+    /**
+     * Load saved splits state and resume from current position
+     */
+    fun loadSavedState(savedState: SplitsState) {
+        _splitsState.value = savedState
+        
+        val currentRun = savedState.currentRun
+        if (currentRun != null) {
+            val profile = currentProfile ?: KpdrAnyProfile.profile
+            currentSplitIndex = currentRun.completedSplits.size
+            
+            logger.info { "🔄 Resumed run ${currentRun.id} at split ${currentSplitIndex}/${profile.splits.size}" }
+            
+            // If paused, set pause start time to now for accurate calculation
+            if (currentRun.isPaused) {
+                pauseStartTime = Clock.System.now()
+                logger.info { "⏸️ Run is paused" }
+            }
+        }
+    }
+    
+    /**
+     * Start a new run or toggle pause/resume
+     */
+    fun toggleRunState(profileId: String = "kpdr-any") {
+        val currentRun = _splitsState.value.currentRun
+        
+        when {
+            currentRun == null -> startNewRun(profileId)
+            currentRun.isPaused -> resumeRun()
+            else -> pauseRun()
+        }
+    }
+    
+    /**
+     * Start a completely new run
+     */
+    internal fun startNewRun(profileId: String = "kpdr-any") {
+        val newRun = RunSession(
+            id = generateRunId(),
+            profileId = profileId,
+            startTime = Clock.System.now(),
+            endTime = null,
+            completedSplits = emptyList(),
+            totalTime = 0,
+            isPaused = false,
+            pausedTime = 0
+        )
+        
+        currentSplitIndex = 0
+        pauseStartTime = null
+        
+        val currentState = _splitsState.value
+        _splitsState.value = currentState.copy(currentRun = newRun)
+        
+        logger.info { "🏁 Started new run: ${newRun.id}" }
+    }
+    
+    /**
+     * Pause the current run
+     */
+    private fun pauseRun() {
+        val currentRun = _splitsState.value.currentRun ?: return
+        
+        pauseStartTime = Clock.System.now()
+        val currentState = _splitsState.value
+        _splitsState.value = currentState.copy(
+            currentRun = currentRun.copy(isPaused = true)
+        )
+        
+        logger.info { "⏸️ Paused run ${currentRun.id}" }
+    }
+    
+    /**
+     * Resume the current run
+     */
+    private fun resumeRun() {
+        val currentRun = _splitsState.value.currentRun ?: return
+        val pauseStart = pauseStartTime ?: return
+        
+        // Add pause duration to total paused time
+        val pauseDuration = (Clock.System.now() - pauseStart).inWholeMilliseconds
+        val newPausedTime = currentRun.pausedTime + pauseDuration
+        
+        pauseStartTime = null
+        val currentState = _splitsState.value
+        _splitsState.value = currentState.copy(
+            currentRun = currentRun.copy(
+                isPaused = false,
+                pausedTime = newPausedTime
+            )
+        )
+        
+        logger.info { "▶️ Resumed run ${currentRun.id} (paused for ${formatTime(pauseDuration)})" }
+    }
+    
+    /**
+     * Reset current run
+     */
+    fun resetRun() {
+        currentSplitIndex = 0
+        previousGameState = null
+        
+        val currentState = _splitsState.value
+        _splitsState.value = currentState.copy(currentRun = null)
+        
+        logger.info { "🔄 Reset current run" }
+    }
+    
+    /**
+     * Process game state and check for split conditions
+     */
+    fun processGameState(gameState: GameState) {
+        val currentRun = _splitsState.value.currentRun
+        
+        // Always log current area for debugging
+        logger.debug { "🎮 Current area: ${gameState.areaName} (ID: ${gameState.areaId}), gameState: ${gameState.gameState}" }
+        
+        // CRITICAL: Prevent false splits during intro/cutscenes
+        if (!isValidGameplayState(gameState)) {
+            logger.debug { "🚫 Ignoring game state - not in valid gameplay (state: ${gameState.gameState})" }
+            previousGameState = gameState
+            return
+        }
+        
+        if (currentRun == null) {
+            logger.debug { "🔍 No current run - checking auto-start conditions" }
+            // Check for auto-start conditions (like ASL zebesStart logic)
+            val shouldAutoStart = checkAutoStartCondition(previousGameState, gameState)
+            if (shouldAutoStart) {
+                logger.info { "🚀 Auto-starting new game run in Ceres Station!" }
+                startNewRun()
+            }
+            previousGameState = gameState
+            return
+        } else {
+            logger.debug { "▶️ Run in progress: ${currentRun.id}, paused: ${currentRun.isPaused}" }
+        }
+        
+        // Don't process splits if paused
+        if (currentRun.isPaused) {
+            previousGameState = gameState
+            return
+        }
+        
+        val profile = currentProfile ?: KpdrAnyProfile.profile
+        
+        // Auto-skip completed splits for mid-run starts OR if current split is already completed
+        if ((currentRun.completedSplits.isEmpty() && currentSplitIndex == 0) || 
+            (currentSplitIndex < profile.splits.size && isConditionAlreadyMet(profile.splits[currentSplitIndex], gameState))) {
+            autoSkipCompletedSplits(gameState, profile)
+        }
+        
+        // Check if we should trigger a split
+        if (currentSplitIndex < profile.splits.size) {
+            val split = profile.splits[currentSplitIndex]
+            val shouldSplit = checkSplitCondition(split, previousGameState, gameState)
+            
+            if (shouldSplit) {
+                triggerSplit(split, gameState)
+            }
+        }
+        
+        previousGameState = gameState
+    }
+    
+    /**
+     * Auto-skip splits that are already completed based on current game state
+     */
+    private fun autoSkipCompletedSplits(gameState: GameState, profile: SplitProfile) {
+        var currentRun = _splitsState.value.currentRun ?: return
+        var skipped = false
+        val currentTime = Clock.System.now()
+        val estimatedTime = (currentTime - currentRun.startTime).inWholeMilliseconds - currentRun.pausedTime
+        
+        while (currentSplitIndex < profile.splits.size) {
+            val split = profile.splits[currentSplitIndex]
+            val isAlreadyCompleted = isConditionAlreadyMet(split, gameState)
+            
+            if (isAlreadyCompleted) {
+                logger.info { "⏭️ Auto-skipping completed split: ${split.name}" }
+                
+                // Add the skipped split to completedSplits with estimated time
+                // Calculate proper segment time for auto-skipped splits
+                val segmentTimeMs = if (currentRun.completedSplits.isEmpty()) {
+                    estimatedTime
+                } else {
+                    estimatedTime - currentRun.completedSplits.last().time.totalTime
+                }
+                
+                val completedSplit = CompletedSplit(
+                    splitId = split.id,
+                    time = SplitTime(
+                        totalTime = estimatedTime,
+                        segmentTime = segmentTimeMs
+                    ),
+                    timestamp = currentTime
+                )
+                
+                currentRun = currentRun.copy(
+                    completedSplits = currentRun.completedSplits + completedSplit,
+                    totalTime = estimatedTime
+                )
+                
+                _splitsState.value = _splitsState.value.copy(currentRun = currentRun)
+                
+                currentSplitIndex++
+                skipped = true
+            } else {
+                break
+            }
+        }
+        
+        if (skipped) {
+            logger.info { "📍 Positioned at split ${currentSplitIndex}/${profile.splits.size}" }
+        }
+    }
+    
+    /**
+     * Check if a split condition is already met in current game state
+     */
+    internal fun isConditionAlreadyMet(split: Split, gameState: GameState): Boolean {
+        return when (split.id) {
+            "ceres_station" -> gameState.areaId != 6 && gameState.bosses.ceresStation // Not in Ceres AND defeated Ceres Ridley
+            "first_missile" -> gameState.maxMissiles > 0
+            "first_super" -> gameState.maxSupers > 0
+            "first_power_bomb" -> gameState.maxPowerBombs > 0
+            "morph_ball" -> gameState.items.morph
+            "bomb" -> gameState.items.bombs
+            "charge_beam" -> gameState.beams.charge
+            "spazer" -> gameState.beams.spazer
+            "varia_suit" -> gameState.items.varia
+            "hi_jump" -> gameState.items.hiJump
+            "speed_booster" -> gameState.items.speed
+            "wave_beam" -> gameState.beams.wave
+            "ice_beam" -> gameState.beams.ice
+            "gravity_suit" -> gameState.items.gravity
+            "space_jump" -> gameState.items.spaceJump
+            "plasma_beam" -> gameState.beams.plasma
+            "kraid" -> gameState.bosses.kraid
+            "phantoon" -> gameState.bosses.phantoon
+            "draygon" -> gameState.bosses.draygon
+            "ridley" -> gameState.bosses.ridley
+            "golden_four" -> gameState.bosses.kraid && gameState.bosses.phantoon && gameState.bosses.draygon && gameState.bosses.ridley
+            "mother_brain_1" -> gameState.bosses.motherBrain1
+            "mother_brain_2" -> gameState.bosses.motherBrain2
+            "ship" -> gameState.bosses.samusShip
+            else -> false
+        }
+    }
+    
+    /**
+     * Check if the game state is valid for processing splits (not intro/cutscenes)
+     * Based on SuperMetroid.asl gameStateEnum - only allow normal gameplay and door transitions
+     */
+    private fun isValidGameplayState(gameState: GameState): Boolean {
+        return when (gameState.gameState) {
+            GameStateConstants.NORMAL_GAMEPLAY -> true         // 8 - Normal gameplay
+            GameStateConstants.DOOR_TRANSITION -> true        // 11 - Door transitions
+            GameStateConstants.ELEVATOR -> true               // 5 - Elevator transitions
+            GameStateConstants.START_OF_CERES_CUTSCENE -> true // 32 - Ceres escape cutscene start
+            34 -> true                                         // 34 - Ceres escape cutscene continuation
+            else -> {
+                logger.debug { "🚫 Invalid game state: ${gameState.gameState} (not normal gameplay/door transition)" }
+                false
+            }
+        }
+    }
+    
+    /**
+     * Check for auto-start conditions for new game
+     * Auto-start when gaining control in Ceres Station at the beginning of a new game
+     */
+    private fun checkAutoStartCondition(previousState: GameState?, currentState: GameState): Boolean {
+        // For new game auto-start, look for:
+        // 1. Being in Ceres Station (area ID 6)
+        // 2. Normal gameplay state (gaining control)
+        // 3. No significant progress (early in the game)
+        
+        val inCeres = currentState.areaId == 6
+        val normalGameplay = currentState.gameState == 8 // Normal gameplay
+        val earlyGame = currentState.maxHealth <= 99 && currentState.maxMissiles <= 5 // Starting stats
+        
+        val shouldAutoStart = inCeres && normalGameplay && earlyGame
+        
+        logger.debug { "🔎 Auto-start check: Ceres=$inCeres, gameplay=$normalGameplay, early=$earlyGame, condition=$shouldAutoStart" }
+        logger.debug { "📊 Stats: health=${currentState.maxHealth}, missiles=${currentState.maxMissiles}, room=${currentState.roomId}" }
+        
+        if (shouldAutoStart) {
+            logger.info { "🎯 Auto-start condition detected: New game in Ceres Station!" }
+        }
+        
+        return shouldAutoStart
+    }
+    
+    /**
+     * Check if a split condition is met
+     */
+    private fun checkSplitCondition(split: Split, previousState: GameState?, currentState: GameState): Boolean {
+        if (previousState == null) return false
+        
+        return when (split.id) {
+            "ceres_station" -> checkCeresStation(previousState, currentState)
+            "first_missile" -> checkFirstMissile(previousState, currentState)
+            "first_super" -> checkFirstSuper(previousState, currentState)
+            "first_power_bomb" -> checkFirstPowerBomb(previousState, currentState)
+            "morph_ball" -> checkMorphBall(previousState, currentState)
+            "bomb" -> checkBomb(previousState, currentState)
+            "charge_beam" -> checkChargeBeam(previousState, currentState)
+            "spazer" -> checkSpazer(previousState, currentState)
+            "varia_suit" -> checkVariaSuit(previousState, currentState)
+            "hi_jump" -> checkHiJump(previousState, currentState)
+            "speed_booster" -> checkSpeedBooster(previousState, currentState)
+            "wave_beam" -> checkWaveBeam(previousState, currentState)
+            "ice_beam" -> checkIceBeam(previousState, currentState)
+            "gravity_suit" -> checkGravitySuit(previousState, currentState)
+            "space_jump" -> checkSpaceJump(previousState, currentState)
+            "plasma_beam" -> checkPlasmaBeam(previousState, currentState)
+            "kraid" -> checkKraid(previousState, currentState)
+            "phantoon" -> checkPhantoon(previousState, currentState)
+            "draygon" -> checkDraygon(previousState, currentState)
+            "ridley" -> checkRidley(previousState, currentState)
+            "golden_four" -> checkGoldenFour(previousState, currentState)
+            "mother_brain_1" -> checkMotherBrain1(previousState, currentState)
+            "mother_brain_2" -> checkMotherBrain2(previousState, currentState)
+            "ship" -> checkShip(previousState, currentState)
+            else -> false
+        }
+    }
+    
+    /**
+     * Trigger a split
+     */
+    private fun triggerSplit(split: Split, gameState: GameState) {
+        val currentRun = _splitsState.value.currentRun ?: return
+        val currentTime = Clock.System.now()
+        val rawTimeMs = (currentTime - currentRun.startTime).inWholeMilliseconds
+        val totalTimeMs = rawTimeMs - currentRun.pausedTime
+        
+        // Calculate segment time
+        val segmentTimeMs = if (currentRun.completedSplits.isEmpty()) {
+            totalTimeMs
+        } else {
+            totalTimeMs - currentRun.completedSplits.last().time.totalTime
+        }
+        
+        // Check for personal best delta
+        val currentState = _splitsState.value
+        val personalBest = currentState.personalBests[currentRun.profileId]
+        val delta = personalBest?.splitTimes?.get(split.id)?.let { pbTime ->
+            segmentTimeMs - pbTime.segmentTime
+        }
+        
+        val splitTime = SplitTime(
+            totalTime = totalTimeMs,
+            segmentTime = segmentTimeMs,
+            delta = delta
+        )
+        
+        val completedSplit = CompletedSplit(
+            splitId = split.id,
+            time = splitTime,
+            timestamp = currentTime
+        )
+        
+        // Update personal best for this individual split if it's better
+        val updatedPersonalBests = if (personalBest != null) {
+            val currentPBSplit = personalBest.splitTimes[split.id]
+            if (currentPBSplit == null || segmentTimeMs < currentPBSplit.segmentTime) {
+                logger.info { "🎉 New split PB for ${split.name}! ${formatTime(segmentTimeMs)} (was ${currentPBSplit?.let { formatTime(it.segmentTime) } ?: "N/A"})" }
+                
+                // Update the split time in the personal best
+                val updatedSplitTimes = personalBest.splitTimes + (split.id to splitTime)
+                val updatedPB = personalBest.copy(splitTimes = updatedSplitTimes)
+                
+                currentState.personalBests + (currentRun.profileId to updatedPB)
+            } else {
+                currentState.personalBests
+            }
+        } else {
+            // First time - create new personal best with just this split
+            val newSplitTimes = mapOf(split.id to splitTime)
+            val newPB = PersonalBest(
+                profileId = currentRun.profileId,
+                runSessionId = currentRun.id,
+                totalTime = totalTimeMs,
+                splitTimes = newSplitTimes
+            )
+            
+            logger.info { "🎉 First PB for ${split.name}! ${formatTime(segmentTimeMs)}" }
+            currentState.personalBests + (currentRun.profileId to newPB)
+        }
+        
+        val updatedRun = currentRun.copy(
+            completedSplits = currentRun.completedSplits + completedSplit,
+            totalTime = totalTimeMs,
+            isPaused = currentRun.isPaused,
+            pausedTime = currentRun.pausedTime
+        )
+        
+        currentSplitIndex++
+        
+        // Check if run is complete
+        val isComplete = currentSplitIndex >= (currentProfile?.splits?.size ?: 0)
+        
+        // For ship split, pause the timer and mark run as complete
+        val finalRun = if (isComplete || split.id == "ship") {
+            logger.info { "🏁 Run complete! Final time: ${formatTime(totalTimeMs)}" }
+            
+            // Check if this is a personal best
+            val currentBest = _splitsState.value.personalBests[currentRun.profileId]
+            val isNewPersonalBest = currentBest == null || totalTimeMs < currentBest.totalTime
+            
+            if (isNewPersonalBest) {
+                logger.info { "🎉 NEW PERSONAL BEST! ${formatTime(totalTimeMs)}" }
+            }
+            
+            updatedRun.copy(
+                endTime = currentTime,
+                isPaused = true,  // Pause the timer when run ends
+                isPersonalBest = isNewPersonalBest
+            )
+        } else {
+            updatedRun
+        }
+        
+        // Update state
+        val newRunHistory = if (isComplete || split.id == "ship") {
+            currentState.runHistory + finalRun
+        } else {
+            currentState.runHistory
+        }
+        
+        // Update overall personal bests if this run set a new record
+        val finalPersonalBests = if ((isComplete || split.id == "ship") && finalRun.isPersonalBest) {
+            val splitTimesMap = finalRun.completedSplits.associate { completedSplit ->
+                completedSplit.splitId to completedSplit.time
+            }
+            
+            val newPB = PersonalBest(
+                profileId = finalRun.profileId,
+                runSessionId = finalRun.id,
+                totalTime = finalRun.totalTime,
+                splitTimes = splitTimesMap
+            )
+            
+            updatedPersonalBests + (finalRun.profileId to newPB)
+        } else {
+            updatedPersonalBests
+        }
+        
+        _splitsState.value = currentState.copy(
+            currentRun = if (isComplete || split.id == "ship") null else finalRun,
+            runHistory = newRunHistory,
+            personalBests = finalPersonalBests
+        )
+        
+        logger.info { "⏰ Split triggered: ${split.name} at ${formatTime(totalTimeMs)} (segment: ${formatTime(segmentTimeMs)})" }
+        
+        if (isComplete) {
+            logger.info { "🏁 Run completed in ${formatTime(totalTimeMs)}" }
+            updatePersonalBest(finalRun)
+        }
+    }
+    
+    /**
+     * Update personal best if this run was better
+     */
+    private fun updatePersonalBest(completedRun: RunSession) {
+        val currentPB = _splitsState.value.personalBests[completedRun.profileId]
+        
+        if (currentPB == null || completedRun.totalTime < currentPB.totalTime) {
+            val splitTimes = completedRun.completedSplits.associate { split ->
+                split.splitId to split.time
+            }
+            
+            val newPB = PersonalBest(
+                profileId = completedRun.profileId,
+                runSessionId = completedRun.id,
+                totalTime = completedRun.totalTime,
+                splitTimes = splitTimes
+            )
+            
+            val currentState = _splitsState.value
+            _splitsState.value = currentState.copy(
+                personalBests = currentState.personalBests + (completedRun.profileId to newPB)
+            )
+            
+            logger.info { "🏆 New personal best! ${formatTime(completedRun.totalTime)}" }
+        }
+    }
+    
+    /**
+     * Get current active split
+     */
+    fun getCurrentSplit(): Split? {
+        val profile = currentProfile ?: return null
+        return if (currentSplitIndex < profile.splits.size) {
+            profile.splits[currentSplitIndex]
+        } else null
+    }
+    
+    // Split condition checks - exact logic from TypeScript version
+    
+    private fun checkCeresStation(prev: GameState, curr: GameState): Boolean {
+        // PRIMARY: ASL-accurate detection - room/gamestate transition
+        // According to SuperMetroid.asl line 952: Room: ceresElevator (0xDF45), GameState: normalGameplay (0x8) -> startOfCeresCutscene (0x20)
+        val inCeresElevator = curr.roomId == RoomIds.CERES_ELEVATOR
+        val gameStateTransition = prev.gameState == GameStateConstants.NORMAL_GAMEPLAY && curr.gameState == GameStateConstants.START_OF_CERES_CUTSCENE
+        val primaryDetection = inCeresElevator && gameStateTransition
+        
+        // FALLBACK: Memory flag detection (for cases where transition is missed)
+        // If Ceres flag just became true AND we're not in Ceres area anymore
+        val ceresCompleted = !prev.bosses.ceresStation && curr.bosses.ceresStation
+        val leftCeresArea = prev.areaId == 6 && curr.areaId != 6
+        val fallbackDetection = ceresCompleted && leftCeresArea
+        
+        // Always log for debugging when in or leaving Ceres Station area
+        if (curr.areaName == "Ceres Station" || prev.areaName == "Ceres Station" || curr.areaId == 6 || prev.areaId == 6) {
+            logger.info { "🚨 CERES DEBUG - room:0x${curr.roomId.toString(16)}, prevState:${prev.gameState}, currState:${curr.gameState}, area:${curr.areaName}" }
+            logger.info { "🚨 CERES CONDITIONS - inElevator:$inCeresElevator, gameStateTransition:$gameStateTransition, primary:$primaryDetection" }
+            logger.info { "🚨 CERES FALLBACK - ceresCompleted:$ceresCompleted, leftCeresArea:$leftCeresArea, fallback:$fallbackDetection" }
+        }
+        
+        val shouldSplit = primaryDetection || fallbackDetection
+        
+        if (shouldSplit) {
+            val method = if (primaryDetection) "PRIMARY (ASL)" else "FALLBACK (Memory)"
+            logger.info { "🎯 CERES SPLIT TRIGGERED via $method - Leaving Ceres Station!" }
+        }
+        
+        return shouldSplit
+    }
+    
+    private fun checkFirstMissile(prev: GameState, curr: GameState): Boolean =
+        prev.maxMissiles == 0 && curr.maxMissiles > 0
+    
+    private fun checkFirstSuper(prev: GameState, curr: GameState): Boolean =
+        prev.maxSupers == 0 && curr.maxSupers > 0
+    
+    private fun checkFirstPowerBomb(prev: GameState, curr: GameState): Boolean =
+        prev.maxPowerBombs == 0 && curr.maxPowerBombs > 0
+    
+    private fun checkMorphBall(prev: GameState, curr: GameState): Boolean =
+        !prev.items.morph && curr.items.morph
+    
+    private fun checkBomb(prev: GameState, curr: GameState): Boolean =
+        !prev.items.bombs && curr.items.bombs
+    
+    private fun checkChargeBeam(prev: GameState, curr: GameState): Boolean =
+        !prev.beams.charge && curr.beams.charge
+    
+    private fun checkSpazer(prev: GameState, curr: GameState): Boolean =
+        !prev.beams.spazer && curr.beams.spazer
+    
+    private fun checkVariaSuit(prev: GameState, curr: GameState): Boolean =
+        !prev.items.varia && curr.items.varia
+    
+    private fun checkHiJump(prev: GameState, curr: GameState): Boolean =
+        !prev.items.hiJump && curr.items.hiJump
+    
+    private fun checkSpeedBooster(prev: GameState, curr: GameState): Boolean =
+        !prev.items.speed && curr.items.speed
+    
+    private fun checkWaveBeam(prev: GameState, curr: GameState): Boolean =
+        !prev.beams.wave && curr.beams.wave
+    
+    private fun checkIceBeam(prev: GameState, curr: GameState): Boolean =
+        !prev.beams.ice && curr.beams.ice
+    
+    private fun checkGravitySuit(prev: GameState, curr: GameState): Boolean =
+        !prev.items.gravity && curr.items.gravity
+    
+    private fun checkSpaceJump(prev: GameState, curr: GameState): Boolean =
+        !prev.items.spaceJump && curr.items.spaceJump
+    
+    private fun checkPlasmaBeam(prev: GameState, curr: GameState): Boolean =
+        !prev.beams.plasma && curr.beams.plasma
+    
+    private fun checkKraid(prev: GameState, curr: GameState): Boolean =
+        !prev.bosses.kraid && curr.bosses.kraid
+    
+    private fun checkPhantoon(prev: GameState, curr: GameState): Boolean =
+        !prev.bosses.phantoon && curr.bosses.phantoon
+    
+    private fun checkDraygon(prev: GameState, curr: GameState): Boolean =
+        !prev.bosses.draygon && curr.bosses.draygon
+    
+    private fun checkRidley(prev: GameState, curr: GameState): Boolean =
+        !prev.bosses.ridley && curr.bosses.ridley
+    
+    /**
+     * Golden Four - EXACT ASL LOGIC
+     * Triggers when entering statues room with all 4 bosses defeated
+     */
+    private fun checkGoldenFour(prev: GameState, curr: GameState): Boolean {
+        // Room transition: statues hallway -> statues room
+        val roomTransition = prev.roomId == RoomIds.STATUES_HALLWAY && curr.roomId == RoomIds.STATUES
+        
+        // All four major bosses defeated
+        val allBossesDefeated = curr.bosses.kraid && curr.bosses.phantoon && curr.bosses.draygon && curr.bosses.ridley
+        
+        val result = roomTransition && allBossesDefeated
+        
+        logger.info { "🏆 Golden Four CHECK: prevRoom=0x${prev.roomId.toString(16)}, currRoom=0x${curr.roomId.toString(16)}, transition=$roomTransition, bosses=(K:${curr.bosses.kraid}, P:${curr.bosses.phantoon}, D:${curr.bosses.draygon}, R:${curr.bosses.ridley}), allDefeated=$allBossesDefeated, result=$result" }
+        
+        return result
+    }
+    
+    /**
+     * Mother Brain 1 - EXACT ASL LOGIC
+     * MB1 = inMotherBrainRoom && gameState == normalGameplay && motherBrainHP.Old == 0 && motherBrainHP.Current == 18000
+     */
+    private fun checkMotherBrain1(prev: GameState, curr: GameState): Boolean {
+        val inMbRoom = curr.roomId == RoomIds.MOTHER_BRAIN_ROOM
+        val normalGameplay = curr.gameState == GameStateConstants.NORMAL_GAMEPLAY
+        
+        // EXACT ASL LOGIC: HP transition 0 -> 18000 
+        val hpTransition = prev.motherBrainHp == 0 && curr.motherBrainHp == 18000
+        
+        // RETROACTIVE LOGIC: If HP >= 18000 in MB room, MB1 already defeated
+        val mb1AlreadyDefeated = inMbRoom && normalGameplay && curr.motherBrainHp >= 18000
+        
+        // Also check escape scenarios
+        val zebesEscaping = (curr.eventFlags and 0x0040) != 0
+        val mbFinalDefeated = (curr.tourianBosses and 0x0002) != 0
+        
+        val result = hpTransition || mb1AlreadyDefeated || zebesEscaping || mbFinalDefeated
+        
+        // ALWAYS log for debugging
+        logger.info { "🧠1 MB1: HP(${prev.motherBrainHp}->${curr.motherBrainHp}), room=$inMbRoom, gameplay=$normalGameplay, transition=$hpTransition, retroactive=$mb1AlreadyDefeated, escaping=$zebesEscaping, final=$mbFinalDefeated, result=$result" }
+        
+        return result
+    }
+    
+    /**
+     * Mother Brain 2 - EXACT ASL LOGIC  
+     * MB2 = inMotherBrainRoom && gameState == normalGameplay && motherBrainHP.Old == 0 && motherBrainHP.Current == 36000
+     */
+    private fun checkMotherBrain2(prev: GameState, curr: GameState): Boolean {
+        val inMbRoom = curr.roomId == RoomIds.MOTHER_BRAIN_ROOM
+        val normalGameplay = curr.gameState == GameStateConstants.NORMAL_GAMEPLAY
+        
+        // EXACT ASL LOGIC: HP transition 0 -> 36000 (0x8CA0)
+        val hpTransition = prev.motherBrainHp == 0 && curr.motherBrainHp == 36000
+        
+        // RETROACTIVE LOGIC: If HP >= 36000 in MB room, MB2 already defeated
+        val mb2AlreadyDefeated = inMbRoom && normalGameplay && curr.motherBrainHp >= 36000
+        
+        // Also check escape/final scenarios  
+        val zebesEscaping = (curr.eventFlags and 0x0040) != 0
+        val mbFinalDefeated = (curr.tourianBosses and 0x0002) != 0
+        
+        val result = hpTransition || mb2AlreadyDefeated || zebesEscaping || mbFinalDefeated
+        
+        // ALWAYS log for debugging
+        logger.info { "🧠2 MB2: HP(${prev.motherBrainHp}->${curr.motherBrainHp}), room=$inMbRoom, gameplay=$normalGameplay, transition=$hpTransition, retroactive=$mb2AlreadyDefeated, escaping=$zebesEscaping, final=$mbFinalDefeated, result=$result" }
+        
+        return result
+    }
+    
+    private fun checkShip(prev: GameState, curr: GameState): Boolean {
+        // Implement ASL RTA finish logic exactly:
+        // escape = zebesAblaze && shipAI.old != 0xaa4f && shipAI.current == 0xaa4f
+        val zebesAblaze = (curr.eventFlags and 0x0040) != 0  // bit 6
+        val motherBrainDefeated = (curr.tourianBosses and 0x0100) != 0  // Fix: bit 8, not bit 1
+        val shipAiTransition = prev.shipAi != 0xAA4F && curr.shipAi == 0xAA4F
+        
+        val result = zebesAblaze && motherBrainDefeated && shipAiTransition
+        
+        if (shipAiTransition || zebesAblaze) {
+            logger.debug { "🚢 Ship transition check: zebesAblaze=$zebesAblaze, mbDefeated=$motherBrainDefeated, shipAI(${prev.shipAi.toString(16)}->${curr.shipAi.toString(16)}), transition=$shipAiTransition, result=$result" }
+        }
+        
+        return result
+    }
+    
+    /**
+     * Generate unique run ID
+     */
+    private fun generateRunId(): String = 
+        "run_${Clock.System.now().toEpochMilliseconds()}"
+    
+    /**
+     * Format time in HH:MM:SS.ss format
+     */
+    private fun formatTime(timeMs: Long): String {
+        val totalSeconds = timeMs / 1000
+        val hours = totalSeconds / 3600
+        val minutes = (totalSeconds % 3600) / 60
+        val seconds = totalSeconds % 60
+        val centiseconds = (timeMs % 1000) / 10
+        
+        return if (hours > 0) {
+            "%02d:%02d:%02d.%02d".format(hours, minutes, seconds, centiseconds)
+        } else {
+            "%02d:%02d.%02d".format(minutes, seconds, centiseconds)
+        }
+    }
+}
+
+/**
+ * KPDR Any% split profile - matches the TypeScript version exactly
+ */
+object KpdrAnyProfile {
+    val profile = SplitProfile(
+        id = "kpdr-any",
+        name = "KPDR Any%",
+        splits = listOf(
+            Split("ceres_station", "Ceres Station", "boss", "Escape from Ceres Station"),
+            Split("morph_ball", "Morph Ball", "item", "Morph Ball acquired"),
+            Split("first_missile", "First Missiles", "item", "First missile pack collected"),
+            Split("bomb", "Bomb", "item", "Bomb acquired"),
+            Split("first_super", "First Super", "item", "First super missile pack collected"),
+            Split("charge_beam", "Charge Beam", "beam", "Charge Beam acquired"),
+            Split("spazer", "Spazer", "item", "Spazer acquired"),
+            Split("kraid", "Kraid", "boss", "Kraid defeated"),
+            Split("varia_suit", "Varia Suit", "item", "Varia Suit acquired"),
+            Split("hi_jump", "Hi-Jump Boots", "item", "Hi-Jump Boots acquired"),
+            Split("speed_booster", "Speed Booster", "item", "Speed Booster acquired"),
+            Split("wave_beam", "Wave Beam", "beam", "Wave Beam acquired"),
+            Split("ice_beam", "Ice Beam", "beam", "Ice Beam acquired"),
+            Split("first_power_bomb", "First Power Bomb", "item", "First power bomb pack collected"),
+            Split("phantoon", "Phantoon", "boss", "Phantoon defeated"),
+            Split("gravity_suit", "Gravity Suit", "item", "Gravity Suit acquired"),
+            Split("draygon", "Draygon", "boss", "Draygon defeated"),
+            Split("space_jump", "Space Jump", "item", "Space Jump acquired"),
+            Split("plasma_beam", "Plasma Beam", "beam", "Plasma Beam acquired"),
+            Split("ridley", "Ridley", "boss", "Ridley defeated"),
+            Split("golden_four", "G4", "event", "Entered Tourian (all 4 bosses defeated)"),
+            Split("mother_brain_1", "Mother Brain 1", "boss", "Mother Brain phase 1 completed"),
+            Split("mother_brain_2", "Mother Brain 2", "boss", "Mother Brain phase 2 completed"),
+            Split("ship", "Ship", "event", "Escaped to ship (game complete)")
+        )
+    )
+}

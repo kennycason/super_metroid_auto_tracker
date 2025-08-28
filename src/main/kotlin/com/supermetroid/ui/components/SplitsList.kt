@@ -1,0 +1,496 @@
+package com.supermetroid.ui.components
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
+import com.supermetroid.autosplits.AutoSplitsEngine
+import com.supermetroid.autosplits.KpdrAnyProfile
+import com.supermetroid.model.Split
+import com.supermetroid.model.SplitsState
+import com.supermetroid.ui.theme.TrackerColors
+
+@Composable
+fun SplitsList(
+    splitsState: SplitsState,
+    autoSplitsEngine: AutoSplitsEngine,
+    modifier: Modifier = Modifier,
+    maxHeight: Int = 400
+) {
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+    
+    // Get current split index for auto-scrolling
+    val currentSplit = autoSplitsEngine.getCurrentSplit()
+    val currentSplitIndex = KpdrAnyProfile.profile.splits.indexOfFirst { it.id == currentSplit?.id }
+    
+    // Auto-scroll to current split when it changes
+    LaunchedEffect(currentSplitIndex) {
+        if (currentSplitIndex >= 0) {
+            coroutineScope.launch {
+                // Calculate offset to center the split, but don't go negative
+                val itemHeight = 48 + 1 // SplitRow height + spacing
+                val visibleItems = maxHeight / itemHeight
+                val centerOffset = (visibleItems / 2) * itemHeight
+                
+                listState.animateScrollToItem(
+                    index = currentSplitIndex,
+                    scrollOffset = -centerOffset.coerceAtLeast(0)
+                )
+            }
+        }
+    }
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = TrackerColors.Surface
+        ),
+        shape = RoundedCornerShape(4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    1.dp,
+                    TrackerColors.Border,
+                    RoundedCornerShape(4.dp)
+                )
+                .padding(12.dp)
+        ) {
+            // Header
+            SplitsHeader(splitsState, autoSplitsEngine)
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Splits list
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(maxHeight.dp),
+                verticalArrangement = Arrangement.spacedBy(1.dp) // Reduced spacing
+            ) {
+                itemsIndexed(KpdrAnyProfile.profile.splits) { index, split ->
+                    SplitRow(
+                        split = split,
+                        splitIndex = index,
+                        splitsState = splitsState,
+                        autoSplitsEngine = autoSplitsEngine
+                    )
+                }
+            }
+            
+            // Personal best summary
+            if (splitsState.personalBests.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                PersonalBestSummary(splitsState)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SplitsHeader(
+    splitsState: SplitsState,
+    autoSplitsEngine: AutoSplitsEngine
+) {
+    @Suppress("UNUSED_PARAMETER") // splitsState might be used in future
+    val currentSplit = autoSplitsEngine.getCurrentSplit()
+    
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column {
+            Text(
+                text = "KPDR ANY%",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    color = TrackerColors.Primary,
+                    letterSpacing = 1.sp
+                )
+            )
+            // if (currentSplit != null) {
+            //     Text(
+            //         text = "Next: ${currentSplit.name}",
+            //         style = MaterialTheme.typography.bodyMedium.copy(
+            //             color = TrackerColors.SplitActive,
+            //             fontWeight = FontWeight.Bold,
+            //             fontSize = 12.sp
+            //         )
+            //     )
+            // }
+        }
+        
+        // Column headers (BEST | TIME with delta)
+        Row(
+            horizontalArrangement = Arrangement.End,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "BEST",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = TrackerColors.OnSurfaceVariant,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 10.sp
+                ),
+                modifier = Modifier.width(70.dp), // Increased width to prevent line wrapping
+                textAlign = TextAlign.End
+            )
+            Spacer(modifier = Modifier.width(2.dp)) // Reduced to move BEST closer to TIME
+            Text(
+                text = "TIME",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = TrackerColors.OnSurfaceVariant,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 10.sp
+                ),
+                modifier = Modifier.width(120.dp), // Match the TIME column width
+                textAlign = TextAlign.End
+            )
+        }
+    }
+}
+
+@Composable
+private fun SplitRow(
+    split: Split,
+    splitIndex: Int,
+    splitsState: SplitsState,
+    autoSplitsEngine: AutoSplitsEngine
+) {
+    val currentRun = splitsState.currentRun
+    val completedSplit = currentRun?.completedSplits?.find { it.splitId == split.id }
+    val isCompleted = completedSplit != null
+    val isActive = autoSplitsEngine.getCurrentSplit()?.id == split.id
+    val personalBest = splitsState.personalBests[currentRun?.profileId]?.splitTimes?.get(split.id)
+    
+    // Calculate sum of best segments up to this point (including this split)
+    val profileSplitTimes = splitsState.personalBests[currentRun?.profileId]?.splitTimes
+    val sumOfBestUpToHere = if (profileSplitTimes != null) {
+        KpdrAnyProfile.profile.splits.take(splitIndex + 1).sumOf { s ->
+            profileSplitTimes[s.id]?.segmentTime ?: 0L
+        }
+    } else {
+        0L
+    }
+    
+    // Get best segment time for this split
+    val bestSegmentTime = personalBest?.segmentTime ?: 0L
+    
+    // Determine row colors and styling
+    val backgroundColor = when {
+        isActive -> TrackerColors.SplitActive.copy(alpha = 0.2f)
+        isCompleted -> TrackerColors.SplitCompleted.copy(alpha = 0.1f)
+        else -> Color.Transparent
+    }
+    
+    val borderColor = when {
+        isActive -> TrackerColors.SplitActive
+        isCompleted -> Color.Transparent // No border for completed splits
+        else -> TrackerColors.Border.copy(alpha = 0.3f)
+    }
+    
+            Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp), // Same height as icon tiles
+            colors = CardDefaults.cardColors(
+                containerColor = backgroundColor
+            ),
+            shape = RoundedCornerShape(2.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .border(
+                        1.dp,
+                        borderColor,
+                        RoundedCornerShape(2.dp)
+                    )
+                    .padding(horizontal = 6.dp, vertical = 2.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+            // Split name with icon
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Split index (slightly bigger: 10sp -> 12sp, width 20dp -> 24dp)
+                // Text(
+                //     text = "${splitIndex + 1}.",
+                //     style = MaterialTheme.typography.labelSmall.copy(
+                //         color = TrackerColors.OnSurfaceVariant,
+                //         fontSize = 10.sp
+                //     ),
+                //     modifier = Modifier.width(20.dp)
+                // )
+                
+                // Split icon
+                SpriteIcon(
+                    itemId = getSplitItemId(split),
+                    isObtained = isCompleted,
+                    size = 48, // Same size as tiles above
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                
+                // Split name
+                Text(
+                    text = split.name,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = when {
+                            isActive -> TrackerColors.SplitActive
+                            isCompleted -> TrackerColors.SplitCompleted
+                            else -> TrackerColors.OnBackground
+                        },
+                        fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
+                        fontSize = 12.sp
+                    )
+                )
+            }
+            
+            // Times section (BEST | TIME with delta, right-aligned)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(2.dp), // Match header spacing
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                
+                // Personal best (first column) - show sum of best segments + individual segment time
+                Column(
+                    modifier = Modifier.width(70.dp), // Match header width
+                    horizontalAlignment = Alignment.End
+                ) {
+                    // Sum of best segments up to this point (main line)
+                    Text(
+                        text = if (sumOfBestUpToHere > 0) {
+                            formatTimeNoMillis(sumOfBestUpToHere)
+                        } else {
+                            "--:--:--"
+                        },
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = TrackerColors.OnSurfaceVariant,
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 11.sp
+                        ),
+                        textAlign = TextAlign.End
+                    )
+                    
+                    // Best segment time for this split (second line)
+                    if (bestSegmentTime > 0) {
+                        Text(
+                            text = formatTime(bestSegmentTime),
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.7f),
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 10.sp
+                            ),
+                            textAlign = TextAlign.End
+                        )
+                    }
+                }
+                
+                // Current time (second column) - no milliseconds 
+                val timeText = if (isCompleted) {
+                    formatTimeNoMillis(completedSplit!!.time.totalTime)
+                } else {
+                    "--:--:--"
+                }
+                
+                // Delta text with milliseconds for precision - compare SEGMENT times, not total times
+                val deltaText = if (isCompleted && personalBest != null && completedSplit != null) {
+                    val delta = completedSplit.time.segmentTime - personalBest.segmentTime
+                    if (delta < 0) {
+                        "(-${formatTime(-delta)})"
+                    } else if (delta > 0) {
+                        "(+${formatTime(delta)})"
+                    } else {
+                        "PB" // This IS the personal best!
+                    }
+                } else {
+                    ""
+                }
+                
+                // Two-column layout: time | delta
+                Column(
+                    modifier = Modifier.width(120.dp),
+                    horizontalAlignment = Alignment.End
+                ) {
+                    // Time part (main line)
+                    val isPersonalBest = isCompleted && personalBest != null && completedSplit != null && 
+                                        completedSplit.time.segmentTime == personalBest.segmentTime
+                    
+                    Text(
+                        text = timeText,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = when {
+                                isPersonalBest -> Color(0xFF2196F3) // Blue for personal best
+                                isCompleted -> TrackerColors.SplitCompleted 
+                                else -> TrackerColors.SplitPending
+                            },
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 11.sp
+                        ),
+                        textAlign = TextAlign.End
+                    )
+                    
+                    // Delta part (second line with milliseconds)
+                    if (deltaText.isNotEmpty()) {
+                        val delta = if (isCompleted && personalBest != null && completedSplit != null) {
+                            completedSplit.time.totalTime - personalBest.totalTime
+                        } else 0L
+                        
+                        val deltaColor = when {
+                            delta < 0 -> Color(0xFF2196F3) // Blue for improvements (faster than PB)
+                            delta == 0L || deltaText == "PB" -> Color(0xFF2196F3) // Blue for PB
+                            delta < 5000 -> TrackerColors.Warning // Slightly slower
+                            else -> TrackerColors.Error // Much slower
+                        }
+                        
+                        Text(
+                            text = deltaText,
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = deltaColor,
+                                fontFamily = FontFamily.Monospace,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 10.sp
+                            ),
+                            textAlign = TextAlign.End
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PersonalBestSummary(splitsState: SplitsState) {
+    val currentProfilePB = splitsState.personalBests.values.firstOrNull()
+    
+    if (currentProfilePB != null) {
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = TrackerColors.Success.copy(alpha = 0.1f)
+            ),
+            shape = RoundedCornerShape(3.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        1.dp,
+                        TrackerColors.Success.copy(alpha = 0.3f),
+                        RoundedCornerShape(3.dp)
+                    )
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "🏆 PERSONAL BEST",
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        color = TrackerColors.Success,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp
+                    )
+                )
+                Text(
+                    text = formatTime(currentProfilePB.totalTime),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = TrackerColors.Success,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
+                    )
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Map split names to sprite item IDs
+ */
+private fun getSplitItemId(split: Split): String {
+    return when (split.name.lowercase()) {
+        "ceres station" -> "ceres_station"
+        "first missiles" -> "missile"
+        "first super" -> "super_missile"
+        "first power bomb" -> "power_bomb"
+        "morph ball" -> "morph"
+        "bomb" -> "bomb"
+        "charge beam" -> "charge"
+        "spazer" -> "spazer"
+        "varia suit" -> "varia"
+        "hi-jump boots" -> "hijump"
+        "speed booster" -> "speed"
+        "wave beam" -> "wave"
+        "ice beam" -> "ice"
+        "gravity suit" -> "gravity"
+        "space jump" -> "space"
+        "plasma beam" -> "plasma"
+        "kraid" -> "kraid"
+        "phantoon" -> "phantoon"
+        "draygon" -> "draygon"
+        "ridley" -> "ridley"
+        "g4" -> "golden_four"
+        "mother brain 1", "mb1" -> "mother_brain_1"
+        "mother brain 2", "mb2" -> "mother_brain_2"
+        "ship" -> "samus_ship"
+        "spore spawn" -> "spore_spawn"
+        "botwoon" -> "botwoon"
+        "crocomire" -> "crocomire"
+        "bomb torizo" -> "bomb_torizo"
+        "golden torizo" -> "golden_torizo"
+        else -> "missile" // Default fallback
+    }
+}
+
+/**
+ * Format time for deltas in MM:SS.ss format (with fractional seconds)
+ */
+private fun formatTime(timeMs: Long): String {
+    val totalSeconds = timeMs / 1000
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    val centiseconds = (timeMs % 1000) / 10
+    
+    return "%02d:%02d.%02d".format(minutes, seconds, centiseconds)
+}
+
+/**
+ * Format time for main times in H:MM:SS format (no leading zero for hours)
+ */
+private fun formatTimeNoMillis(timeMs: Long): String {
+    val totalSeconds = timeMs / 1000
+    val hours = totalSeconds / 3600
+    val minutes = (totalSeconds % 3600) / 60
+    val seconds = totalSeconds % 60
+    
+    return if (hours > 0) {
+        "%d:%02d:%02d".format(hours, minutes, seconds)  // No leading zero for hours
+    } else {
+        "%02d:%02d".format(minutes, seconds)
+    }
+}
