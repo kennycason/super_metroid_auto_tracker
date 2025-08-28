@@ -192,8 +192,8 @@ fun SimpleStatusGrid(
                 .fillMaxWidth()
                 .padding(8.dp) // Halved from 16dp to 8dp for more compact layout
         ) {
-            
-            
+
+
             // Area info
             Text(
                 text = "${gameState.areaName} ${getRoomName(gameState.roomId)}",
@@ -204,9 +204,9 @@ fun SimpleStatusGrid(
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp)) // Halved from 16dp to 8dp
-            
+
             // Unified fixed-size grid for all items and bosses
             FixedTileGrid(
                 allItems = getAllItemsAndBosses(gameState)
@@ -221,7 +221,7 @@ fun FixedTileGrid(
 ) {
     val fixedTileSize = 52.dp // FIXED SIZE - never changes
     val spacing = 4.dp
-    
+
     // FlowRow-style layout that fills from left, wraps naturally
     FlowRowLayout(
         items = allItems,
@@ -238,7 +238,7 @@ fun FlowRowLayout(
 ) {
     // Custom layout that behaves like CSS flexbox
     // Items flow left-to-right, wrap to next row when needed
-    
+
     BoxWithConstraints(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -246,7 +246,7 @@ fun FlowRowLayout(
         val tileWithSpacing = tileSize + spacing
         val tilesPerRow = max(1, ((maxWidth + spacing) / tileWithSpacing).toInt())
         val totalRows = (items.size + tilesPerRow - 1) / tilesPerRow
-        
+
         Column(
             verticalArrangement = Arrangement.spacedBy(spacing)
         ) {
@@ -288,7 +288,7 @@ fun FlowRowLayout(
                                                 SpriteImage(
                                                     spriteFile = spriteInfo.spriteFile,
                                                     spriteX = spriteInfo.x,
-                                                    spriteY = spriteInfo.y, 
+                                                    spriteY = spriteInfo.y,
                                                     spriteWidth = spriteInfo.width,
                                                     spriteHeight = spriteInfo.height,
                                                     displaySize = 44, // Slightly smaller to fit within border
@@ -296,7 +296,7 @@ fun FlowRowLayout(
                                                 )
                                             }
                                         }
-                                        
+
                                         // Total in bottom right
                                         Text(
                                             text = "${item.current}/${item.max}",
@@ -333,8 +333,8 @@ fun FlowRowLayout(
 
 
 data class ItemStatus(
-    val id: String, 
-    val name: String, 
+    val id: String,
+    val name: String,
     val isObtained: Boolean,
     val current: Int = 0,
     val max: Int = 0
@@ -345,13 +345,13 @@ private fun ItemStatus.isEmpty(): Boolean = id.isEmpty()
 
 // Unified list of all items and bosses
 private fun getAllItemsAndBosses(gameState: GameState): List<ItemStatus> = listOf(
-    // Ammo/Collectibles Row 1  
+    // Ammo/Collectibles Row 1
     ItemStatus("health", "Energy Tanks", gameState.maxHealth > 99, gameState.health, gameState.maxHealth),
     ItemStatus("reserve_tank", "Reserve Tank", gameState.maxReserveEnergy > 0, gameState.reserveEnergy, gameState.maxReserveEnergy),
     ItemStatus("missiles", "Missiles", gameState.maxMissiles > 0, gameState.missiles, gameState.maxMissiles),
     ItemStatus("supers", "Super Missiles", gameState.maxSupers > 0, gameState.supers, gameState.maxSupers),
     ItemStatus("powerbombs", "Power Bombs", gameState.maxPowerBombs > 0, gameState.powerBombs, gameState.maxPowerBombs),
-    
+
     ItemStatus("morph", "Morph Ball", gameState.items.morph),
     ItemStatus("bombs", "Bombs", gameState.items.bombs),
     ItemStatus("charge", "Charge Beam", gameState.beams.charge),
@@ -368,7 +368,7 @@ private fun getAllItemsAndBosses(gameState: GameState): List<ItemStatus> = listO
     ItemStatus("plasma", "Plasma Beam", gameState.beams.plasma),
     ItemStatus("grapple", "Grappling Beam", gameState.items.grapple),
     ItemStatus("xray", "X-Ray Scope", gameState.items.xray),
-    
+
     ItemStatus("ceres_station", "Ceres Station", gameState.bosses.ceresStation),
     ItemStatus("bomb_torizo", "Bomb Torizo", gameState.bosses.bombTorizo),
     ItemStatus("spore_spawn", "Spore Spawn", gameState.bosses.sporeSpawn),
@@ -376,7 +376,7 @@ private fun getAllItemsAndBosses(gameState: GameState): List<ItemStatus> = listO
     ItemStatus("phantoon", "Phantoon", gameState.bosses.phantoon),
     ItemStatus("botwoon", "Botwoon", gameState.bosses.botwoon),
     ItemStatus("draygon", "Draygon", gameState.bosses.draygon),
-    ItemStatus("gold_torizo", "Gold Torizo", false), // TODO: Add gold torizo detection  
+    ItemStatus("gold_torizo", "Gold Torizo", gameState.bosses.goldenTorizo),
     ItemStatus("ridley", "Ridley", gameState.bosses.ridley),
     ItemStatus("golden_four", "G4", gameState.bosses.kraid && gameState.bosses.phantoon && gameState.bosses.draygon && gameState.bosses.ridley),
     ItemStatus("mother_brain_1", "Mother Brain 1", gameState.bosses.motherBrain1),

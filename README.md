@@ -1,284 +1,229 @@
-# Super Metroid Tracker - Kotlin Native Backend
+# Super Metroid Auto Tracker
 
-A **Kotlin Native** backend server that replicates the functionality of the Python backend using **Ktor** for HTTP serving and **coroutines** for background polling.
+A real-time item, boss, and location tracker for Super Metroid that automatically reads game state from RetroArch via UDP.
 
-## 🎯 Overview
+## 🎮 Overview
 
-This is a complete reimplementation of the Super Metroid tracker backend in Kotlin Native, providing:
+Super Metroid Auto Tracker is a desktop application built with Kotlin and Jetpack Compose that automatically tracks your progress through Super Metroid. It connects to RetroArch via UDP to read the game's memory in real-time, providing a visual display of:
 
-- **🚀 Native Performance**: Compiled to native binary, no JVM overhead
-- **⚡ Async/Await**: Modern coroutines-based architecture
-- **🔄 Background Polling**: Continuous game state polling with caching
-- **🌐 HTTP API**: Ktor-based REST API compatible with existing frontend
-- **🧪 Comprehensive Tests**: Unit tests for core functionality
-- **🔧 Memory Safety**: Type-safe memory parsing and UDP communication
+- Items and upgrades collected
+- Bosses defeated
+- Current location (area and room)
+- Health, missiles, and other stats
+- Speedrun splits and timing
 
-## 🏗️ Architecture
+The application serves both casual players who want to keep track of their progress and speedrunners who need precise timing and split information.
 
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   RetroArch     │◄───┤ RetroArchUDP     │◄───┤ BackgroundPoller│
-│   (Game Memory) │    │ Client           │    │ (Caching)       │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                                         │
-                                                         ▼
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   React Frontend│◄───┤ Ktor HTTP        │◄───┤ GameStateParser │
-│   (Port 3000)   │    │ Server (8081     │    │ (Memory Parsing)│
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-```
+## ✨ Features
 
-## 📁 Project Structure
+### Real-Time Game State Tracking
+- **Items & Upgrades**: Tracks all major items (Morph Ball, Bombs, Beams, Suits, etc.)
+- **Bosses**: Monitors boss defeat status, including multi-phase bosses like Mother Brain
+- **Location**: Shows current area and room names
+- **Stats**: Displays health, missiles, super missiles, power bombs, and reserves
 
-```
-server/
-├── src/
-│   ├── main/kotlin/com/supermetroid/
-│   │   ├── model/             # Data models (GameState, ServerStatus, etc.)
-│   │   ├── client/            # RetroArch UDP client
-│   │   ├── parser/            # Game memory parsing logic
-│   │   ├── service/           # Background polling service
-│   │   ├── server/            # Ktor HTTP server
-│   │   └── Main.kt            # Application entry point
-│   └── test/kotlin/com/supermetroid/
-│       ├── model/             # Data model tests
-│       ├── parser/            # Parser logic tests
-│       └── service/           # Service tests
-├── build.gradle.kts           # Kotlin Native build configuration
-├── gradle.properties         # Gradle settings
-└── README.md                 # This file
-```
+### Speedrunning Tools
+- **Auto Splits**: Automatically tracks and times segments of your run
+- **Split Comparison**: Compare current splits against personal bests
+- **Run State Management**: Start, pause, and reset runs with keyboard shortcuts
 
-## 🚀 Getting Started
+### User Interface
+- **Compact Layout**: Designed for minimal screen space usage
+- **Customizable Display**: Toggle visibility of icons, splits, and timer
+- **Status Grid**: Visual representation of all collected items and defeated bosses
+
+## 🚀 Installation
 
 ### Prerequisites
+- Java 11 or higher
+- RetroArch with network commands enabled
+- Super Metroid ROM loaded in RetroArch
 
-- **Kotlin/Native 1.9.21+**
-- **Gradle 8.5+**
-- **RetroArch** with network commands enabled
-- **Super Metroid ROM** loaded in RetroArch
+### Download and Run
+1. Download the latest release from the Releases page
+2. Extract the archive to a location of your choice
+3. Run the application:
+   - **Windows**: Double-click the `.exe` file
+   - **macOS**: Double-click the `.app` file
+   - **Linux**: Run the `.AppImage` file or use the shell script
 
-### Build & Run
+### RetroArch Configuration
+1. In RetroArch, go to Settings → Network
+2. Enable "Network Commands" (set to ON)
+3. Keep the default port (55355) or note your custom port for configuration
 
-```bash
-# Navigate to server directory
-cd server/
+## 🎯 Usage
 
-# Build the native binary
-./gradlew build
+### Basic Operation
+1. Start RetroArch and load Super Metroid
+2. Launch Super Metroid Auto Tracker
+3. The application will automatically connect to RetroArch and begin tracking
 
-# Run the server
-./gradlew runDebugExecutableNative
+### Keyboard Shortcuts
+- **Spacebar**: Start/pause the timer for speedruns
+- **R**: Reset the current run
+- **Esc**: Exit the application
 
-# Or run with custom port and poll interval
-./gradlew runDebugExecutableNative --args="8081 1000"
+### UI Controls
+- Use the toggle buttons at the bottom of the window to show/hide:
+  - **icons**: Item and boss status grid
+  - **splits**: Speedrun split times
+  - **timer**: Run timer
+
+## 🔍 Methodology for Tracking Items/Bosses
+
+The application uses a sophisticated memory reading approach to track game state:
+
+### Memory Reading Process
+1. Connects to RetroArch via UDP on port 55355 (configurable)
+2. Polls game memory at regular intervals (default: 500ms)
+3. Parses raw memory values into structured game state
+4. Applies stability checks to prevent erratic updates
+5. Updates the UI with the latest verified game state
+
+### Item Tracking
+Items are tracked by reading specific memory addresses and bit flags:
+
+- **Equipment Items**: Memory address `0x09A4-0x09A5` with the following bit flags:
+  - Varia Suit: `0x0001` (Bit 0)
+  - Spring Ball: `0x0002` (Bit 1)
+  - Morph Ball: `0x0004` (Bit 2)
+  - Screw Attack: `0x0008` (Bit 3)
+  - Gravity Suit: `0x0020` (Bit 5)
+  - Hi-Jump: `0x0100` (Bit 8)
+  - Space Jump: `0x0200` (Bit 9)
+  - Bombs: `0x1000` (Bit 12)
+  - Speed Booster: `0x2000` (Bit 13)
+  - Grapple: `0x4000` (Bit 14)
+  - X-Ray: `0x8000` (Bit 15)
+
+- **Beam Upgrades**: Memory address `0x09A8-0x09A9` with the following bit flags:
+  - Wave Beam: `0x0001` (Bit 0)
+  - Ice Beam: `0x0002` (Bit 1)
+  - Spazer: `0x0004` (Bit 2)
+  - Plasma: `0x0008` (Bit 3)
+  - Charge Beam: `0x1000` (Bit 12)
+
+### Boss Tracking
+Bosses are tracked using area-specific boss flags in memory:
+
+- **Crateria Bosses**: Memory address `0xD828`
+  - Bomb Torizo: `0x0004` (Bit 2)
+
+- **Brinstar Bosses**: Memory address `0xD829`
+  - Spore Spawn: `0x0002` (Bit 1)
+  - Kraid: `0x0001` (Bit 0)
+
+- **Norfair Bosses**: Memory address `0xD82A`
+  - Ridley: `0x0001` (Bit 0)
+  - Crocomire: `0x0002` (Bit 1)
+  - Golden Torizo: `0x0004` (Bit 2)
+
+- **Wrecked Ship Bosses**: Memory address `0xD82B`
+  - Phantoon: `0x0001` (Bit 0)
+
+- **Maridia Bosses**: Memory address `0xD82C`
+  - Draygon: `0x0001` (Bit 0)
+  - Botwoon: `0x0002` (Bit 1)
+
+- **Tourian Bosses**: Memory address `0xD82D`
+  - Mother Brain: `0x0002` (Bit 1)
+
+- **Ceres Bosses**: Memory address `0xD82E`
+  - Ceres Ridley: `0x0001` (Bit 0)
+
+### Special Boss Logic
+Some bosses require special detection logic:
+
+- **Mother Brain**: Tracked in phases using HP thresholds and room ID
+  - Phase 1: HP >= 18000 in Mother Brain room
+  - Phase 2: HP >= 36000 in Mother Brain room
+  - Final: Tourian boss flag bit 1
+
+- **Golden Four**: Detected when all four major bosses (Kraid, Phantoon, Draygon, Ridley) are defeated
+
+- **Ship**: Detected using a combination of event flags, ship AI state, and Mother Brain defeat status
+
+### Location Tracking
+- **Area ID**: Memory address `0x079F` maps to area names:
+  - 0: Crateria
+  - 1: Brinstar
+  - 2: Norfair
+  - 3: Wrecked Ship
+  - 4: Maridia
+  - 5: Tourian
+  - 6: Ceres Station
+
+- **Room ID**: Memory address `0x079B` contains a unique ID for each room
+  - The application maps these IDs to human-readable room names
+
+## 🏗️ Project Structure
+
+```
+src/
+├── main/kotlin/com/supermetroid/
+│   ├── autosplits/        # Auto-splitting logic for speedruns
+│   ├── gamestate/         # Game state parsing and memory mapping
+│   ├── model/             # Data models (GameState, Items, Bosses, etc.)
+│   ├── network/           # RetroArch UDP communication
+│   ├── service/           # Background services for polling and state management
+│   ├── storage/           # File storage for saving/loading split data
+│   └── ui/                # Jetpack Compose UI components
+│       ├── components/    # Reusable UI components
+│       └── theme/         # UI theme and styling
 ```
 
-### Development Mode
+## 🧪 Building and Testing
 
-```bash
-# Run tests
+### Building from Source
+1. Clone the repository
+2. Build with Gradle:
+   ```
+   ./gradlew build
+   ```
+3. Run the application:
+   ```
+   ./gradlew run
+   ```
+4. Create a distribution package:
+   ```
+   ./gradlew packageDistribution
+   ```
+
+### Testing
+Run the tests with:
+```
 ./gradlew test
-
-# Build and run in one command
-./gradlew clean build runDebugExecutableNative
-
-# Build release binary
-./gradlew linkReleaseExecutableNative
 ```
 
-## 🌐 API Endpoints
+The project includes tests for:
+- Auto-splits logic
+- Game state parsing
+- Memory reading stability
 
-The Kotlin Native server provides the same API endpoints as the Python backend:
+## 📚 Research and References
 
-### Core Endpoints
-- `GET /` - Server status page
-- `GET /api/status` - Complete server and game status
-- `GET /api/stats` - Game statistics only
-- `GET /game_state` - Game state (React app format)
+The memory addresses and logic used in this project are based on:
+- [Super Metroid RAM Map](https://jathys.zophar.net/supermetroid/kejardon/RAMMap.txt)
+- [Super Metroid AutoSplitter](https://github.com/UNHchabo/AutoSplitters)
+- [SNES9x Memory Mapping](https://github.com/gocha/snes9x-rr-lua/blob/master/snes9x-rr-1.43-src/cheats2.cpp)
 
-### Control Endpoints  
-- `GET /api/reset-cache` - Reset all caches
-- `GET /api/reset-mb-cache` - Reset Mother Brain cache only
-- `GET /api/manual-mb-complete` - Manually mark MB complete
-- `GET /api/bootstrap-mb` - Bootstrap MB cache
-- `GET /health` - Health check endpoint
+## 🤝 Contributing
 
-### Example Response
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-```json
-{
-  "connected": true,
-  "gameLoaded": true,
-  "retroarchVersion": "1.15.0",
-  "gameInfo": "Super Metroid",
-  "stats": {
-    "health": 299,
-    "maxHealth": 399,
-    "missiles": 50,
-    "maxMissiles": 230,
-    "areaId": 1,
-    "areaName": "Brinstar",
-    "items": {
-      "morph": true,
-      "bombs": true,
-      "varia": false
-    },
-    "beams": {
-      "charge": true,
-      "ice": true,
-      "wave": false
-    },
-    "bosses": {
-      "kraid": true,
-      "ridley": false
-    }
-  },
-  "lastUpdate": 1640995200000,
-  "pollCount": 150,
-  "errorCount": 0
-}
-```
-
-## 🧪 Testing
-
-### Run All Tests from Command Line
-```bash
-# Run all tests
-./gradlew nativeTest
-
-# Run all tests and generate an aggregated report
-./gradlew allTests
-
-# For running specific tests, you may need to use the IntelliJ IDEA approach below
-# as the Kotlin/Native test runner doesn't support the --tests flag directly
-```
-
-### Running Tests in IntelliJ IDEA
-If you're not seeing the run test popup in IntelliJ IDEA, follow these steps:
-
-1. **Configure Kotlin Test Framework**:
-   - Go to `File > Settings > Build, Execution, Deployment > Build Tools > Gradle`
-   - Set "Run tests using" to "IntelliJ IDEA"
-   - Click "Apply" and "OK"
-
-2. **Run Tests via Gutter Icons**:
-   - Open any test file (e.g., `src/commonTest/kotlin/com/supermetroid/parser/ShipDetectionTest.kt`)
-   - Look for the green "play" icons in the gutter (left margin) next to test classes or methods
-   - Click the icon and select "Run" or "Debug"
-
-3. **Run Tests via Project View**:
-   - In the Project view, right-click on the `src/commonTest` directory
-   - Select "Run Tests in 'commonTest'" or "Debug Tests in 'commonTest'"
-
-4. **Run Tests via Terminal**:
-   - Use the Gradle commands above in the IntelliJ terminal
-
-### Test Coverage
-
-- **Parser Tests**: Memory parsing logic, item/beam/boss detection
-- **Model Tests**: Data serialization and structure validation  
-- **Service Tests**: Background polling and caching logic
-- **Integration Tests**: End-to-end API functionality
-- **Ship Detection Tests**: End-game ship detection in various game states
-
-### Test Example
-```kotlin
-@Test
-fun testParseItemsNewGame() = runTest {
-    val gameState = parser.parseCompleteGameState(newGameMemoryData)
-    
-    // Should reset all items in new game
-    assertFalse(gameState.items["morph"] ?: true)
-    assertFalse(gameState.items["charge"] ?: true)
-}
-```
-
-## 🔧 Configuration
-
-### Command Line Arguments
-```bash
-# Port (default: 8080)
-./binary 8080
-
-# Port + Poll Interval in ms (default: 1000ms)  
-./binary 8080 1500
-```
-
-### RetroArch Setup
-Ensure RetroArch has network commands enabled:
-- Settings → Network → Network Commands → ON
-- Default port: 55355
-
-## 🎮 Features Implemented
-
-### ✅ Core Functionality
-- **Background UDP Polling** - Continuous RetroArch memory reading
-- **Memory Parsing** - Complete Super Metroid game state extraction
-- **Caching System** - Thread-safe cached responses
-- **HTTP API** - Full REST API compatibility
-- **CORS Support** - Cross-origin requests for React frontend
-
-### ✅ Game State Tracking
-- **Items**: Morph Ball, Bombs, Varia, Gravity, Beams, etc.
-- **Bosses**: Kraid, Ridley, Mother Brain phases, etc.
-- **Stats**: Health, Missiles, Supers, Power Bombs
-- **Location**: Area, Room, Player position
-
-### ✅ Advanced Features  
-- **Smart Reset Detection** - Prevents cache bugs during new games
-- **Mother Brain Phases** - Advanced boss detection logic
-- **Bootstrap Logic** - Intelligent cache initialization
-- **Error Handling** - Graceful failure and recovery
-
-## 🔄 Migration from Python
-
-This Kotlin Native server is designed as a **drop-in replacement** for the Python backend:
-
-1. **Same API endpoints** - No frontend changes required
-2. **Same JSON responses** - Compatible data formats
-3. **Same functionality** - All features preserved
-4. **Better performance** - Native compilation benefits
-5. **Type safety** - Compile-time error detection
-
-### Switching Backends
-
-```bash
-# Stop Python server
-pkill -f background_poller_server.py
-
-# Start Kotlin Native server  
-cd server && ./gradlew runDebugExecutableNative
-
-# Or run both on different ports for comparison
-# Python: http://localhost:8000
-# Kotlin: http://localhost:8080
-```
-
-## 🚀 Performance Benefits
-
-- **🏃 Native Speed**: No JVM startup time or garbage collection pauses
-- **💾 Memory Efficient**: Lower memory footprint than JVM
-- **⚡ Fast Startup**: Near-instantaneous server startup
-- **🔄 Async I/O**: Coroutines-based non-blocking architecture
-- **🎯 Zero Dependencies**: Self-contained native binary
-
-## 🛠️ Development
-
-### Adding New Features
-
-1. **Models**: Add data classes in `model/`
-2. **Parsing**: Extend `GameStateParser` for new memory locations
-3. **API**: Add endpoints in `server/HttpServer.kt`
-4. **Tests**: Create tests in `test/` directory
-
-### Code Style
-
-- **Kotlin conventions**: Official Kotlin code style
-- **Coroutines**: Suspend functions for async operations
-- **Type safety**: Leverage Kotlin's type system
-- **Documentation**: KDoc comments for public APIs
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Open a Pull Request
 
 ## 📝 License
 
-Same license as the original Super Metroid Tracker project. 
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+- The Super Metroid speedrunning community for documenting memory addresses
+- RetroArch developers for providing the network interface
+- JetBrains for Kotlin and Compose for Desktop

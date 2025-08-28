@@ -22,7 +22,8 @@ data class SplitProfile(
 data class SplitTime(
     val totalTime: Long, // Total time at split in milliseconds
     val segmentTime: Long, // Time taken for this segment in milliseconds
-    val delta: Long? = null // Delta vs personal best for this segment
+    val delta: Long? = null, // Delta vs personal best for this segment
+    val originalDelta: Long? = null // Preserved delta when this becomes a new PB
 )
 
 @Serializable

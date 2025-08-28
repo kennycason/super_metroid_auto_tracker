@@ -35,11 +35,11 @@ fun SplitsList(
 ) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    
+
     // Get current split index for auto-scrolling
     val currentSplit = autoSplitsEngine.getCurrentSplit()
     val currentSplitIndex = KpdrAnyProfile.profile.splits.indexOfFirst { it.id == currentSplit?.id }
-    
+
     // Auto-scroll to current split when it changes
     LaunchedEffect(currentSplitIndex) {
         if (currentSplitIndex >= 0) {
@@ -48,7 +48,7 @@ fun SplitsList(
                 val itemHeight = 48 + 1 // SplitRow height + spacing
                 val visibleItems = maxHeight / itemHeight
                 val centerOffset = (visibleItems / 2) * itemHeight
-                
+
                 listState.animateScrollToItem(
                     index = currentSplitIndex,
                     scrollOffset = -centerOffset.coerceAtLeast(0)
@@ -77,9 +77,9 @@ fun SplitsList(
         ) {
             // Header
             SplitsHeader(splitsState, autoSplitsEngine)
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             // Splits list
             LazyColumn(
                 state = listState,
@@ -97,7 +97,7 @@ fun SplitsList(
                     )
                 }
             }
-            
+
             // Personal best summary
             if (splitsState.personalBests.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
@@ -114,7 +114,7 @@ private fun SplitsHeader(
 ) {
     @Suppress("UNUSED_PARAMETER") // splitsState might be used in future
     val currentSplit = autoSplitsEngine.getCurrentSplit()
-    
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -141,7 +141,7 @@ private fun SplitsHeader(
             //     )
             // }
         }
-        
+
         // Column headers (BEST | TIME with delta)
         Row(
             horizontalArrangement = Arrangement.End,
@@ -184,7 +184,7 @@ private fun SplitRow(
     val isCompleted = completedSplit != null
     val isActive = autoSplitsEngine.getCurrentSplit()?.id == split.id
     val personalBest = splitsState.personalBests[currentRun?.profileId]?.splitTimes?.get(split.id)
-    
+
     // Calculate sum of best segments up to this point (including this split)
     val profileSplitTimes = splitsState.personalBests[currentRun?.profileId]?.splitTimes
     val sumOfBestUpToHere = if (profileSplitTimes != null) {
@@ -194,23 +194,23 @@ private fun SplitRow(
     } else {
         0L
     }
-    
+
     // Get best segment time for this split
     val bestSegmentTime = personalBest?.segmentTime ?: 0L
-    
+
     // Determine row colors and styling
     val backgroundColor = when {
         isActive -> TrackerColors.SplitActive.copy(alpha = 0.2f)
         isCompleted -> TrackerColors.SplitCompleted.copy(alpha = 0.1f)
         else -> Color.Transparent
     }
-    
+
     val borderColor = when {
         isActive -> TrackerColors.SplitActive
         isCompleted -> Color.Transparent // No border for completed splits
         else -> TrackerColors.Border.copy(alpha = 0.3f)
     }
-    
+
             Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -246,7 +246,7 @@ private fun SplitRow(
                 //     ),
                 //     modifier = Modifier.width(20.dp)
                 // )
-                
+
                 // Split icon
                 SpriteIcon(
                     itemId = getSplitItemId(split),
@@ -254,7 +254,7 @@ private fun SplitRow(
                     size = 48, // Same size as tiles above
                     modifier = Modifier.padding(end = 8.dp)
                 )
-                
+
                 // Split name
                 Text(
                     text = split.name,
@@ -269,13 +269,13 @@ private fun SplitRow(
                     )
                 )
             }
-            
+
             // Times section (BEST | TIME with delta, right-aligned)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(2.dp), // Match header spacing
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                
+
                 // Personal best (first column) - show sum of best segments + individual segment time
                 Column(
                     modifier = Modifier.width(70.dp), // Match header width
@@ -295,7 +295,7 @@ private fun SplitRow(
                         ),
                         textAlign = TextAlign.End
                     )
-                    
+
                     // Best segment time for this split (second line)
                     if (bestSegmentTime > 0) {
                         Text(
@@ -309,43 +309,74 @@ private fun SplitRow(
                         )
                     }
                 }
-                
-                // Current time (second column) - no milliseconds 
+
+                // Current time (second column) - no milliseconds
                 val timeText = if (isCompleted) {
                     formatTimeNoMillis(completedSplit!!.time.totalTime)
                 } else {
                     "--:--:--"
                 }
-                
+
                 // Delta text with milliseconds for precision - compare SEGMENT times, not total times
                 val deltaText = if (isCompleted && personalBest != null && completedSplit != null) {
-                    val delta = completedSplit.time.segmentTime - personalBest.segmentTime
-                    if (delta < 0) {
-                        "(-${formatTime(-delta)})"
-                    } else if (delta > 0) {
-                        "(+${formatTime(delta)})"
-                    } else {
-                        "PB" // This IS the personal best!
+                    try {
+                        // Check if this is a personal best with an original delta preserved
+                        // Use reflection to safely access the originalDelta field which might not exist in older data
+                        val isPB = personalBest.segmentTime == completedSplit.time.segmentTime
+                        val originalDeltaField = personalBest::class.java.getDeclaredField("originalDelta")
+                        originalDeltaField.isAccessible = true
+                        val originalDelta = originalDeltaField.get(personalBest) as? Long
+
+                        if (isPB && originalDelta != null) {
+                            // This is a PB, but we have the original delta preserved
+                            if (originalDelta < 0) {
+                                "(-${formatTime(-originalDelta)}) PB"
+                            } else if (originalDelta > 0) {
+                                "(+${formatTime(originalDelta)}) PB"
+                            } else {
+                                "PB" // First time or no improvement
+                            }
+                        } else {
+                            // Not a PB or no original delta preserved, calculate normally
+                            val delta = completedSplit.time.segmentTime - personalBest.segmentTime
+                            if (delta < 0) {
+                                "(-${formatTime(-delta)})"
+                            } else if (delta > 0) {
+                                "(+${formatTime(delta)})"
+                            } else {
+                                "PB" // This IS the personal best!
+                            }
+                        }
+                    } catch (e: Exception) {
+                        // Fallback to original calculation if reflection fails
+                        val delta = completedSplit.time.segmentTime - personalBest.segmentTime
+                        if (delta < 0) {
+                            "(-${formatTime(-delta)})"
+                        } else if (delta > 0) {
+                            "(+${formatTime(delta)})"
+                        } else {
+                            "PB" // This IS the personal best!
+                        }
                     }
                 } else {
                     ""
                 }
-                
+
                 // Two-column layout: time | delta
                 Column(
                     modifier = Modifier.width(120.dp),
                     horizontalAlignment = Alignment.End
                 ) {
                     // Time part (main line)
-                    val isPersonalBest = isCompleted && personalBest != null && completedSplit != null && 
+                    val isPersonalBest = isCompleted && personalBest != null && completedSplit != null &&
                                         completedSplit.time.segmentTime == personalBest.segmentTime
-                    
+
                     Text(
                         text = timeText,
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = when {
                                 isPersonalBest -> Color(0xFF2196F3) // Blue for personal best
-                                isCompleted -> TrackerColors.SplitCompleted 
+                                isCompleted -> TrackerColors.SplitCompleted
                                 else -> TrackerColors.SplitPending
                             },
                             fontFamily = FontFamily.Monospace,
@@ -353,20 +384,21 @@ private fun SplitRow(
                         ),
                         textAlign = TextAlign.End
                     )
-                    
+
                     // Delta part (second line with milliseconds)
                     if (deltaText.isNotEmpty()) {
                         val delta = if (isCompleted && personalBest != null && completedSplit != null) {
                             completedSplit.time.totalTime - personalBest.totalTime
                         } else 0L
-                        
+
                         val deltaColor = when {
-                            delta < 0 -> Color(0xFF2196F3) // Blue for improvements (faster than PB)
-                            delta == 0L || deltaText == "PB" -> Color(0xFF2196F3) // Blue for PB
+                            deltaText.contains("PB") -> Color(0xFF2196F3) // Blue for PB
+                            delta < 0 || deltaText.startsWith("(-") -> Color(0xFF2196F3) // Blue for improvements (faster than PB)
+                            delta == 0L -> Color(0xFF2196F3) // Blue for equal to PB
                             delta < 5000 -> TrackerColors.Warning // Slightly slower
                             else -> TrackerColors.Error // Much slower
                         }
-                        
+
                         Text(
                             text = deltaText,
                             style = MaterialTheme.typography.bodySmall.copy(
@@ -387,7 +419,7 @@ private fun SplitRow(
 @Composable
 private fun PersonalBestSummary(splitsState: SplitsState) {
     val currentProfilePB = splitsState.personalBests.values.firstOrNull()
-    
+
     if (currentProfilePB != null) {
         Card(
             colors = CardDefaults.cardColors(
@@ -475,7 +507,7 @@ private fun formatTime(timeMs: Long): String {
     val minutes = totalSeconds / 60
     val seconds = totalSeconds % 60
     val centiseconds = (timeMs % 1000) / 10
-    
+
     return "%02d:%02d.%02d".format(minutes, seconds, centiseconds)
 }
 
@@ -487,7 +519,7 @@ private fun formatTimeNoMillis(timeMs: Long): String {
     val hours = totalSeconds / 3600
     val minutes = (totalSeconds % 3600) / 60
     val seconds = totalSeconds % 60
-    
+
     return if (hours > 0) {
         "%d:%02d:%02d".format(hours, minutes, seconds)  // No leading zero for hours
     } else {
