@@ -28,11 +28,11 @@ class GameStateService(
     private val udpClient = RetroArchUdpClient(host, port)
     private val memoryReader = SuperMetroidMemoryReader(udpClient)
     private val gameStateParser = GameStateParser()
-    
+
     private var pollingJob: Job? = null
     private var pollCount = 0
     private var errorCount = 0
-    
+
     // State flows for reactive UI updates
     private val _trackerState = MutableStateFlow(
         TrackerState(
@@ -44,7 +44,7 @@ class GameStateService(
         )
     )
     val trackerState: StateFlow<TrackerState> = _trackerState.asStateFlow()
-    
+
     /**
      * Start the game state polling service
      */
@@ -53,17 +53,17 @@ class GameStateService(
             logger.warn { "⚠️ Game state service already running" }
             return
         }
-        
+
         try {
             logger.info { "🚀 Starting game state service..." }
             udpClient.connect()
-            
+
             updateConnectionState(connected = true, gameLoaded = false)
-            
+
             pollingJob = CoroutineScope(Dispatchers.IO).launch {
                 pollGameState()
             }
-            
+
             logger.info { "✅ Game state service started successfully" }
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to start game state service" }
@@ -71,22 +71,22 @@ class GameStateService(
             throw e
         }
     }
-    
+
     /**
      * Stop the game state polling service
      */
     fun stop() {
         logger.info { "🛑 Stopping game state service..." }
-        
+
         pollingJob?.cancel()
         pollingJob = null
-        
+
         udpClient.disconnect()
         updateConnectionState(connected = false, gameLoaded = false)
-        
+
         logger.info { "✅ Game state service stopped" }
     }
-    
+
     /**
      * Simple stability check to reduce erratic value bouncing
      */
@@ -112,7 +112,7 @@ class GameStateService(
                 gameState.maxHealth <= 2000) ||
                 gameState.roomId != lastState.roomId) // Always allow room changes
     }
-    
+
     /**
      * Main polling loop
      */
@@ -121,7 +121,7 @@ class GameStateService(
             try {
                 val memoryData = memoryReader.readAllMemory()
                 val gameState = gameStateParser.parseGameState(memoryData)
-                
+
                 // Simple data stability: only update if values are reasonable
                 val stableGameState = if (isGameStateStable(gameState)) {
                     lastStableGameState = gameState
@@ -129,12 +129,12 @@ class GameStateService(
                 } else {
                     lastStableGameState ?: gameState
                 }
-                
+
                 pollCount++
-                
+
                 // Determine if game is loaded (room ID > 0 usually indicates loaded game)
                 val gameLoaded = gameState.roomId > 0
-                
+
                 val trackerState = TrackerState(
                     connection = ConnectionInfo(
                         connected = true,
@@ -147,25 +147,25 @@ class GameStateService(
                     pollCount = pollCount,
                     errorCount = errorCount
                 )
-                
+
                 _trackerState.value = trackerState
-                
+
                 // Reduce polling noise - only log significant changes
                 if (pollCount % 100L == 0L || gameState.roomId != _trackerState.value.gameState.roomId) {
                     logger.debug { "🔄 Poll #$pollCount: ${gameState.areaName}, Room ${gameState.roomId}, Health ${gameState.health}/${gameState.maxHealth}" }
                 }
-                
+
             } catch (e: Exception) {
                 errorCount++
                 logger.debug(e) { "❌ Error during game state poll #$pollCount: ${e.message}" }
-                
+
                 // Update error count but keep trying
                 val currentState = _trackerState.value
                 _trackerState.value = currentState.copy(
                     errorCount = errorCount,
                     lastUpdate = System.currentTimeMillis()
                 )
-                
+
                 // If too many consecutive errors, consider disconnected and slow down
                 if (errorCount % 5 == 0) {
                     logger.warn { "⚠️ High error count ($errorCount), slowing down polling" }
@@ -173,11 +173,11 @@ class GameStateService(
                     delay(1000) // Wait longer after errors
                 }
             }
-            
+
             delay(pollIntervalMs.milliseconds)
         }
     }
-    
+
     /**
      * Update connection state
      */
@@ -191,17 +191,17 @@ class GameStateService(
             lastUpdate = System.currentTimeMillis()
         )
     }
-    
+
     /**
      * Get current connection status
      */
     fun isConnected(): Boolean = _trackerState.value.connection.connected
-    
+
     /**
      * Get current game state
      */
     fun getCurrentGameState(): GameState = _trackerState.value.gameState
-    
+
     /**
      * Reset error count
      */
@@ -210,7 +210,7 @@ class GameStateService(
         val currentState = _trackerState.value
         _trackerState.value = currentState.copy(errorCount = 0)
     }
-    
+
     /**
      * Get polling statistics
      */
@@ -220,6 +220,12 @@ class GameStateService(
         successRate = if (pollCount > 0) ((pollCount - errorCount).toDouble() / pollCount * 100) else 0.0,
         isActive = pollingJob?.isActive ?: false
     )
+
+    /**
+     * Get the UDP client for direct memory access
+     * Used by other services that need to read/write memory
+     */
+    fun getUdpClient(): RetroArchUdpClient = udpClient
 }
 
 /**
@@ -231,5 +237,3 @@ data class PollStats(
     val successRate: Double,
     val isActive: Boolean
 )
-
-
