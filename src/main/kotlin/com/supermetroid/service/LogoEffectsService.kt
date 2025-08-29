@@ -158,7 +158,7 @@ class LogoEffectsService {
     }
     
     fun setTileSwapSize(size: Int) {
-        tileSwapSize = size.coerceIn(1, 20) // Limit between 1x1 and 20x20
+        tileSwapSize = size.coerceIn(1, 50) // Limit between 1x1 and 50x50 (increased for 30px support)
         _currentTileSize.value = tileSwapSize
         println("[DEBUG_LOG] Tile swap size set to: ${tileSwapSize}x${tileSwapSize}")
     }
@@ -180,9 +180,8 @@ class LogoEffectsService {
                 lastCoefficientUpdateTime = currentTime
             }
             
+            // Apply current effect if enabled (get fresh state each time)
             val currentState = _logoState.value
-            
-            // Apply current effect if enabled
             if (currentState.activeEffect != LogoEffectType.NONE && originalImage != null) {
                 val newImage = when (currentState.activeEffect) {
                     LogoEffectType.NOISE -> applyContinuousNoiseEffect(originalImage!!, currentState.intensity, currentTime)
@@ -196,7 +195,8 @@ class LogoEffectsService {
                     LogoEffectType.NONE -> originalImage!!.toComposeImageBitmap()
                 }
                 
-                _logoState.value = currentState.copy(logoImage = newImage)
+                // Only update the image, preserve all other state
+                _logoState.value = _logoState.value.copy(logoImage = newImage)
             }
             
             // Run at ~30 FPS for smooth animation

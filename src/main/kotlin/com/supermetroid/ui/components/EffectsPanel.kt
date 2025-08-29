@@ -307,10 +307,9 @@ private fun LogoEffectsSection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            TileSizeButton(text = "1px", size = 1, logoEffectsService = logoEffectsService, currentTileSize = currentTileSize)
             TileSizeButton(text = "5px", size = 5, logoEffectsService = logoEffectsService, currentTileSize = currentTileSize)
             TileSizeButton(text = "10px", size = 10, logoEffectsService = logoEffectsService, currentTileSize = currentTileSize)
-            TileSizeButton(text = "15px", size = 15, logoEffectsService = logoEffectsService, currentTileSize = currentTileSize)
+            TileSizeButton(text = "30px", size = 30, logoEffectsService = logoEffectsService, currentTileSize = currentTileSize)
         }
 
         Spacer(modifier = Modifier.height(6.dp))

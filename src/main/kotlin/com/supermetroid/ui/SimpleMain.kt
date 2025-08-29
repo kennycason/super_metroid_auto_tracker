@@ -35,6 +35,9 @@ val paletteEffectsService = PaletteEffectsService(gameStateService.getUdpClient(
 val logoEffectsService = com.supermetroid.service.LogoEffectsService()
 
 fun main() = application {
+    // Move showSplits state to Window level so keyboard shortcuts can access it
+    var showSplits by remember { mutableStateOf(true) }
+    
     Window(
         onCloseRequest = {
             gameStateService.stop()
@@ -47,41 +50,51 @@ fun main() = application {
             height = 1100.dp // Increased by 300dp for better splits visibility
         ),
         onKeyEvent = { keyEvent ->
-            when {
-                keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyDown -> {
-                    // Spacebar to start/pause timer
-                    // Adding a log to track when this is called
-                    println("[DEBUG_LOG] Spacebar key event detected in Window.onKeyEvent")
-                    // Use the same CoroutineScope as the UI buttons for consistency
-                    CoroutineScope(Dispatchers.Swing).launch {
-                        println("[DEBUG_LOG] Executing toggleRunState from Spacebar key event on Swing dispatcher")
-                        autoSplitsEngine.toggleRunState()
+            // Only process keyboard shortcuts when splits are visible
+            if (showSplits) {
+                when {
+                    keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyDown -> {
+                        // Spacebar to start/pause timer
+                        println("[DEBUG_LOG] Spacebar key event detected in Window.onKeyEvent")
+                        CoroutineScope(Dispatchers.Swing).launch {
+                            println("[DEBUG_LOG] Executing toggleRunState from Spacebar key event on Swing dispatcher")
+                            autoSplitsEngine.toggleRunState()
+                        }
+                        true
                     }
-                    true
-                }
 
-                keyEvent.key == Key.R && keyEvent.type == KeyEventType.KeyDown -> {
-                    // R key to reset run
-                    println("[DEBUG_LOG] R key event detected")
-                    // Use the same CoroutineScope as the UI buttons for consistency
-                    CoroutineScope(Dispatchers.Swing).launch {
-                        println("[DEBUG_LOG] Executing resetRun from R key event on Swing dispatcher")
-                        autoSplitsEngine.resetRun()
+                    keyEvent.key == Key.R && keyEvent.type == KeyEventType.KeyDown -> {
+                        // R key to reset run
+                        println("[DEBUG_LOG] R key event detected")
+                        CoroutineScope(Dispatchers.Swing).launch {
+                            println("[DEBUG_LOG] Executing resetRun from R key event on Swing dispatcher")
+                            autoSplitsEngine.resetRun()
+                        }
+                        true
                     }
-                    true
-                }
 
-                else -> false
+                    else -> false
+                }
+            } else {
+                // Splits are hidden - ignore all keyboard shortcuts
+                println("[DEBUG_LOG] Ignoring keyboard shortcuts - splits are hidden")
+                false
             }
         }
     ) {
-        SimpleTrackerApp()
+        SimpleTrackerApp(
+            showSplits = showSplits,
+            onShowSplitsChanged = { showSplits = it }
+        )
     }
 }
 
 @Composable
 @Preview
-fun SimpleTrackerApp() {
+fun SimpleTrackerApp(
+    showSplits: Boolean = true,
+    onShowSplitsChanged: (Boolean) -> Unit = {}
+) {
     val trackerState by gameStateService.trackerState.collectAsState()
     val splitsState by autoSplitsEngine.splitsState.collectAsState()
     val effectsState by paletteEffectsService.effectsState.collectAsState()
@@ -119,11 +132,15 @@ fun SimpleTrackerApp() {
         }
     }
 
-    // Process game state for autosplits (trigger only on gameState changes, not run state changes)
-    // This prevents potential loops where processGameState changes run state, which triggers this effect again
-    LaunchedEffect(trackerState.gameState) {
-        println("[DEBUG_LOG] Processing game state due to gameState change")
-        autoSplitsEngine.processGameState(trackerState.gameState)
+    // Process game state for autosplits ONLY when splits are visible
+    // This prevents auto-splitting when user is playing other games (like map rando)
+    LaunchedEffect(trackerState.gameState, showSplits) {
+        if (showSplits) {
+            println("[DEBUG_LOG] Processing game state due to gameState change (splits visible)")
+            autoSplitsEngine.processGameState(trackerState.gameState)
+        } else {
+            println("[DEBUG_LOG] Skipping game state processing - splits are hidden")
+        }
     }
 
     // Save splits state periodically
@@ -160,7 +177,13 @@ fun SimpleTrackerApp() {
                         )
                     )
             ) {
-                SimpleTwoColumnLayout(trackerState, splitsState, effectsState)
+                SimpleTwoColumnLayout(
+                    trackerState = trackerState,
+                    splitsState = splitsState,
+                    effectsState = effectsState,
+                    showSplits = showSplits,
+                    onShowSplitsChanged = onShowSplitsChanged
+                )
             }
         }
     }
@@ -170,11 +193,12 @@ fun SimpleTrackerApp() {
 fun SimpleTwoColumnLayout(
     trackerState: com.supermetroid.model.TrackerState,
     splitsState: com.supermetroid.model.SplitsState,
-    effectsState: com.supermetroid.service.PaletteEffectsState
+    effectsState: com.supermetroid.service.PaletteEffectsState,
+    showSplits: Boolean,
+    onShowSplitsChanged: (Boolean) -> Unit
 ) {
-    // UI visibility toggles
+    // UI visibility toggles (removed showSplits since it's now passed in)
     var showIcons by remember { mutableStateOf(true) }
-    var showSplits by remember { mutableStateOf(true) }
     var showTimer by remember { mutableStateOf(true) }
     var showEffects by remember { mutableStateOf(false) }
     var showLogo by remember { mutableStateOf(false) }
@@ -301,7 +325,7 @@ fun SimpleTwoColumnLayout(
 
                 // Splits toggle
                 TextButton(
-                    onClick = { showSplits = !showSplits },
+                    onClick = { onShowSplitsChanged(!showSplits) },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = if (showSplits) TrackerColors.Success else TrackerColors.OnSurfaceVariant
                     ),

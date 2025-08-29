@@ -197,9 +197,9 @@ fun SimpleEnhancedTimer(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // Small control buttons (top-left corner)
+                // Small control buttons (vertically centered on left)
                 Row(
-                    modifier = Modifier.align(Alignment.TopStart),
+                    modifier = Modifier.align(Alignment.CenterStart),
                     horizontalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     // Start/Pause Button (small icon only)
