@@ -35,11 +35,11 @@ fun main() = application {
             gameStateService.stop()
             exitApplication()
         },
-        title = "Super Metroid Auto Tracker V2",
-                       state = androidx.compose.ui.window.rememberWindowState(
-                   width = 420.dp,  // Optimized for tall/skinny like image 2
-                   height = 1100.dp // Increased by 300dp for better splits visibility
-               ),
+        title = "Super Metroid Tracker",
+        state = androidx.compose.ui.window.rememberWindowState(
+            width = 420.dp,  // Optimized for tall/skinny like image 2
+            height = 1100.dp // Increased by 300dp for better splits visibility
+        ),
         onKeyEvent = { keyEvent ->
             when {
                 keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyDown -> {
@@ -47,6 +47,7 @@ fun main() = application {
                     autoSplitsEngine.toggleRunState()
                     true
                 }
+
                 else -> false
             }
         }
@@ -60,28 +61,28 @@ fun main() = application {
 fun SimpleTrackerApp() {
     val trackerState by gameStateService.trackerState.collectAsState()
     val splitsState by autoSplitsEngine.splitsState.collectAsState()
-    
+
     // Initialize services
     LaunchedEffect(Unit) {
         // Load split profile
         autoSplitsEngine.loadProfile(KpdrAnyProfile.profile)
-        
+
         // Load saved splits state and resume from current position
         val savedSplitsState = fileStorageService.loadSplitsState()
         autoSplitsEngine.loadSavedState(savedSplitsState)
-        
+
         try {
             gameStateService.start()
         } catch (e: Exception) {
             // Connection will show as disconnected
         }
     }
-    
+
     // Process game state for autosplits (trigger on gameState changes OR when app starts)
     LaunchedEffect(trackerState.gameState, splitsState.currentRun) {
         autoSplitsEngine.processGameState(trackerState.gameState)
     }
-    
+
     // Save splits state periodically
     LaunchedEffect(splitsState) {
         try {
@@ -90,7 +91,7 @@ fun SimpleTrackerApp() {
             // Handle save error gracefully
         }
     }
-    
+
     MaterialTheme(
         colorScheme = darkColorScheme(
             primary = TrackerColors.Primary,
@@ -131,7 +132,7 @@ fun SimpleTwoColumnLayout(
     var showIcons by remember { mutableStateOf(true) }
     var showSplits by remember { mutableStateOf(true) }
     var showTimer by remember { mutableStateOf(true) }
-    
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -143,9 +144,9 @@ fun SimpleTwoColumnLayout(
         //     isFullscreen = false,
         //     onToggleFullscreen = {}
         // )
-        
+
         // Spacer(modifier = Modifier.height(8.dp))
-        
+
         // TALL LAYOUT: Status Grid at top, Timer below, then Splits at bottom
         // Status Grid (Icons) - Fixed height, non-stretchable
         if (showIcons) {
@@ -156,7 +157,6 @@ fun SimpleTwoColumnLayout(
             Spacer(modifier = Modifier.height(6.dp)) // Halved from 12dp
         }
 
-        
         // Timer section - Centered and compact
         if (showTimer) {
             SimpleEnhancedTimer(
@@ -174,8 +174,7 @@ fun SimpleTwoColumnLayout(
             )
             Spacer(modifier = Modifier.height(6.dp)) // Halved from 12dp
         }
-    
-        
+
         // Splits list - Takes remaining space
         if (showSplits) {
             SplitsList(
@@ -186,7 +185,7 @@ fun SimpleTwoColumnLayout(
             )
             Spacer(modifier = Modifier.height(6.dp)) // Halved from 12dp
         }
-        
+
         // UI Toggle footer
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -200,7 +199,7 @@ fun SimpleTwoColumnLayout(
                     color = if (trackerState.connection.connected) TrackerColors.Success else TrackerColors.Error
                 )
             )
-            
+
             // Toggle buttons (right side)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -220,8 +219,8 @@ fun SimpleTwoColumnLayout(
                         style = MaterialTheme.typography.labelSmall
                     )
                 }
-                
-                // Splits toggle  
+
+                // Splits toggle
                 TextButton(
                     onClick = { showSplits = !showSplits },
                     colors = ButtonDefaults.textButtonColors(
@@ -235,7 +234,7 @@ fun SimpleTwoColumnLayout(
                         style = MaterialTheme.typography.labelSmall
                     )
                 }
-                
+
                 // Timer toggle
                 TextButton(
                     onClick = { showTimer = !showTimer },
