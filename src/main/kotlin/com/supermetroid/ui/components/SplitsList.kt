@@ -40,18 +40,18 @@ fun SplitsList(
     val currentSplit = autoSplitsEngine.getCurrentSplit()
     val currentSplitIndex = KpdrAnyProfile.profile.splits.indexOfFirst { it.id == currentSplit?.id }
 
-    // Auto-scroll to current split when it changes
+    // Auto-scroll to keep the current split near the top (around 3rd position)
     LaunchedEffect(currentSplitIndex) {
         if (currentSplitIndex >= 0) {
             coroutineScope.launch {
-                // Calculate offset to center the split, but don't go negative
+                // Calculate offset to position the split around the 3rd position
                 val itemHeight = 48 + 1 // SplitRow height + spacing
-                val visibleItems = maxHeight / itemHeight
-                val centerOffset = (visibleItems / 2) * itemHeight
+                val targetPosition = 2 // 0-indexed, so 2 means 3rd position
+                val offset = targetPosition * itemHeight
 
                 listState.animateScrollToItem(
                     index = currentSplitIndex,
-                    scrollOffset = -centerOffset.coerceAtLeast(0)
+                    scrollOffset = -offset.coerceAtLeast(0)
                 )
             }
         }

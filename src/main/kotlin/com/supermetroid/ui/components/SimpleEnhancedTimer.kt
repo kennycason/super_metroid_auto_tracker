@@ -30,26 +30,66 @@ fun SimpleEnhancedTimer(
     modifier: Modifier = Modifier
 ) {
     val currentRun = splitsState.currentRun
-    
+
     // Real-time timer update
     var currentTime by remember { mutableLongStateOf(0L) }
-    
-    LaunchedEffect(currentRun) {
-        if (currentRun != null && !currentRun.isPaused) {
+
+    // Track the last time we updated the timer to calculate elapsed time
+    var lastUpdateTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
+
+    // Remember the displayed time when paused to prevent jumps on resume
+    var pausedDisplayTime by remember { mutableLongStateOf(0L) }
+
+    // Track the previous pause state to detect changes
+    var wasPaused by remember { mutableStateOf(false) }
+
+    LaunchedEffect(currentRun, currentRun?.isPaused) {
+        if (currentRun == null) {
+            // No run, reset everything
+            currentTime = 0L
+            lastUpdateTime = System.currentTimeMillis()
+            pausedDisplayTime = 0L
+            wasPaused = false
+        } else if (currentRun.isPaused) {
+            // Just paused - save the current display time
+            if (!wasPaused) {
+                pausedDisplayTime = currentTime
+            }
+            // When paused, just display the saved time
+            currentTime = pausedDisplayTime
+            wasPaused = true
+        } else {
+            // Run is active (not paused)
+            val now = System.currentTimeMillis()
+
+            // Initialize the timer state when a run starts or resumes
+            if (currentRun.completedSplits.isEmpty() && !wasPaused) {
+                // New run - initialize with the correct starting values
+                val rawTime = now - currentRun.startTime.toEpochMilliseconds() - currentRun.pausedTime
+                pausedDisplayTime = rawTime
+                currentTime = rawTime
+            } else if (wasPaused) {
+                // Resuming from pause - keep the pausedDisplayTime as our base
+                // but update the lastUpdateTime to now
+                lastUpdateTime = now
+                wasPaused = false
+            }
+
+            // Continuously update the timer while the run is active
             while (currentRun == splitsState.currentRun && !splitsState.currentRun?.isPaused!!) {
-                val rawTime = System.currentTimeMillis() - currentRun.startTime.toEpochMilliseconds()
-                currentTime = rawTime - currentRun.pausedTime
+                val now = System.currentTimeMillis()
+                val elapsed = now - lastUpdateTime
+
+                // Update the current time based on the elapsed time since last update
+                // This prevents jumps when resuming after a pause
+                currentTime = pausedDisplayTime + elapsed
+
+                lastUpdateTime = now
                 delay(10) // Update every 10ms for smooth display
             }
-        } else if (currentRun != null && currentRun.isPaused) {
-            // When paused, hold current time
-            val rawTime = System.currentTimeMillis() - currentRun.startTime.toEpochMilliseconds()
-            currentTime = rawTime - currentRun.pausedTime
-        } else {
-            currentTime = 0L
         }
     }
-    
+
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -95,7 +135,7 @@ fun SimpleEnhancedTimer(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
-                
+
                 // Small control buttons (top-left corner)
                 Row(
                     modifier = Modifier.align(Alignment.TopStart),
@@ -125,7 +165,7 @@ fun SimpleEnhancedTimer(
                             modifier = Modifier.size(14.dp)
                         )
                     }
-                    
+
                     // Reset Button (small icon only)
                     IconButton(
                         onClick = onResetRun,
@@ -147,13 +187,13 @@ fun SimpleEnhancedTimer(
 
 private fun formatTime(milliseconds: Long): String {
     if (milliseconds <= 0) return "--:--:--.--"
-    
+
     val totalSeconds = milliseconds / 1000
     val hours = totalSeconds / 3600
     val minutes = (totalSeconds % 3600) / 60
     val seconds = totalSeconds % 60
     val centiseconds = (milliseconds % 1000) / 10
-    
+
     return if (hours > 0) {
         "%d:%02d:%02d.%02d".format(hours, minutes, seconds, centiseconds)
     } else {
