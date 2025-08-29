@@ -41,7 +41,7 @@ fun main() = application {
         },
         title = "Super Metroid Tracker",
         state = androidx.compose.ui.window.rememberWindowState(
-            width = 420.dp,  // Optimized for tall/skinny like image 2
+            width = 416.dp,  // Optimized for tall/skinny like image 2
             height = 1100.dp // Increased by 300dp for better splits visibility
         ),
         onKeyEvent = { keyEvent ->
