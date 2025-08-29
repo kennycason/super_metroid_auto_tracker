@@ -2,35 +2,7 @@
 
 A real-time item, boss, and location tracker for Super Metroid that automatically reads game state from RetroArch via UDP.
 
-## 🎮 Overview
-
-Super Metroid Auto Tracker is a desktop application built with Kotlin and Jetpack Compose that automatically tracks your progress through Super Metroid. It connects to RetroArch via UDP to read the game's memory in real-time, providing a visual display of:
-
-- Items and upgrades collected
-- Bosses defeated
-- Current location (area and room)
-- Health, missiles, and other stats
-- Speedrun splits and timing
-
-The application serves both casual players who want to keep track of their progress and speedrunners who need precise timing and split information.
-
-## ✨ Features
-
-### Real-Time Game State Tracking
-- **Items & Upgrades**: Tracks all major items (Morph Ball, Bombs, Beams, Suits, etc.)
-- **Bosses**: Monitors boss defeat status, including multi-phase bosses like Mother Brain
-- **Location**: Shows current area and room names
-- **Stats**: Displays health, missiles, super missiles, power bombs, and reserves
-
-### Speedrunning Tools
-- **Auto Splits**: Automatically tracks and times segments of your run
-- **Split Comparison**: Compare current splits against personal bests
-- **Run State Management**: Start, pause, and reset runs with keyboard shortcuts
-
-### User Interface
-- **Compact Layout**: Designed for minimal screen space usage
-- **Customizable Display**: Toggle visibility of icons, splits, and timer
-- **Status Grid**: Visual representation of all collected items and defeated bosses
+<img src="screenshot.png" width="417"/>
 
 ## 🚀 Installation
 
@@ -38,14 +10,6 @@ The application serves both casual players who want to keep track of their progr
 - Java 11 or higher
 - RetroArch with network commands enabled
 - Super Metroid ROM loaded in RetroArch
-
-### Download and Run
-1. Download the latest release from the Releases page
-2. Extract the archive to a location of your choice
-3. Run the application:
-   - **Windows**: Double-click the `.exe` file
-   - **macOS**: Double-click the `.app` file
-   - **Linux**: Run the `.AppImage` file or use the shell script
 
 ### RetroArch Configuration
 1. In RetroArch, go to Settings → Network
@@ -62,7 +26,6 @@ The application serves both casual players who want to keep track of their progr
 ### Keyboard Shortcuts
 - **Spacebar**: Start/pause the timer for speedruns
 - **R**: Reset the current run
-- **Esc**: Exit the application
 
 ### UI Controls
 - Use the toggle buttons at the bottom of the window to show/hide:
@@ -111,8 +74,8 @@ Bosses are tracked using area-specific boss flags in memory:
   - Bomb Torizo: `0x0004` (Bit 2)
 
 - **Brinstar Bosses**: Memory address `0xD829`
-  - Spore Spawn: `0x0002` (Bit 1)
-  - Kraid: `0x0001` (Bit 0)
+  - Spore Spawn: `0x0200` (Bit 9)
+  - Kraid: `0x0100` (Bit 8)
 
 - **Norfair Bosses**: Memory address `0xD82A`
   - Ridley: `0x0001` (Bit 0)
@@ -177,18 +140,30 @@ src/
 
 ### Building from Source
 1. Clone the repository
-2. Build with Gradle:
+2. Build and run the application with a single command:
+   ```
+   ./gradlew build && ./gradlew run
+   ```
+   
+   Or build and run separately:
    ```
    ./gradlew build
-   ```
-3. Run the application:
-   ```
    ./gradlew run
    ```
-4. Create a distribution package:
+3. Create a distribution package:
    ```
-   ./gradlew packageDistribution
+   ./gradlew packageDistributionForCurrentOS
    ```
+   
+### Creating a macOS App Bundle with Packaged JRE
+To create a macOS .app bundle with a packaged JRE:
+1. Run the following command:
+   ```
+   ./gradlew packageDmg
+   ```
+2. This will create a .dmg file in the `build/compose/binaries/main/dmg/` directory
+3. Open the .dmg file and drag the application to your Applications folder
+4. The app will include a bundled JRE, so it will run without requiring Java to be installed
 
 ### Testing
 Run the tests with:

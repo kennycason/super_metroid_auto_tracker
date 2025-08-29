@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.datetime.Clock
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlin.math.abs
 
 private val logger = KotlinLogging.logger {}
 
@@ -19,6 +20,10 @@ class AutoSplitsEngine {
     private var currentProfile: SplitProfile? = null
     private var currentSplitIndex = 0
     private var pauseStartTime: kotlinx.datetime.Instant? = null
+
+    // For debouncing toggleRunState calls
+    private var lastToggleTime: Long = 0
+    private val debounceTimeMs: Long = 300 // 300ms debounce window
 
     // State flows for reactive UI
     private val _splitsState = MutableStateFlow(SplitsState())
@@ -179,25 +184,104 @@ class AutoSplitsEngine {
 
     /**
      * Start a new run or toggle pause/resume
+     * Includes debounce logic to prevent rapid consecutive calls
      */
     fun toggleRunState(profileId: String = "kpdr-any") {
+        val currentTime = System.currentTimeMillis()
+        val timeSinceLastToggle = currentTime - lastToggleTime
+
+        // Check if this call is within the debounce window
+        if (timeSinceLastToggle < debounceTimeMs) {
+            logger.info { "⏱️ toggleRunState called too quickly (${timeSinceLastToggle}ms since last call) - DEBOUNCED" }
+            // Log full stack trace for debugging
+            val stackTrace = Thread.currentThread().stackTrace.joinToString("\n  at ")
+            logger.info { "⏱️ DEBOUNCED CALL STACK:\n  at $stackTrace" }
+            return
+        }
+
+        // Update last toggle time
+        lastToggleTime = currentTime
+
         val currentRun = _splitsState.value.currentRun
 
-        when {
-            currentRun == null -> startNewRun(profileId)
-            currentRun.isPaused -> resumeRun()
-            else -> pauseRun()
+        // Log detailed timer state for debugging
+        val runState = if (currentRun == null) {
+            "no run"
+        } else {
+            val pauseStatus = if (currentRun.isPaused) "paused" else "running"
+            val totalTime = formatTime(currentRun.totalTime)
+            val pausedTime = formatTime(currentRun.pausedTime)
+            val runningTime = if (currentRun.isPaused) {
+                totalTime
+            } else {
+                val rawTime = System.currentTimeMillis() - currentRun.startTime.toEpochMilliseconds() - currentRun.pausedTime
+                formatTime(rawTime)
+            }
+            "$pauseStatus (total: $totalTime, paused: $pausedTime, current: $runningTime)"
         }
+
+        logger.info { "⏱️ toggleRunState called - current state: $runState" }
+
+        // Add stack trace to see where this is being called from
+        val stackTrace = Thread.currentThread().stackTrace
+        val caller = stackTrace.getOrNull(3)?.toString() ?: "unknown"
+        logger.info { "⏱️ Called from: $caller" }
+
+        // Log full stack trace for debugging
+        val fullStackTrace = stackTrace.joinToString("\n  at ")
+        logger.info { "⏱️ FULL CALL STACK:\n  at $fullStackTrace" }
+
+        when {
+            currentRun == null -> {
+                logger.info { "⏱️ Starting new run" }
+                startNewRun(profileId)
+            }
+            currentRun.isPaused -> {
+                logger.info { "⏱️ Resuming paused run" }
+                resumeRun()
+            }
+            else -> {
+                logger.info { "⏱️ Pausing running run" }
+                pauseRun()
+            }
+        }
+
+        // Log the state after the operation
+        val updatedRun = _splitsState.value.currentRun
+        val updatedState = if (updatedRun == null) {
+            "no run (reset)"
+        } else {
+            val pauseStatus = if (updatedRun.isPaused) "paused" else "running"
+            val totalTime = formatTime(updatedRun.totalTime)
+            val pausedTime = formatTime(updatedRun.pausedTime)
+            "$pauseStatus (total: $totalTime, paused: $pausedTime)"
+        }
+        logger.info { "⏱️ After toggleRunState - new state: $updatedState" }
     }
 
     /**
      * Start a completely new run
      */
     internal fun startNewRun(profileId: String = "kpdr-any") {
+        // Log the current state before starting a new run
+        val currentRun = _splitsState.value.currentRun
+        if (currentRun != null) {
+            logger.warn { "🚨 Starting new run while another run exists! Current run state: ${if (currentRun.isPaused) "paused" else "running"}" }
+        }
+
+        // Generate a unique run ID
+        val runId = generateRunId()
+        logger.info { "🏁 Generating new run with ID: $runId" }
+
+        // Get the exact start time
+        val startTime = Clock.System.now()
+        logger.info { "🏁 Run start time: $startTime" }
+
+        // Create the new run session
         val newRun = RunSession(
-            id = generateRunId(),
+            id = runId,
             profileId = profileId,
-            startTime = Clock.System.now(),
+            startTime = startTime,
             endTime = null,
             completedSplits = emptyList(),
             totalTime = 0,
@@ -205,13 +289,20 @@ class AutoSplitsEngine {
             pausedTime = 0
         )
 
+        // Reset the split index and pause state
         currentSplitIndex = 0
         pauseStartTime = null
 
+        // Update the state with the new run
         val currentState = _splitsState.value
         _splitsState.value = currentState.copy(currentRun = newRun)
 
-        logger.info { "🏁 Started new run: ${newRun.id}" }
+        // Add stack trace to see where this is being called from
+        val stackTrace = Thread.currentThread().stackTrace
+        val caller = stackTrace.getOrNull(3)?.toString() ?: "unknown"
+        logger.info { "🏁 New run started from: $caller" }
+
+        logger.info { "🏁 Started new run: ${newRun.id} with profile: $profileId" }
     }
 
     /**
@@ -220,13 +311,21 @@ class AutoSplitsEngine {
     private fun pauseRun() {
         val currentRun = _splitsState.value.currentRun ?: return
 
+        // Log detailed state before pausing
+        val runningTime = System.currentTimeMillis() - currentRun.startTime.toEpochMilliseconds() - currentRun.pausedTime
+        logger.info { "⏸️ Pausing run ${currentRun.id} - current time: ${formatTime(runningTime)}, paused time: ${formatTime(currentRun.pausedTime)}" }
+
+        // Record the exact pause start time
         pauseStartTime = Clock.System.now()
+        logger.info { "⏸️ Pause start time set to: ${pauseStartTime}" }
+
+        // Update the state to mark the run as paused
         val currentState = _splitsState.value
         _splitsState.value = currentState.copy(
             currentRun = currentRun.copy(isPaused = true)
         )
 
-        logger.info { "⏸️ Paused run ${currentRun.id}" }
+        logger.info { "⏸️ Run ${currentRun.id} paused successfully" }
     }
 
     /**
@@ -234,13 +333,27 @@ class AutoSplitsEngine {
      */
     private fun resumeRun() {
         val currentRun = _splitsState.value.currentRun ?: return
-        val pauseStart = pauseStartTime ?: return
 
-        // Add pause duration to total paused time
-        val pauseDuration = (Clock.System.now() - pauseStart).inWholeMilliseconds
+        // Check if pauseStartTime is null, which would indicate an inconsistent state
+        val pauseStart = pauseStartTime
+        if (pauseStart == null) {
+            logger.error { "⚠️ Attempted to resume run ${currentRun.id} but pauseStartTime is null! Using current time instead." }
+            // Create a new pauseStartTime to avoid errors, but log the issue
+            pauseStartTime = Clock.System.now()
+            return
+        }
+
+        // Calculate the pause duration and add it to the total paused time
+        val now = Clock.System.now()
+        val pauseDuration = (now - pauseStart).inWholeMilliseconds
         val newPausedTime = currentRun.pausedTime + pauseDuration
 
+        logger.info { "▶️ Resuming run ${currentRun.id} - pause duration: ${formatTime(pauseDuration)}, total paused time: ${formatTime(newPausedTime)}" }
+
+        // Reset the pause start time
         pauseStartTime = null
+
+        // Update the state to mark the run as resumed and update the paused time
         val currentState = _splitsState.value
         _splitsState.value = currentState.copy(
             currentRun = currentRun.copy(
@@ -249,20 +362,58 @@ class AutoSplitsEngine {
             )
         )
 
-        logger.info { "▶️ Resumed run ${currentRun.id} (paused for ${formatTime(pauseDuration)})" }
+        logger.info { "▶️ Run ${currentRun.id} resumed successfully" }
     }
 
     /**
      * Reset current run
      */
     fun resetRun() {
+        // Log the current state before reset
+        val currentRun = _splitsState.value.currentRun
+        val runState = if (currentRun == null) {
+            "no run (already reset)"
+        } else {
+            val pauseStatus = if (currentRun.isPaused) "paused" else "running"
+            val totalTime = formatTime(currentRun.totalTime)
+            val pausedTime = formatTime(currentRun.pausedTime)
+            val runningTime = if (currentRun.isPaused) {
+                totalTime
+            } else {
+                val rawTime = System.currentTimeMillis() - currentRun.startTime.toEpochMilliseconds() - currentRun.pausedTime
+                formatTime(rawTime)
+            }
+            "$pauseStatus (total: $totalTime, paused: $pausedTime, current: $runningTime)"
+        }
+
+        logger.info { "🔄 resetRun called - current state: $runState" }
+
+        // Add stack trace to see where this is being called from
+        val stackTrace = Thread.currentThread().stackTrace
+        val caller = stackTrace.getOrNull(3)?.toString() ?: "unknown"
+        logger.info { "🔄 Called from: $caller" }
+
+        // Log full stack trace for debugging
+        val fullStackTrace = stackTrace.joinToString("\n  at ")
+        logger.info { "🔄 FULL CALL STACK:\n  at $fullStackTrace" }
+
+        // Reset the state
         currentSplitIndex = 0
         previousGameState = null
+        pauseStartTime = null  // Ensure pauseStartTime is reset
 
         val currentState = _splitsState.value
         _splitsState.value = currentState.copy(currentRun = null)
 
-        logger.info { "🔄 Reset current run" }
+        // Reset the debounce timer to prevent issues with immediate start after reset
+        lastToggleTime = 0
+
+        logger.info { "🔄 Run reset complete - timer state cleared" }
+
+        // Add a small delay before allowing new toggleRunState calls
+        // This helps prevent accidental immediate restart after reset
+        Thread.sleep(100)
+        logger.info { "🔄 Reset cooldown complete - ready for new run" }
     }
 
     /**

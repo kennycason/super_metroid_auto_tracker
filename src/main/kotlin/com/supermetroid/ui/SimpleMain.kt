@@ -44,7 +44,24 @@ fun main() = application {
             when {
                 keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyDown -> {
                     // Spacebar to start/pause timer
-                    autoSplitsEngine.toggleRunState()
+                    // Adding a log to track when this is called
+                    println("[DEBUG_LOG] Spacebar key event detected in Window.onKeyEvent")
+                    // Use the same CoroutineScope as the UI buttons for consistency
+                    CoroutineScope(Dispatchers.Swing).launch {
+                        println("[DEBUG_LOG] Executing toggleRunState from Spacebar key event on Swing dispatcher")
+                        autoSplitsEngine.toggleRunState()
+                    }
+                    true
+                }
+
+                keyEvent.key == Key.R && keyEvent.type == KeyEventType.KeyDown -> {
+                    // R key to reset run
+                    println("[DEBUG_LOG] R key event detected")
+                    // Use the same CoroutineScope as the UI buttons for consistency
+                    CoroutineScope(Dispatchers.Swing).launch {
+                        println("[DEBUG_LOG] Executing resetRun from R key event on Swing dispatcher")
+                        autoSplitsEngine.resetRun()
+                    }
                     true
                 }
 
@@ -78,8 +95,10 @@ fun SimpleTrackerApp() {
         }
     }
 
-    // Process game state for autosplits (trigger on gameState changes OR when app starts)
-    LaunchedEffect(trackerState.gameState, splitsState.currentRun) {
+    // Process game state for autosplits (trigger only on gameState changes, not run state changes)
+    // This prevents potential loops where processGameState changes run state, which triggers this effect again
+    LaunchedEffect(trackerState.gameState) {
+        println("[DEBUG_LOG] Processing game state due to gameState change")
         autoSplitsEngine.processGameState(trackerState.gameState)
     }
 
@@ -162,11 +181,13 @@ fun SimpleTwoColumnLayout(
             SimpleEnhancedTimer(
                 splitsState = splitsState,
                 onToggleRun = {
+                    println("[DEBUG_LOG] Timer UI button clicked - onToggleRun callback")
                     CoroutineScope(Dispatchers.Swing).launch {
                         autoSplitsEngine.toggleRunState()
                     }
                 },
                 onResetRun = {
+                    println("[DEBUG_LOG] Timer UI reset button clicked")
                     CoroutineScope(Dispatchers.Swing).launch {
                         autoSplitsEngine.resetRun()
                     }

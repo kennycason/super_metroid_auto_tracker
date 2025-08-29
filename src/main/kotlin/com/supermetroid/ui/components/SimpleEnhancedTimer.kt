@@ -43,50 +43,111 @@ fun SimpleEnhancedTimer(
     // Track the previous pause state to detect changes
     var wasPaused by remember { mutableStateOf(false) }
 
+    // Add a unique ID for this timer instance to track in logs
+    val timerId = remember { "timer-${System.currentTimeMillis()}" }
+
+    // Log initial state
+    LaunchedEffect(Unit) {
+        println("[DEBUG_LOG] $timerId: Timer component initialized")
+    }
+
     LaunchedEffect(currentRun, currentRun?.isPaused) {
+        val runId = currentRun?.id ?: "null"
+        val isPaused = currentRun?.isPaused ?: false
+        println("[DEBUG_LOG] $timerId: LaunchedEffect triggered - runId: $runId, isPaused: $isPaused, wasPaused: $wasPaused")
+
         if (currentRun == null) {
             // No run, reset everything
+            println("[DEBUG_LOG] $timerId: No run, resetting timer state")
             currentTime = 0L
             lastUpdateTime = System.currentTimeMillis()
             pausedDisplayTime = 0L
             wasPaused = false
         } else if (currentRun.isPaused) {
             // Just paused - save the current display time
+            println("[DEBUG_LOG] $timerId: Run is paused")
             if (!wasPaused) {
+                println("[DEBUG_LOG] $timerId: Newly paused, saving display time: $currentTime")
                 pausedDisplayTime = currentTime
             }
             // When paused, just display the saved time
             currentTime = pausedDisplayTime
+            println("[DEBUG_LOG] $timerId: Set current time to pausedDisplayTime: $pausedDisplayTime")
             wasPaused = true
         } else {
             // Run is active (not paused)
             val now = System.currentTimeMillis()
+            println("[DEBUG_LOG] $timerId: Run is active (not paused)")
 
             // Initialize the timer state when a run starts or resumes
             if (currentRun.completedSplits.isEmpty() && !wasPaused) {
                 // New run - initialize with the correct starting values
                 val rawTime = now - currentRun.startTime.toEpochMilliseconds() - currentRun.pausedTime
-                pausedDisplayTime = rawTime
+                println("[DEBUG_LOG] $timerId: New run - initializing timer. startTime: ${currentRun.startTime}, pausedTime: ${currentRun.pausedTime}, rawTime: $rawTime")
+
+                // Reset all timer state for a clean start
+                pausedDisplayTime = 0L
                 currentTime = rawTime
+                lastUpdateTime = now
+
+                println("[DEBUG_LOG] $timerId: Timer state reset for new run - currentTime: $currentTime, lastUpdateTime: $lastUpdateTime")
             } else if (wasPaused) {
                 // Resuming from pause - keep the pausedDisplayTime as our base
                 // but update the lastUpdateTime to now
+                println("[DEBUG_LOG] $timerId: Resuming from pause - pausedDisplayTime: $pausedDisplayTime, updating lastUpdateTime to now")
                 lastUpdateTime = now
                 wasPaused = false
+            } else {
+                // This is a case where the run is already active and not paused
+                // We need to recalculate the current time based on the run state
+                val calculatedTime = now - currentRun.startTime.toEpochMilliseconds() - currentRun.pausedTime
+                println("[DEBUG_LOG] $timerId: Continuing active run - recalculating time. startTime: ${currentRun.startTime}, pausedTime: ${currentRun.pausedTime}, calculatedTime: $calculatedTime")
+
+                // Update the timer state to match the calculated time
+                pausedDisplayTime = 0L
+                currentTime = calculatedTime
+                lastUpdateTime = now
             }
 
             // Continuously update the timer while the run is active
-            while (currentRun == splitsState.currentRun && !splitsState.currentRun?.isPaused!!) {
+            println("[DEBUG_LOG] $timerId: Starting timer update loop")
+            var updateCount = 0
+            var lastLogTime = System.currentTimeMillis()
+
+            // Safely check if the run is still active and not paused
+            while (true) {
+                // Get the current run state - exit loop if run has changed or been reset
+                val currentRunState = splitsState.currentRun
+                if (currentRunState != currentRun || currentRunState == null) {
+                    println("[DEBUG_LOG] $timerId: Breaking timer loop - run changed or reset")
+                    break
+                }
+
+                // Exit loop if run is paused
+                if (currentRunState.isPaused) {
+                    println("[DEBUG_LOG] $timerId: Breaking timer loop - run paused")
+                    break
+                }
+
                 val now = System.currentTimeMillis()
-                val elapsed = now - lastUpdateTime
 
-                // Update the current time based on the elapsed time since last update
-                // This prevents jumps when resuming after a pause
-                currentTime = pausedDisplayTime + elapsed
+                // Calculate the current time directly from the run state
+                // This is more accurate than incremental updates
+                val runTime = now - currentRun.startTime.toEpochMilliseconds() - currentRun.pausedTime
+                currentTime = runTime
 
-                lastUpdateTime = now
-                delay(10) // Update every 10ms for smooth display
+                // Log periodically to avoid flooding (every second)
+                updateCount++
+                if (now - lastLogTime > 1000) {
+                    println("[DEBUG_LOG] $timerId: Timer update #$updateCount - runTime: $runTime")
+                    lastLogTime = now
+                }
+
+                // No need to track lastUpdateTime or pausedDisplayTime for active runs
+                // as we're calculating the time directly from the run state
+                delay(16) // Update at approximately 60fps (16.67ms) for smooth display
             }
+            println("[DEBUG_LOG] $timerId: Exited timer update loop")
         }
     }
 
