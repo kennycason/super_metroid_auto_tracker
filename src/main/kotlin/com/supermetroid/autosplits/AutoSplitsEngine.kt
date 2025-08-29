@@ -399,9 +399,29 @@ class AutoSplitsEngine {
             "phantoon" -> gameState.bosses.phantoon
             "draygon" -> gameState.bosses.draygon
             "ridley" -> gameState.bosses.ridley
-            "golden_four" -> gameState.bosses.kraid && gameState.bosses.phantoon && gameState.bosses.draygon && gameState.bosses.ridley
-            "mother_brain_1" -> gameState.bosses.motherBrain1
-            "mother_brain_2" -> gameState.bosses.motherBrain2
+            // For G4, we need to check if we're in the statues room, not just if all bosses are defeated
+            // This prevents auto-triggering G4 immediately after defeating the last boss
+            "golden_four" -> gameState.roomId == RoomIds.STATUES && gameState.bosses.kraid && gameState.bosses.phantoon && gameState.bosses.draygon && gameState.bosses.ridley
+            "mother_brain_1" -> {
+                // Use the same comprehensive detection logic as in checkMotherBrain1
+                val inMbRoom = gameState.roomId == RoomIds.MOTHER_BRAIN_ROOM
+                val normalGameplay = gameState.gameState == GameStateConstants.NORMAL_GAMEPLAY
+                val mb1AlreadyDefeated = inMbRoom && normalGameplay && gameState.motherBrainHp >= 18000
+                val zebesEscaping = (gameState.eventFlags and 0x0040) != 0
+                val mbFinalDefeated = (gameState.tourianBosses and 0x0002) != 0
+
+                gameState.bosses.motherBrain1 || mb1AlreadyDefeated || zebesEscaping || mbFinalDefeated
+            }
+            "mother_brain_2" -> {
+                // Use the same comprehensive detection logic as in checkMotherBrain2
+                val inMbRoom = gameState.roomId == RoomIds.MOTHER_BRAIN_ROOM
+                val normalGameplay = gameState.gameState == GameStateConstants.NORMAL_GAMEPLAY
+                val mb2AlreadyDefeated = inMbRoom && normalGameplay && gameState.motherBrainHp >= 36000
+                val zebesEscaping = (gameState.eventFlags and 0x0040) != 0
+                val mbFinalDefeated = (gameState.tourianBosses and 0x0002) != 0
+
+                gameState.bosses.motherBrain2 || mb2AlreadyDefeated || zebesEscaping || mbFinalDefeated
+            }
             "ship" -> gameState.bosses.samusShip
             else -> false
         }
@@ -836,14 +856,13 @@ class AutoSplitsEngine {
         // Implement ASL RTA finish logic exactly:
         // escape = zebesAblaze && shipAI.old != 0xaa4f && shipAI.current == 0xaa4f
         val zebesAblaze = (curr.eventFlags and 0x0040) != 0  // bit 6
-        val motherBrainDefeated = (curr.tourianBosses and 0x0100) != 0  // Fix: bit 8, not bit 1
+        val motherBrainDefeated = (curr.tourianBosses and 0x0002) != 0  // Bit 1 (0x2) for Mother Brain, matching ASL and parseMotherBrainFinal
         val shipAiTransition = prev.shipAi != 0xAA4F && curr.shipAi == 0xAA4F
 
         val result = zebesAblaze && motherBrainDefeated && shipAiTransition
 
-        if (shipAiTransition || zebesAblaze) {
-            logger.debug { "🚢 Ship transition check: zebesAblaze=$zebesAblaze, mbDefeated=$motherBrainDefeated, shipAI(${prev.shipAi.toString(16)}->${curr.shipAi.toString(16)}), transition=$shipAiTransition, result=$result" }
-        }
+        // Always log for debugging ship detection issues
+        logger.info { "🚢 Ship transition check: zebesAblaze=$zebesAblaze, mbDefeated=$motherBrainDefeated, shipAI(${prev.shipAi.toString(16)}->${curr.shipAi.toString(16)}), transition=$shipAiTransition, result=$result" }
 
         return result
     }

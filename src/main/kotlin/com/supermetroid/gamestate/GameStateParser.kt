@@ -12,15 +12,15 @@ private val logger = KotlinLogging.logger {}
  * Implements exact logic from the original TypeScript backend
  */
 class GameStateParser {
-    
+
     /**
      * Parse raw memory data into GameState
      */
     fun parseGameState(memoryData: Map<String, ByteArray>): GameState {
         logger.debug { "🔄 Parsing game state from ${memoryData.size} memory entries" }
-        
+
         // Removed debug logging - too noisy
-        
+
         return GameState(
             health = parseHealth(memoryData["health"]),
             maxHealth = parseMaxHealth(memoryData["maxHealth"]),
@@ -47,7 +47,7 @@ class GameStateParser {
             bosses = parseBosses(memoryData, parseAreaId(memoryData["areaId"]))
         )
     }
-    
+
     private fun parseHealth(data: ByteArray?): Int = data?.readInt16LE() ?: 0
     private fun parseMaxHealth(data: ByteArray?): Int = data?.readInt16LE() ?: 99
     private fun parseMissiles(data: ByteArray?): Int = data?.readInt16LE() ?: 0
@@ -68,7 +68,7 @@ class GameStateParser {
         logger.debug { "🧠💊 MB HP: $hp (0x${hp.toString(16)})" }
         return hp
     }
-    
+
     /**
      * Parse area name from area ID
      */
@@ -82,13 +82,13 @@ class GameStateParser {
         6 -> "Ceres Station"
         else -> "Unknown"
     }
-    
+
     /**
      * Parse collected items from memory flags
      */
     private fun parseItems(data: ByteArray?): Items {
         val itemFlags = data?.readInt16LE() ?: 0
-        
+
         return Items(
             morph = (itemFlags and 0x0004) != 0,
             bombs = (itemFlags and 0x1000) != 0,
@@ -103,13 +103,13 @@ class GameStateParser {
             xray = (itemFlags and 0x8000) != 0
         )
     }
-    
+
     /**
      * Parse collected beams from memory flags
      */
     private fun parseBeams(data: ByteArray?): Beams {
         val beamFlags = data?.readInt16LE() ?: 0
-        
+
         return Beams(
             charge = (beamFlags and 0x1000) != 0,
             ice = (beamFlags and 0x0002) != 0,
@@ -119,7 +119,7 @@ class GameStateParser {
             hyper = (beamFlags and 0x0020) != 0
         )
     }
-    
+
     /**
      * Parse boss defeat flags from multiple memory locations
      */
@@ -133,14 +133,14 @@ class GameStateParser {
         val ceresBosses = memoryData["ceresBosses"]?.readInt16LE() ?: 0
         val eventFlags = memoryData["eventFlags"]?.readInt16LE() ?: 0
         val shipAi = memoryData["shipAi"]?.readInt16LE() ?: 0
-        
+
         // Reduce debug noise - only log every 50 polls or when data changes significantly
         val currentDataHash = (bossFlags1 + bossFlags2 + bossFlags3 + tourianBosses + eventFlags).toString(16)
         if (currentDataHash.hashCode() % 20 == 0) {
             logger.debug { "🏆 Boss flags - 1:0x${bossFlags1.toString(16)}, 2:0x${bossFlags2.toString(16)}, 3:0x${bossFlags3.toString(16)}, 4:0x${bossFlags4.toString(16)}, 5:0x${bossFlags5.toString(16)}" }
             logger.debug { "🧠 Tourian bosses: 0x${tourianBosses.toString(16)}, Ceres bosses: 0x${ceresBosses.toString(16)}, Event flags: 0x${eventFlags.toString(16)}" }
         }
-        
+
         return Bosses(
             ceresStation = parseCeresStation(ceresBosses, areaId),
             bombTorizo = parseBombTorizo(bossFlags1),
@@ -158,34 +158,34 @@ class GameStateParser {
             samusShip = parseSamusShip(shipAi, eventFlags, tourianBosses)
         )
     }
-    
+
     private fun parseCeresStation(ceresBosses: Int, areaId: Int): Boolean {
         // FIXED: For fresh runs, don't show Ceres as complete just because the memory flag is set
         // The flag can persist from previous playthroughs or save states
         val ceresRidleyDefeated = (ceresBosses and 0x0001) != 0
         val inCeresArea = areaId == 6
-        
+
         // For status icon: Only show complete if we've legitimately completed Ceres
         // - If we're still in Ceres area, don't show complete even if boss is defeated (until we leave)
         // - If we're outside Ceres and boss is defeated, it's likely legitimate
         val result = ceresRidleyDefeated && !inCeresArea
-        
+
         logger.debug { "🚨 Ceres Status: ridleyDefeated=$ceresRidleyDefeated, inCeres=$inCeresArea, result=$result (legitimate completion)" }
         return result
     }
-    
+
     private fun parseBombTorizo(bossFlags1: Int): Boolean {
         val detected = (bossFlags1 and 0x0004) != 0
         logger.debug { "💣 Bomb Torizo: bossFlags1=0x${bossFlags1.toString(16)}, bit 2=$detected" }
         return detected
     }
-    
+
     private fun parseKraid(bossFlags1: Int): Boolean {
         val detected = (bossFlags1 and 0x0100) != 0  // bit 8, matches working Node server
         logger.debug { "🦎 Kraid: bossFlags1=0x${bossFlags1.toString(16)}, bit 8=$detected" }
         return detected
     }
-    
+
     private fun parseSporeSpawn(bossFlags1: Int): Boolean {
         val detected = (bossFlags1 and 0x0200) != 0  // bit 9, matches working Node server
         logger.debug { "🌸 Spore Spawn: bossFlags1=0x${bossFlags1.toString(16)}, bit 9=$detected" }
@@ -198,21 +198,21 @@ class GameStateParser {
         logger.debug { "🐍 Botwoon: bossFlags5=0x${bossFlags5.toString(16)}, bit1=$detected (ASL pattern)" }
         return detected
     }
-    
+
     private fun parsePhantoon(bossFlags4: Int): Boolean {
         // Matches ASL exactly: wreckedShipBosses & phantoon flag (bit 0)
         val detected = (bossFlags4 and 0x0001) != 0
         logger.debug { "👻 Phantoon: bossFlags4=0x${bossFlags4.toString(16)}, bit0=$detected (ASL pattern)" }
         return detected
     }
-    
+
     private fun parseRidley(bossFlags3: Int): Boolean {
         // Matches ASL exactly: norfairBosses & ridley flag (bit 0)
         val detected = (bossFlags3 and 0x0001) != 0
         logger.debug { "🐲 Ridley: bossFlags3=0x${bossFlags3.toString(16)}, bit0=$detected (ASL pattern)" }
         return detected
     }
-    
+
     /**
      * Parse Draygon using event flags (bit 8)
      */
@@ -222,22 +222,20 @@ class GameStateParser {
         logger.debug { "🐉 Draygon: bossFlags5=0x${bossFlags5.toString(16)}, bit0=$detected (ASL pattern)" }
         return detected
     }
-    
+
     /**
-     * Parse Golden Torizo with complex logic
+     * Parse Golden Torizo using norfair boss flag (bit 2)
+     * Matches ASL exactly: norfairBosses & goldenTorizo flag (bit 2)
      */
     private fun parseGoldenTorizo(bossFlags1: Int, bossFlags2: Int, bossFlags3: Int, bossFlags4: Int): Boolean {
-        val condition1 = (bossFlags1 and 0x0700) == 0x0700
-        val condition2 = (bossFlags2 and 0x0100) != 0 && bossFlags2 >= 0x0400
-        val condition3 = bossFlags1 >= 0x0603
-        val condition4 = (bossFlags3 and 0x0100) != 0
-        
-        val detected = condition1 || condition2 || condition3 || condition4
-        
-        logger.debug { "🏆 Golden Torizo: cond1=$condition1, cond2=$condition2, cond3=$condition3, cond4=$condition4, result=$detected" }
+        // Use norfairBosses (bossFlags3) with goldenTorizo flag (bit 2 = 0x4)
+        // This matches the ASL file exactly and prevents false positives
+        val detected = (bossFlags3 and 0x0004) != 0
+
+        logger.debug { "🏆 Golden Torizo: norfairBosses=0x${bossFlags3.toString(16)}, bit2=$detected (ASL pattern)" }
         return detected
     }
-    
+
     /**
      * Parse Mother Brain final defeat (MB3) using Tourian boss flags
      */
@@ -246,7 +244,7 @@ class GameStateParser {
         logger.debug { "🧠 Mother Brain final: tourianBosses=0x${tourianBosses.toString(16)}, defeated=$defeated" }
         return defeated
     }
-    
+
     /**
      * Parse Mother Brain 1 - EXACT ASL LOGIC
      * MB1 = inMotherBrainRoom && gameState == normalGameplay && motherBrainHP >= 18000
@@ -257,28 +255,28 @@ class GameStateParser {
         val motherBrainHp = parseMotherBrainHp(memoryData["motherBrainHp"])
         val eventFlags = memoryData["eventFlags"]?.readInt16LE() ?: 0
         val tourianBosses = memoryData["tourianBosses"]?.readInt16LE() ?: 0
-        
+
         val inMbRoom = roomId == RoomIds.MOTHER_BRAIN_ROOM
         val normalGameplay = gameState == GameStateConstants.NORMAL_GAMEPLAY
-        
+
         // RETROACTIVE LOGIC: If HP >= 18000 in MB room, MB1 already defeated
         val mb1AlreadyDefeated = inMbRoom && normalGameplay && motherBrainHp >= 18000
-        
+
         // Also check escape scenarios
         val zebesEscaping = (eventFlags and 0x0040) != 0
         val mbFinalDefeated = (tourianBosses and 0x0002) != 0  // Bit 1 for final defeat - match parseMotherBrainFinal
-        
+
         val result = mb1AlreadyDefeated || zebesEscaping || mbFinalDefeated
-        
+
         if (result) {
             logger.debug { "🧠1 Parser MB1: HP=$motherBrainHp, room=$inMbRoom, gameplay=$normalGameplay, retroactive=$mb1AlreadyDefeated, escaping=$zebesEscaping, final=$mbFinalDefeated, result=$result" }
         }
-        
+
         return result
     }
-    
+
     /**
-     * Parse Mother Brain 2 - EXACT ASL LOGIC  
+     * Parse Mother Brain 2 - EXACT ASL LOGIC
      * MB2 = inMotherBrainRoom && gameState == normalGameplay && motherBrainHP >= 36000
      */
     private fun parseMotherBrain2(memoryData: Map<String, ByteArray>): Boolean {
@@ -287,23 +285,23 @@ class GameStateParser {
         val motherBrainHp = parseMotherBrainHp(memoryData["motherBrainHp"])
         val eventFlags = memoryData["eventFlags"]?.readInt16LE() ?: 0
         val tourianBosses = memoryData["tourianBosses"]?.readInt16LE() ?: 0
-        
+
         val inMbRoom = roomId == RoomIds.MOTHER_BRAIN_ROOM
         val normalGameplay = gameState == GameStateConstants.NORMAL_GAMEPLAY
-        
+
         // RETROACTIVE LOGIC: If HP >= 36000 in MB room, MB2 already defeated
         val mb2AlreadyDefeated = inMbRoom && normalGameplay && motherBrainHp >= 36000
-        
-        // Also check escape/final scenarios  
+
+        // Also check escape/final scenarios
         val zebesEscaping = (eventFlags and 0x0040) != 0
         val mbFinalDefeated = (tourianBosses and 0x0002) != 0  // Bit 1 for final defeat - match parseMotherBrainFinal
-        
+
         val result = mb2AlreadyDefeated || zebesEscaping || mbFinalDefeated
-        
+
         if (result) {
             logger.debug { "🧠2 Parser MB2: HP=$motherBrainHp, room=$inMbRoom, gameplay=$normalGameplay, retroactive=$mb2AlreadyDefeated, escaping=$zebesEscaping, final=$mbFinalDefeated, result=$result" }
         }
-        
+
         return result
     }
 
@@ -315,9 +313,9 @@ class GameStateParser {
         val zebesAblaze = (eventFlags and 0x0040) != 0  // bit 6
         val shipReady = shipAi == 0xAA4F
         val motherBrainDefeated = (tourianBosses and 0x0002) != 0
-        
+
         val detected = zebesAblaze && shipReady && motherBrainDefeated
-        
+
         logger.debug { "🚢 Ship: zebesAblaze=$zebesAblaze, shipAI=0x${shipAi.toString(16)}, mbDefeated=$motherBrainDefeated, result=$detected" }
         return detected
     }

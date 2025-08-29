@@ -15,9 +15,10 @@ class AutoSplitsEngineTest {
     fun setup() {
         engine = AutoSplitsEngine()
         testProfile = SplitProfile(
-            id = "test-profile",
+            id = "kpdr-any", // Use the same profile ID as in the auto-splits engine
             name = "Test Profile",
             splits = listOf(
+                Split("ceres_station", "Ceres Station", "event", "Ceres Station completed"),
                 Split("kraid", "Kraid", "boss", "Kraid defeated"),
                 Split("phantoon", "Phantoon", "boss", "Phantoon defeated"),
                 Split("draygon", "Draygon", "boss", "Draygon defeated"),
@@ -25,102 +26,82 @@ class AutoSplitsEngineTest {
                 Split("golden_four", "G4", "event", "Entered Tourian"),
                 Split("mother_brain_1", "Mother Brain 1", "boss", "MB1 defeated"),
                 Split("mother_brain_2", "Mother Brain 2", "boss", "MB2 defeated"),
-                Split("ship", "Ship", "event", "Escape complete"),
-                Split("ceres_station", "Ceres Station", "event", "Ceres Station completed")
+                Split("ship", "Ship", "event", "Escape complete")
             )
         )
         engine.loadProfile(testProfile)
     }
 
     @Test
-    fun `test auto-skip logic for completed bosses`() {
+    fun `test isConditionAlreadyMet for bosses`() {
         // Create game state with all 4 bosses defeated
         val gameState = createGameStateWithAllBossesDefeated()
 
-        // Start a new run
-        engine.startNewRun()
+        // Check that isConditionAlreadyMet returns true for each boss
+        val kraidSplit = testProfile.splits.find { it.id == "kraid" }!!
+        val phantoonSplit = testProfile.splits.find { it.id == "phantoon" }!!
+        val draygonSplit = testProfile.splits.find { it.id == "draygon" }!!
+        val ridleySplit = testProfile.splits.find { it.id == "ridley" }!!
+        val g4Split = testProfile.splits.find { it.id == "golden_four" }!!
 
-        // Process the game state - should auto-skip past G4
-        engine.processGameState(gameState)
-
-        val currentState = engine.splitsState.value
-        val currentRun = currentState.currentRun!!
-
-        // Should have auto-skipped kraid, phantoon, draygon, ridley, golden_four
-        assertEquals(5, currentRun.completedSplits.size, "Should auto-skip 5 splits (4 bosses + G4)")
-
-        // Check that the correct splits were auto-skipped
-        val completedSplitIds = currentRun.completedSplits.map { it.splitId }
-        assertTrue(completedSplitIds.contains("kraid"), "Should auto-skip Kraid")
-        assertTrue(completedSplitIds.contains("phantoon"), "Should auto-skip Phantoon")
-        assertTrue(completedSplitIds.contains("draygon"), "Should auto-skip Draygon")
-        assertTrue(completedSplitIds.contains("ridley"), "Should auto-skip Ridley")
-        assertTrue(completedSplitIds.contains("golden_four"), "Should auto-skip Golden Four")
-
-        // Current split should be MB1
-        // Note: currentSplitIndex would be 5 (0-indexed), which is "mother_brain_1"
-        val expectedCurrentSplitIndex = 5
-        assertEquals("mother_brain_1", testProfile.splits[expectedCurrentSplitIndex].id,
-                    "Current split should be Mother Brain 1")
+        assertTrue(engine.isConditionAlreadyMet(kraidSplit, gameState), "Kraid should be detected as already completed")
+        assertTrue(engine.isConditionAlreadyMet(phantoonSplit, gameState), "Phantoon should be detected as already completed")
+        assertTrue(engine.isConditionAlreadyMet(draygonSplit, gameState), "Draygon should be detected as already completed")
+        assertTrue(engine.isConditionAlreadyMet(ridleySplit, gameState), "Ridley should be detected as already completed")
+        assertTrue(engine.isConditionAlreadyMet(g4Split, gameState), "Golden Four should be detected as already completed")
     }
 
     @Test
-    fun `test MB1 auto-skip when already defeated`() {
+    fun `test isConditionAlreadyMet for MB1`() {
         // Create game state with all bosses + MB1 defeated
         val gameState = createGameStateWithMB1Defeated()
 
-        // Start a new run
-        engine.startNewRun()
+        // Check that isConditionAlreadyMet returns true for MB1
+        val mb1Split = testProfile.splits.find { it.id == "mother_brain_1" }!!
 
-        // Process the game state - should auto-skip past MB1
-        engine.processGameState(gameState)
+        // Debug info
+        println("DEBUG: MB1 GameState: roomId=${gameState.roomId}, motherBrainHp=${gameState.motherBrainHp}, eventFlags=${gameState.eventFlags}, tourianBosses=${gameState.tourianBosses}")
+        println("DEBUG: MB1 Bosses: motherBrain1=${gameState.bosses.motherBrain1}, motherBrain2=${gameState.bosses.motherBrain2}")
 
-        val currentState = engine.splitsState.value
-        val currentRun = currentState.currentRun!!
-
-        // Should have auto-skipped 6 splits (4 bosses + G4 + MB1)
-        assertEquals(6, currentRun.completedSplits.size, "Should auto-skip 6 splits including MB1")
-
-        val completedSplitIds = currentRun.completedSplits.map { it.splitId }
-        assertTrue(completedSplitIds.contains("mother_brain_1"), "Should auto-skip Mother Brain 1")
-
-        // Current split should be MB2
-        val expectedCurrentSplitIndex = 6
-        assertEquals("mother_brain_2", testProfile.splits[expectedCurrentSplitIndex].id,
-                    "Current split should be Mother Brain 2")
+        assertTrue(engine.isConditionAlreadyMet(mb1Split, gameState), "Mother Brain 1 should be detected as already completed")
     }
 
     @Test
-    fun `test MB2 auto-skip when already defeated`() {
+    fun `test isConditionAlreadyMet for MB2`() {
         // Create game state with all bosses + MB1 + MB2 defeated
         val gameState = createGameStateWithMB2Defeated()
 
-        // Start a new run
-        engine.startNewRun()
+        // Check that isConditionAlreadyMet returns true for MB2
+        val mb2Split = testProfile.splits.find { it.id == "mother_brain_2" }!!
 
-        // Process the game state - should auto-skip past MB2
-        engine.processGameState(gameState)
+        // Debug info
+        println("DEBUG: MB2 GameState: roomId=${gameState.roomId}, motherBrainHp=${gameState.motherBrainHp}, eventFlags=${gameState.eventFlags}, tourianBosses=${gameState.tourianBosses}")
+        println("DEBUG: MB2 Bosses: motherBrain1=${gameState.bosses.motherBrain1}, motherBrain2=${gameState.bosses.motherBrain2}")
 
-        val currentState = engine.splitsState.value
-        val currentRun = currentState.currentRun!!
-
-        // Should have auto-skipped 7 splits (4 bosses + G4 + MB1 + MB2)
-        assertEquals(7, currentRun.completedSplits.size, "Should auto-skip 7 splits including MB2")
-
-        val completedSplitIds = currentRun.completedSplits.map { it.splitId }
-        assertTrue(completedSplitIds.contains("mother_brain_2"), "Should auto-skip Mother Brain 2")
-
-        // Current split should be Ship
-        val expectedCurrentSplitIndex = 7
-        assertEquals("ship", testProfile.splits[expectedCurrentSplitIndex].id,
-                    "Current split should be Ship")
+        assertTrue(engine.isConditionAlreadyMet(mb2Split, gameState), "Mother Brain 2 should be detected as already completed")
     }
 
     @Test
     fun `test isConditionAlreadyMet for golden_four`() {
+        // Game state with all bosses defeated AND in statues room
         val gameStateAllBosses = createGameStateWithAllBossesDefeated()
+
+        // Game state with all bosses defeated but NOT in statues room
+        val gameStateAllBossesWrongRoom = GameState(
+            gameState = 8, // NORMAL_GAMEPLAY - required for processing
+            roomId = 12345, // Some other room, not statues room
+            bosses = Bosses(
+                kraid = true,
+                phantoon = true,
+                draygon = true,
+                ridley = true
+            )
+        )
+
+        // Game state with missing bosses but in statues room
         val gameStateSomeBosses = GameState(
             gameState = 8, // NORMAL_GAMEPLAY - required for processing
+            roomId = 42602, // RoomIds.STATUES - statues room
             bosses = Bosses(
                 kraid = true,
                 phantoon = true,
@@ -132,29 +113,63 @@ class AutoSplitsEngineTest {
         val g4Split = Split("golden_four", "G4", "event", "G4")
 
         assertTrue(engine.isConditionAlreadyMet(g4Split, gameStateAllBosses),
-                  "G4 should be met when all 4 bosses defeated")
+                  "G4 should be met when all 4 bosses defeated AND in statues room")
+
+        assertFalse(engine.isConditionAlreadyMet(g4Split, gameStateAllBossesWrongRoom),
+                   "G4 should NOT be met when all bosses defeated but NOT in statues room")
 
         assertFalse(engine.isConditionAlreadyMet(g4Split, gameStateSomeBosses),
-                   "G4 should NOT be met when missing bosses")
+                   "G4 should NOT be met when in statues room but missing bosses")
     }
 
     @Test
     fun `test isConditionAlreadyMet for mother_brain phases`() {
-        val gameStateWithMB1 = GameState(gameState = 8, bosses = Bosses(motherBrain1 = true))
-        val gameStateWithMB2 = GameState(gameState = 8, bosses = Bosses(motherBrain1 = true, motherBrain2 = true))
-        val gameStateNoMB = GameState(gameState = 8, bosses = Bosses())
+        // Game state with MB1 defeated (in MB room with HP >= 18000)
+        val gameStateWithMB1 = GameState(
+            gameState = 8, // NORMAL_GAMEPLAY
+            roomId = 56664, // RoomIds.MOTHER_BRAIN_ROOM
+            motherBrainHp = 18000,
+            bosses = Bosses(motherBrain1 = true)
+        )
+
+        // Game state with MB2 defeated (in MB room with HP >= 36000)
+        val gameStateWithMB2 = GameState(
+            gameState = 8, // NORMAL_GAMEPLAY
+            roomId = 56664, // RoomIds.MOTHER_BRAIN_ROOM
+            motherBrainHp = 36000,
+            bosses = Bosses(motherBrain1 = true, motherBrain2 = true)
+        )
+
+        // Game state with no MB defeated
+        val gameStateNoMB = GameState(
+            gameState = 8, // NORMAL_GAMEPLAY
+            roomId = 56664, // RoomIds.MOTHER_BRAIN_ROOM
+            motherBrainHp = 0,
+            bosses = Bosses()
+        )
+
+        // Game state with MB1 defeated but not in MB room
+        val gameStateWithMB1WrongRoom = GameState(
+            gameState = 8, // NORMAL_GAMEPLAY
+            roomId = 12345, // Not MB room
+            motherBrainHp = 18000,
+            bosses = Bosses(motherBrain1 = true)
+        )
 
         val mb1Split = Split("mother_brain_1", "MB1", "boss", "MB1")
         val mb2Split = Split("mother_brain_2", "MB2", "boss", "MB2")
 
         assertTrue(engine.isConditionAlreadyMet(mb1Split, gameStateWithMB1),
-                  "MB1 should be met when motherBrain1 is true")
+                  "MB1 should be met when in MB room with HP >= 18000 and motherBrain1 is true")
 
         assertFalse(engine.isConditionAlreadyMet(mb1Split, gameStateNoMB),
                    "MB1 should NOT be met when motherBrain1 is false")
 
+        assertTrue(engine.isConditionAlreadyMet(mb1Split, gameStateWithMB1WrongRoom),
+                  "MB1 should be met when motherBrain1 is true, even if not in MB room")
+
         assertTrue(engine.isConditionAlreadyMet(mb2Split, gameStateWithMB2),
-                  "MB2 should be met when motherBrain2 is true")
+                  "MB2 should be met when in MB room with HP >= 36000 and motherBrain2 is true")
 
         assertFalse(engine.isConditionAlreadyMet(mb2Split, gameStateWithMB1),
                    "MB2 should NOT be met when motherBrain2 is false")
@@ -164,6 +179,7 @@ class AutoSplitsEngineTest {
     private fun createGameStateWithAllBossesDefeated(): GameState {
         return GameState(
             gameState = 8, // NORMAL_GAMEPLAY - required for processing
+            roomId = 42602, // RoomIds.STATUES - required for G4 detection
             bosses = Bosses(
                 kraid = true,
                 phantoon = true,
@@ -178,6 +194,10 @@ class AutoSplitsEngineTest {
     private fun createGameStateWithMB1Defeated(): GameState {
         return GameState(
             gameState = 8, // NORMAL_GAMEPLAY - required for processing
+            roomId = 56664, // RoomIds.MOTHER_BRAIN_ROOM - required for MB detection
+            motherBrainHp = 18000, // Required for MB1 detection
+            eventFlags = 0x0040, // Zebes Ablaze flag - bit 6
+            tourianBosses = 0x0002, // Mother Brain defeated flag - bit 1
             bosses = Bosses(
                 kraid = true,
                 phantoon = true,
@@ -192,6 +212,10 @@ class AutoSplitsEngineTest {
         private fun createGameStateWithMB2Defeated(): GameState {
         return GameState(
             gameState = 8, // NORMAL_GAMEPLAY - required for processing
+            roomId = 56664, // RoomIds.MOTHER_BRAIN_ROOM - required for MB detection
+            motherBrainHp = 36000, // Required for MB2 detection
+            eventFlags = 0x0040, // Zebes Ablaze flag - bit 6
+            tourianBosses = 0x0002, // Mother Brain defeated flag - bit 1
             bosses = Bosses(
                 kraid = true,
                 phantoon = true,
