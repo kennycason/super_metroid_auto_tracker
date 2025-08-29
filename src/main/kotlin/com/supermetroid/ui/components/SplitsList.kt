@@ -183,10 +183,13 @@ private fun SplitRow(
     val completedSplit = currentRun?.completedSplits?.find { it.splitId == split.id }
     val isCompleted = completedSplit != null
     val isActive = autoSplitsEngine.getCurrentSplit()?.id == split.id
-    val personalBest = splitsState.personalBests[currentRun?.profileId]?.splitTimes?.get(split.id)
+
+    // Use a default profileId ("kpdr-any") when currentRun is null to ensure BEST column is always shown
+    val profileId = currentRun?.profileId ?: "kpdr-any"
+    val personalBest = splitsState.personalBests[profileId]?.splitTimes?.get(split.id)
 
     // Calculate sum of best segments up to this point (including this split)
-    val profileSplitTimes = splitsState.personalBests[currentRun?.profileId]?.splitTimes
+    val profileSplitTimes = splitsState.personalBests[profileId]?.splitTimes
     val sumOfBestUpToHere = if (profileSplitTimes != null) {
         KpdrAnyProfile.profile.splits.take(splitIndex + 1).sumOf { s ->
             profileSplitTimes[s.id]?.segmentTime ?: 0L
