@@ -140,7 +140,7 @@ class GameStateService(
                         connected = true,
                         gameLoaded = gameLoaded,
                         retroarchVersion = "Unknown", // Could be detected via separate command
-                        gameInfo = if (gameLoaded) "Super Metroid (${gameState.areaName})" else "No game loaded"
+                        gameInfo = if (gameLoaded) "Super Metroid (${gameState.areaName})" else "No game"
                     ),
                     gameState = stableGameState,
                     lastUpdate = System.currentTimeMillis(),

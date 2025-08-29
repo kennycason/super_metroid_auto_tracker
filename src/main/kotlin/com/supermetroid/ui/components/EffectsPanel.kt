@@ -25,6 +25,7 @@ fun EffectsPanel(
     effectsState: PaletteEffectsState,
     onEffectTypeChanged: (EffectType) -> Unit,
     onIntensityChanged: (Float) -> Unit,
+    logoEffectsService: com.supermetroid.service.LogoEffectsService,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -34,104 +35,119 @@ fun EffectsPanel(
         ),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Title
-            Text(
-                text = "Map Effects",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    color = TrackerColors.Primary,
-                    fontWeight = FontWeight.Bold
-                ),
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            // Effect type selection
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                EffectButton(
-                    text = "Psychedelic",
-                    selected = effectsState.activeEffect == EffectType.PSYCHEDELIC,
-                    enabled = effectsState.enabled,
-                    onClick = { onEffectTypeChanged(EffectType.PSYCHEDELIC) }
-                )
-
-                EffectButton(
-                    text = "Neon",
-                    selected = effectsState.activeEffect == EffectType.NEON,
-                    enabled = effectsState.enabled,
-                    onClick = { onEffectTypeChanged(EffectType.NEON) }
-                )
-            }
-
-            // Second row of effect buttons
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                EffectButton(
-                    text = "Rainbow",
-                    selected = effectsState.activeEffect == EffectType.RAINBOW,
-                    enabled = effectsState.enabled,
-                    onClick = { onEffectTypeChanged(EffectType.RAINBOW) }
-                )
-
-                EffectButton(
-                    text = "Grayscale",
-                    selected = effectsState.activeEffect == EffectType.GRAYSCALE,
-                    enabled = effectsState.enabled,
-                    onClick = { onEffectTypeChanged(EffectType.GRAYSCALE) }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Intensity slider
+            // Left Column - Map Effects
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Title
                 Text(
-                    text = "Intensity",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = TrackerColors.OnSurface
-                    )
+                    text = "Game Effects",
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        color = TrackerColors.Primary,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    modifier = Modifier.padding(bottom = 6.dp)
                 )
 
-                Slider(
-                    value = effectsState.intensity,
-                    onValueChange = onIntensityChanged,
-                    enabled = effectsState.enabled,
-                    valueRange = 0f..1f,
-                    steps = 10,
-                    colors = SliderDefaults.colors(
-                        thumbColor = TrackerColors.Primary,
-                        activeTrackColor = TrackerColors.Primary,
-                        inactiveTrackColor = TrackerColors.OnSurfaceVariant
-                    ),
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+                // Effect type selection
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    EffectButton(
+                        text = "Psyche",
+                        selected = effectsState.activeEffect == EffectType.PSYCHEDELIC,
+                        enabled = effectsState.enabled,
+                        onClick = { onEffectTypeChanged(EffectType.PSYCHEDELIC) }
+                    )
+
+                    EffectButton(
+                        text = "Neon",
+                        selected = effectsState.activeEffect == EffectType.NEON,
+                        enabled = effectsState.enabled,
+                        onClick = { onEffectTypeChanged(EffectType.NEON) }
+                    )
+                }
+
+                // Second row of effect buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    EffectButton(
+                        text = "Rainbow",
+                        selected = effectsState.activeEffect == EffectType.RAINBOW,
+                        enabled = effectsState.enabled,
+                        onClick = { onEffectTypeChanged(EffectType.RAINBOW) }
+                    )
+
+                    EffectButton(
+                        text = "Gray",
+                        selected = effectsState.activeEffect == EffectType.GRAYSCALE,
+                        enabled = effectsState.enabled,
+                        onClick = { onEffectTypeChanged(EffectType.GRAYSCALE) }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Intensity slider
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Intensity",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = TrackerColors.OnSurface
+                        )
+                    )
+
+                    Slider(
+                        value = effectsState.intensity,
+                        onValueChange = onIntensityChanged,
+                        enabled = effectsState.enabled,
+                        valueRange = 0f..1f,
+                        steps = 10,
+                        colors = SliderDefaults.colors(
+                            thumbColor = TrackerColors.Primary,
+                            activeTrackColor = TrackerColors.Primary,
+                            inactiveTrackColor = TrackerColors.OnSurfaceVariant
+                        ),
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                }
             }
 
-            // Status text
+            // Right Column - Logo Effects
+            LogoEffectsSection(
+                logoEffectsService = logoEffectsService,
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        // Status text at bottom
+        Box(
+            modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+            contentAlignment = Alignment.Center
+        ) {
             if (effectsState.enabled) {
                 Text(
                     text = "Effects Active",
                     style = MaterialTheme.typography.bodySmall.copy(
                         color = TrackerColors.Success
-                    ),
-                    modifier = Modifier.padding(top = 4.dp)
+                    )
                 )
             } else {
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(top = 4.dp)
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = "Effects Disabled",
@@ -177,13 +193,153 @@ private fun EffectButton(
             disabledContainerColor = TrackerColors.SurfaceOverlayLight.copy(alpha = 0.5f),
             disabledContentColor = TrackerColors.OnSurfaceVariant
         ),
-        shape = RoundedCornerShape(8.dp),
-        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-        modifier = Modifier.height(32.dp)
+        shape = RoundedCornerShape(6.dp),
+        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 3.dp),
+        modifier = Modifier.height(24.dp)
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.labelMedium
+            style = MaterialTheme.typography.labelSmall
         )
+    }
+}
+
+@Composable
+private fun TileSizeButton(
+    text: String,
+    size: Int,
+    logoEffectsService: com.supermetroid.service.LogoEffectsService,
+    currentTileSize: Int
+) {
+    val isSelected = currentTileSize == size
+    
+    Button(
+        onClick = { logoEffectsService.setTileSwapSize(size) },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (isSelected) TrackerColors.Primary else TrackerColors.SurfaceOverlayLight,
+            contentColor = if (isSelected) TrackerColors.OnPrimary else TrackerColors.OnSurface
+        ),
+        shape = RoundedCornerShape(4.dp),
+        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+        modifier = Modifier.height(20.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp)
+        )
+    }
+}
+
+/**
+ * Logo effects section for the right column
+ */
+@Composable
+private fun LogoEffectsSection(
+    logoEffectsService: com.supermetroid.service.LogoEffectsService,
+    modifier: Modifier = Modifier
+) {
+    val logoState by logoEffectsService.logoState.collectAsState()
+    val currentTileSize by logoEffectsService.currentTileSize.collectAsState()
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Title
+        Text(
+            text = "Logo Effects",
+            style = MaterialTheme.typography.titleSmall.copy(
+                color = TrackerColors.Primary,
+                fontWeight = FontWeight.Bold
+            ),
+            modifier = Modifier.padding(bottom = 6.dp)
+        )
+
+        // Logo effect buttons
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            EffectButton(
+                text = "None",
+                selected = logoState.activeEffect == com.supermetroid.service.LogoEffectType.NONE,
+                enabled = true,
+                onClick = { logoEffectsService.setEffectType(com.supermetroid.service.LogoEffectType.NONE) }
+            )
+
+            EffectButton(
+                text = "Noise",
+                selected = logoState.activeEffect == com.supermetroid.service.LogoEffectType.NOISE,
+                enabled = true,
+                onClick = { logoEffectsService.setEffectType(com.supermetroid.service.LogoEffectType.NOISE) }
+            )
+        }
+
+        // Second row
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            EffectButton(
+                text = "Swap",
+                selected = logoState.activeEffect == com.supermetroid.service.LogoEffectType.PIXEL_SWAP,
+                enabled = true,
+                onClick = { logoEffectsService.setEffectType(com.supermetroid.service.LogoEffectType.PIXEL_SWAP) }
+            )
+
+            // Placeholder for future effect
+            EffectButton(
+                text = "Future",
+                selected = false,
+                enabled = false,
+                onClick = { }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+        
+        // Tile size controls
+        Text(
+            text = "Tile Size",
+            style = MaterialTheme.typography.bodySmall.copy(color = TrackerColors.OnSurface)
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            TileSizeButton(text = "1px", size = 1, logoEffectsService = logoEffectsService, currentTileSize = currentTileSize)
+            TileSizeButton(text = "5px", size = 5, logoEffectsService = logoEffectsService, currentTileSize = currentTileSize)
+            TileSizeButton(text = "10px", size = 10, logoEffectsService = logoEffectsService, currentTileSize = currentTileSize)
+            TileSizeButton(text = "15px", size = 15, logoEffectsService = logoEffectsService, currentTileSize = currentTileSize)
+        }
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // Logo intensity slider
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Intensity",
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = TrackerColors.OnSurface
+                )
+            )
+
+            Slider(
+                value = logoState.intensity,
+                onValueChange = { logoEffectsService.setIntensity(it) },
+                enabled = true,
+                valueRange = 0f..1f,
+                steps = 20,
+                colors = SliderDefaults.colors(
+                    thumbColor = TrackerColors.Primary,
+                    activeTrackColor = TrackerColors.Primary,
+                    inactiveTrackColor = TrackerColors.OnSurfaceVariant
+                ),
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
+        }
     }
 }

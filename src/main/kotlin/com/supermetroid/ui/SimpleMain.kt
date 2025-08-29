@@ -32,11 +32,13 @@ val gameStateService = GameStateService()
 val autoSplitsEngine = AutoSplitsEngine()
 val fileStorageService = FileStorageService()
 val paletteEffectsService = PaletteEffectsService(gameStateService.getUdpClient())
+val logoEffectsService = com.supermetroid.service.LogoEffectsService()
 
 fun main() = application {
     Window(
         onCloseRequest = {
             gameStateService.stop()
+            logoEffectsService.stop()
             exitApplication()
         },
         title = "Super Metroid Tracker",
@@ -175,6 +177,7 @@ fun SimpleTwoColumnLayout(
     var showSplits by remember { mutableStateOf(true) }
     var showTimer by remember { mutableStateOf(true) }
     var showEffects by remember { mutableStateOf(false) }
+    var showLogo by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -189,6 +192,15 @@ fun SimpleTwoColumnLayout(
         // )
 
         // Spacer(modifier = Modifier.height(8.dp))
+
+        // Logo Effects panel - Above status grid when visible
+        if (showLogo) {
+            LogoEffectsPanel(
+                logoEffectsService = logoEffectsService,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+        }
 
         // TALL LAYOUT: Status Grid at top, Timer below, then Splits at bottom
         // Status Grid (Icons) - Fixed height, non-stretchable
@@ -245,6 +257,7 @@ fun SimpleTwoColumnLayout(
                         paletteEffectsService.setIntensity(intensity)
                     }
                 },
+                logoEffectsService = logoEffectsService,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(6.dp)) // Halved from 12dp
@@ -258,7 +271,9 @@ fun SimpleTwoColumnLayout(
         ) {
             // Connection status (left side)
             Text(
-                text = "${if (trackerState.connection.connected) "Connected" else "Disconnected"}${if (trackerState.connection.gameLoaded) " | Game Loaded" else ""}",
+                text = if (trackerState.connection.connected) {
+                    if (trackerState.connection.gameLoaded) "Connected" else "No Game"
+                } else "Disconnected",
                 style = MaterialTheme.typography.labelSmall.copy(
                     color = if (trackerState.connection.connected) TrackerColors.Success else TrackerColors.Error
                 )
@@ -314,6 +329,24 @@ fun SimpleTwoColumnLayout(
                     )
                 }
 
+                // Logo toggle
+                TextButton(
+                    onClick = {
+                        showLogo = !showLogo
+                        println("[DEBUG_LOG] Logo button clicked: ${if (showLogo) "showing" else "hiding"} logo panel")
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = if (showLogo) TrackerColors.Success else TrackerColors.OnSurfaceVariant
+                    ),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                    modifier = Modifier.height(20.dp)
+                ) {
+                    Text(
+                        text = "logo",
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
+
                 // Effects toggle
                 TextButton(
                     onClick = {
@@ -321,27 +354,29 @@ fun SimpleTwoColumnLayout(
                         showEffects = !showEffects
                         println("[DEBUG_LOG] Effects button clicked: ${if (wasShowing) "hiding" else "showing"} effects panel")
 
-                        // Start or stop the effects service when toggled
+                        // Start or stop the effects services when toggled
                         CoroutineScope(Dispatchers.Swing).launch {
                             if (showEffects && !effectsState.enabled) {
-                                println("[DEBUG_LOG] Starting effects service...")
+                                println("[DEBUG_LOG] Starting effects services...")
                                 try {
                                     paletteEffectsService.start()
-                                    println("[DEBUG_LOG] Effects service started successfully")
+                                    logoEffectsService.start()
+                                    println("[DEBUG_LOG] Effects services started successfully")
                                 } catch (e: Exception) {
                                     // Error is already logged and error message is set in the service
                                     // Just catch the exception to prevent app crash
-                                    println("[DEBUG_LOG] Failed to start effects service: ${e.message}")
+                                    println("[DEBUG_LOG] Failed to start effects services: ${e.message}")
                                     println("[DEBUG_LOG] Exception type: ${e.javaClass.name}")
                                     e.printStackTrace() // Print stack trace for debugging
                                 }
                             } else if (!showEffects && effectsState.enabled) {
-                                println("[DEBUG_LOG] Stopping effects service...")
+                                println("[DEBUG_LOG] Stopping effects services...")
                                 try {
                                     paletteEffectsService.stop()
-                                    println("[DEBUG_LOG] Effects service stopped successfully")
+                                    logoEffectsService.stop()
+                                    println("[DEBUG_LOG] Effects services stopped successfully")
                                 } catch (e: Exception) {
-                                    println("[DEBUG_LOG] Failed to stop effects service: ${e.message}")
+                                    println("[DEBUG_LOG] Failed to stop effects services: ${e.message}")
                                     println("[DEBUG_LOG] Exception type: ${e.javaClass.name}")
                                     e.printStackTrace() // Print stack trace for debugging
                                 }
