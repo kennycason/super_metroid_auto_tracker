@@ -192,6 +192,7 @@ class LogoEffectsService {
                             originalImage!!.toComposeImageBitmap()
                         }
                     }
+                    LogoEffectType.WAVE -> applyContinuousWaveEffect(originalImage!!, currentState.intensity, currentTime)
                     LogoEffectType.NONE -> originalImage!!.toComposeImageBitmap()
                 }
                 
@@ -388,6 +389,76 @@ class LogoEffectsService {
     )
     
     /**
+     * Apply continuous 2D wave distortion effect with smooth transitions
+     */
+    private fun applyContinuousWaveEffect(originalImg: BufferedImage, intensity: Float, timeSeconds: Double): ImageBitmap {
+        val width = originalImg.width
+        val height = originalImg.height
+        val distortedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
+        
+        // Multiple wave parameters that change over time for trippy effects
+        val time = timeSeconds.toFloat()
+        
+        // Primary wave parameters (slow morphing)
+        val waveAmplitudeX = 8.0f * intensity * (1.0f + 0.3f * sin(time * 0.2f))
+        val waveAmplitudeY = 6.0f * intensity * (1.0f + 0.4f * cos(time * 0.25f))
+        val waveFrequencyX = 0.02f * (1.0f + 0.2f * sin(time * 0.15f))
+        val waveFrequencyY = 0.025f * (1.0f + 0.3f * cos(time * 0.18f))
+        
+        // Secondary wave parameters (medium speed)
+        val waveAmplitudeX2 = 4.0f * intensity * (1.0f + 0.5f * cos(time * 0.35f))
+        val waveAmplitudeY2 = 5.0f * intensity * (1.0f + 0.4f * sin(time * 0.3f))
+        val waveFrequencyX2 = 0.04f * (1.0f + 0.3f * cos(time * 0.22f))
+        val waveFrequencyY2 = 0.03f * (1.0f + 0.2f * sin(time * 0.28f))
+        
+        // Tertiary wave parameters (faster, more chaotic)
+        val waveAmplitudeX3 = 2.0f * intensity * (1.0f + 0.7f * sin(time * 0.8f))
+        val waveAmplitudeY3 = 3.0f * intensity * (1.0f + 0.6f * cos(time * 0.7f))
+        val waveFrequencyX3 = 0.08f * (1.0f + 0.4f * sin(time * 0.45f))
+        val waveFrequencyY3 = 0.06f * (1.0f + 0.5f * cos(time * 0.5f))
+        
+        // Phase shifts for more complex patterns
+        val phaseX = time * 0.5f
+        val phaseY = time * 0.4f
+        val phaseX2 = time * 0.3f
+        val phaseY2 = time * 0.6f
+        val phaseX3 = time * 1.2f
+        val phaseY3 = time * 0.9f
+        
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                // Calculate multiple wave distortions and combine them
+                val distortX1 = waveAmplitudeX * sin(y * waveFrequencyY + phaseX)
+                val distortY1 = waveAmplitudeY * cos(x * waveFrequencyX + phaseY)
+                
+                val distortX2 = waveAmplitudeX2 * sin(y * waveFrequencyY2 + phaseX2)
+                val distortY2 = waveAmplitudeY2 * cos(x * waveFrequencyX2 + phaseY2)
+                
+                val distortX3 = waveAmplitudeX3 * sin(y * waveFrequencyY3 + phaseX3)
+                val distortY3 = waveAmplitudeY3 * cos(x * waveFrequencyX3 + phaseY3)
+                
+                // Combine all distortions
+                val totalDistortX = distortX1 + distortX2 + distortX3
+                val totalDistortY = distortY1 + distortY2 + distortY3
+                
+                // Calculate source coordinates with wrapping
+                val sourceX = (x + totalDistortX).toInt()
+                val sourceY = (y + totalDistortY).toInt()
+                
+                // Wrap coordinates around the image for seamless distortion
+                val wrappedX = ((sourceX % width) + width) % width
+                val wrappedY = ((sourceY % height) + height) % height
+                
+                // Sample the pixel from the wrapped coordinates
+                val color = originalImg.getRGB(wrappedX, wrappedY)
+                distortedImage.setRGB(x, y, color)
+            }
+        }
+        
+        return distortedImage.toComposeImageBitmap()
+    }
+    
+    /**
      * Convert BufferedImage to Compose ImageBitmap
      */
     private fun BufferedImage.toComposeImageBitmap(): ImageBitmap {
@@ -416,7 +487,8 @@ data class LogoEffectsState(
 enum class LogoEffectType {
     NONE,
     NOISE,
-    PIXEL_SWAP
+    PIXEL_SWAP,
+    WAVE
 }
 
 /**

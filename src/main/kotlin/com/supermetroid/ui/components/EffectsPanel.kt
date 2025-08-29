@@ -287,12 +287,12 @@ private fun LogoEffectsSection(
                 onClick = { logoEffectsService.setEffectType(com.supermetroid.service.LogoEffectType.PIXEL_SWAP) }
             )
 
-            // Placeholder for future effect
+            // Wave effect button
             EffectButton(
-                text = "Future",
-                selected = false,
-                enabled = false,
-                onClick = { }
+                text = "Wave",
+                selected = logoState.activeEffect == com.supermetroid.service.LogoEffectType.WAVE,
+                enabled = true,
+                onClick = { logoEffectsService.setEffectType(com.supermetroid.service.LogoEffectType.WAVE) }
             )
         }
 
