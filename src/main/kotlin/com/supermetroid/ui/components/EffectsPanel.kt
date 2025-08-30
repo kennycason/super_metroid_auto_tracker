@@ -189,7 +189,7 @@ private fun EffectButton(
         enabled = enabled,
         colors = ButtonDefaults.buttonColors(
             containerColor = if (selected) TrackerColors.Primary else TrackerColors.SurfaceOverlayLight,
-            contentColor = if (selected) TrackerColors.OnPrimary else TrackerColors.OnSurface,
+            contentColor = if (selected) TrackerColors.Background else TrackerColors.OnSurface, // Use dark background color for high contrast
             disabledContainerColor = TrackerColors.SurfaceOverlayLight.copy(alpha = 0.5f),
             disabledContentColor = TrackerColors.OnSurfaceVariant
         ),
@@ -217,7 +217,7 @@ private fun TileSizeButton(
         onClick = { logoEffectsService.setTileSwapSize(size) },
         colors = ButtonDefaults.buttonColors(
             containerColor = if (isSelected) TrackerColors.Primary else TrackerColors.SurfaceOverlayLight,
-            contentColor = if (isSelected) TrackerColors.OnPrimary else TrackerColors.OnSurface
+            contentColor = if (isSelected) TrackerColors.Background else TrackerColors.OnSurface // Use dark background color for high contrast
         ),
         shape = RoundedCornerShape(4.dp),
         contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),

@@ -220,10 +220,11 @@ class LogoEffectsService {
                 val green = (originalColor shr 8) and 0xFF
                 val blue = originalColor and 0xFF
                 
-                // Apply multiple noise layers with morphing coefficients
-                val noiseR = calculateNoise(x, y, time, noiseCoefficients.redCoeffs) * intensity * 60
-                val noiseG = calculateNoise(x, y, time, noiseCoefficients.greenCoeffs) * intensity * 60
-                val noiseB = calculateNoise(x, y, time, noiseCoefficients.blueCoeffs) * intensity * 60
+                // Apply multiple noise layers with exponential intensity scaling for more dramatic effect
+                val scaledIntensity = intensity * intensity * 80 // Exponential scaling for more dramatic low-end control
+                val noiseR = calculateNoise(x, y, time, noiseCoefficients.redCoeffs) * scaledIntensity
+                val noiseG = calculateNoise(x, y, time, noiseCoefficients.greenCoeffs) * scaledIntensity
+                val noiseB = calculateNoise(x, y, time, noiseCoefficients.blueCoeffs) * scaledIntensity
                 
                 // Apply noise to each color channel
                 val newRed = (red + noiseR).coerceIn(0.0, 255.0).toInt()
@@ -251,9 +252,15 @@ class LogoEffectsService {
             return workingImg.toComposeImageBitmap()
         }
         
-        // Fewer tile swaps but much more dramatic!
-        val baseTileSwapCount = 6 // Fewer swaps since each swap is much bigger
-        val swapCount = (baseTileSwapCount * intensity).toInt().coerceAtLeast(2)
+        // Make intensity have much more dramatic effect on swap rate
+        val maxTileSwapCount = 8 // Maximum swaps per frame at full intensity  
+        val minTileSwapCount = 0.1f // Very slow at low intensity
+        val swapCount = if (intensity < 0.1f) {
+            // At very low intensity, only swap occasionally (every few frames)
+            if (frameCount % (20 - (intensity * 100).toInt()) == 0) 1 else 0
+        } else {
+            (minTileSwapCount + (maxTileSwapCount - minTileSwapCount) * intensity).toInt().coerceAtLeast(1)
+        }
         val random = Random(frameCount) // Use frame count for variety
         
         // Convert last position to grid coordinates
@@ -399,21 +406,24 @@ class LogoEffectsService {
         // Multiple wave parameters that change over time for trippy effects
         val time = timeSeconds.toFloat()
         
+        // Exponential intensity scaling for more dramatic low-end control
+        val scaledIntensity = intensity * intensity
+        
         // Primary wave parameters (slow morphing)
-        val waveAmplitudeX = 8.0f * intensity * (1.0f + 0.3f * sin(time * 0.2f))
-        val waveAmplitudeY = 6.0f * intensity * (1.0f + 0.4f * cos(time * 0.25f))
+        val waveAmplitudeX = 10.0f * scaledIntensity * (1.0f + 0.3f * sin(time * 0.2f))
+        val waveAmplitudeY = 8.0f * scaledIntensity * (1.0f + 0.4f * cos(time * 0.25f))
         val waveFrequencyX = 0.02f * (1.0f + 0.2f * sin(time * 0.15f))
         val waveFrequencyY = 0.025f * (1.0f + 0.3f * cos(time * 0.18f))
         
         // Secondary wave parameters (medium speed)
-        val waveAmplitudeX2 = 4.0f * intensity * (1.0f + 0.5f * cos(time * 0.35f))
-        val waveAmplitudeY2 = 5.0f * intensity * (1.0f + 0.4f * sin(time * 0.3f))
+        val waveAmplitudeX2 = 6.0f * scaledIntensity * (1.0f + 0.5f * cos(time * 0.35f))
+        val waveAmplitudeY2 = 7.0f * scaledIntensity * (1.0f + 0.4f * sin(time * 0.3f))
         val waveFrequencyX2 = 0.04f * (1.0f + 0.3f * cos(time * 0.22f))
         val waveFrequencyY2 = 0.03f * (1.0f + 0.2f * sin(time * 0.28f))
         
         // Tertiary wave parameters (faster, more chaotic)
-        val waveAmplitudeX3 = 2.0f * intensity * (1.0f + 0.7f * sin(time * 0.8f))
-        val waveAmplitudeY3 = 3.0f * intensity * (1.0f + 0.6f * cos(time * 0.7f))
+        val waveAmplitudeX3 = 4.0f * scaledIntensity * (1.0f + 0.7f * sin(time * 0.8f))
+        val waveAmplitudeY3 = 5.0f * scaledIntensity * (1.0f + 0.6f * cos(time * 0.7f))
         val waveFrequencyX3 = 0.08f * (1.0f + 0.4f * sin(time * 0.45f))
         val waveFrequencyY3 = 0.06f * (1.0f + 0.5f * cos(time * 0.5f))
         
