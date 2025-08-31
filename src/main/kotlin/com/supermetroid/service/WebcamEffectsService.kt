@@ -1,6 +1,5 @@
 package com.supermetroid.service
 
-import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import kotlinx.coroutines.*
@@ -14,26 +13,27 @@ import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * Service for applying continuous effects to the Metroid logo
+ * Service for applying visual effects to webcam frames
+ * Reuses the same effects system as LogoEffectsService
  */
-class LogoEffectsService {
+class WebcamEffectsService {
     private var effectsJob: Job? = null
-    private var originalImage: BufferedImage? = null
-    private var workingImage: BufferedImage? = null // For accumulating swaps
+    private var originalFrame: BufferedImage? = null
+    private var workingFrame: BufferedImage? = null // For accumulating swaps
     
     // Effect state
-    private val _logoState = MutableStateFlow(
-        LogoEffectsState(
-            logoImage = null,
+    private val _webcamEffectsState = MutableStateFlow(
+        WebcamEffectsState(
+            processedFrame = null,
             activeEffect = LogoEffectType.NONE,
             intensity = 0.5f,
             isRunning = false
         )
     )
-    val logoState: StateFlow<LogoEffectsState> = _logoState.asStateFlow()
+    val webcamEffectsState: StateFlow<WebcamEffectsState> = _webcamEffectsState.asStateFlow()
     
     // Dynamic coefficients for more varied noise
-    private var noiseCoefficients = NoiseCoefficients()
+    private var noiseCoefficients = com.supermetroid.service.NoiseCoefficients()
     private var lastCoefficientUpdateTime = 0.0
     
     // Swap accumulation tracking
@@ -52,57 +52,30 @@ class LogoEffectsService {
     private val _currentTileSize = MutableStateFlow(5)
     val currentTileSize: StateFlow<Int> = _currentTileSize.asStateFlow()
     
-    init {
-        loadOriginalImage()
-    }
-    
     /**
-     * Load the original logo image
-     */
-    private fun loadOriginalImage() {
-        try {
-            val resource = LogoEffectsService::class.java.getResourceAsStream("/metroid_390x390.jpeg")
-            if (resource != null) {
-                originalImage = ImageIO.read(resource)
-                // Initialize working image as a copy of the original
-                workingImage = BufferedImage(originalImage!!.width, originalImage!!.height, BufferedImage.TYPE_INT_RGB).apply {
-                    graphics.drawImage(originalImage, 0, 0, null)
-                    graphics.dispose()
-                }
-                _logoState.value = _logoState.value.copy(
-                    logoImage = originalImage?.asImageBitmap()
-                )
-                resource.close()
-            }
-        } catch (e: Exception) {
-            println("[DEBUG_LOG] Failed to load logo image: ${e.message}")
-        }
-    }
-    
-    /**
-     * Start the logo effects service
+     * Start the webcam effects service
      */
     fun start() {
         if (effectsJob?.isActive == true) return
         
         effectsJob = CoroutineScope(Dispatchers.Default).launch {
-            _logoState.value = _logoState.value.copy(isRunning = true)
+            _webcamEffectsState.value = _webcamEffectsState.value.copy(isRunning = true)
             effectsLoop()
         }
     }
     
     /**
-     * Stop the logo effects service
+     * Stop the webcam effects service
      */
     fun stop() {
         effectsJob?.cancel()
         effectsJob = null
-        _logoState.value = _logoState.value.copy(isRunning = false)
+        _webcamEffectsState.value = _webcamEffectsState.value.copy(isRunning = false)
         
-        // Reset to original image and clear swap counter
-        originalImage?.let { original ->
-            // Reset working image to original
-            workingImage = BufferedImage(original.width, original.height, BufferedImage.TYPE_INT_RGB).apply {
+        // Reset to original frame and clear swap counter
+        originalFrame?.let { original ->
+            // Reset working frame to original
+            workingFrame = BufferedImage(original.width, original.height, BufferedImage.TYPE_INT_RGB).apply {
                 graphics.drawImage(original, 0, 0, null)
                 graphics.dispose()
             }
@@ -112,10 +85,42 @@ class LogoEffectsService {
             lastGridX = -1
             lastGridY = -1
             
-            _logoState.value = _logoState.value.copy(
-                logoImage = original.asImageBitmap(),
+            _webcamEffectsState.value = _webcamEffectsState.value.copy(
+                processedFrame = original.asImageBitmap(),
                 activeEffect = LogoEffectType.NONE
             )
+        }
+    }
+    
+    /**
+     * Process a new webcam frame with effects
+     */
+    fun processFrame(frame: ImageBitmap) {
+        try {
+            // Convert ImageBitmap to BufferedImage
+            val bufferedFrame = frame.toBufferedImage()
+            
+            // Store as original frame
+            originalFrame = bufferedFrame
+            
+            // Initialize working frame if needed
+            if (workingFrame == null || 
+                workingFrame!!.width != bufferedFrame.width || 
+                workingFrame!!.height != bufferedFrame.height) {
+                workingFrame = BufferedImage(bufferedFrame.width, bufferedFrame.height, BufferedImage.TYPE_INT_RGB).apply {
+                    graphics.drawImage(bufferedFrame, 0, 0, null)
+                    graphics.dispose()
+                }
+            } else {
+                // Update working frame with new frame data
+                workingFrame!!.graphics.apply {
+                    drawImage(bufferedFrame, 0, 0, null)
+                    dispose()
+                }
+            }
+            
+        } catch (e: Exception) {
+            println("[WEBCAM_EFFECTS] Error processing frame: ${e.message}")
         }
     }
     
@@ -123,12 +128,12 @@ class LogoEffectsService {
      * Set the active effect type
      */
     fun setEffectType(effectType: LogoEffectType) {
-        println("[DEBUG_LOG] Setting logo effect type to: $effectType")
+        println("[WEBCAM_EFFECTS] Setting effect type to: $effectType")
         
-        // Reset working image when changing effects
-        originalImage?.let { original ->
-            // Reset working image to original
-            workingImage = BufferedImage(original.width, original.height, BufferedImage.TYPE_INT_RGB).apply {
+        // Reset working frame when changing effects
+        originalFrame?.let { original ->
+            // Reset working frame to original
+            workingFrame = BufferedImage(original.width, original.height, BufferedImage.TYPE_INT_RGB).apply {
                 graphics.drawImage(original, 0, 0, null)
                 graphics.dispose()
             }
@@ -140,12 +145,12 @@ class LogoEffectsService {
             
             // If stopping effects, reset to original
             if (effectType == LogoEffectType.NONE) {
-                _logoState.value = _logoState.value.copy(
+                _webcamEffectsState.value = _webcamEffectsState.value.copy(
                     activeEffect = effectType,
-                    logoImage = original.asImageBitmap()
+                    processedFrame = original.asImageBitmap()
                 )
             } else {
-                _logoState.value = _logoState.value.copy(activeEffect = effectType)
+                _webcamEffectsState.value = _webcamEffectsState.value.copy(activeEffect = effectType)
             }
         }
     }
@@ -154,13 +159,13 @@ class LogoEffectsService {
      * Set the effect intensity
      */
     fun setIntensity(intensity: Float) {
-        _logoState.value = _logoState.value.copy(intensity = intensity.coerceIn(0f, 1f))
+        _webcamEffectsState.value = _webcamEffectsState.value.copy(intensity = intensity.coerceIn(0f, 1f))
     }
     
     fun setTileSwapSize(size: Int) {
-        tileSwapSize = size.coerceIn(1, 50) // Limit between 1x1 and 50x50 (increased for 30px support)
+        tileSwapSize = size.coerceIn(1, 50)
         _currentTileSize.value = tileSwapSize
-        println("[DEBUG_LOG] Tile swap size set to: ${tileSwapSize}x${tileSwapSize}")
+        println("[WEBCAM_EFFECTS] Tile swap size set to: ${tileSwapSize}x${tileSwapSize}")
     }
     
     /**
@@ -180,30 +185,32 @@ class LogoEffectsService {
                 lastCoefficientUpdateTime = currentTime
             }
             
-            // Apply current effect if enabled (get fresh state each time)
-            val currentState = _logoState.value
-            if (currentState.activeEffect != LogoEffectType.NONE && originalImage != null) {
+            // Apply current effect if enabled and we have a frame
+            val currentState = _webcamEffectsState.value
+            if (currentState.activeEffect != LogoEffectType.NONE && originalFrame != null) {
                 val newImage = when (currentState.activeEffect) {
-                    LogoEffectType.NOISE -> applyContinuousNoiseEffect(originalImage!!, currentState.intensity, currentTime)
+                    LogoEffectType.NOISE -> applyContinuousNoiseEffect(originalFrame!!, currentState.intensity, currentTime)
                     LogoEffectType.PIXEL_SWAP -> {
-                        if (workingImage != null) {
-                            applyAccumulativePixelSwapEffect(workingImage!!, currentState.intensity, frameCount)
+                        if (workingFrame != null) {
+                            applyAccumulativePixelSwapEffect(workingFrame!!, currentState.intensity, frameCount)
                         } else {
-                            originalImage!!.asImageBitmap()
+                            originalFrame!!.asImageBitmap()
                         }
                     }
-                    LogoEffectType.WAVE -> applyContinuousWaveEffect(originalImage!!, currentState.intensity, currentTime)
-                    LogoEffectType.NONE -> originalImage!!.asImageBitmap()
+                    LogoEffectType.WAVE -> applyContinuousWaveEffect(originalFrame!!, currentState.intensity, currentTime)
+                    LogoEffectType.NONE -> originalFrame!!.asImageBitmap()
                 }
                 
                 // Only update the image, preserve all other state
-                _logoState.value = _logoState.value.copy(logoImage = newImage)
+                _webcamEffectsState.value = _webcamEffectsState.value.copy(processedFrame = newImage)
             }
             
             // Run at ~30 FPS for smooth animation
             delay(33.milliseconds)
         }
     }
+    
+    // === EFFECT IMPLEMENTATIONS (copied from LogoEffectsService) ===
     
     /**
      * Apply continuous noise effect with morphing coefficients
@@ -240,7 +247,7 @@ class LogoEffectsService {
     }
     
     /**
-     * Apply accumulative grid-aligned tile swapping effect (like sliding puzzle games)
+     * Apply accumulative grid-aligned tile swapping effect
      */
     private fun applyAccumulativePixelSwapEffect(workingImg: BufferedImage, intensity: Float, frameCount: Int): ImageBitmap {
         // Calculate grid dimensions
@@ -248,37 +255,34 @@ class LogoEffectsService {
         val tilesY = workingImg.height / tileSwapSize
         
         if (tilesX <= 1 || tilesY <= 1) {
-            // Not enough tiles to make a meaningful grid
             return workingImg.asImageBitmap()
         }
         
-        // Make intensity have much more dramatic effect on swap rate
-        val maxTileSwapCount = 8 // Maximum swaps per frame at full intensity  
-        val minTileSwapCount = 0.1f // Very slow at low intensity
+        // Make intensity have dramatic effect on swap rate
+        val maxTileSwapCount = 8
+        val minTileSwapCount = 0.1f
         val swapCount = if (intensity < 0.1f) {
-            // At very low intensity, only swap occasionally (every few frames)
             if (frameCount % (20 - (intensity * 100).toInt()) == 0) 1 else 0
         } else {
             (minTileSwapCount + (maxTileSwapCount - minTileSwapCount) * intensity).toInt().coerceAtLeast(1)
         }
-        val random = Random(frameCount) // Use frame count for variety
+        val random = Random(frameCount)
         
         // Convert last position to grid coordinates
         var currentGridX = if (lastSwapX >= 0) (lastSwapX / tileSwapSize).coerceIn(0, tilesX - 1) else random.nextInt(tilesX)
         var currentGridY = if (lastSwapY >= 0) (lastSwapY / tileSwapSize).coerceIn(0, tilesY - 1) else random.nextInt(tilesY)
         
         repeat(swapCount) {
-            // Get all valid neighbor directions (8-directional movement for perfect continuity)
+            // Get all valid neighbor directions
             val validDirections = mutableListOf<Pair<Int, Int>>()
             
             for (dx in -1..1) {
                 for (dy in -1..1) {
-                    if (dx == 0 && dy == 0) continue // Skip self
+                    if (dx == 0 && dy == 0) continue
                     
                     val nextX = currentGridX + dx
                     val nextY = currentGridY + dy
                     
-                    // Check if the neighbor is within grid bounds
                     if (nextX in 0 until tilesX && nextY in 0 until tilesY) {
                         validDirections.add(Pair(dx, dy))
                     }
@@ -286,12 +290,10 @@ class LogoEffectsService {
             }
             
             if (validDirections.isNotEmpty()) {
-                // Pick a random valid direction from current position for chaining
                 val direction = validDirections[random.nextInt(validDirections.size)]
                 val nextGridX = currentGridX + direction.first
                 val nextGridY = currentGridY + direction.second
                 
-                // Always perform swap since we validated it's different and valid
                 // Convert grid coordinates to pixel coordinates
                 val tile1X = currentGridX * tileSwapSize
                 val tile1Y = currentGridY * tileSwapSize
@@ -300,134 +302,50 @@ class LogoEffectsService {
                 
                 swapGridAlignedTiles(workingImg, tile1X, tile1Y, tile2X, tile2Y, tileSwapSize)
                 
-                // Move to the swapped tile position for next iteration (creates perfect chain)
+                // Move to the swapped tile position for next iteration
                 currentGridX = nextGridX
                 currentGridY = nextGridY
             }
         }
         
-        // Save last grid position converted back to pixel coordinates
+        // Save last grid position
         lastSwapX = currentGridX * tileSwapSize
         lastSwapY = currentGridY * tileSwapSize
         totalSwapsPerformed += swapCount
         
-        // Debug log every 100 frames
-        if (frameCount % 100 == 0) {
-            println("[DEBUG_LOG] Chained tile swaps: ${swapCount} tiles (${tileSwapSize}x${tileSwapSize}), grid: ${tilesX}x${tilesY}, total: ${totalSwapsPerformed}, chain end: ($currentGridX, $currentGridY)")
-        }
-        
-        // Return the modified working image
         return workingImg.asImageBitmap()
     }
     
     /**
-     * Swap two grid-aligned tiles (ensures perfect tile boundaries like sliding puzzle)
-     */
-    private fun swapGridAlignedTiles(img: BufferedImage, x1: Int, y1: Int, x2: Int, y2: Int, tileSize: Int) {
-        // Create temporary storage for tile1
-        val tile1Colors = Array(tileSize) { IntArray(tileSize) }
-        
-        // Ensure we don't go out of bounds
-        val actualTileWidth = tileSize.coerceAtMost(img.width - x1).coerceAtMost(img.width - x2)
-        val actualTileHeight = tileSize.coerceAtMost(img.height - y1).coerceAtMost(img.height - y2)
-        
-        // Copy tile1 to temporary storage and tile2 to tile1's position
-        for (dy in 0 until actualTileHeight) {
-            for (dx in 0 until actualTileWidth) {
-                // Store tile1 pixel
-                tile1Colors[dy][dx] = img.getRGB(x1 + dx, y1 + dy)
-                
-                // Copy tile2 pixel to tile1's position
-                img.setRGB(x1 + dx, y1 + dy, img.getRGB(x2 + dx, y2 + dy))
-            }
-        }
-        
-        // Copy stored tile1 pixels to tile2's position
-        for (dy in 0 until actualTileHeight) {
-            for (dx in 0 until actualTileWidth) {
-                img.setRGB(x2 + dx, y2 + dy, tile1Colors[dy][dx])
-            }
-        }
-    }
-    
-    /**
-     * Calculate complex noise with multiple frequencies
-     */
-    private fun calculateNoise(x: Int, y: Int, time: Double, coeffs: NoiseChannelCoeffs): Double {
-        return coeffs.freq1 * sin(x * coeffs.xScale1 + time * coeffs.timeScale1) * cos(y * coeffs.yScale1 + time * coeffs.timeOffset1) +
-               coeffs.freq2 * sin(x * coeffs.xScale2 + time * coeffs.timeScale2) * cos(y * coeffs.yScale2 + time * coeffs.timeOffset2) +
-               coeffs.freq3 * sin(x * coeffs.xScale3 + time * coeffs.timeScale3) * cos(y * coeffs.yScale3) +
-               coeffs.freq4 * sin((x + y) * coeffs.xyScale + time * coeffs.timeScale4)
-    }
-    
-    /**
-     * Update noise coefficients for variety
-     */
-    private fun updateNoiseCoefficients() {
-        val random = Random(System.currentTimeMillis())
-        noiseCoefficients = NoiseCoefficients(
-            redCoeffs = generateRandomCoeffs(random),
-            greenCoeffs = generateRandomCoeffs(random),
-            blueCoeffs = generateRandomCoeffs(random)
-        )
-    }
-    
-    /**
-     * Generate random coefficients for a color channel
-     */
-    private fun generateRandomCoeffs(random: Random) = NoiseChannelCoeffs(
-        freq1 = random.nextDouble(0.3, 1.0),
-        freq2 = random.nextDouble(0.2, 0.8),
-        freq3 = random.nextDouble(0.1, 0.6),
-        freq4 = random.nextDouble(0.1, 0.4),
-        xScale1 = random.nextDouble(0.01, 0.05),
-        yScale1 = random.nextDouble(0.01, 0.05),
-        xScale2 = random.nextDouble(0.02, 0.08),
-        yScale2 = random.nextDouble(0.02, 0.08),
-        xScale3 = random.nextDouble(0.005, 0.03),
-        yScale3 = random.nextDouble(0.005, 0.03),
-        xyScale = random.nextDouble(0.01, 0.04),
-        timeScale1 = random.nextDouble(1.0, 3.0),
-        timeScale2 = random.nextDouble(1.5, 4.0),
-        timeScale3 = random.nextDouble(0.5, 2.0),
-        timeScale4 = random.nextDouble(0.8, 2.5),
-        timeOffset1 = random.nextDouble(0.0, PI * 2),
-        timeOffset2 = random.nextDouble(0.0, PI * 2)
-    )
-    
-    /**
-     * Apply continuous 2D wave distortion effect with smooth transitions
+     * Apply continuous 2D wave distortion effect
      */
     private fun applyContinuousWaveEffect(originalImg: BufferedImage, intensity: Float, timeSeconds: Double): ImageBitmap {
         val width = originalImg.width
         val height = originalImg.height
         val distortedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
         
-        // Multiple wave parameters that change over time for trippy effects
         val time = timeSeconds.toFloat()
-        
-        // Exponential intensity scaling for more dramatic low-end control
         val scaledIntensity = intensity * intensity
         
-        // Primary wave parameters (slow morphing)
+        // Primary wave parameters
         val waveAmplitudeX = 10.0f * scaledIntensity * (1.0f + 0.3f * sin(time * 0.2f))
         val waveAmplitudeY = 8.0f * scaledIntensity * (1.0f + 0.4f * cos(time * 0.25f))
         val waveFrequencyX = 0.02f * (1.0f + 0.2f * sin(time * 0.15f))
         val waveFrequencyY = 0.025f * (1.0f + 0.3f * cos(time * 0.18f))
         
-        // Secondary wave parameters (medium speed)
+        // Secondary wave parameters
         val waveAmplitudeX2 = 6.0f * scaledIntensity * (1.0f + 0.5f * cos(time * 0.35f))
         val waveAmplitudeY2 = 7.0f * scaledIntensity * (1.0f + 0.4f * sin(time * 0.3f))
         val waveFrequencyX2 = 0.04f * (1.0f + 0.3f * cos(time * 0.22f))
         val waveFrequencyY2 = 0.03f * (1.0f + 0.2f * sin(time * 0.28f))
         
-        // Tertiary wave parameters (faster, more chaotic)
+        // Tertiary wave parameters
         val waveAmplitudeX3 = 4.0f * scaledIntensity * (1.0f + 0.7f * sin(time * 0.8f))
         val waveAmplitudeY3 = 5.0f * scaledIntensity * (1.0f + 0.6f * cos(time * 0.7f))
         val waveFrequencyX3 = 0.08f * (1.0f + 0.4f * sin(time * 0.45f))
         val waveFrequencyY3 = 0.06f * (1.0f + 0.5f * cos(time * 0.5f))
         
-        // Phase shifts for more complex patterns
+        // Phase shifts
         val phaseX = time * 0.5f
         val phaseY = time * 0.4f
         val phaseX2 = time * 0.3f
@@ -468,6 +386,93 @@ class LogoEffectsService {
         return distortedImage.asImageBitmap()
     }
     
+    // === HELPER METHODS ===
+    
+    /**
+     * Swap two grid-aligned tiles
+     */
+    private fun swapGridAlignedTiles(img: BufferedImage, x1: Int, y1: Int, x2: Int, y2: Int, tileSize: Int) {
+        val tile1Colors = Array(tileSize) { IntArray(tileSize) }
+        
+        val actualTileWidth = tileSize.coerceAtMost(img.width - x1).coerceAtMost(img.width - x2)
+        val actualTileHeight = tileSize.coerceAtMost(img.height - y1).coerceAtMost(img.height - y2)
+        
+        // Copy tile1 to temporary storage and tile2 to tile1's position
+        for (dy in 0 until actualTileHeight) {
+            for (dx in 0 until actualTileWidth) {
+                tile1Colors[dy][dx] = img.getRGB(x1 + dx, y1 + dy)
+                img.setRGB(x1 + dx, y1 + dy, img.getRGB(x2 + dx, y2 + dy))
+            }
+        }
+        
+        // Copy stored tile1 pixels to tile2's position
+        for (dy in 0 until actualTileHeight) {
+            for (dx in 0 until actualTileWidth) {
+                img.setRGB(x2 + dx, y2 + dy, tile1Colors[dy][dx])
+            }
+        }
+    }
+    
+    /**
+     * Calculate complex noise with multiple frequencies
+     */
+    private fun calculateNoise(x: Int, y: Int, time: Double, coeffs: com.supermetroid.service.NoiseChannelCoeffs): Double {
+        return coeffs.freq1 * sin(x * coeffs.xScale1 + time * coeffs.timeScale1) * cos(y * coeffs.yScale1 + time * coeffs.timeOffset1) +
+               coeffs.freq2 * sin(x * coeffs.xScale2 + time * coeffs.timeScale2) * cos(y * coeffs.yScale2 + time * coeffs.timeOffset2) +
+               coeffs.freq3 * sin(x * coeffs.xScale3 + time * coeffs.timeScale3) * cos(y * coeffs.yScale3) +
+               coeffs.freq4 * sin((x + y) * coeffs.xyScale + time * coeffs.timeScale4)
+    }
+    
+    /**
+     * Update noise coefficients for variety
+     */
+    private fun updateNoiseCoefficients() {
+        val random = Random(System.currentTimeMillis())
+        noiseCoefficients = com.supermetroid.service.NoiseCoefficients(
+            redCoeffs = generateRandomCoeffs(random),
+            greenCoeffs = generateRandomCoeffs(random),
+            blueCoeffs = generateRandomCoeffs(random)
+        )
+    }
+    
+    /**
+     * Generate random coefficients for a color channel
+     */
+    private fun generateRandomCoeffs(random: Random) = com.supermetroid.service.NoiseChannelCoeffs(
+        freq1 = random.nextDouble(0.3, 1.0),
+        freq2 = random.nextDouble(0.2, 0.8),
+        freq3 = random.nextDouble(0.1, 0.6),
+        freq4 = random.nextDouble(0.1, 0.4),
+        xScale1 = random.nextDouble(0.01, 0.05),
+        yScale1 = random.nextDouble(0.01, 0.05),
+        xScale2 = random.nextDouble(0.02, 0.08),
+        yScale2 = random.nextDouble(0.02, 0.08),
+        xScale3 = random.nextDouble(0.005, 0.03),
+        yScale3 = random.nextDouble(0.005, 0.03),
+        xyScale = random.nextDouble(0.01, 0.04),
+        timeScale1 = random.nextDouble(1.0, 3.0),
+        timeScale2 = random.nextDouble(1.5, 4.0),
+        timeScale3 = random.nextDouble(0.5, 2.0),
+        timeScale4 = random.nextDouble(0.8, 2.5),
+        timeOffset1 = random.nextDouble(0.0, PI * 2),
+        timeOffset2 = random.nextDouble(0.0, PI * 2)
+    )
+    
+    /**
+     * Convert ImageBitmap to BufferedImage
+     */
+    private fun ImageBitmap.toBufferedImage(): BufferedImage {
+        // This is a simplified conversion - in a real implementation you'd want
+        // to properly handle the conversion from Skia bitmap to BufferedImage
+        val width = this.width
+        val height = this.height
+        val bufferedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
+        
+        // For now, create a placeholder conversion
+        // In practice, you'd extract pixel data from the ImageBitmap
+        return bufferedImage
+    }
+    
     /**
      * Convert BufferedImage to Compose ImageBitmap
      */
@@ -482,53 +487,13 @@ class LogoEffectsService {
 }
 
 /**
- * Logo effects state
+ * Webcam effects state
  */
-data class LogoEffectsState(
-    val logoImage: ImageBitmap?,
+data class WebcamEffectsState(
+    val processedFrame: ImageBitmap?,
     val activeEffect: LogoEffectType,
     val intensity: Float,
     val isRunning: Boolean
 )
 
-/**
- * Logo effect types
- */
-enum class LogoEffectType {
-    NONE,
-    NOISE,
-    PIXEL_SWAP,
-    WAVE
-}
 
-/**
- * Noise coefficients for complex, morphing effects
- */
-data class NoiseCoefficients(
-    val redCoeffs: NoiseChannelCoeffs = NoiseChannelCoeffs(),
-    val greenCoeffs: NoiseChannelCoeffs = NoiseChannelCoeffs(),
-    val blueCoeffs: NoiseChannelCoeffs = NoiseChannelCoeffs()
-)
-
-/**
- * Noise coefficients for a single color channel
- */
-data class NoiseChannelCoeffs(
-    val freq1: Double = 1.0,
-    val freq2: Double = 0.5,
-    val freq3: Double = 0.3,
-    val freq4: Double = 0.2,
-    val xScale1: Double = 0.03,
-    val yScale1: Double = 0.03,
-    val xScale2: Double = 0.05,
-    val yScale2: Double = 0.05,
-    val xScale3: Double = 0.02,
-    val yScale3: Double = 0.02,
-    val xyScale: Double = 0.025,
-    val timeScale1: Double = 2.0,
-    val timeScale2: Double = 2.5,
-    val timeScale3: Double = 1.5,
-    val timeScale4: Double = 1.8,
-    val timeOffset1: Double = 0.0,
-    val timeOffset2: Double = PI / 2
-)
