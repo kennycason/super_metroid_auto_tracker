@@ -289,6 +289,11 @@ fun SimpleTwoColumnLayout(
             Spacer(modifier = Modifier.height(6.dp)) // Halved from 12dp
         }
 
+        // Spacer to push footer to bottom when splits are hidden
+        if (!showSplits) {
+            Spacer(modifier = Modifier.weight(1f))
+        }
+
         // UI Toggle footer
         Row(
             modifier = Modifier.fillMaxWidth(),
