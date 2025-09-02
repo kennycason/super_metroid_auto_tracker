@@ -133,14 +133,15 @@ class GameStateService(
                 pollCount++
 
                 // Determine if game is loaded (room ID > 0 usually indicates loaded game)
-                val gameLoaded = gameState.roomId > 0
+                // Use the stable game state to avoid inconsistencies
+                val gameLoaded = stableGameState.roomId > 0
 
                 val trackerState = TrackerState(
                     connection = ConnectionInfo(
                         connected = true,
                         gameLoaded = gameLoaded,
                         retroarchVersion = "Unknown", // Could be detected via separate command
-                        gameInfo = if (gameLoaded) "Super Metroid (${gameState.areaName})" else "No game"
+                        gameInfo = if (gameLoaded) "Super Metroid (${stableGameState.areaName})" else "No game"
                     ),
                     gameState = stableGameState,
                     lastUpdate = System.currentTimeMillis(),

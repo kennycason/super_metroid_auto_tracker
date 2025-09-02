@@ -21,6 +21,7 @@ import com.supermetroid.storage.FileStorageService
 import com.supermetroid.ui.components.*
 import com.supermetroid.ui.theme.TrackerColors
 import com.supermetroid.ui.theme.TrackerTypography
+import com.supermetroid.ui.theme.ProvideThemeService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -33,6 +34,7 @@ val autoSplitsEngine = AutoSplitsEngine()
 val fileStorageService = FileStorageService()
 val paletteEffectsService = PaletteEffectsService(gameStateService.getUdpClient())
 val logoEffectsService = com.supermetroid.service.LogoEffectsService()
+val themeService = com.supermetroid.service.ThemeService()
 
 fun main() = application {
     // Move showSplits state to Window level so keyboard shortcuts can access it
@@ -98,6 +100,7 @@ fun SimpleTrackerApp(
     val trackerState by gameStateService.trackerState.collectAsState()
     val splitsState by autoSplitsEngine.splitsState.collectAsState()
     val effectsState by paletteEffectsService.effectsState.collectAsState()
+    val currentTheme by themeService.currentTheme.collectAsState()
 
     // Initialize services
     LaunchedEffect(Unit) {
@@ -152,17 +155,36 @@ fun SimpleTrackerApp(
         }
     }
 
-    MaterialTheme(
-        colorScheme = darkColorScheme(
-            primary = TrackerColors.Primary,
-            onPrimary = TrackerColors.OnPrimary,
-            background = TrackerColors.Background,
-            surface = TrackerColors.Surface,
-            onBackground = TrackerColors.OnBackground,
-            onSurface = TrackerColors.OnSurface
-        ),
-        typography = TrackerTypography
-    ) {
+    ProvideThemeService(themeService) {
+        MaterialTheme(
+            colorScheme = darkColorScheme(
+                primary = currentTheme.colors.primary,
+                onPrimary = currentTheme.colors.onPrimary,
+                primaryContainer = currentTheme.colors.primaryVariant,
+                onPrimaryContainer = currentTheme.colors.onPrimary,
+                secondary = currentTheme.colors.primaryLight,
+                onSecondary = currentTheme.colors.onPrimary,
+                secondaryContainer = currentTheme.colors.surfaceVariant,
+                onSecondaryContainer = currentTheme.colors.onSurface,
+                tertiary = currentTheme.colors.success,
+                onTertiary = currentTheme.colors.onPrimary,
+                error = currentTheme.colors.error,
+                onError = currentTheme.colors.onPrimary,
+                background = currentTheme.colors.background,
+                onBackground = currentTheme.colors.onBackground,
+                surface = currentTheme.colors.surface,
+                onSurface = currentTheme.colors.onSurface,
+                surfaceVariant = currentTheme.colors.surfaceVariant,
+                onSurfaceVariant = currentTheme.colors.onSurfaceVariant,
+                outline = currentTheme.colors.border,
+                outlineVariant = currentTheme.colors.borderActive,
+                scrim = currentTheme.colors.background,
+                inverseSurface = currentTheme.colors.primary,
+                inverseOnSurface = currentTheme.colors.onPrimary,
+                inversePrimary = currentTheme.colors.background
+            ),
+            typography = TrackerTypography
+        ) {
         Surface(modifier = Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier
@@ -170,9 +192,9 @@ fun SimpleTrackerApp(
                     .background(
                         Brush.linearGradient(
                             colors = listOf(
-                                TrackerColors.Background,
-                                TrackerColors.BackgroundVariant,
-                                TrackerColors.Background
+                                currentTheme.colors.background,
+                                currentTheme.colors.backgroundVariant,
+                                currentTheme.colors.background
                             )
                         )
                     )
@@ -182,9 +204,11 @@ fun SimpleTrackerApp(
                     splitsState = splitsState,
                     effectsState = effectsState,
                     showSplits = showSplits,
-                    onShowSplitsChanged = onShowSplitsChanged
+                    onShowSplitsChanged = onShowSplitsChanged,
+                    themeService = themeService
                 )
             }
+        }
         }
     }
 }
@@ -195,7 +219,8 @@ fun SimpleTwoColumnLayout(
     splitsState: com.supermetroid.model.SplitsState,
     effectsState: com.supermetroid.service.PaletteEffectsState,
     showSplits: Boolean,
-    onShowSplitsChanged: (Boolean) -> Unit
+    onShowSplitsChanged: (Boolean) -> Unit,
+    themeService: com.supermetroid.service.ThemeService
 ) {
     // UI visibility toggles (removed showSplits since it's now passed in)
     var showIcons by remember { mutableStateOf(true) }
@@ -284,6 +309,7 @@ fun SimpleTwoColumnLayout(
                     }
                 },
                 logoEffectsService = logoEffectsService,
+                themeService = themeService,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(6.dp)) // Halved from 12dp
@@ -425,7 +451,7 @@ fun SimpleTwoColumnLayout(
                     modifier = Modifier.height(20.dp)
                 ) {
                     Text(
-                        text = "effects",
+                        text = "fx",
                         style = MaterialTheme.typography.labelSmall
                     )
                 }

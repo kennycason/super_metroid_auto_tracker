@@ -26,6 +26,7 @@ fun EffectsPanel(
     onEffectTypeChanged: (EffectType) -> Unit,
     onIntensityChanged: (Float) -> Unit,
     logoEffectsService: com.supermetroid.service.LogoEffectsService,
+    themeService: com.supermetroid.service.ThemeService,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -136,6 +137,14 @@ fun EffectsPanel(
                 modifier = Modifier.weight(1f)
             )
             }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Theme Selection Section
+            ThemeSelectionSection(
+                themeService = themeService,
+                modifier = Modifier.fillMaxWidth()
+            )
 
 
         }
@@ -366,6 +375,102 @@ private fun LogoEffectsSection(
                 ),
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
+        }
+    }
+}
+
+/**
+ * Theme selection section with dropdown
+ */
+@Composable
+private fun ThemeSelectionSection(
+    themeService: com.supermetroid.service.ThemeService,
+    modifier: Modifier = Modifier
+) {
+    val currentTheme by themeService.currentTheme.collectAsState()
+    var expanded by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Title
+        Text(
+            text = "Theme",
+            style = MaterialTheme.typography.titleSmall.copy(
+                color = TrackerColors.Primary,
+                fontWeight = FontWeight.Bold
+            ),
+            modifier = Modifier.padding(bottom = 6.dp)
+        )
+
+        // Theme Dropdown
+        Box {
+            Button(
+                onClick = { expanded = !expanded },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = TrackerColors.SurfaceOverlayLight,
+                    contentColor = TrackerColors.OnSurface
+                ),
+                shape = RoundedCornerShape(6.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                modifier = Modifier.fillMaxWidth(0.8f)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = currentTheme.displayName,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        text = if (expanded) "▲" else "▼",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(TrackerColors.Surface)
+            ) {
+                com.supermetroid.service.AppTheme.values().forEach { theme ->
+                    DropdownMenuItem(
+                        text = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                // Color preview circle
+                                Box(
+                                    modifier = Modifier
+                                        .size(12.dp)
+                                        .background(
+                                            theme.colors.primary,
+                                            androidx.compose.foundation.shape.CircleShape
+                                        )
+                                )
+                                Text(
+                                    text = theme.displayName,
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = if (theme == currentTheme) TrackerColors.Primary else TrackerColors.OnSurface
+                                    )
+                                )
+                            }
+                        },
+                        onClick = {
+                            themeService.setTheme(theme)
+                            expanded = false
+                        },
+                        colors = MenuDefaults.itemColors(
+                            textColor = TrackerColors.OnSurface
+                        )
+                    )
+                }
+            }
         }
     }
 }
