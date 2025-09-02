@@ -26,7 +26,6 @@ fun EffectsPanel(
     onEffectTypeChanged: (EffectType) -> Unit,
     onIntensityChanged: (Float) -> Unit,
     logoEffectsService: com.supermetroid.service.LogoEffectsService,
-    webcamEffectsService: com.supermetroid.service.WebcamEffectsService,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -138,13 +137,7 @@ fun EffectsPanel(
             )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
 
-            // Webcam Effects Section
-            WebcamEffectsSection(
-                webcamEffectsService = webcamEffectsService,
-                modifier = Modifier.fillMaxWidth()
-            )
         }
 
         // Status text at bottom
@@ -278,14 +271,24 @@ private fun LogoEffectsSection(
                 text = "None",
                 selected = logoState.activeEffect == com.supermetroid.service.LogoEffectType.NONE,
                 enabled = true,
-                onClick = { logoEffectsService.setEffectType(com.supermetroid.service.LogoEffectType.NONE) }
+                onClick = { 
+                    logoEffectsService.setEffectType(com.supermetroid.service.LogoEffectType.NONE)
+                    if (logoState.activeEffect != com.supermetroid.service.LogoEffectType.NONE) {
+                        logoEffectsService.stop()
+                    }
+                }
             )
 
             EffectButton(
                 text = "Noise",
                 selected = logoState.activeEffect == com.supermetroid.service.LogoEffectType.NOISE,
                 enabled = true,
-                onClick = { logoEffectsService.setEffectType(com.supermetroid.service.LogoEffectType.NOISE) }
+                onClick = { 
+                    logoEffectsService.setEffectType(com.supermetroid.service.LogoEffectType.NOISE)
+                    if (!logoState.isRunning) {
+                        logoEffectsService.start()
+                    }
+                }
             )
         }
 
@@ -298,7 +301,12 @@ private fun LogoEffectsSection(
                 text = "Swap",
                 selected = logoState.activeEffect == com.supermetroid.service.LogoEffectType.PIXEL_SWAP,
                 enabled = true,
-                onClick = { logoEffectsService.setEffectType(com.supermetroid.service.LogoEffectType.PIXEL_SWAP) }
+                onClick = { 
+                    logoEffectsService.setEffectType(com.supermetroid.service.LogoEffectType.PIXEL_SWAP)
+                    if (!logoState.isRunning) {
+                        logoEffectsService.start()
+                    }
+                }
             )
 
             // Wave effect button
@@ -306,7 +314,12 @@ private fun LogoEffectsSection(
                 text = "Wave",
                 selected = logoState.activeEffect == com.supermetroid.service.LogoEffectType.WAVE,
                 enabled = true,
-                onClick = { logoEffectsService.setEffectType(com.supermetroid.service.LogoEffectType.WAVE) }
+                onClick = { 
+                    logoEffectsService.setEffectType(com.supermetroid.service.LogoEffectType.WAVE)
+                    if (!logoState.isRunning) {
+                        logoEffectsService.start()
+                    }
+                }
             )
         }
 
@@ -357,138 +370,3 @@ private fun LogoEffectsSection(
     }
 }
 
-@Composable
-private fun WebcamTileSizeButton(
-    text: String,
-    size: Int,
-    webcamEffectsService: com.supermetroid.service.WebcamEffectsService,
-    currentTileSize: Int
-) {
-    val isSelected = currentTileSize == size
-    
-    Button(
-        onClick = { webcamEffectsService.setTileSwapSize(size) },
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelected) TrackerColors.Primary else TrackerColors.SurfaceOverlayLight,
-            contentColor = if (isSelected) androidx.compose.ui.graphics.Color.Black else TrackerColors.OnSurface
-        ),
-        shape = RoundedCornerShape(4.dp),
-        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
-        modifier = Modifier.height(20.dp)
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp)
-        )
-    }
-}
-
-/**
- * Webcam effects section
- */
-@Composable
-private fun WebcamEffectsSection(
-    webcamEffectsService: com.supermetroid.service.WebcamEffectsService,
-    modifier: Modifier = Modifier
-) {
-    val webcamEffectsState by webcamEffectsService.webcamEffectsState.collectAsState()
-    val currentTileSize by webcamEffectsService.currentTileSize.collectAsState()
-
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Title
-        Text(
-            text = "Webcam Effects",
-            style = MaterialTheme.typography.titleSmall.copy(
-                color = TrackerColors.Primary,
-                fontWeight = FontWeight.Bold
-            ),
-            modifier = Modifier.padding(bottom = 6.dp)
-        )
-
-        // Effect type selection
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            EffectButton(
-                text = "None",
-                selected = webcamEffectsState.activeEffect == com.supermetroid.service.LogoEffectType.NONE,
-                enabled = true,
-                onClick = { webcamEffectsService.setEffectType(com.supermetroid.service.LogoEffectType.NONE) }
-            )
-
-            EffectButton(
-                text = "Noise",
-                selected = webcamEffectsState.activeEffect == com.supermetroid.service.LogoEffectType.NOISE,
-                enabled = true,
-                onClick = { webcamEffectsService.setEffectType(com.supermetroid.service.LogoEffectType.NOISE) }
-            )
-
-            EffectButton(
-                text = "Swap",
-                selected = webcamEffectsState.activeEffect == com.supermetroid.service.LogoEffectType.PIXEL_SWAP,
-                enabled = true,
-                onClick = { webcamEffectsService.setEffectType(com.supermetroid.service.LogoEffectType.PIXEL_SWAP) }
-            )
-
-            EffectButton(
-                text = "Wave",
-                selected = webcamEffectsState.activeEffect == com.supermetroid.service.LogoEffectType.WAVE,
-                enabled = true,
-                onClick = { webcamEffectsService.setEffectType(com.supermetroid.service.LogoEffectType.WAVE) }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(4.dp))
-        
-        // Tile size controls (only show when pixel swap is active)
-        if (webcamEffectsState.activeEffect == com.supermetroid.service.LogoEffectType.PIXEL_SWAP) {
-            Text(
-                text = "Tile Size",
-                style = MaterialTheme.typography.bodySmall.copy(color = TrackerColors.OnSurface)
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                WebcamTileSizeButton(text = "5px", size = 5, webcamEffectsService = webcamEffectsService, currentTileSize = currentTileSize)
-                WebcamTileSizeButton(text = "10px", size = 10, webcamEffectsService = webcamEffectsService, currentTileSize = currentTileSize)
-                WebcamTileSizeButton(text = "30px", size = 30, webcamEffectsService = webcamEffectsService, currentTileSize = currentTileSize)
-            }
-            
-            Spacer(modifier = Modifier.height(6.dp))
-        }
-
-        // Intensity slider (only show when effects are active)
-        if (webcamEffectsState.activeEffect != com.supermetroid.service.LogoEffectType.NONE) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Intensity",
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = TrackerColors.OnSurface
-                    )
-                )
-
-                Slider(
-                    value = webcamEffectsState.intensity,
-                    onValueChange = { webcamEffectsService.setIntensity(it) },
-                    enabled = true,
-                    valueRange = 0f..1f,
-                    steps = 20,
-                    colors = SliderDefaults.colors(
-                        thumbColor = TrackerColors.Primary,
-                        activeTrackColor = TrackerColors.Primary,
-                        inactiveTrackColor = TrackerColors.OnSurfaceVariant
-                    ),
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                )
-            }
-        }
-    }
-}

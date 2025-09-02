@@ -33,8 +33,6 @@ val autoSplitsEngine = AutoSplitsEngine()
 val fileStorageService = FileStorageService()
 val paletteEffectsService = PaletteEffectsService(gameStateService.getUdpClient())
 val logoEffectsService = com.supermetroid.service.LogoEffectsService()
-val webcamService = com.supermetroid.service.WebcamService()
-val webcamEffectsService = com.supermetroid.service.WebcamEffectsService()
 
 fun main() = application {
     // Move showSplits state to Window level so keyboard shortcuts can access it
@@ -44,8 +42,6 @@ fun main() = application {
         onCloseRequest = {
             gameStateService.stop()
             logoEffectsService.stop()
-            webcamService.stopCapture()
-            webcamEffectsService.stop()
             exitApplication()
         },
         title = "Super Metroid Tracker",
@@ -186,9 +182,7 @@ fun SimpleTrackerApp(
                     splitsState = splitsState,
                     effectsState = effectsState,
                     showSplits = showSplits,
-                    onShowSplitsChanged = onShowSplitsChanged,
-                    webcamService = webcamService,
-                    webcamEffectsService = webcamEffectsService
+                    onShowSplitsChanged = onShowSplitsChanged
                 )
             }
         }
@@ -201,16 +195,13 @@ fun SimpleTwoColumnLayout(
     splitsState: com.supermetroid.model.SplitsState,
     effectsState: com.supermetroid.service.PaletteEffectsState,
     showSplits: Boolean,
-    onShowSplitsChanged: (Boolean) -> Unit,
-    webcamService: com.supermetroid.service.WebcamService,
-    webcamEffectsService: com.supermetroid.service.WebcamEffectsService
+    onShowSplitsChanged: (Boolean) -> Unit
 ) {
     // UI visibility toggles (removed showSplits since it's now passed in)
     var showIcons by remember { mutableStateOf(true) }
     var showTimer by remember { mutableStateOf(true) }
     var showEffects by remember { mutableStateOf(false) }
     var showLogo by remember { mutableStateOf(false) }
-    var showWebcam by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -226,15 +217,7 @@ fun SimpleTwoColumnLayout(
 
         // Spacer(modifier = Modifier.height(8.dp))
 
-        // Webcam panel - At the very top when visible, fills app width
-        if (showWebcam) {
-            WebcamPanel(
-                webcamService = webcamService,
-                webcamEffectsService = webcamEffectsService,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-        }
+
 
         // Logo Effects panel - Above status grid when visible
         if (showLogo) {
@@ -301,7 +284,6 @@ fun SimpleTwoColumnLayout(
                     }
                 },
                 logoEffectsService = logoEffectsService,
-                webcamEffectsService = webcamEffectsService,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(6.dp)) // Halved from 12dp
@@ -391,20 +373,7 @@ fun SimpleTwoColumnLayout(
                     )
                 }
 
-                // Webcam toggle
-                TextButton(
-                    onClick = { showWebcam = !showWebcam },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = if (showWebcam) TrackerColors.Success else TrackerColors.OnSurfaceVariant
-                    ),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 2.dp),
-                    modifier = Modifier.height(20.dp)
-                ) {
-                    Text(
-                        text = "cam",
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
+
 
                 // Effects toggle
                 TextButton(
@@ -420,7 +389,6 @@ fun SimpleTwoColumnLayout(
                                 try {
                                     paletteEffectsService.start()
                                     logoEffectsService.start()
-                                    webcamEffectsService.start()
                                     println("[DEBUG_LOG] Effects services started successfully")
                                 } catch (e: Exception) {
                                     // Error is already logged and error message is set in the service
@@ -434,7 +402,6 @@ fun SimpleTwoColumnLayout(
                                 try {
                                     paletteEffectsService.stop()
                                     logoEffectsService.stop()
-                                    webcamEffectsService.stop()
                                     println("[DEBUG_LOG] Effects services stopped successfully")
                                 } catch (e: Exception) {
                                     println("[DEBUG_LOG] Failed to stop effects services: ${e.message}")
