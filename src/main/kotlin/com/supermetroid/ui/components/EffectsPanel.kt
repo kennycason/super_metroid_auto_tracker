@@ -205,7 +205,7 @@ private fun EffectButton(
         enabled = enabled,
         colors = ButtonDefaults.buttonColors(
             containerColor = if (selected) TrackerColors.Primary else TrackerColors.SurfaceOverlayLight,
-            contentColor = if (selected) androidx.compose.ui.graphics.Color.Black else TrackerColors.OnSurface, // Use pure black for maximum contrast on bright green
+            contentColor = if (selected) TrackerColors.OnPrimary else TrackerColors.OnSurface,
             disabledContainerColor = TrackerColors.SurfaceOverlayLight.copy(alpha = 0.5f),
             disabledContentColor = TrackerColors.OnSurfaceVariant
         ),
@@ -233,7 +233,7 @@ private fun TileSizeButton(
         onClick = { logoEffectsService.setTileSwapSize(size) },
         colors = ButtonDefaults.buttonColors(
             containerColor = if (isSelected) TrackerColors.Primary else TrackerColors.SurfaceOverlayLight,
-            contentColor = if (isSelected) androidx.compose.ui.graphics.Color.Black else TrackerColors.OnSurface // Use pure black for maximum contrast on bright green
+            contentColor = if (isSelected) TrackerColors.OnPrimary else TrackerColors.OnSurface
         ),
         shape = RoundedCornerShape(4.dp),
         contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
@@ -414,7 +414,7 @@ private fun ThemeSelectionSection(
                 ),
                 shape = RoundedCornerShape(6.dp),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                modifier = Modifier.fillMaxWidth(0.8f)
+                modifier = Modifier.fillMaxWidth(0.5f)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -444,11 +444,16 @@ private fun ThemeSelectionSection(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                // Color preview circle
+                                // Color preview circle with border showing theme colors
                                 Box(
                                     modifier = Modifier
-                                        .size(12.dp)
+                                        .size(14.dp)
                                         .background(
+                                            theme.colors.background,
+                                            androidx.compose.foundation.shape.CircleShape
+                                        )
+                                        .border(
+                                            2.dp,
                                             theme.colors.primary,
                                             androidx.compose.foundation.shape.CircleShape
                                         )

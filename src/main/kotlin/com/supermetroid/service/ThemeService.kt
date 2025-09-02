@@ -173,6 +173,66 @@ enum class AppTheme(val displayName: String, val colors: ThemeColors) {
             splitActive = Color(0xFFFFCC00),
             splitPending = Color(0xFF666666)
         )
+    ),
+    
+    DARK_BLACK("Dark Black",
+        ThemeColors(
+            primary = Color(0xFFFFFFFF),
+            primaryVariant = Color(0xFFE0E0E0),
+            primaryLight = Color(0xFFFFFFFF),
+            background = Color(0xFF000000),
+            backgroundVariant = Color(0xFF111111),
+            surface = Color(0xFF111111),
+            surfaceVariant = Color(0xFF222222),
+            border = Color(0xFF444444),
+            borderActive = Color(0xFFFFFFFF),
+            connected = Color(0xFFFFFFFF),
+            disconnected = Color(0xFFFF4444),
+            warning = Color(0xFFFFAA00),
+            onPrimary = Color(0xFF000000),
+            onBackground = Color(0xFFFFFFFF),
+            onSurface = Color(0xFFFFFFFF),
+            onSurfaceVariant = Color(0xFFCCCCCC),
+            surfaceOverlay = Color(0x4D333333),
+            surfaceOverlayLight = Color(0x33333333),
+            surfaceOverlayHover = Color(0x66555555),
+            success = Color(0xFF00FF00),
+            error = Color(0xFFFF4444),
+            inactive = Color(0xFF666666),
+            splitCompleted = Color(0xFFCCCCCC),
+            splitActive = Color(0xFFFFFFFF),
+            splitPending = Color(0xFF666666)
+        )
+    ),
+    
+    WHITE_LIGHT("White Light",
+        ThemeColors(
+            primary = Color(0xFF000000),
+            primaryVariant = Color(0xFF333333),
+            primaryLight = Color(0xFF555555),
+            background = Color(0xFFFFFFFF),
+            backgroundVariant = Color(0xFFF8F8F8),
+            surface = Color(0xFFF8F8F8),
+            surfaceVariant = Color(0xFFEEEEEE),
+            border = Color(0xFFCCCCCC),
+            borderActive = Color(0xFF000000),
+            connected = Color(0xFF000000),
+            disconnected = Color(0xFFCC0000),
+            warning = Color(0xFF996600),
+            onPrimary = Color(0xFFFFFFFF),
+            onBackground = Color(0xFF000000),
+            onSurface = Color(0xFF000000),
+            onSurfaceVariant = Color(0xFF333333),
+            surfaceOverlay = Color(0x4DDDDDDD),
+            surfaceOverlayLight = Color(0x33DDDDDD),
+            surfaceOverlayHover = Color(0x66BBBBBB),
+            success = Color(0xFF008800),
+            error = Color(0xFFCC0000),
+            inactive = Color(0xFF999999),
+            splitCompleted = Color(0xFF333333),
+            splitActive = Color(0xFF000000),
+            splitPending = Color(0xFF999999)
+        )
     )
 }
 
