@@ -4,16 +4,55 @@ import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import com.supermetroid.storage.FileStorageService
+import com.supermetroid.model.AppConfig
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 /**
  * Service for managing configurable app themes
  */
-class ThemeService {
+class ThemeService(private val fileStorageService: FileStorageService) {
+    private val logger = KotlinLogging.logger {}
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    
     private val _currentTheme = MutableStateFlow(AppTheme.RETRO_GREEN)
     val currentTheme: StateFlow<AppTheme> = _currentTheme.asStateFlow()
-    
+
+    /**
+     * Initialize theme service and load saved theme from config
+     */
+    suspend fun initialize() {
+        try {
+            val config = fileStorageService.loadAppConfig()
+            val savedTheme = AppTheme.values().find { it.name == config.theme } ?: AppTheme.RETRO_GREEN
+            _currentTheme.value = savedTheme
+            logger.info { "🎨 Loaded theme: ${savedTheme.displayName}" }
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to load theme from config, using default" }
+        }
+    }
+
+    /**
+     * Set theme and save to config
+     */
     fun setTheme(theme: AppTheme) {
         _currentTheme.value = theme
+        
+        // Save theme to config asynchronously
+        scope.launch {
+            try {
+                val currentConfig = fileStorageService.loadAppConfig()
+                val updatedConfig = currentConfig.copy(theme = theme.name)
+                fileStorageService.saveAppConfig(updatedConfig)
+                logger.debug { "💾 Saved theme preference: ${theme.displayName}" }
+            } catch (e: Exception) {
+                logger.error(e) { "❌ Failed to save theme preference" }
+            }
+        }
     }
     
     fun getColors(): ThemeColors {

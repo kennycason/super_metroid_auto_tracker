@@ -1,6 +1,7 @@
 package com.supermetroid.storage
 
 import com.supermetroid.model.SplitsState
+import com.supermetroid.model.AppConfig
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -18,6 +19,7 @@ class FileStorageService {
     private val homeDir = System.getProperty("user.home")
     private val trackerDir = File(homeDir, ".smtracker")
     private val splitsFile = File(trackerDir, "splits-data.json")
+    private val configFile = File(trackerDir, "smtracker.json")
     
     private val json = Json {
         prettyPrint = true
@@ -91,4 +93,43 @@ class FileStorageService {
             logger.error(e) { "❌ Failed to create backup" }
         }
     }
+    
+    /**
+     * Save app config to file
+     */
+    suspend fun saveAppConfig(config: AppConfig) = withContext(Dispatchers.IO) {
+        try {
+            val jsonString = json.encodeToString(config)
+            configFile.writeText(jsonString)
+            logger.debug { "💾 Saved app config to ${configFile.absolutePath}" }
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to save app config" }
+            throw e
+        }
+    }
+    
+    /**
+     * Load app config from file
+     */
+    suspend fun loadAppConfig(): AppConfig = withContext(Dispatchers.IO) {
+        try {
+            if (!configFile.exists()) {
+                logger.info { "📄 No existing config file found, returning default config" }
+                return@withContext AppConfig()
+            }
+            
+            val jsonString = configFile.readText()
+            val config = json.decodeFromString<AppConfig>(jsonString)
+            logger.info { "📄 Loaded app config from ${configFile.absolutePath}" }
+            config
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to load app config, returning default config" }
+            AppConfig()
+        }
+    }
+    
+    /**
+     * Get config file path for debugging
+     */
+    fun getConfigFilePath(): String = configFile.absolutePath
 }

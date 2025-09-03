@@ -34,7 +34,7 @@ val autoSplitsEngine = AutoSplitsEngine()
 val fileStorageService = FileStorageService()
 val paletteEffectsService = PaletteEffectsService(gameStateService.getUdpClient())
 val logoEffectsService = com.supermetroid.service.LogoEffectsService()
-val themeService = com.supermetroid.service.ThemeService()
+val themeService = com.supermetroid.service.ThemeService(fileStorageService)
 
 fun main() = application {
     // Move showSplits state to Window level so keyboard shortcuts can access it
@@ -104,6 +104,9 @@ fun SimpleTrackerApp(
 
     // Initialize services
     LaunchedEffect(Unit) {
+        // Initialize theme service first to load saved theme
+        themeService.initialize()
+        
         // Load split profile
         autoSplitsEngine.loadProfile(KpdrAnyProfile.profile)
 
