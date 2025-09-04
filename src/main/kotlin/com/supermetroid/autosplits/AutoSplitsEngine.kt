@@ -41,6 +41,8 @@ class AutoSplitsEngine {
      * Load saved splits state and resume from current position
      */
     fun loadSavedState(savedState: SplitsState) {
+        logger.info { "📄 Loading saved state - PersonalBests: ${savedState.personalBests.size}, RunHistory: ${savedState.runHistory.size}" }
+        
         // First, update personal bests from run history
         val updatedState = updatePersonalBestsFromRunHistory(savedState)
         _splitsState.value = updatedState

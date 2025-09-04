@@ -49,7 +49,7 @@ tasks.test {
 
 compose.desktop {
     application {
-        mainClass = "com.supermetroid.ui.SimpleMainKt"
+        mainClass = "com.supermetroid.ui.SuperMetroidTrackerKt"
         
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)

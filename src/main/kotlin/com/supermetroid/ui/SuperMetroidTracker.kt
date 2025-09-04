@@ -84,7 +84,7 @@ fun main() = application {
             }
         }
     ) {
-        SimpleTrackerApp(
+        SuperMetroidTrackerApp(
             showSplits = showSplits,
             onShowSplitsChanged = { showSplits = it }
         )
@@ -93,7 +93,7 @@ fun main() = application {
 
 @Composable
 @Preview
-fun SimpleTrackerApp(
+fun SuperMetroidTrackerApp(
     showSplits: Boolean = true,
     onShowSplitsChanged: (Boolean) -> Unit = {}
 ) {
@@ -142,19 +142,19 @@ fun SimpleTrackerApp(
     // This prevents auto-splitting when user is playing other games (like map rando)
     LaunchedEffect(trackerState.gameState, showSplits) {
         if (showSplits) {
-            println("[DEBUG_LOG] Processing game state due to gameState change (splits visible)")
             autoSplitsEngine.processGameState(trackerState.gameState)
-        } else {
-            println("[DEBUG_LOG] Skipping game state processing - splits are hidden")
         }
     }
 
-    // Save splits state periodically
+    // Save splits state periodically (but not if it's empty - prevents overwriting loaded data)
     LaunchedEffect(splitsState) {
-        try {
-            fileStorageService.saveSplitsState(splitsState)
-        } catch (e: Exception) {
-            // Handle save error gracefully
+        // Don't save empty states - this prevents overwriting good data with empty state on startup
+        if (splitsState.personalBests.isNotEmpty() || splitsState.runHistory.isNotEmpty() || splitsState.currentRun != null) {
+            try {
+                fileStorageService.saveSplitsState(splitsState)
+            } catch (e: Exception) {
+                // Handle save error gracefully
+            }
         }
     }
 
@@ -202,7 +202,7 @@ fun SimpleTrackerApp(
                         )
                     )
             ) {
-                SimpleTwoColumnLayout(
+                SuperMetroidTrackerLayout(
                     trackerState = trackerState,
                     splitsState = splitsState,
                     effectsState = effectsState,
@@ -217,7 +217,7 @@ fun SimpleTrackerApp(
 }
 
 @Composable
-fun SimpleTwoColumnLayout(
+fun SuperMetroidTrackerLayout(
     trackerState: com.supermetroid.model.TrackerState,
     splitsState: com.supermetroid.model.SplitsState,
     effectsState: com.supermetroid.service.PaletteEffectsState,
@@ -304,6 +304,22 @@ fun SimpleTwoColumnLayout(
                 onEffectTypeChanged = { effectType ->
                     CoroutineScope(Dispatchers.Swing).launch {
                         paletteEffectsService.setEffectType(effectType)
+                        // Auto-start palette effects when an effect is selected (not NONE)
+                        if (effectType != EffectType.NONE && !effectsState.enabled) {
+                            try {
+                                paletteEffectsService.start()
+                                println("[DEBUG_LOG] Auto-started palette effects service for $effectType")
+                            } catch (e: Exception) {
+                                println("[DEBUG_LOG] Failed to auto-start palette effects: ${e.message}")
+                            }
+                        } else if (effectType == EffectType.NONE && effectsState.enabled) {
+                            try {
+                                paletteEffectsService.stop()
+                                println("[DEBUG_LOG] Auto-stopped palette effects service")
+                            } catch (e: Exception) {
+                                println("[DEBUG_LOG] Failed to auto-stop palette effects: ${e.message}")
+                            }
+                        }
                     }
                 },
                 onIntensityChanged = { intensity ->
@@ -416,34 +432,22 @@ fun SimpleTwoColumnLayout(
                         showEffects = !showEffects
                         println("[DEBUG_LOG] Effects button clicked: ${if (wasShowing) "hiding" else "showing"} effects panel")
 
-                        // Start or stop the effects services when toggled
+                        // Only stop effects when hiding the panel, don't auto-start when showing
                         CoroutineScope(Dispatchers.Swing).launch {
-                            if (showEffects && !effectsState.enabled) {
-                                println("[DEBUG_LOG] Starting effects services...")
-                                try {
-                                    paletteEffectsService.start()
-                                    logoEffectsService.start()
-                                    println("[DEBUG_LOG] Effects services started successfully")
-                                } catch (e: Exception) {
-                                    // Error is already logged and error message is set in the service
-                                    // Just catch the exception to prevent app crash
-                                    println("[DEBUG_LOG] Failed to start effects services: ${e.message}")
-                                    println("[DEBUG_LOG] Exception type: ${e.javaClass.name}")
-                                    e.printStackTrace() // Print stack trace for debugging
-                                }
-                            } else if (!showEffects && effectsState.enabled) {
+                            if (!showEffects && effectsState.enabled) {
+                                // Only stop effects when hiding the panel
                                 println("[DEBUG_LOG] Stopping effects services...")
                                 try {
                                     paletteEffectsService.stop()
                                     logoEffectsService.stop()
-                                    println("[DEBUG_LOG] Effects services stopped successfully")
+                                    println("[DEBUG_LOG] Effects services stopped when hiding panel")
                                 } catch (e: Exception) {
                                     println("[DEBUG_LOG] Failed to stop effects services: ${e.message}")
                                     println("[DEBUG_LOG] Exception type: ${e.javaClass.name}")
                                     e.printStackTrace() // Print stack trace for debugging
                                 }
                             } else {
-                                println("[DEBUG_LOG] No service state change needed: showing=${showEffects}, enabled=${effectsState.enabled}")
+                                println("[DEBUG_LOG] Effects panel toggled - no auto-start (effects start only when user selects them)")
                             }
                         }
                     },

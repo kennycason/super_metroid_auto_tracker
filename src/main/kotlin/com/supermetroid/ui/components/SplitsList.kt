@@ -503,7 +503,7 @@ private fun getSplitItemId(split: Split): String {
 }
 
 /**
- * Format time for deltas in MM:SS.ss format (with fractional seconds)
+ * Format time for deltas in M:SS.ss format (with fractional seconds, no leading zero for minutes)
  */
 private fun formatTime(timeMs: Long): String {
     val totalSeconds = timeMs / 1000
@@ -511,7 +511,7 @@ private fun formatTime(timeMs: Long): String {
     val seconds = totalSeconds % 60
     val centiseconds = (timeMs % 1000) / 10
 
-    return "%02d:%02d.%02d".format(minutes, seconds, centiseconds)
+    return "%d:%02d.%02d".format(minutes, seconds, centiseconds)
 }
 
 /**
