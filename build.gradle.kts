@@ -33,6 +33,14 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.4.14")
     implementation("io.github.oshai:kotlin-logging-jvm:5.1.1")
     
+    // LibGDX Controllers for gamepad support
+    implementation("com.badlogicgames.gdx:gdx:1.12.1")
+    implementation("com.badlogicgames.gdx:gdx-backend-lwjgl3:1.12.1")
+    implementation("com.badlogicgames.gdx-controllers:gdx-controllers-core:2.2.3")
+    implementation("com.badlogicgames.gdx-controllers:gdx-controllers-desktop:2.2.3")
+    
+    // Native gamepad support (using system commands for now)
+    
     // Testing
     testImplementation(kotlin("test"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")

@@ -17,6 +17,7 @@ data class VisibilitySettings(
     val showIcons: Boolean = true,
     val showSplits: Boolean = true,
     val showTimer: Boolean = true,
+    val showController: Boolean = false,
     val showDebug: Boolean = false
 )
 
@@ -70,6 +71,12 @@ fun VisibilityControls(
                 label = "Timer",
                 checked = settings.showTimer,
                 onCheckedChange = { onSettingsChanged(settings.copy(showTimer = it)) }
+            )
+            
+            TrackerCheckbox(
+                label = "Ctl",
+                checked = settings.showController,
+                onCheckedChange = { onSettingsChanged(settings.copy(showController = it)) }
             )
             
             TrackerCheckbox(

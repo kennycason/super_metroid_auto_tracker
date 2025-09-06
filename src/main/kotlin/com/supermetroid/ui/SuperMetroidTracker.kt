@@ -35,6 +35,36 @@ val fileStorageService = FileStorageService()
 val paletteEffectsService = PaletteEffectsService(gameStateService.getUdpClient())
 val logoEffectsService = com.supermetroid.service.LogoEffectsService()
 val themeService = com.supermetroid.service.ThemeService(fileStorageService)
+val controllerService = com.supermetroid.service.MacOSControllerService()
+
+/**
+ * Handle keyboard events for controller input
+ */
+fun handleControllerKeyEvent(keyEvent: androidx.compose.ui.input.key.KeyEvent) {
+    val keyCode = when (keyEvent.key) {
+        Key.DirectionUp -> java.awt.event.KeyEvent.VK_UP
+        Key.DirectionDown -> java.awt.event.KeyEvent.VK_DOWN
+        Key.DirectionLeft -> java.awt.event.KeyEvent.VK_LEFT
+        Key.DirectionRight -> java.awt.event.KeyEvent.VK_RIGHT
+        Key.W -> java.awt.event.KeyEvent.VK_W
+        Key.A -> java.awt.event.KeyEvent.VK_A
+        Key.S -> java.awt.event.KeyEvent.VK_S
+        Key.D -> java.awt.event.KeyEvent.VK_D
+        Key.Q -> java.awt.event.KeyEvent.VK_Q
+        Key.E -> java.awt.event.KeyEvent.VK_E
+        Key.Z -> java.awt.event.KeyEvent.VK_Z
+        Key.X -> java.awt.event.KeyEvent.VK_X
+        Key.C -> java.awt.event.KeyEvent.VK_C
+        Key.V -> java.awt.event.KeyEvent.VK_V
+        Key.Enter -> java.awt.event.KeyEvent.VK_ENTER
+        Key.Backspace -> java.awt.event.KeyEvent.VK_BACK_SPACE
+        else -> return
+    }
+    
+    val pressed = keyEvent.type == androidx.compose.ui.input.key.KeyEventType.KeyDown
+    println("[DEBUG_LOG] Controller key event: ${keyEvent.key} (${if (pressed) "DOWN" else "UP"}) -> keyCode: $keyCode")
+    controllerService.updateKeyState(keyCode, pressed)
+}
 
 fun main() = application {
     // Move showSplits state to Window level so keyboard shortcuts can access it
@@ -44,6 +74,7 @@ fun main() = application {
         onCloseRequest = {
             gameStateService.stop()
             logoEffectsService.stop()
+            controllerService.stop()
             exitApplication()
         },
         title = "Super Metroid Tracker",
@@ -52,6 +83,9 @@ fun main() = application {
             height = 1100.dp // Increased by 300dp for better splits visibility
         ),
         onKeyEvent = { keyEvent ->
+            // Handle controller input keys
+            handleControllerKeyEvent(keyEvent)
+            
             // Only process keyboard shortcuts when splits are visible
             if (showSplits) {
                 when {
@@ -228,8 +262,18 @@ fun SuperMetroidTrackerLayout(
     // UI visibility toggles (removed showSplits since it's now passed in)
     var showIcons by remember { mutableStateOf(true) }
     var showTimer by remember { mutableStateOf(true) }
+    var showController by remember { mutableStateOf(false) }
     var showEffects by remember { mutableStateOf(false) }
     var showLogo by remember { mutableStateOf(false) }
+    
+    // Controller state
+    val controllerState by controllerService.controllerState.collectAsState()
+    val buttonFrequencies by controllerService.buttonFrequencies.collectAsState()
+    
+    // Start controller service when component is first composed
+    LaunchedEffect(Unit) {
+        controllerService.start()
+    }
 
     Column(
         modifier = Modifier
@@ -282,6 +326,16 @@ fun SuperMetroidTrackerLayout(
                         autoSplitsEngine.resetRun()
                     }
                 }
+            )
+            Spacer(modifier = Modifier.height(6.dp)) // Halved from 12dp
+        }
+
+        // Controller tracker section - Same height as timer
+        if (showController) {
+            ControllerTrackerPanel(
+                controllerState = controllerState,
+                buttonFrequencies = buttonFrequencies,
+                modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(6.dp)) // Halved from 12dp
         }
@@ -401,6 +455,21 @@ fun SuperMetroidTrackerLayout(
                 ) {
                     Text(
                         text = "timer",
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
+
+                // Controller toggle
+                TextButton(
+                    onClick = { showController = !showController },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = if (showController) TrackerColors.Success else TrackerColors.OnSurfaceVariant
+                    ),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                    modifier = Modifier.height(20.dp)
+                ) {
+                    Text(
+                        text = "ctl",
                         style = MaterialTheme.typography.labelSmall
                     )
                 }
