@@ -11,6 +11,10 @@ version = "1.0.0"
 
 repositories {
     mavenCentral()
+    maven { url = uri("https://jitpack.io") }
+    // LibGDX snapshot repository (needed for 2.2.4-SNAPSHOT controllers)
+    maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots/") }
+    maven { url = uri("https://oss.sonatype.org/content/repositories/releases/") }
 }
 
 dependencies {
@@ -36,10 +40,20 @@ dependencies {
     // LibGDX Controllers for gamepad support
     implementation("com.badlogicgames.gdx:gdx:1.12.1")
     implementation("com.badlogicgames.gdx:gdx-backend-lwjgl3:1.12.1")
-    implementation("com.badlogicgames.gdx-controllers:gdx-controllers-core:2.2.3")
-    implementation("com.badlogicgames.gdx-controllers:gdx-controllers-desktop:2.2.3")
+    // LibGDX Controllers - EXACT same versions as working ninjaturdle project
+    implementation("com.badlogicgames.gdx-controllers:gdx-controllers-core:2.2.4-SNAPSHOT")
+    implementation("com.badlogicgames.gdx-controllers:gdx-controllers-desktop:2.2.4-SNAPSHOT")
     
-    // Native gamepad support (using system commands for now)
+    // Jamepad - the key missing dependency for controller support!
+    implementation("com.badlogicgames.jamepad:jamepad:2.30.0.0")
+    
+    // LibGDX core and platform natives (NOT headless - we need full LibGDX)
+    implementation("com.badlogicgames.gdx:gdx:1.12.1")
+    implementation("com.badlogicgames.gdx:gdx-platform:1.12.1:natives-desktop")
+    
+    // Native controller support via LibGDX
+    
+    // Native gamepad support
     
     // Testing
     testImplementation(kotlin("test"))

@@ -35,7 +35,7 @@ val fileStorageService = FileStorageService()
 val paletteEffectsService = PaletteEffectsService(gameStateService.getUdpClient())
 val logoEffectsService = com.supermetroid.service.LogoEffectsService()
 val themeService = com.supermetroid.service.ThemeService(fileStorageService)
-val controllerService = com.supermetroid.service.MacOSControllerService()
+val controllerService = com.supermetroid.service.SimpleLibGdxControllerService()
 
 /**
  * Handle keyboard events for controller input
