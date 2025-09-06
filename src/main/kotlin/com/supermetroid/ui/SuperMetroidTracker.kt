@@ -272,7 +272,14 @@ fun SuperMetroidTrackerLayout(
     
     // Start controller service when component is first composed
     LaunchedEffect(Unit) {
-        controllerService.start()
+        println("DEBUG: About to start controller service...")
+        try {
+            controllerService.start()
+            println("DEBUG: Controller service started successfully")
+        } catch (e: Exception) {
+            println("DEBUG: Error starting controller service: ${e.message}")
+            e.printStackTrace()
+        }
     }
 
     Column(
