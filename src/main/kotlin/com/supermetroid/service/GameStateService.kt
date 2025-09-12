@@ -76,6 +76,7 @@ class GameStateService(
             val connected = dualAdapter.connect()
             if (connected) {
                 logger.info { "✅ Connected via ${dualAdapter.getAdapterName()}" }
+                logger.info { "🔧 Adapter Type: ${dualAdapter.getAdapterType()}" }
             } else {
                 logger.warn { "⚠️ No memory adapter available, service will retry connections automatically" }
             }
@@ -110,29 +111,79 @@ class GameStateService(
     }
 
     /**
-     * Simple stability check to reduce erratic value bouncing
+     * Improved stability check that allows item collection and save file changes
      */
-        private fun isGameStateStable(gameState: GameState): Boolean {
+    private fun isGameStateStable(gameState: GameState): Boolean {
         // Allow all updates if no previous state
         val lastState = lastStableGameState ?: return true
 
-        // Much more aggressive stability filtering to prevent chaotic jumping
+        // Basic sanity checks - reject obviously corrupted data
+        if (gameState.health < 0 || gameState.health > 2000 ||
+            gameState.maxHealth < 0 || gameState.maxHealth > 1999 ||
+            gameState.missiles < 0 || gameState.missiles > 999 ||
+            gameState.maxMissiles < 0 || gameState.maxMissiles > 999 ||
+            gameState.supers < 0 || gameState.supers > 999 ||
+            gameState.maxSupers < 0 || gameState.maxSupers > 999 ||
+            gameState.powerBombs < 0 || gameState.powerBombs > 999 ||
+            gameState.maxPowerBombs < 0 || gameState.maxPowerBombs > 999) {
+            logger.debug { "🔄 Rejecting unstable data: Health=${gameState.health}/${gameState.maxHealth}, Missiles=${gameState.missiles}/${gameState.maxMissiles}" }
+            return false
+        }
+
+        // Calculate differences
         val healthDiff = kotlin.math.abs(gameState.health - lastState.health)
         val missileDiff = kotlin.math.abs(gameState.missiles - lastState.missiles)
         val maxHealthDiff = kotlin.math.abs(gameState.maxHealth - lastState.maxHealth)
+        val maxMissilesDiff = kotlin.math.abs(gameState.maxMissiles - lastState.maxMissiles)
+        val maxSupersDiff = kotlin.math.abs(gameState.maxSupers - lastState.maxSupers)
+        val maxPowerBombsDiff = kotlin.math.abs(gameState.maxPowerBombs - lastState.maxPowerBombs)
 
-        // Only allow updates if:
-        // 1. Changes are very small (normal gameplay)
-        // 2. Room changed (significant event)
-        // 3. Values are reasonable (no crazy numbers)
-        return ((healthDiff < 100 &&
-                missileDiff < 50 &&
-                maxHealthDiff < 100 &&
-                gameState.health >= 0 &&
-                gameState.health <= 2000 &&
-                gameState.maxHealth >= 0 &&
-                gameState.maxHealth <= 2000) ||
-                gameState.roomId != lastState.roomId) // Always allow room changes
+        // Allow updates in these cases:
+        // 1. Room changed (always allow)
+        // 2. Small changes (normal gameplay)
+        // 3. Item collection patterns (specific large increases in max values)
+        // 4. Save file loading (dramatic but consistent changes)
+        
+        val roomChanged = gameState.roomId != lastState.roomId
+        val smallChanges = healthDiff < 100 && missileDiff < 50 && maxHealthDiff < 100
+        val itemCollection = (
+            maxHealthDiff in 1..200 ||      // Energy Tanks give +100, allow some tolerance
+            maxMissilesDiff in 1..50 ||     // Missile expansions
+            maxSupersDiff in 1..20 ||       // Super Missile expansions  
+            maxPowerBombsDiff in 1..20      // Power Bomb expansions
+        )
+        val saveFileLoad = (
+            maxHealthDiff > 200 || maxMissilesDiff > 50 || 
+            maxSupersDiff > 20 || maxPowerBombsDiff > 20
+        ) && gameState.roomId == lastState.roomId  // Same room but big stat changes = save file change
+
+        val isStable = roomChanged || smallChanges || itemCollection || saveFileLoad
+        
+        if (!isStable) {
+            logger.debug { "🔄 Rejecting change - Health: ${lastState.health}->${gameState.health} (Δ$healthDiff), MaxHealth: ${lastState.maxHealth}->${gameState.maxHealth} (Δ$maxHealthDiff), Room: ${lastState.roomId}->${gameState.roomId}" }
+        } else {
+            // Only log changes that are actually significant
+            val hasActualChanges = gameState.health != lastState.health ||
+                gameState.maxHealth != lastState.maxHealth ||
+                gameState.missiles != lastState.missiles ||
+                gameState.maxMissiles != lastState.maxMissiles ||
+                gameState.supers != lastState.supers ||
+                gameState.maxSupers != lastState.maxSupers ||
+                gameState.powerBombs != lastState.powerBombs ||
+                gameState.maxPowerBombs != lastState.maxPowerBombs ||
+                gameState.roomId != lastState.roomId ||
+                gameState.items != lastState.items ||
+                gameState.beams != lastState.beams ||
+                gameState.bosses != lastState.bosses
+                
+            if (hasActualChanges) {
+                logger.info { "✅ SIGNIFICANT CHANGE - Health: ${lastState.health}->${gameState.health}, MaxHealth: ${lastState.maxHealth}->${gameState.maxHealth}, Missiles: ${lastState.missiles}/${lastState.maxMissiles}->${gameState.missiles}/${gameState.maxMissiles}, Room: ${lastState.roomId}->${gameState.roomId}" }
+            } else {
+                logger.debug { "✅ Accepting change - Health: ${lastState.health}->${gameState.health}, MaxHealth: ${lastState.maxHealth}->${gameState.maxHealth}, Room: ${lastState.roomId}->${gameState.roomId}" }
+            }
+        }
+        
+        return isStable
     }
 
     /**
@@ -174,9 +225,16 @@ class GameStateService(
 
                 _trackerState.value = trackerState
 
-                // Reduce polling noise - only log significant changes
-                if (pollCount % 100L == 0L || gameState.roomId != _trackerState.value.gameState.roomId) {
-                    logger.debug { "🔄 Poll #$pollCount: ${gameState.areaName}, Room ${gameState.roomId}, Health ${gameState.health}/${gameState.maxHealth}" }
+                // Log significant changes and periodic status
+                val previousState = _trackerState.value.gameState
+                val significantChange = gameState.roomId != previousState.roomId ||
+                    gameState.maxHealth != previousState.maxHealth ||
+                    gameState.maxMissiles != previousState.maxMissiles ||
+                    gameState.maxSupers != previousState.maxSupers ||
+                    gameState.maxPowerBombs != previousState.maxPowerBombs
+                
+                if (pollCount % 100L == 0L || significantChange) {
+                    logger.info { "🔄 Poll #$pollCount: ${gameState.areaName}, Room ${gameState.roomId}, Health ${gameState.health}/${gameState.maxHealth}, Missiles ${gameState.missiles}/${gameState.maxMissiles}, Supers ${gameState.supers}/${gameState.maxSupers}, PBs ${gameState.powerBombs}/${gameState.maxPowerBombs}" }
                 }
 
             } catch (e: Exception) {

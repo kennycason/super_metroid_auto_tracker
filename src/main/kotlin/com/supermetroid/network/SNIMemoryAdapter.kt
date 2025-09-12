@@ -60,12 +60,11 @@ class SNIMemoryAdapter(
         return@withContext try {
             connectionState = MemoryAdapter.ConnectionState.CONNECTING
             
-            // Initialize gRPC channel
+            // Initialize gRPC channel without keepalive to avoid SNI ping issues
             channel = ManagedChannelBuilder.forAddress(host, port)
                 .usePlaintext()
-                .keepAliveTime(30, TimeUnit.SECONDS)
-                .keepAliveTimeout(5, TimeUnit.SECONDS)
-                .keepAliveWithoutCalls(true)
+                .maxInboundMessageSize(4 * 1024 * 1024)  // 4MB message size
+                .maxRetryAttempts(0)  // Disable automatic retries
                 .build()
             
             // Create service stubs
@@ -180,7 +179,15 @@ class SNIMemoryAdapter(
             consecutiveErrors++
             lastErrorTime = System.currentTimeMillis()
             
-            logger.error(e) { "❌ SNI gRPC error reading memory at 0x${address.toString(16)}: ${e.status}" }
+            // Mark connection as disconnected for certain errors
+            if (e.status.code == io.grpc.Status.Code.UNAVAILABLE ||
+                e.status.code == io.grpc.Status.Code.INTERNAL ||
+                e.message?.contains("GOAWAY") == true) {
+                connectionState = MemoryAdapter.ConnectionState.DISCONNECTED
+                logger.warn(e) { "❌ SNI connection lost during memory read at 0x${address.toString(16)}: ${e.status}" }
+            } else {
+                logger.error(e) { "❌ SNI gRPC error reading memory at 0x${address.toString(16)}: ${e.status}" }
+            }
             throw e
         } catch (e: Exception) {
             // Update error statistics
@@ -243,7 +250,15 @@ class SNIMemoryAdapter(
             consecutiveErrors++
             lastErrorTime = System.currentTimeMillis()
             
-            logger.error(e) { "❌ SNI gRPC error in batch read: ${e.status}" }
+            // Mark connection as disconnected for certain errors
+            if (e.status.code == io.grpc.Status.Code.UNAVAILABLE ||
+                e.status.code == io.grpc.Status.Code.INTERNAL ||
+                e.message?.contains("GOAWAY") == true) {
+                connectionState = MemoryAdapter.ConnectionState.DISCONNECTED
+                logger.warn(e) { "❌ SNI connection lost during batch read: ${e.status}" }
+            } else {
+                logger.error(e) { "❌ SNI gRPC error in batch read: ${e.status}" }
+            }
             throw e
         } catch (e: Exception) {
             // Update error statistics

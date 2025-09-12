@@ -22,7 +22,9 @@ class DualMemoryAdapter(
     // Current active adapter
     private var activeAdapter: MemoryAdapter? = null
     private var lastDetectionTime: Long = 0
-    private val redetectionIntervalMs = 30000 // Re-detect every 30 seconds if no adapter is active
+    private var lastSuccessfulOperation: Long = 0
+    private val redetectionIntervalMs = 60000 // Re-detect every 60 seconds if no adapter is active
+    private val connectionStabilityMs = 10000 // Wait 10 seconds before re-detecting after successful operations
     
     // Fallback adapters for manual connection
     private val fallbackAdapters = listOf<() -> MemoryAdapter>(
@@ -138,20 +140,27 @@ class DualMemoryAdapter(
     
     /**
      * Ensure we have a connected adapter and execute the given operation
-     * Handles automatic reconnection and failover
+     * Handles automatic reconnection and failover with stability checks
      */
     private suspend fun <T> ensureConnectedAndExecute(
         operationName: String,
         operation: suspend (MemoryAdapter) -> T
     ): T {
         return connectionMutex.withLock {
-            // Check if we need to re-detect adapters
-            val needsRedetection = activeAdapter == null || 
-                (activeAdapter?.getConnectionState() != MemoryAdapter.ConnectionState.CONNECTED) ||
-                (System.currentTimeMillis() - lastDetectionTime > redetectionIntervalMs)
+            val now = System.currentTimeMillis()
+            
+            // Check if we need to re-detect adapters (but be less aggressive)
+            val hasActiveAdapter = activeAdapter != null
+            val isConnected = activeAdapter?.getConnectionState() == MemoryAdapter.ConnectionState.CONNECTED
+            val timeSinceLastDetection = now - lastDetectionTime
+            val timeSinceLastSuccess = now - lastSuccessfulOperation
+            
+            val needsRedetection = !hasActiveAdapter || 
+                (!isConnected && timeSinceLastSuccess > connectionStabilityMs)
+                // Removed: (timeSinceLastDetection > redetectionIntervalMs) - don't force re-detection if working
             
             if (needsRedetection) {
-                logger.debug { "🔄 Re-detecting adapters for operation: $operationName" }
+                logger.info { "🔄 Re-detecting adapters for operation: $operationName (hasAdapter=$hasActiveAdapter, connected=$isConnected, timeSinceDetection=${timeSinceLastDetection}ms)" }
                 if (!connect()) {
                     throw IllegalStateException("No memory adapter available for $operationName")
                 }
@@ -161,34 +170,36 @@ class DualMemoryAdapter(
                 ?: throw IllegalStateException("No active adapter available for $operationName")
             
             try {
-                operation(adapter)
+                val result = operation(adapter)
+                lastSuccessfulOperation = now
+                return@withLock result
             } catch (e: Exception) {
-                logger.warn(e) { "❌ Operation $operationName failed with ${adapter.getAdapterName()}, attempting reconnection" }
+                logger.warn(e) { "❌ Operation $operationName failed with ${adapter.getAdapterName()}" }
                 
-                // Try to reconnect the current adapter
-                val reconnected = try {
-                    adapter.disconnect()
-                    adapter.connect()
-                } catch (reconnectError: Exception) {
-                    logger.debug(reconnectError) { "Failed to reconnect current adapter" }
-                    false
-                }
-                
-                if (reconnected) {
-                    // Retry the operation
+                // For gRPC errors, try a simple reconnect first
+                if (e.message?.contains("GOAWAY") == true || e.message?.contains("ENHANCE_YOUR_CALM") == true) {
+                    logger.info { "🔄 Detected gRPC connection issue, attempting simple reconnect" }
                     try {
-                        return@withLock operation(adapter)
-                    } catch (retryError: Exception) {
-                        logger.warn(retryError) { "❌ Retry of $operationName failed even after reconnection" }
+                        adapter.disconnect()
+                        adapter.connect()
+                        val result = operation(adapter)
+                        lastSuccessfulOperation = now
+                        return@withLock result
+                    } catch (reconnectError: Exception) {
+                        logger.warn(reconnectError) { "❌ Simple reconnect failed" }
                     }
                 }
                 
-                // If reconnection failed, try to connect to a different adapter
+                // If that failed, try to connect to a different adapter
+                logger.info { "🔄 Attempting failover to different adapter" }
                 activeAdapter = null
+                lastDetectionTime = 0  // Force re-detection
                 if (connect()) {
                     val newAdapter = activeAdapter!!
                     logger.info { "✅ Switched to ${newAdapter.getAdapterName()} for $operationName" }
-                    return@withLock operation(newAdapter)
+                    val result = operation(newAdapter)
+                    lastSuccessfulOperation = now
+                    return@withLock result
                 }
                 
                 // If all else fails, throw the original error
