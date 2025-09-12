@@ -4,6 +4,7 @@ plugins {
     kotlin("jvm") version "1.9.21"
     kotlin("plugin.serialization") version "1.9.21"
     id("org.jetbrains.compose") version "1.5.11"
+    id("com.google.protobuf") version "0.9.4"
 }
 
 group = "com.supermetroid"
@@ -32,6 +33,16 @@ dependencies {
     // Logging
     implementation("ch.qos.logback:logback-classic:1.4.14")
     implementation("io.github.oshai:kotlin-logging-jvm:5.1.1")
+    
+    // gRPC for SNI integration
+    implementation("io.grpc:grpc-kotlin-stub:1.4.0")
+    implementation("io.grpc:grpc-protobuf:1.58.0")
+    implementation("io.grpc:grpc-netty:1.58.0")
+    implementation("com.google.protobuf:protobuf-kotlin:3.25.1")
+    implementation("javax.annotation:javax.annotation-api:1.3.2")
+    
+    // Protobuf compiler
+    implementation("com.google.protobuf:protobuf-java:3.25.1")
     
     // Testing
     testImplementation(kotlin("test"))
@@ -69,4 +80,28 @@ compose.desktop {
 
 // Clean JVM-only structure
 
-// Remove old server copy task - we're building a Compose app now
+// Protobuf configuration
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.25.1"
+    }
+    plugins {
+        create("grpc") {
+            artifact = "io.grpc:protoc-gen-grpc-java:1.58.0"
+        }
+        create("grpckt") {
+            artifact = "io.grpc:protoc-gen-grpc-kotlin:1.4.0:jdk8@jar"
+        }
+    }
+    generateProtoTasks {
+        all().forEach {
+            it.plugins {
+                create("grpc")
+                create("grpckt")
+            }
+            it.builtins {
+                create("kotlin")
+            }
+        }
+    }
+}
