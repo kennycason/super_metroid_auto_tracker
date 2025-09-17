@@ -63,6 +63,8 @@ class RetroArchUdpClient(
             socket?.soTimeout = timeoutMs
             connectionState = ConnectionState.CONNECTED
             consecutiveErrors = 0
+            // NOTE: This logs "Connected" even if nothing is listening on the target port!
+            // UDP doesn't verify the other end exists. Actual verification happens during memory reads.
             logger.info { "🔌 Connected to RetroArch UDP at $host:$port" }
         } catch (e: Exception) {
             connectionState = ConnectionState.DISCONNECTED

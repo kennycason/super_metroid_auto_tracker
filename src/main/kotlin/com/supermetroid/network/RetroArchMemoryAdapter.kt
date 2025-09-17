@@ -30,15 +30,16 @@ class RetroArchMemoryAdapter(
     
     override suspend fun isAvailable(): Boolean = withContext(Dispatchers.IO) {
         return@withContext try {
-            // Try to connect briefly to test availability
+            // Try to connect briefly to test availability (this logs "Connected" even if nothing is listening!)
             val testClient = RetroArchUdpClient(host, port)
             testClient.connect()
             
-            // Try a simple memory read to verify it's actually working
+            // CRITICAL: Try a memory read to verify RetroArch is actually running
+            // UDP connection succeeds even if nothing is listening, so we MUST test actual communication
             testClient.readMemory(0x7E0000, 1)
             testClient.disconnect()
             
-            logger.debug { "✅ RetroArch NWA available at $host:$port" }
+            logger.debug { "✅ RetroArch NWA available at $host:$port (verified with memory read)" }
             true
         } catch (e: Exception) {
             logger.debug { "❌ RetroArch NWA not available at $host:$port: ${e.message}" }
