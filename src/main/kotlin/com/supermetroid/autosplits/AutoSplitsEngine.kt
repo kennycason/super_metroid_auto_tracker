@@ -737,8 +737,12 @@ class AutoSplitsEngine {
                 splitTime
             }
 
-            // Always update the split time in the personal best
-            val updatedSplitTimes = personalBest.splitTimes + (split.id to updatedSplitTime)
+            // Only update the split time in the personal best if it's actually a new PB
+            val updatedSplitTimes = if (isNewPB) {
+                personalBest.splitTimes + (split.id to updatedSplitTime)
+            } else {
+                personalBest.splitTimes // Don't overwrite existing PB with slower time
+            }
             val updatedPB = personalBest.copy(splitTimes = updatedSplitTimes)
 
             currentState.personalBests + (currentRun.profileId to updatedPB)
@@ -885,6 +889,9 @@ class AutoSplitsEngine {
             logger.info { "🚨 CERES DEBUG - room:0x${curr.roomId.toString(16)}, prevState:${prev.gameState}, currState:${curr.gameState}, area:${curr.areaName}" }
             logger.info { "🚨 CERES CONDITIONS - inElevator:$inCeresElevator, gameStateTransition:$gameStateTransition, primary:$primaryDetection" }
             logger.info { "🚨 CERES FALLBACK - ceresCompleted:$ceresCompleted, leftCeresArea:$leftCeresArea, fallback:$fallbackDetection" }
+            println("[DEBUG_LOG] CERES DEBUG - room:0x${curr.roomId.toString(16)}, prevState:${prev.gameState}, currState:${curr.gameState}, area:${curr.areaName}")
+            println("[DEBUG_LOG] CERES CONDITIONS - inElevator:$inCeresElevator, gameStateTransition:$gameStateTransition, primary:$primaryDetection")
+            println("[DEBUG_LOG] CERES FALLBACK - ceresCompleted:$ceresCompleted, leftCeresArea:$leftCeresArea, fallback:$fallbackDetection")
         }
 
         val shouldSplit = primaryDetection || fallbackDetection
@@ -892,6 +899,7 @@ class AutoSplitsEngine {
         if (shouldSplit) {
             val method = if (primaryDetection) "PRIMARY (ASL)" else "FALLBACK (Memory)"
             logger.info { "🎯 CERES SPLIT TRIGGERED via $method - Leaving Ceres Station!" }
+            println("[DEBUG_LOG] 🎯 CERES SPLIT TRIGGERED via $method - Leaving Ceres Station!")
         }
 
         return shouldSplit
