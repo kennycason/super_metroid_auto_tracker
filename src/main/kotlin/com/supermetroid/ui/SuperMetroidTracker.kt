@@ -145,6 +145,12 @@ fun SuperMetroidTrackerApp(
             autoSplitsEngine.processGameState(trackerState.gameState)
         }
     }
+    
+    // TEMPORARY FIX: Always enable splits to ensure auto-start works
+    LaunchedEffect(trackerState.gameState) {
+        println("[DEBUG_LOG] Auto-splits processing: area=${trackerState.gameState.areaId}, room=${trackerState.gameState.roomId}, gameState=${trackerState.gameState.gameState}")
+        autoSplitsEngine.processGameState(trackerState.gameState)
+    }
 
     // Save splits state periodically (but not if it's empty - prevents overwriting loaded data)
     LaunchedEffect(splitsState) {

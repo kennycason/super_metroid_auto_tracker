@@ -44,11 +44,30 @@ class SNIMemoryAdapter(
     
     override suspend fun isAvailable(): Boolean = withContext(Dispatchers.IO) {
         return@withContext try {
-            // Test if SNI service is running on port 8191
-            Socket(host, port).use { socket ->
-                socket.soTimeout = 1000 // 1 second timeout
-                logger.debug { "✅ SNI service available at $host:$port" }
-                true
+            // Test if SNI service is running and has devices
+            val testChannel = ManagedChannelBuilder.forAddress(host, port)
+                .usePlaintext()
+                .maxRetryAttempts(0)
+                .build()
+            
+            try {
+                val testDevicesStub = DevicesGrpc.newBlockingStub(testChannel)
+                    .withDeadlineAfter(2, java.util.concurrent.TimeUnit.SECONDS)  // 2 second timeout
+                val devicesResponse = testDevicesStub.listDevices(Sni.DevicesRequest.getDefaultInstance())
+                
+                val hasReadCapableDevice = devicesResponse.devicesList.any { device ->
+                    device.capabilitiesList.contains(Sni.DeviceCapability.ReadMemory)
+                }
+                
+                if (hasReadCapableDevice) {
+                    logger.debug { "✅ SNI service available at $host:$port with ${devicesResponse.devicesList.size} device(s)" }
+                    true
+                } else {
+                    logger.debug { "❌ SNI service at $host:$port has no devices with ReadMemory capability" }
+                    false
+                }
+            } finally {
+                testChannel.shutdown()
             }
         } catch (e: Exception) {
             logger.debug { "❌ SNI service not available at $host:$port: ${e.message}" }
