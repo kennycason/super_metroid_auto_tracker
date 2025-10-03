@@ -58,7 +58,7 @@ fun StatusGrid(
                     TrackerColors.Border,
                     RoundedCornerShape(4.dp)
                 )
-                .padding(12.dp)
+                .padding(8.dp) // Reduced padding for more compact layout
         ) {
             // Title
             Text(
@@ -75,18 +75,18 @@ fun StatusGrid(
             // Stats row - Health, Missiles, etc.
             StatsRow(gameState)
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp)) // Reduced spacing
             
             // Location info
             LocationInfo(gameState)
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp)) // Reduced spacing
             
             // Items and beams grid
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 80.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(2.dp), // Reduced spacing
+                verticalArrangement = Arrangement.spacedBy(2.dp), // Reduced spacing
                 modifier = Modifier.height(200.dp)
             ) {
                 items(statusItems) { item ->
@@ -176,29 +176,12 @@ private fun StatusItemCard(
     item: StatusItem,
     showName: Boolean
 ) {
-    Card(
+    Box(
         modifier = Modifier
-            .size(width = 76.dp, height = if (showName) 60.dp else 40.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (item.isObtained) {
-                TrackerColors.Success.copy(alpha = 0.2f)
-            } else {
-                TrackerColors.SurfaceOverlayLight
-            }
-        ),
-        shape = RoundedCornerShape(3.dp)
+            .size(width = 76.dp, height = if (showName) 60.dp else 40.dp)
+            .padding(2.dp), // Reduced padding for more compact layout
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .border(
-                    1.dp,
-                    if (item.isObtained) TrackerColors.Success else TrackerColors.Border,
-                    RoundedCornerShape(3.dp)
-                )
-                .padding(4.dp),
-            contentAlignment = Alignment.Center
-        ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
@@ -237,7 +220,6 @@ private fun StatusItemCard(
                         maxLines = 1
                     )
                 }
-            }
         }
     }
 }
@@ -268,32 +250,17 @@ private fun BossesSection(gameState: GameState) {
         
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp), // Reduced spacing
+            verticalArrangement = Arrangement.spacedBy(2.dp), // Reduced spacing
             modifier = Modifier.height(80.dp)
         ) {
             items(bosses) { (name, defeated) ->
-                Card(
-                    modifier = Modifier.height(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (defeated) {
-                            TrackerColors.Success.copy(alpha = 0.3f)
-                        } else {
-                            TrackerColors.SurfaceOverlayLight
-                        }
-                    ),
-                    shape = RoundedCornerShape(2.dp)
+                Box(
+                    modifier = Modifier
+                        .height(24.dp)
+                        .padding(1.dp), // Minimal padding for compact layout
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .border(
-                                1.dp,
-                                if (defeated) TrackerColors.Success else TrackerColors.Border,
-                                RoundedCornerShape(2.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
                         Text(
                             text = name,
                             style = MaterialTheme.typography.labelSmall.copy(
@@ -303,7 +270,6 @@ private fun BossesSection(gameState: GameState) {
                             ),
                             textAlign = TextAlign.Center
                         )
-                    }
                 }
             }
         }

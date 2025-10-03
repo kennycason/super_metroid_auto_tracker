@@ -214,24 +214,11 @@ private fun SplitRow(
         else -> TrackerColors.Border.copy(alpha = 0.3f)
     }
 
-            Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp), // Same height as icon tiles
-            colors = CardDefaults.cardColors(
-                containerColor = backgroundColor
-            ),
-            shape = RoundedCornerShape(2.dp)
-        ) {
             Row(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .border(
-                        1.dp,
-                        borderColor,
-                        RoundedCornerShape(2.dp)
-                    )
-                    .padding(horizontal = 6.dp, vertical = 2.dp),
+                    .fillMaxWidth()
+                    .height(40.dp) // Reduced height for compact layout
+                    .padding(horizontal = 4.dp, vertical = 1.dp), // Reduced padding for compact layout
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -254,8 +241,8 @@ private fun SplitRow(
                 SpriteIcon(
                     itemId = getSplitItemId(split),
                     isObtained = isCompleted,
-                    size = 48, // Same size as tiles above
-                    modifier = Modifier.padding(end = 8.dp)
+                    size = 36, // Match reduced tile size for compact layout
+                    modifier = Modifier.padding(end = 4.dp) // Reduced padding for compact layout
                 )
 
                 // Split name
@@ -416,7 +403,6 @@ private fun SplitRow(
                 }
             }
         }
-    }
 }
 
 @Composable

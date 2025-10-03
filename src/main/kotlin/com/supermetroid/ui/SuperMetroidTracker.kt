@@ -240,7 +240,7 @@ fun SuperMetroidTrackerLayout(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(4.dp) // Reduced from 12dp to 4dp for more compact layout
+            .padding(2.dp) // Minimal padding for very compact layout
     ) {
         // Header with connection status
         // TrackerHeader(
@@ -269,7 +269,7 @@ fun SuperMetroidTrackerLayout(
                 gameState = trackerState.gameState,
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(6.dp)) // Halved from 12dp
+            Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
         }
 
         // Timer section - Centered and compact
@@ -289,7 +289,7 @@ fun SuperMetroidTrackerLayout(
                     }
                 }
             )
-            Spacer(modifier = Modifier.height(6.dp)) // Halved from 12dp
+            Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
         }
 
         // Splits list - Takes remaining space
@@ -300,7 +300,7 @@ fun SuperMetroidTrackerLayout(
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 maxHeight = 900 // Increased height for taller window
             )
-            Spacer(modifier = Modifier.height(6.dp)) // Halved from 12dp
+            Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
         }
 
         // Effects panel
@@ -337,7 +337,7 @@ fun SuperMetroidTrackerLayout(
                 themeService = themeService,
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(6.dp)) // Halved from 12dp
+            Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
         }
 
         // Spacer to push footer to bottom when splits are hidden

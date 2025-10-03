@@ -50,30 +50,12 @@ fun SpriteIcon(
     
     val spriteInfo = getSpriteInfo(itemId)
     
-    Card(
+    Box(
         modifier = modifier
             .size(size.dp) // Always square - width and height are the same
             .aspectRatio(1f), // Force 1:1 aspect ratio to prevent stretching
-        colors = CardDefaults.cardColors(
-            containerColor = if (isObtained) {
-                TrackerColors.Success.copy(alpha = 0.2f)
-            } else {
-                TrackerColors.SurfaceOverlayLight
-            }
-        ),
-        shape = RoundedCornerShape(4.dp)
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .border(
-                    2.dp,
-                    if (isObtained) TrackerColors.Success else TrackerColors.Border,
-                    RoundedCornerShape(4.dp)
-                )
-                .padding(2.dp),
-            contentAlignment = Alignment.Center
-        ) {
             if (spriteInfo != null) {
                 SpriteImage(
                     spriteFile = spriteInfo.spriteFile,
@@ -81,7 +63,7 @@ fun SpriteIcon(
                     spriteY = spriteInfo.y,
                     spriteWidth = spriteInfo.width,
                     spriteHeight = spriteInfo.height,
-                    displaySize = size - 8,
+                    displaySize = size,
                     isObtained = isObtained
                 )
             } else {
@@ -96,7 +78,6 @@ fun SpriteIcon(
                     textAlign = TextAlign.Center
                 )
             }
-        }
     }
 }
 
@@ -151,18 +132,13 @@ fun SpriteImage(
     } else {
         // Fallback if sprite loading fails
         Box(
-            modifier = Modifier
-                .size(displaySize.dp)
-                .background(
-                    if (isObtained) TrackerColors.Success else TrackerColors.Inactive,
-                    RoundedCornerShape(2.dp)
-                ),
+            modifier = Modifier.size(displaySize.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "?",
                 style = MaterialTheme.typography.labelSmall.copy(
-                    color = TrackerColors.Background,
+                    color = if (isObtained) TrackerColors.Success else TrackerColors.Inactive,
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp
                 )

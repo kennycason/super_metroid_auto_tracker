@@ -185,12 +185,12 @@ fun SimpleStatusGrid(
         colors = CardDefaults.cardColors(
             containerColor = TrackerColors.Surface
         ),
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(4.dp) // Reduced corner radius for more compact look
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp) // Halved from 16dp to 8dp for more compact layout
+                .padding(2.dp) // Minimal padding for very compact layout
         ) {
 
 
@@ -205,7 +205,7 @@ fun SimpleStatusGrid(
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(8.dp)) // Halved from 16dp to 8dp
+            Spacer(modifier = Modifier.height(2.dp)) // Minimal spacing for very compact layout
 
             // Unified fixed-size grid for all items and bosses
             FixedTileGrid(
@@ -219,8 +219,8 @@ fun SimpleStatusGrid(
 fun FixedTileGrid(
     allItems: List<ItemStatus>
 ) {
-    val fixedTileSize = 52.dp // FIXED SIZE - never changes
-    val spacing = 4.dp
+    val fixedTileSize = 36.dp // Reduced size for more compact layout
+    val spacing = 1.dp // Further reduced spacing for more compact layout
 
     // FlowRow-style layout that fills from left, wraps naturally
     FlowRowLayout(
@@ -267,17 +267,7 @@ fun FlowRowLayout(
                                 if (item.max > 0) {
                                     // Render ammo tile content directly in the Box to match size
                                     Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .border(
-                                                2.dp,
-                                                if (item.isObtained) TrackerColors.Success else TrackerColors.Border,
-                                                RoundedCornerShape(4.dp)
-                                            )
-                                            .background(
-                                                if (item.isObtained) TrackerColors.Success.copy(alpha = 0.2f) else TrackerColors.Surface,
-                                                RoundedCornerShape(4.dp)
-                                            )
+                                        modifier = Modifier.fillMaxSize()
                                     ) {
                                         // Ammo icon - use SpriteImage directly to avoid double border
                                         val spriteInfo = getSpriteInfo(item.id)
@@ -291,7 +281,7 @@ fun FlowRowLayout(
                                                     spriteY = spriteInfo.y,
                                                     spriteWidth = spriteInfo.width,
                                                     spriteHeight = spriteInfo.height,
-                                                    displaySize = 44, // Slightly smaller to fit within border
+                                                    displaySize = 36, // Match reduced tile size
                                                     isObtained = item.current > 0
                                                 )
                                             }
@@ -308,14 +298,14 @@ fun FlowRowLayout(
                                             ),
                                             modifier = Modifier
                                                 .align(Alignment.BottomEnd)
-                                                .padding(2.dp)
+                                                .padding(1.dp)
                                         )
                                     }
                                 } else {
                                     SpriteIcon(
                                         itemId = item.id,
                                         isObtained = item.isObtained,
-                                        size = 52 // Match the fixed tile size
+                                        size = 36 // Match the reduced tile size
                                     )
                                 }
                             }
