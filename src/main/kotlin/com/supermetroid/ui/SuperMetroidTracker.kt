@@ -14,9 +14,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.supermetroid.autosplits.AutoSplitsEngine
 import com.supermetroid.autosplits.KpdrAnyProfile
-import com.supermetroid.service.EffectType
 import com.supermetroid.service.GameStateService
-import com.supermetroid.service.PaletteEffectsService
 import com.supermetroid.storage.FileStorageService
 import com.supermetroid.ui.components.*
 import com.supermetroid.ui.theme.TrackerColors
@@ -32,8 +30,6 @@ import kotlinx.coroutines.swing.Swing
 val gameStateService = GameStateService()
 val autoSplitsEngine = AutoSplitsEngine()
 val fileStorageService = FileStorageService()
-val paletteEffectsService = PaletteEffectsService(gameStateService.getUdpClient())
-val logoEffectsService = com.supermetroid.service.LogoEffectsService()
 val themeService = com.supermetroid.service.ThemeService(fileStorageService)
 
 fun main() = application {
@@ -43,7 +39,6 @@ fun main() = application {
     Window(
         onCloseRequest = {
             gameStateService.stop()
-            logoEffectsService.stop()
             exitApplication()
         },
         title = "Super Metroid Tracker",
@@ -99,7 +94,6 @@ fun SuperMetroidTrackerApp(
 ) {
     val trackerState by gameStateService.trackerState.collectAsState()
     val splitsState by autoSplitsEngine.splitsState.collectAsState()
-    val effectsState by paletteEffectsService.effectsState.collectAsState()
     val currentTheme by themeService.currentTheme.collectAsState()
 
     // Initialize services
@@ -121,22 +115,6 @@ fun SuperMetroidTrackerApp(
         }
     }
 
-    // Clean up effects service on exit
-    DisposableEffect(Unit) {
-        onDispose {
-            // Use runBlocking to handle the suspend function in a non-suspend context
-            runBlocking {
-                try {
-                    // Always attempt to stop the service, regardless of its current state
-                    // This ensures we clean up properly even if the state is inconsistent
-                    paletteEffectsService.stop()
-                    println("[DEBUG_LOG] Successfully stopped palette effects service on exit")
-                } catch (e: Exception) {
-                    println("[DEBUG_LOG] Failed to stop palette effects service on exit: ${e.message}")
-                }
-            }
-        }
-    }
 
     // Process game state for autosplits ONLY when splits are visible
     // This prevents auto-splitting when user is playing other games (like map rando)
@@ -211,7 +189,6 @@ fun SuperMetroidTrackerApp(
                 SuperMetroidTrackerLayout(
                     trackerState = trackerState,
                     splitsState = splitsState,
-                    effectsState = effectsState,
                     showSplits = showSplits,
                     onShowSplitsChanged = onShowSplitsChanged,
                     themeService = themeService
@@ -226,7 +203,6 @@ fun SuperMetroidTrackerApp(
 fun SuperMetroidTrackerLayout(
     trackerState: com.supermetroid.model.TrackerState,
     splitsState: com.supermetroid.model.SplitsState,
-    effectsState: com.supermetroid.service.PaletteEffectsState,
     showSplits: Boolean,
     onShowSplitsChanged: (Boolean) -> Unit,
     themeService: com.supermetroid.service.ThemeService
@@ -234,8 +210,7 @@ fun SuperMetroidTrackerLayout(
     // UI visibility toggles (removed showSplits since it's now passed in)
     var showIcons by remember { mutableStateOf(true) }
     var showTimer by remember { mutableStateOf(true) }
-    var showEffects by remember { mutableStateOf(false) }
-    var showLogo by remember { mutableStateOf(false) }
+    var showSettings by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -253,14 +228,6 @@ fun SuperMetroidTrackerLayout(
 
 
 
-        // Logo Effects panel - Above status grid when visible
-        if (showLogo) {
-            LogoEffectsPanel(
-                logoEffectsService = logoEffectsService,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-        }
 
         // TALL LAYOUT: Status Grid at top, Timer below, then Splits at bottom
         // Status Grid (Icons) - Fixed height, non-stretchable
@@ -303,37 +270,9 @@ fun SuperMetroidTrackerLayout(
             Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
         }
 
-        // Effects panel
-        if (showEffects) {
-            EffectsPanel(
-                effectsState = effectsState,
-                onEffectTypeChanged = { effectType ->
-                    CoroutineScope(Dispatchers.Swing).launch {
-                        paletteEffectsService.setEffectType(effectType)
-                        // Auto-start palette effects when an effect is selected (not NONE)
-                        if (effectType != EffectType.NONE && !effectsState.enabled) {
-                            try {
-                                paletteEffectsService.start()
-                                println("[DEBUG_LOG] Auto-started palette effects service for $effectType")
-                            } catch (e: Exception) {
-                                println("[DEBUG_LOG] Failed to auto-start palette effects: ${e.message}")
-                            }
-                        } else if (effectType == EffectType.NONE && effectsState.enabled) {
-                            try {
-                                paletteEffectsService.stop()
-                                println("[DEBUG_LOG] Auto-stopped palette effects service")
-                            } catch (e: Exception) {
-                                println("[DEBUG_LOG] Failed to auto-stop palette effects: ${e.message}")
-                            }
-                        }
-                    }
-                },
-                onIntensityChanged = { intensity ->
-                    CoroutineScope(Dispatchers.Swing).launch {
-                        paletteEffectsService.setIntensity(intensity)
-                    }
-                },
-                logoEffectsService = logoEffectsService,
+        // Settings panel
+        if (showSettings) {
+            SettingsPanel(
                 themeService = themeService,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -411,60 +350,17 @@ fun SuperMetroidTrackerLayout(
                     )
                 }
 
-                // Logo toggle
+                // Settings toggle
                 TextButton(
-                    onClick = {
-                        showLogo = !showLogo
-                        println("[DEBUG_LOG] Logo button clicked: ${if (showLogo) "showing" else "hiding"} logo panel")
-                    },
+                    onClick = { showSettings = !showSettings },
                     colors = ButtonDefaults.textButtonColors(
-                        contentColor = if (showLogo) TrackerColors.Success else TrackerColors.OnSurfaceVariant
+                        contentColor = if (showSettings) TrackerColors.Success else TrackerColors.OnSurfaceVariant
                     ),
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 2.dp),
                     modifier = Modifier.height(20.dp)
                 ) {
                     Text(
-                        text = "logo",
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
-
-
-
-                // Effects toggle
-                TextButton(
-                    onClick = {
-                        val wasShowing = showEffects
-                        showEffects = !showEffects
-                        println("[DEBUG_LOG] Effects button clicked: ${if (wasShowing) "hiding" else "showing"} effects panel")
-
-                        // Only stop effects when hiding the panel, don't auto-start when showing
-                        CoroutineScope(Dispatchers.Swing).launch {
-                            if (!showEffects && effectsState.enabled) {
-                                // Only stop effects when hiding the panel
-                                println("[DEBUG_LOG] Stopping effects services...")
-                                try {
-                                    paletteEffectsService.stop()
-                                    logoEffectsService.stop()
-                                    println("[DEBUG_LOG] Effects services stopped when hiding panel")
-                                } catch (e: Exception) {
-                                    println("[DEBUG_LOG] Failed to stop effects services: ${e.message}")
-                                    println("[DEBUG_LOG] Exception type: ${e.javaClass.name}")
-                                    e.printStackTrace() // Print stack trace for debugging
-                                }
-                            } else {
-                                println("[DEBUG_LOG] Effects panel toggled - no auto-start (effects start only when user selects them)")
-                            }
-                        }
-                    },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = if (showEffects) TrackerColors.Success else TrackerColors.OnSurfaceVariant
-                    ),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 2.dp),
-                    modifier = Modifier.height(20.dp)
-                ) {
-                    Text(
-                        text = "fx",
+                        text = "settings",
                         style = MaterialTheme.typography.labelSmall
                     )
                 }
