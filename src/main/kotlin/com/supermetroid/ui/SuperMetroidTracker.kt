@@ -31,6 +31,7 @@ val gameStateService = GameStateService()
 val autoSplitsEngine = AutoSplitsEngine()
 val fileStorageService = FileStorageService()
 val themeService = com.supermetroid.service.ThemeService(fileStorageService)
+val iconConfigService = com.supermetroid.service.IconConfigService(fileStorageService)
 
 fun main() = application {
     // Move showSplits state to Window level so keyboard shortcuts can access it
@@ -100,6 +101,9 @@ fun SuperMetroidTrackerApp(
     LaunchedEffect(Unit) {
         // Initialize theme service first to load saved theme
         themeService.initialize()
+        
+        // Initialize icon config service
+        iconConfigService.initialize()
         
         // Load split profile
         autoSplitsEngine.loadProfile(KpdrAnyProfile.profile)
@@ -191,7 +195,8 @@ fun SuperMetroidTrackerApp(
                     splitsState = splitsState,
                     showSplits = showSplits,
                     onShowSplitsChanged = onShowSplitsChanged,
-                    themeService = themeService
+                    themeService = themeService,
+                    iconConfigService = iconConfigService
                 )
             }
         }
@@ -205,7 +210,8 @@ fun SuperMetroidTrackerLayout(
     splitsState: com.supermetroid.model.SplitsState,
     showSplits: Boolean,
     onShowSplitsChanged: (Boolean) -> Unit,
-    themeService: com.supermetroid.service.ThemeService
+    themeService: com.supermetroid.service.ThemeService,
+    iconConfigService: com.supermetroid.service.IconConfigService
 ) {
     // UI visibility toggles (removed showSplits since it's now passed in)
     var showIcons by remember { mutableStateOf(true) }
@@ -234,6 +240,7 @@ fun SuperMetroidTrackerLayout(
         if (showIcons) {
             SimpleStatusGrid(
                 gameState = trackerState.gameState,
+                iconConfigService = iconConfigService,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
@@ -274,6 +281,7 @@ fun SuperMetroidTrackerLayout(
         if (showSettings) {
             SettingsPanel(
                 themeService = themeService,
+                iconConfigService = iconConfigService,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout

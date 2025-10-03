@@ -178,6 +178,7 @@ private fun getRoomName(roomId: Int): String {
 @Composable
 fun SimpleStatusGrid(
     gameState: GameState,
+    iconConfigService: com.supermetroid.service.IconConfigService,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -207,9 +208,9 @@ fun SimpleStatusGrid(
 
             Spacer(modifier = Modifier.height(2.dp)) // Minimal spacing for very compact layout
 
-            // Unified fixed-size grid for all items and bosses
+            // Unified fixed-size grid for enabled items and bosses in configured order
             FixedTileGrid(
-                allItems = getAllItemsAndBosses(gameState)
+                allItems = getFilteredItemsAndBosses(gameState, iconConfigService)
             )
         }
     }
@@ -332,6 +333,22 @@ data class ItemStatus(
 
 // Helper function for empty slots
 private fun ItemStatus.isEmpty(): Boolean = id.isEmpty()
+
+// Filtered list of items and bosses based on icon configuration
+@Composable
+private fun getFilteredItemsAndBosses(
+    gameState: GameState, 
+    iconConfigService: com.supermetroid.service.IconConfigService
+): List<ItemStatus> {
+    val iconConfig by iconConfigService.iconConfig.collectAsState()
+    val enabledIcons = iconConfig.icons.filter { it.enabled }.sortedBy { it.order }
+    val allItems = getAllItemsAndBosses(gameState)
+    
+    // Filter and reorder based on icon configuration
+    return enabledIcons.mapNotNull { iconItem ->
+        allItems.find { it.id == iconItem.id }
+    }
+}
 
 // Unified list of all items and bosses
 private fun getAllItemsAndBosses(gameState: GameState): List<ItemStatus> = listOf(
