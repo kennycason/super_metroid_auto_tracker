@@ -277,18 +277,20 @@ fun SuperMetroidTrackerLayout(
             Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
         }
 
-        // Settings panel
+        // Settings panel - takes remaining space when visible
         if (showSettings) {
             SettingsPanel(
                 themeService = themeService,
                 iconConfigService = iconConfigService,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f) // Takes all remaining vertical space
             )
             Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
         }
 
-        // Spacer to push footer to bottom when splits are hidden
-        if (!showSplits) {
+        // Spacer to push footer to bottom when splits are hidden and settings not shown
+        if (!showSplits && !showSettings) {
             Spacer(modifier = Modifier.weight(1f))
         }
 

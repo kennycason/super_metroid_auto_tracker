@@ -32,7 +32,7 @@ fun SettingsPanel(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxSize(), // Fill all available space
         colors = CardDefaults.cardColors(
             containerColor = TrackerColors.Surface
         ),
@@ -40,7 +40,7 @@ fun SettingsPanel(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize() // Fill all available space
                 .padding(8.dp)
         ) {
             // Title
@@ -61,10 +61,12 @@ fun SettingsPanel(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Icon Management Section
+            // Icon Management Section - takes remaining space
             IconManagementSection(
                 iconConfigService = iconConfigService,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f) // Takes all remaining vertical space
             )
         }
     }
@@ -199,7 +201,7 @@ private fun IconManagementSection(
             modifier = Modifier.padding(bottom = 8.dp)
         )
         
-        // Icon list with controls
+        // Icon list with controls - now fills remaining space
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = TrackerColors.SurfaceOverlayLight
@@ -207,7 +209,7 @@ private fun IconManagementSection(
             shape = RoundedCornerShape(6.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp) // Fixed height for scrollable list
+                .weight(1f) // Takes all remaining vertical space in the section
         ) {
             LazyColumn(
                 modifier = Modifier.padding(8.dp),
