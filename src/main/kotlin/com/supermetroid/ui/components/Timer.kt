@@ -49,32 +49,14 @@ fun TimerSection(
         }
     }
     
-    Card(
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = TrackerColors.Surface
-        ),
-        shape = RoundedCornerShape(4.dp)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            TrackerColors.Surface,
-                            TrackerColors.Background
-                        )
-                    )
-                )
-                .border(
-                    2.dp,
-                    if (isRunning) TrackerColors.SplitActive else TrackerColors.Border,
-                    RoundedCornerShape(4.dp)
-                )
-                .padding(24.dp)
+                .padding(16.dp) // Reduced padding for more minimal look
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
