@@ -68,11 +68,11 @@ fun SplitsList(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(
-                    1.dp,
-                    TrackerColors.Border,
-                    RoundedCornerShape(4.dp)
-                )
+                // .border(
+                //     1.dp,
+                //     TrackerColors.Border,
+                //     RoundedCornerShape(4.dp)
+                // )
                 .padding(12.dp)
         ) {
             // Header

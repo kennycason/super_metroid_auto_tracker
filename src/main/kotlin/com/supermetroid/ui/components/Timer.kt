@@ -1,20 +1,17 @@
 package com.supermetroid.ui.components
 
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -26,251 +23,226 @@ import com.supermetroid.ui.theme.TrackerColors
 import kotlinx.coroutines.delay
 
 @Composable
-fun TimerSection(
+fun Timer(
     splitsState: SplitsState,
     onToggleRun: () -> Unit,
     onResetRun: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val currentRun = splitsState.currentRun
-    val isRunning = currentRun != null
-    
+
     // Real-time timer update
     var currentTime by remember { mutableLongStateOf(0L) }
-    
-    LaunchedEffect(currentRun) {
-        if (currentRun != null) {
-            while (true) {
-                currentTime = System.currentTimeMillis() - currentRun.startTime.toEpochMilliseconds()
-                delay(10) // Update every 10ms for smooth display
-            }
-        } else {
+
+    // Track the last time we updated the timer to calculate elapsed time
+    var lastUpdateTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
+
+    // Remember the displayed time when paused to prevent jumps on resume
+    var pausedDisplayTime by remember { mutableLongStateOf(0L) }
+
+    // Track the previous pause state to detect changes
+    var wasPaused by remember { mutableStateOf(false) }
+
+    // Add a unique ID for this timer instance to track in logs
+    val timerId = remember { "timer-${System.currentTimeMillis()}" }
+
+    // Log initial state
+    LaunchedEffect(Unit) {
+        println("[DEBUG_LOG] $timerId: Timer component initialized")
+    }
+
+    LaunchedEffect(currentRun, currentRun?.isPaused) {
+        val runId = currentRun?.id ?: "null"
+        val isPaused = currentRun?.isPaused ?: false
+        println("[DEBUG_LOG] $timerId: LaunchedEffect triggered - runId: $runId, isPaused: $isPaused, wasPaused: $wasPaused")
+
+        if (currentRun == null) {
+            // No run, reset everything
+            println("[DEBUG_LOG] $timerId: No run, resetting timer state")
             currentTime = 0L
+            lastUpdateTime = System.currentTimeMillis()
+            pausedDisplayTime = 0L
+            wasPaused = false
+        } else if (currentRun.isPaused) {
+            // Just paused - save the current display time
+            println("[DEBUG_LOG] $timerId: Run is paused")
+            if (!wasPaused) {
+                println("[DEBUG_LOG] $timerId: Newly paused, saving display time: $currentTime")
+                pausedDisplayTime = currentTime
+            }
+            // When paused, just display the saved time
+            currentTime = pausedDisplayTime
+            println("[DEBUG_LOG] $timerId: Set current time to pausedDisplayTime: $pausedDisplayTime")
+            wasPaused = true
+        } else {
+            // Run is active (not paused)
+            val now = System.currentTimeMillis()
+            println("[DEBUG_LOG] $timerId: Run is active (not paused)")
+
+            // Initialize the timer state when a run starts or resumes
+            if (currentRun.completedSplits.isEmpty() && !wasPaused) {
+                // New run - initialize with the correct starting values
+                val rawTime = now - currentRun.startTime.toEpochMilliseconds() - currentRun.pausedTime
+                println("[DEBUG_LOG] $timerId: New run - initializing timer. startTime: ${currentRun.startTime}, pausedTime: ${currentRun.pausedTime}, rawTime: $rawTime")
+
+                // Reset all timer state for a clean start
+                pausedDisplayTime = 0L
+                currentTime = rawTime
+                lastUpdateTime = now
+
+                println("[DEBUG_LOG] $timerId: Timer state reset for new run - currentTime: $currentTime, lastUpdateTime: $lastUpdateTime")
+            } else if (wasPaused) {
+                // Resuming from pause - keep the pausedDisplayTime as our base
+                // but update the lastUpdateTime to now
+                println("[DEBUG_LOG] $timerId: Resuming from pause - pausedDisplayTime: $pausedDisplayTime, updating lastUpdateTime to now")
+                lastUpdateTime = now
+                wasPaused = false
+            } else {
+                // This is a case where the run is already active and not paused
+                // We need to recalculate the current time based on the run state
+                val calculatedTime = now - currentRun.startTime.toEpochMilliseconds() - currentRun.pausedTime
+                println("[DEBUG_LOG] $timerId: Continuing active run - recalculating time. startTime: ${currentRun.startTime}, pausedTime: ${currentRun.pausedTime}, calculatedTime: $calculatedTime")
+
+                // Update the timer state to match the calculated time
+                pausedDisplayTime = 0L
+                currentTime = calculatedTime
+                lastUpdateTime = now
+            }
+
+            // Continuously update the timer while the run is active
+            println("[DEBUG_LOG] $timerId: Starting timer update loop")
+            var updateCount = 0
+            var lastLogTime = System.currentTimeMillis()
+
+            // Safely check if the run is still active and not paused
+            while (true) {
+                // Get the current run state - exit loop if run has changed or been reset
+                val currentRunState = splitsState.currentRun
+                if (currentRunState != currentRun || currentRunState == null) {
+                    println("[DEBUG_LOG] $timerId: Breaking timer loop - run changed or reset")
+                    break
+                }
+
+                // Exit loop if run is paused
+                if (currentRunState.isPaused) {
+                    println("[DEBUG_LOG] $timerId: Breaking timer loop - run paused")
+                    break
+                }
+
+                val now = System.currentTimeMillis()
+
+                // Calculate the current time directly from the run state
+                // This is more accurate than incremental updates
+                val runTime = now - currentRun.startTime.toEpochMilliseconds() - currentRun.pausedTime
+                currentTime = runTime
+
+                // Log periodically to avoid flooding (every second)
+                updateCount++
+                if (now - lastLogTime > 1000) {
+                    println("[DEBUG_LOG] $timerId: Timer update #$updateCount - runTime: $runTime")
+                    lastLogTime = now
+                }
+
+                // No need to track lastUpdateTime or pausedDisplayTime for active runs
+                // as we're calculating the time directly from the run state
+                delay(16) // Update at approximately 60fps (16.67ms) for smooth display
+            }
+            println("[DEBUG_LOG] $timerId: Exited timer update loop")
         }
     }
-    
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = TrackerColors.Surface
+        ),
+        shape = RoundedCornerShape(4.dp) // Reduced corner radius for more compact look
     ) {
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp) // Reduced padding for more minimal look
+                .padding(4.dp), // Minimal padding for compact design
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+            // Main Timer Display with small control buttons inside
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp) // Minimal padding for compact design
             ) {
-                // Timer display
-                TimerDisplay(
-                    timeMs = if (isRunning) currentTime else 0L,
-                    isRunning = isRunning
+                // Main timer text (centered)
+                Text(
+                    text = formatTime(currentTime),
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        color = TrackerColors.Primary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 28.sp, // Slightly smaller font for more compact layout
+                        fontFamily = FontFamily.Monospace
+                    ),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
-                
-                // Control buttons
-                TimerControls(
-                    isRunning = isRunning,
-                    onStart = onToggleRun,
-                    onReset = onResetRun
-                )
-                
-                // Current run info
-                if (currentRun != null) {
-                    CurrentRunInfo(splitsState)
+
+                // Small control buttons (vertically centered on left)
+                Row(
+                    modifier = Modifier.align(Alignment.CenterStart),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    // Start/Pause Button (small icon only)
+                    IconButton(
+                        onClick = onToggleRun,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = when {
+                                currentRun == null -> Icons.Default.PlayArrow
+                                currentRun.isPaused -> Icons.Default.PlayArrow
+                                else -> Icons.Default.Pause
+                            },
+                            contentDescription = when {
+                                currentRun == null -> "Start"
+                                currentRun.isPaused -> "Resume"
+                                else -> "Pause"
+                            },
+                            tint = when {
+                                currentRun == null -> TrackerColors.Success
+                                currentRun.isPaused -> TrackerColors.Success
+                                else -> TrackerColors.Warning
+                            },
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
+
+                    // Reset Button (small icon only)
+                    IconButton(
+                        onClick = onResetRun,
+                        enabled = splitsState.currentRun != null,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Reset",
+                            tint = if (splitsState.currentRun != null) TrackerColors.Error else TrackerColors.OnSurfaceVariant,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-@Composable
-private fun TimerDisplay(
-    timeMs: Long,
-    isRunning: Boolean
-) {
-    // Pulsing animation for running timer
-    val infiniteTransition = rememberInfiniteTransition(label = "timerPulse")
-    val pulseAlpha by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = if (isRunning) 0.8f else 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = EaseInOut),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulseAlpha"
-    )
-    
-    val displayTime = formatTime(timeMs)
-    
-    Box(
-        modifier = Modifier
-            .background(
-                TrackerColors.Background.copy(alpha = 0.5f),
-                RoundedCornerShape(8.dp)
-            )
-            .border(
-                2.dp,
-                TrackerColors.Primary.copy(alpha = if (isRunning) pulseAlpha else 0.3f),
-                RoundedCornerShape(8.dp)
-            )
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = displayTime,
-            style = MaterialTheme.typography.displayLarge.copy(
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                fontSize = 48.sp,
-                letterSpacing = 2.sp,
-                color = TrackerColors.Primary.copy(alpha = pulseAlpha),
-                shadow = androidx.compose.ui.graphics.Shadow(
-                    color = TrackerColors.Primary.copy(alpha = 0.8f),
-                    blurRadius = 12f
-                )
-            ),
-            textAlign = TextAlign.Center
-        )
-    }
-}
+private fun formatTime(milliseconds: Long): String {
+    if (milliseconds <= 0) return "--:--:--.--"
 
-@Composable
-private fun TimerControls(
-    isRunning: Boolean,
-    onStart: () -> Unit,
-    onReset: () -> Unit
-) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Start/Pause button
-        TrackerButton(
-            onClick = onStart,
-            enabled = !isRunning,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = TrackerColors.Success.copy(alpha = 0.8f),
-                contentColor = TrackerColors.Background,
-                disabledContainerColor = TrackerColors.Inactive,
-                disabledContentColor = TrackerColors.OnSurfaceVariant
-            )
-        ) {
-            Icon(
-                imageVector = Icons.Default.PlayArrow,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "START",
-                style = MaterialTheme.typography.labelLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
-            )
-        }
-        
-        // Reset button
-        TrackerButton(
-            onClick = onReset,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = TrackerColors.Error.copy(alpha = 0.8f),
-                contentColor = TrackerColors.Background
-            )
-        ) {
-            Icon(
-                imageVector = Icons.Default.Stop,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "RESET",
-                style = MaterialTheme.typography.labelLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
-            )
-        }
-    }
-}
-
-@Composable
-private fun CurrentRunInfo(splitsState: SplitsState) {
-    val currentRun = splitsState.currentRun ?: return
-    
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = TrackerColors.SurfaceOverlayLight
-        ),
-        shape = RoundedCornerShape(4.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = "CURRENT RUN",
-                style = MaterialTheme.typography.labelMedium.copy(
-                    color = TrackerColors.OnSurfaceVariant,
-                    fontWeight = FontWeight.Bold
-                )
-            )
-            Text(
-                text = "Profile: ${currentRun.profileId.uppercase()}",
-                style = MaterialTheme.typography.bodySmall.copy(
-                    color = TrackerColors.Primary
-                )
-            )
-            Text(
-                text = "Splits: ${currentRun.completedSplits.size}",
-                style = MaterialTheme.typography.bodySmall.copy(
-                    color = TrackerColors.OnSurfaceVariant
-                )
-            )
-        }
-    }
-}
-
-@Composable
-private fun TrackerButton(
-    onClick: () -> Unit,
-    enabled: Boolean = true,
-    colors: ButtonColors = ButtonDefaults.buttonColors(),
-    content: @Composable RowScope.() -> Unit
-) {
-    Button(
-        onClick = onClick,
-        enabled = enabled,
-        colors = colors,
-        modifier = Modifier
-            .height(40.dp)
-            .border(
-                1.dp,
-                if (enabled) TrackerColors.BorderActive else TrackerColors.Border,
-                RoundedCornerShape(4.dp)
-            ),
-        shape = RoundedCornerShape(4.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp)
-    ) {
-        content()
-    }
-}
-
-/**
- * Format time in HH:MM:SS.ss format
- */
-private fun formatTime(timeMs: Long): String {
-    val totalSeconds = timeMs / 1000
+    val totalSeconds = milliseconds / 1000
     val hours = totalSeconds / 3600
     val minutes = (totalSeconds % 3600) / 60
     val seconds = totalSeconds % 60
-    val centiseconds = (timeMs % 1000) / 10
-    
+    val centiseconds = (milliseconds % 1000) / 10
+
     return if (hours > 0) {
-        "%02d:%02d:%02d.%02d".format(hours, minutes, seconds, centiseconds)
+        "%d:%02d:%02d.%02d".format(hours, minutes, seconds, centiseconds)
     } else {
         "%02d:%02d.%02d".format(minutes, seconds, centiseconds)
     }

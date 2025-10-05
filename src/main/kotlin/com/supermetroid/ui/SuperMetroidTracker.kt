@@ -233,22 +233,9 @@ fun SuperMetroidTrackerLayout(
         // Spacer(modifier = Modifier.height(8.dp))
 
 
-
-
-        // TALL LAYOUT: Status Grid at top, Timer below, then Splits at bottom
-        // Status Grid (Icons) - Fixed height, non-stretchable
-        if (showIcons) {
-            SimpleStatusGrid(
-                gameState = trackerState.gameState,
-                iconConfigService = iconConfigService,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
-        }
-
         // Timer section - Centered and compact
         if (showTimer) {
-            SimpleEnhancedTimer(
+            Timer(
                 splitsState = splitsState,
                 onToggleRun = {
                     println("[DEBUG_LOG] Timer UI button clicked - onToggleRun callback")
@@ -262,6 +249,17 @@ fun SuperMetroidTrackerLayout(
                         autoSplitsEngine.resetRun()
                     }
                 }
+            )
+            Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
+        }
+
+        // TALL LAYOUT: Status Grid at top, Timer below, then Splits at bottom
+        // Status Grid (Icons) - Fixed height, non-stretchable
+        if (showIcons) {
+            SimpleStatusGrid(
+                gameState = trackerState.gameState,
+                iconConfigService = iconConfigService,
+                modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
         }
