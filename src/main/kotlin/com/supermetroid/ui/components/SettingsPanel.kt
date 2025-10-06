@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -197,6 +198,7 @@ private fun IconSizeSelectionSection(
 ) {
     val currentIconSize by iconSizeService.currentIconSize.collectAsState()
     var expanded by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = modifier,
@@ -275,7 +277,9 @@ private fun IconSizeSelectionSection(
                             }
                         },
                         onClick = {
-                            iconSizeService.setIconSize(iconSize)
+                            scope.launch {
+                                iconSizeService.setIconSize(iconSize)
+                            }
                             expanded = false
                         },
                         colors = MenuDefaults.itemColors(

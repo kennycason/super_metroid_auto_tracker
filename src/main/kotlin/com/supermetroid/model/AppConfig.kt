@@ -25,8 +25,8 @@ enum class IconSize(val size: Int, val displayName: String) {
  */
 @Serializable
 data class AppConfig(
-    val theme: String = "RETRO_GREEN",  // Theme enum name
-    val iconSize: Int = 32,             // Icon size in pixels (default to current size)
+    val theme: String = "DARK_BLACK",  // Theme enum name
+    val iconSize: Int = 32,             // Icon size in pixels (default to 32x32)
     val showRoomName: Boolean = true,   // Show room name in status display
     val retroarchPort: Int = 55355,        // Future: RetroArch port config  
     val pollIntervalMs: Long = 500,        // Future: Polling interval config

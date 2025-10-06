@@ -98,6 +98,9 @@ fun SuperMetroidTrackerApp(
     val trackerState by gameStateService.trackerState.collectAsState()
     val splitsState by autoSplitsEngine.splitsState.collectAsState()
     val currentTheme by themeService.currentTheme.collectAsState()
+    
+    // Track if services are initialized
+    var servicesInitialized by remember { mutableStateOf(false) }
 
     // Initialize services
     LaunchedEffect(Unit) {
@@ -112,6 +115,9 @@ fun SuperMetroidTrackerApp(
         
         // Initialize room name service
         roomNameService.initialize()
+        
+        // Mark services as initialized
+        servicesInitialized = true
         
         // Load split profile
         autoSplitsEngine.loadProfile(KpdrAnyProfile.profile)
@@ -155,60 +161,62 @@ fun SuperMetroidTrackerApp(
     }
 
     ProvideThemeService(themeService) {
-        MaterialTheme(
-            colorScheme = darkColorScheme(
-                primary = currentTheme.colors.primary,
-                onPrimary = currentTheme.colors.onPrimary,
-                primaryContainer = currentTheme.colors.primaryVariant,
-                onPrimaryContainer = currentTheme.colors.onPrimary,
-                secondary = currentTheme.colors.primaryLight,
-                onSecondary = currentTheme.colors.onPrimary,
-                secondaryContainer = currentTheme.colors.surfaceVariant,
-                onSecondaryContainer = currentTheme.colors.onSurface,
-                tertiary = currentTheme.colors.success,
-                onTertiary = currentTheme.colors.onPrimary,
-                error = currentTheme.colors.error,
-                onError = currentTheme.colors.onPrimary,
-                background = currentTheme.colors.background,
-                onBackground = currentTheme.colors.onBackground,
-                surface = currentTheme.colors.surface,
-                onSurface = currentTheme.colors.onSurface,
-                surfaceVariant = currentTheme.colors.surfaceVariant,
-                onSurfaceVariant = currentTheme.colors.onSurfaceVariant,
-                outline = currentTheme.colors.border,
-                outlineVariant = currentTheme.colors.borderActive,
-                scrim = currentTheme.colors.background,
-                inverseSurface = currentTheme.colors.primary,
-                inverseOnSurface = currentTheme.colors.onPrimary,
-                inversePrimary = currentTheme.colors.background
-            ),
-            typography = TrackerTypography
-        ) {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(
-                                currentTheme.colors.background,
-                                currentTheme.colors.backgroundVariant,
-                                currentTheme.colors.background
+        if (servicesInitialized) {
+            MaterialTheme(
+                colorScheme = darkColorScheme(
+                    primary = currentTheme.colors.primary,
+                    onPrimary = currentTheme.colors.onPrimary,
+                    primaryContainer = currentTheme.colors.primaryVariant,
+                    onPrimaryContainer = currentTheme.colors.onPrimary,
+                    secondary = currentTheme.colors.primaryLight,
+                    onSecondary = currentTheme.colors.onPrimary,
+                    secondaryContainer = currentTheme.colors.surfaceVariant,
+                    onSecondaryContainer = currentTheme.colors.onSurface,
+                    tertiary = currentTheme.colors.success,
+                    onTertiary = currentTheme.colors.onPrimary,
+                    error = currentTheme.colors.error,
+                    onError = currentTheme.colors.onPrimary,
+                    background = currentTheme.colors.background,
+                    onBackground = currentTheme.colors.onBackground,
+                    surface = currentTheme.colors.surface,
+                    onSurface = currentTheme.colors.onSurface,
+                    surfaceVariant = currentTheme.colors.surfaceVariant,
+                    onSurfaceVariant = currentTheme.colors.onSurfaceVariant,
+                    outline = currentTheme.colors.border,
+                    outlineVariant = currentTheme.colors.borderActive,
+                    scrim = currentTheme.colors.background,
+                    inverseSurface = currentTheme.colors.primary,
+                    inverseOnSurface = currentTheme.colors.onPrimary,
+                    inversePrimary = currentTheme.colors.background
+                ),
+                typography = TrackerTypography
+            ) {
+            Surface(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    currentTheme.colors.background,
+                                    currentTheme.colors.backgroundVariant,
+                                    currentTheme.colors.background
+                                )
                             )
                         )
+                ) {
+                    SuperMetroidTrackerLayout(
+                        trackerState = trackerState,
+                        splitsState = splitsState,
+                        showSplits = showSplits,
+                        onShowSplitsChanged = onShowSplitsChanged,
+                        themeService = themeService,
+                        iconConfigService = iconConfigService,
+                        roomNameService = roomNameService
                     )
-            ) {
-                SuperMetroidTrackerLayout(
-                    trackerState = trackerState,
-                    splitsState = splitsState,
-                    showSplits = showSplits,
-                    onShowSplitsChanged = onShowSplitsChanged,
-                    themeService = themeService,
-                    iconConfigService = iconConfigService,
-                    roomNameService = roomNameService
-                )
+                }
             }
-        }
+            }
         }
     }
 }

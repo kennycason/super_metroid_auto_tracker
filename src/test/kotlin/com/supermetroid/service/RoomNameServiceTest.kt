@@ -21,11 +21,8 @@ class RoomNameServiceTest {
     @BeforeEach
     fun setUp() {
         tempDir = Files.createTempDirectory("smtracker_test")
-        fileStorageService = FileStorageService()
+        fileStorageService = FileStorageService(tempDir.toString())
         roomNameService = RoomNameService(fileStorageService)
-        
-        // Override the config directory for testing
-        System.setProperty("user.home", tempDir.toString())
     }
 
     @Test

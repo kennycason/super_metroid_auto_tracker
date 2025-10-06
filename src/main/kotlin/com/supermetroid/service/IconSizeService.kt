@@ -39,19 +39,17 @@ class IconSizeService(private val fileStorageService: FileStorageService) {
     /**
      * Set icon size and save to config
      */
-    fun setIconSize(iconSize: IconSize) {
+    suspend fun setIconSize(iconSize: IconSize) {
         _currentIconSize.value = iconSize
         
-        // Save icon size to config asynchronously
-        scope.launch {
-            try {
-                val currentConfig = fileStorageService.loadAppConfig()
-                val updatedConfig = currentConfig.copy(iconSize = iconSize.size)
-                fileStorageService.saveAppConfig(updatedConfig)
-                logger.debug { "💾 Saved icon size preference: ${iconSize.displayName}" }
-            } catch (e: Exception) {
-                logger.error(e) { "❌ Failed to save icon size preference" }
-            }
+        // Save icon size to config synchronously
+        try {
+            val currentConfig = fileStorageService.loadAppConfig()
+            val updatedConfig = currentConfig.copy(iconSize = iconSize.size)
+            fileStorageService.saveAppConfig(updatedConfig)
+            logger.info { "💾 Saved icon size preference: ${iconSize.displayName}" }
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to save icon size preference" }
         }
     }
     

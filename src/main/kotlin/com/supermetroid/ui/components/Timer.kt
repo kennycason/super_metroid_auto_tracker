@@ -3,7 +3,11 @@ package com.supermetroid.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Pause
@@ -164,11 +168,15 @@ fun Timer(
                 .padding(4.dp), // Minimal padding for compact design
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // Main Timer Display with small control buttons inside
+            // Main Timer Display with hover controls
+            val interactionSource = remember { MutableInteractionSource() }
+            val isHovered by interactionSource.collectIsHoveredAsState()
+            
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp) // Minimal padding for compact design
+                    .hoverable(interactionSource = interactionSource)
             ) {
                 // Main timer text (centered)
                 Text(
@@ -183,15 +191,15 @@ fun Timer(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // Small control buttons (vertically centered on left)
-                Row(
-                    modifier = Modifier.align(Alignment.CenterStart),
-                    horizontalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    // Start/Pause Button (small icon only)
+                // Control buttons (only show on hover, positioned absolutely)
+                if (isHovered) {
+                    // Play/Pause Button (top left)
                     IconButton(
                         onClick = onToggleRun,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .offset(x = 2.dp, y = -2.dp)
+                            .size(20.dp)
                     ) {
                         Icon(
                             imageVector = when {
@@ -209,21 +217,24 @@ fun Timer(
                                 currentRun.isPaused -> TrackerColors.Success
                                 else -> TrackerColors.Warning
                             },
-                            modifier = Modifier.size(14.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
 
-                    // Reset Button (small icon only)
+                    // Reset Button (bottom left)
                     IconButton(
                         onClick = onResetRun,
                         enabled = splitsState.currentRun != null,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .offset(x = 2.dp, y = (2).dp)
+                            .size(20.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Reset",
                             tint = if (splitsState.currentRun != null) TrackerColors.Error else TrackerColors.OnSurfaceVariant,
-                            modifier = Modifier.size(14.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }

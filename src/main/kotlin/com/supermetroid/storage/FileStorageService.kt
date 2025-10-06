@@ -15,8 +15,8 @@ private val logger = KotlinLogging.logger {}
  * File-based storage service for splits data and personal bests
  * Stores data in ~/.smtracker/ directory to match the old system
  */
-class FileStorageService {
-    private val homeDir = System.getProperty("user.home")
+class FileStorageService(private val configDir: String? = null) {
+    private val homeDir = configDir ?: System.getProperty("user.home")
     private val trackerDir = File(homeDir, ".smtracker")
     private val splitsFile = File(trackerDir, "splits-data.json")
     private val configFile = File(trackerDir, "smtracker.json")
@@ -24,6 +24,7 @@ class FileStorageService {
     private val json = Json {
         prettyPrint = true
         ignoreUnknownKeys = true
+        encodeDefaults = true  // Always encode default values in JSON
     }
     
     init {

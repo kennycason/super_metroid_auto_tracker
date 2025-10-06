@@ -27,9 +27,20 @@ class ThemeService(private val fileStorageService: FileStorageService) {
      */
     suspend fun initialize() {
         try {
+            // Check if this is the first run (no config file exists)
+            val configFile = java.io.File(System.getProperty("user.home"), ".smtracker/smtracker.json")
+            val isFirstRun = !configFile.exists()
+            
             val config = fileStorageService.loadAppConfig()
             val savedTheme = AppTheme.values().find { it.name == config.theme } ?: AppTheme.RETRO_GREEN
             _currentTheme.value = savedTheme
+            
+            // If this is the first run, save the full default config
+            if (isFirstRun) {
+                logger.info { "📄 First run detected, creating full default config file" }
+                fileStorageService.saveAppConfig(config)
+            }
+            
             logger.info { "🎨 Loaded theme: ${savedTheme.displayName}" }
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to load theme from config, using default" }
