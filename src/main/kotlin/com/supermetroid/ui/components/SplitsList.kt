@@ -66,7 +66,7 @@ fun SplitsList(
         ),
         shape = RoundedCornerShape(4.dp)
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 // .border(
@@ -76,34 +76,43 @@ fun SplitsList(
                 // )
                 .padding(12.dp)
         ) {
-            // Header
-            SplitsHeader(splitsState, autoSplitsEngine)
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Splits list
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(maxHeight.dp),
-                verticalArrangement = Arrangement.spacedBy(1.dp) // Reduced spacing
+            Column(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                itemsIndexed(KpdrAnyProfile.profile.splits) { index, split ->
-                    SplitRow(
-                        split = split,
-                        splitIndex = index,
-                        splitsState = splitsState,
-                        autoSplitsEngine = autoSplitsEngine,
-                        iconSizeService = iconSizeService
-                    )
+                // Header
+                SplitsHeader(splitsState, autoSplitsEngine)
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Splits list - leave space for Personal Best at bottom
+                val pbHeight = if (splitsState.personalBests.isNotEmpty()) 60.dp else 0.dp
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(maxHeight.dp - pbHeight),
+                    verticalArrangement = Arrangement.spacedBy(1.dp) // Reduced spacing
+                ) {
+                    itemsIndexed(KpdrAnyProfile.profile.splits) { index, split ->
+                        SplitRow(
+                            split = split,
+                            splitIndex = index,
+                            splitsState = splitsState,
+                            autoSplitsEngine = autoSplitsEngine,
+                            iconSizeService = iconSizeService
+                        )
+                    }
                 }
             }
 
-            // Personal best summary
+            // Personal best summary - fixed at bottom of container
             if (splitsState.personalBests.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                PersonalBestSummary(splitsState)
+                PersonalBestSummary(
+                    splitsState = splitsState,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                )
             }
         }
     }
@@ -410,13 +419,17 @@ private fun SplitRow(
 }
 
 @Composable
-private fun PersonalBestSummary(splitsState: SplitsState) {
+private fun PersonalBestSummary(
+    splitsState: SplitsState,
+    modifier: Modifier = Modifier
+) {
     val currentProfilePB = splitsState.personalBests.values.firstOrNull()
 
     if (currentProfilePB != null) {
         Card(
+            modifier = modifier,
             colors = CardDefaults.cardColors(
-                containerColor = TrackerColors.Success.copy(alpha = 0.1f)
+                containerColor = Color.Black.copy(alpha = 0.8f)
             ),
             shape = RoundedCornerShape(3.dp)
         ) {
