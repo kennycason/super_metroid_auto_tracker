@@ -176,9 +176,41 @@ private fun getRoomName(roomId: Int): String {
 }
 
 @Composable
+fun RoomNameDisplay(
+    gameState: GameState,
+    roomNameService: com.supermetroid.service.RoomNameService,
+    modifier: Modifier = Modifier
+) {
+    val showRoomName by roomNameService.showRoomName.collectAsState()
+    
+    if (showRoomName) {
+        Card(
+            modifier = modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = TrackerColors.Surface
+            ),
+            shape = RoundedCornerShape(4.dp)
+        ) {
+            Text(
+                text = "${gameState.areaName} ${getRoomName(gameState.roomId)}",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = TrackerColors.Primary,
+                    fontFamily = FontFamily.Monospace
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
 fun SimpleStatusGrid(
     gameState: GameState,
     iconConfigService: com.supermetroid.service.IconConfigService,
+    iconSizeService: com.supermetroid.service.IconSizeService,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -193,24 +225,10 @@ fun SimpleStatusGrid(
                 .fillMaxWidth()
                 .padding(2.dp) // Minimal padding for very compact layout
         ) {
-
-
-            // Area info
-            Text(
-                text = "${gameState.areaName} ${getRoomName(gameState.roomId)}",
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = TrackerColors.Primary,
-                    fontFamily = FontFamily.Monospace
-                ),
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(2.dp)) // Minimal spacing for very compact layout
-
             // Unified fixed-size grid for enabled items and bosses in configured order
             FixedTileGrid(
-                allItems = getFilteredItemsAndBosses(gameState, iconConfigService)
+                allItems = getFilteredItemsAndBosses(gameState, iconConfigService),
+                iconSizeService = iconSizeService
             )
         }
     }
@@ -218,16 +236,19 @@ fun SimpleStatusGrid(
 
 @Composable
 fun FixedTileGrid(
-    allItems: List<ItemStatus>
+    allItems: List<ItemStatus>,
+    iconSizeService: com.supermetroid.service.IconSizeService
 ) {
-    val fixedTileSize = 36.dp // Reduced size for more compact layout
+    val currentIconSize by iconSizeService.currentIconSize.collectAsState()
+    val fixedTileSize = currentIconSize.size.dp // Use configurable icon size
     val spacing = 1.dp // Further reduced spacing for more compact layout
 
     // FlowRow-style layout that fills from left, wraps naturally
     FlowRowLayout(
         items = allItems,
         tileSize = fixedTileSize,
-        spacing = spacing
+        spacing = spacing,
+        iconSizeService = iconSizeService
         )
 }
 
@@ -235,7 +256,8 @@ fun FixedTileGrid(
 fun FlowRowLayout(
     items: List<ItemStatus>,
     tileSize: androidx.compose.ui.unit.Dp,
-    spacing: androidx.compose.ui.unit.Dp
+    spacing: androidx.compose.ui.unit.Dp,
+    iconSizeService: com.supermetroid.service.IconSizeService
 ) {
     // Custom layout that behaves like CSS flexbox
     // Items flow left-to-right, wrap to next row when needed
@@ -276,13 +298,14 @@ fun FlowRowLayout(
                                             Box(
                                                 modifier = Modifier.align(Alignment.Center)
                                             ) {
+                                                val currentIconSize by iconSizeService.currentIconSize.collectAsState()
                                                 SpriteImage(
                                                     spriteFile = spriteInfo.spriteFile,
                                                     spriteX = spriteInfo.x,
                                                     spriteY = spriteInfo.y,
                                                     spriteWidth = spriteInfo.width,
                                                     spriteHeight = spriteInfo.height,
-                                                    displaySize = 36, // Match reduced tile size
+                                                    displaySize = currentIconSize.size,
                                                     isObtained = item.current > 0
                                                 )
                                             }
@@ -303,10 +326,11 @@ fun FlowRowLayout(
                                         )
                                     }
                                 } else {
+                                    val currentIconSize by iconSizeService.currentIconSize.collectAsState()
                                     SpriteIcon(
                                         itemId = item.id,
                                         isObtained = item.isObtained,
-                                        size = 36 // Match the reduced tile size
+                                        size = currentIconSize.size
                                     )
                                 }
                             }

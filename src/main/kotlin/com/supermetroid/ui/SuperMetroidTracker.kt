@@ -31,7 +31,9 @@ val gameStateService = GameStateService()
 val autoSplitsEngine = AutoSplitsEngine()
 val fileStorageService = FileStorageService()
 val themeService = com.supermetroid.service.ThemeService(fileStorageService)
+val iconSizeService = com.supermetroid.service.IconSizeService(fileStorageService)
 val iconConfigService = com.supermetroid.service.IconConfigService(fileStorageService)
+val roomNameService = com.supermetroid.service.RoomNameService(fileStorageService)
 
 fun main() = application {
     // Move showSplits state to Window level so keyboard shortcuts can access it
@@ -102,8 +104,14 @@ fun SuperMetroidTrackerApp(
         // Initialize theme service first to load saved theme
         themeService.initialize()
         
+        // Initialize icon size service
+        iconSizeService.initialize()
+        
         // Initialize icon config service
         iconConfigService.initialize()
+        
+        // Initialize room name service
+        roomNameService.initialize()
         
         // Load split profile
         autoSplitsEngine.loadProfile(KpdrAnyProfile.profile)
@@ -196,7 +204,8 @@ fun SuperMetroidTrackerApp(
                     showSplits = showSplits,
                     onShowSplitsChanged = onShowSplitsChanged,
                     themeService = themeService,
-                    iconConfigService = iconConfigService
+                    iconConfigService = iconConfigService,
+                    roomNameService = roomNameService
                 )
             }
         }
@@ -211,7 +220,8 @@ fun SuperMetroidTrackerLayout(
     showSplits: Boolean,
     onShowSplitsChanged: (Boolean) -> Unit,
     themeService: com.supermetroid.service.ThemeService,
-    iconConfigService: com.supermetroid.service.IconConfigService
+    iconConfigService: com.supermetroid.service.IconConfigService,
+    roomNameService: com.supermetroid.service.RoomNameService
 ) {
     // UI visibility toggles (removed showSplits since it's now passed in)
     var showIcons by remember { mutableStateOf(true) }
@@ -253,12 +263,21 @@ fun SuperMetroidTrackerLayout(
             Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
         }
 
+        // Room Name Display - separate row
+        RoomNameDisplay(
+            gameState = trackerState.gameState,
+            roomNameService = roomNameService,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
+
         // TALL LAYOUT: Status Grid at top, Timer below, then Splits at bottom
         // Status Grid (Icons) - Fixed height, non-stretchable
         if (showIcons) {
             SimpleStatusGrid(
                 gameState = trackerState.gameState,
                 iconConfigService = iconConfigService,
+                iconSizeService = iconSizeService,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
@@ -269,6 +288,7 @@ fun SuperMetroidTrackerLayout(
             SplitsList(
                 splitsState = splitsState,
                 autoSplitsEngine = autoSplitsEngine,
+                iconSizeService = iconSizeService,
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 maxHeight = 900 // Increased height for taller window
             )
@@ -279,7 +299,9 @@ fun SuperMetroidTrackerLayout(
         if (showSettings) {
             SettingsPanel(
                 themeService = themeService,
+                iconSizeService = iconSizeService,
                 iconConfigService = iconConfigService,
+                roomNameService = roomNameService,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f) // Takes all remaining vertical space

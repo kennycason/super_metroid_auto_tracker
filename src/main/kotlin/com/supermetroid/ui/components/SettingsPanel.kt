@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.supermetroid.model.IconItem
+import com.supermetroid.model.IconSize
 import com.supermetroid.ui.theme.TrackerColors
 
 /**
@@ -28,7 +29,9 @@ import com.supermetroid.ui.theme.TrackerColors
 @Composable
 fun SettingsPanel(
     themeService: com.supermetroid.service.ThemeService,
+    iconSizeService: com.supermetroid.service.IconSizeService,
     iconConfigService: com.supermetroid.service.IconConfigService,
+    roomNameService: com.supermetroid.service.RoomNameService,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -61,9 +64,26 @@ fun SettingsPanel(
             
             Spacer(modifier = Modifier.height(16.dp))
             
+            // Icon Size Selection Section
+            IconSizeSelectionSection(
+                iconSizeService = iconSizeService,
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Room Name Toggle Section
+            RoomNameToggleSection(
+                roomNameService = roomNameService,
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
             // Icon Management Section - takes remaining space
             IconManagementSection(
                 iconConfigService = iconConfigService,
+                iconSizeService = iconSizeService,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f) // Takes all remaining vertical space
@@ -171,8 +191,155 @@ private fun ThemeSelectionSection(
 }
 
 @Composable
+private fun IconSizeSelectionSection(
+    iconSizeService: com.supermetroid.service.IconSizeService,
+    modifier: Modifier = Modifier
+) {
+    val currentIconSize by iconSizeService.currentIconSize.collectAsState()
+    var expanded by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Title
+        Text(
+            text = "Icon Size",
+            style = MaterialTheme.typography.titleSmall.copy(
+                color = TrackerColors.Primary,
+                fontWeight = FontWeight.Bold
+            ),
+            modifier = Modifier.padding(bottom = 6.dp)
+        )
+
+        // Icon Size Dropdown
+        Box {
+            Button(
+                onClick = { expanded = !expanded },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = TrackerColors.SurfaceOverlayLight,
+                    contentColor = TrackerColors.OnSurface
+                ),
+                shape = RoundedCornerShape(6.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                modifier = Modifier.fillMaxWidth(0.8f)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = currentIconSize.displayName,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        text = if (expanded) "▲" else "▼",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(TrackerColors.Surface)
+            ) {
+                IconSize.values().forEach { iconSize ->
+                    DropdownMenuItem(
+                        text = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                // Icon size preview
+                                Box(
+                                    modifier = Modifier
+                                        .size(iconSize.size.dp)
+                                        .background(
+                                            TrackerColors.SurfaceVariant,
+                                            RoundedCornerShape(2.dp)
+                                        )
+                                        .border(
+                                            1.dp,
+                                            TrackerColors.Border,
+                                            RoundedCornerShape(2.dp)
+                                        )
+                                )
+                                Text(
+                                    text = iconSize.displayName,
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = if (iconSize == currentIconSize) TrackerColors.Primary else TrackerColors.OnSurface
+                                    )
+                                )
+                            }
+                        },
+                        onClick = {
+                            iconSizeService.setIconSize(iconSize)
+                            expanded = false
+                        },
+                        colors = MenuDefaults.itemColors(
+                            textColor = TrackerColors.OnSurface
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RoomNameToggleSection(
+    roomNameService: com.supermetroid.service.RoomNameService,
+    modifier: Modifier = Modifier
+) {
+    val showRoomName by roomNameService.showRoomName.collectAsState()
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Title
+        Text(
+            text = "Room Name Display",
+            style = MaterialTheme.typography.titleSmall.copy(
+                color = TrackerColors.Primary,
+                fontWeight = FontWeight.Bold
+            ),
+            modifier = Modifier.padding(bottom = 6.dp)
+        )
+
+        // Toggle switch
+        Row(
+            modifier = Modifier.fillMaxWidth(0.8f),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Show room names in status display",
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = TrackerColors.OnSurface
+                )
+            )
+            
+            Switch(
+                checked = showRoomName,
+                onCheckedChange = { roomNameService.setShowRoomName(it) },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = TrackerColors.Primary,
+                    checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.5f),
+                    uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
+                    uncheckedTrackColor = TrackerColors.SurfaceVariant
+                )
+            )
+        }
+    }
+}
+
+@Composable
 private fun IconManagementSection(
     iconConfigService: com.supermetroid.service.IconConfigService,
+    iconSizeService: com.supermetroid.service.IconSizeService,
     modifier: Modifier = Modifier
 ) {
     val iconConfig by iconConfigService.iconConfig.collectAsState()
@@ -220,6 +387,7 @@ private fun IconManagementSection(
                         icon = icon,
                         index = index,
                         totalItems = allIcons.size,
+                        iconSizeService = iconSizeService,
                         onToggleEnabled = { iconConfigService.setIconEnabled(icon.id, !icon.enabled) },
                         onMoveUp = { if (index > 0) iconConfigService.moveIcon(index, index - 1) },
                         onMoveDown = { if (index < allIcons.size - 1) iconConfigService.moveIcon(index, index + 1) }
@@ -250,6 +418,7 @@ private fun IconManagementItem(
     icon: IconItem,
     index: Int,
     totalItems: Int,
+    iconSizeService: com.supermetroid.service.IconSizeService,
     onToggleEnabled: () -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit
@@ -262,16 +431,17 @@ private fun IconManagementItem(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // Icon with click to toggle
+        val currentIconSize by iconSizeService.currentIconSize.collectAsState()
         Box(
             modifier = Modifier
-                .size(32.dp)
+                .size(currentIconSize.size.dp)
                 .clickable { onToggleEnabled() },
             contentAlignment = Alignment.Center
         ) {
             SpriteIcon(
                 itemId = icon.id,
                 isObtained = icon.enabled, // Use enabled state for grayscale/color
-                size = 32
+                size = currentIconSize.size
             )
         }
         

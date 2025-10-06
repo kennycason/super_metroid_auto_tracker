@@ -30,6 +30,7 @@ import com.supermetroid.ui.theme.TrackerColors
 fun SplitsList(
     splitsState: SplitsState,
     autoSplitsEngine: AutoSplitsEngine,
+    iconSizeService: com.supermetroid.service.IconSizeService,
     modifier: Modifier = Modifier,
     maxHeight: Int = 400
 ) {
@@ -93,7 +94,8 @@ fun SplitsList(
                         split = split,
                         splitIndex = index,
                         splitsState = splitsState,
-                        autoSplitsEngine = autoSplitsEngine
+                        autoSplitsEngine = autoSplitsEngine,
+                        iconSizeService = iconSizeService
                     )
                 }
             }
@@ -177,7 +179,8 @@ private fun SplitRow(
     split: Split,
     splitIndex: Int,
     splitsState: SplitsState,
-    autoSplitsEngine: AutoSplitsEngine
+    autoSplitsEngine: AutoSplitsEngine,
+    iconSizeService: com.supermetroid.service.IconSizeService
 ) {
     val currentRun = splitsState.currentRun
     val completedSplit = currentRun?.completedSplits?.find { it.splitId == split.id }
@@ -238,10 +241,11 @@ private fun SplitRow(
                 // )
 
                 // Split icon
+                val currentIconSize by iconSizeService.currentIconSize.collectAsState()
                 SpriteIcon(
                     itemId = getSplitItemId(split),
                     isObtained = isCompleted,
-                    size = 36, // Match reduced tile size for compact layout
+                    size = currentIconSize.size,
                     modifier = Modifier.padding(end = 4.dp) // Reduced padding for compact layout
                 )
 
