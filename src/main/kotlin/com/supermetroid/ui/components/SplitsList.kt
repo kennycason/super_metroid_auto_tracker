@@ -441,7 +441,7 @@ private fun PersonalBestSummary(splitsState: SplitsState) {
                     )
                 )
                 Text(
-                    text = formatTime(currentProfilePB.totalTime),
+                    text = formatTimeNoMillis(currentProfilePB.totalTime),
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = TrackerColors.Success,
                         fontFamily = FontFamily.Monospace,
