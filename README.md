@@ -2,7 +2,7 @@
 
 A real-time item, boss, and location tracker for Super Metroid that automatically reads game state from RetroArch via UDP.
 
-<img src="screenshot.png" width="417"/>
+<img src="screenshot_v1.png" width="417"/>
 
 ## 🚀 Installation
 
