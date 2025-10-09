@@ -299,6 +299,15 @@ fun SuperMetroidTrackerLayout(
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 maxHeight = 900 // Increased height for taller window
             )
+            
+            // Personal Best section - appears below splits when splits are showing
+            if (splitsState.personalBests.isNotEmpty()) {
+                PersonalBestSummary(
+                    splitsState = splitsState,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            
             Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
         }
 

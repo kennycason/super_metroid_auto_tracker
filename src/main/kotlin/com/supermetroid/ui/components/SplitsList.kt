@@ -56,65 +56,36 @@ fun SplitsList(
             }
         }
     }
-    Card(
+    
+    Column(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(2.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = TrackerColors.Surface
-        ),
-        shape = RoundedCornerShape(4.dp)
+            .padding(12.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                // .border(
-                //     1.dp,
-                //     TrackerColors.Border,
-                //     RoundedCornerShape(4.dp)
-                // )
-                .padding(12.dp)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth()
+            // Header
+            SplitsHeader(splitsState, autoSplitsEngine)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Splits list - full height now
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(maxHeight.dp),
+                verticalArrangement = Arrangement.spacedBy(1.dp) // Reduced spacing
             ) {
-                // Header
-                SplitsHeader(splitsState, autoSplitsEngine)
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Splits list - leave space for Personal Best at bottom
-                val pbHeight = if (splitsState.personalBests.isNotEmpty()) 60.dp else 0.dp
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(maxHeight.dp - pbHeight),
-                    verticalArrangement = Arrangement.spacedBy(1.dp) // Reduced spacing
-                ) {
-                    itemsIndexed(KpdrAnyProfile.profile.splits) { index, split ->
-                        SplitRow(
-                            split = split,
-                            splitIndex = index,
-                            splitsState = splitsState,
-                            autoSplitsEngine = autoSplitsEngine
-                        )
-                    }
+                itemsIndexed(KpdrAnyProfile.profile.splits) { index, split ->
+                    SplitRow(
+                        split = split,
+                        splitIndex = index,
+                        splitsState = splitsState,
+                        autoSplitsEngine = autoSplitsEngine
+                    )
                 }
-            }
-
-            // Personal best summary - fixed at bottom of container
-            if (splitsState.personalBests.isNotEmpty()) {
-                PersonalBestSummary(
-                    splitsState = splitsState,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                )
             }
         }
     }
-}
 
 @Composable
 private fun SplitsHeader(
@@ -415,48 +386,51 @@ private fun SplitRow(
 }
 
 @Composable
-private fun PersonalBestSummary(
+fun PersonalBestSummary(
     splitsState: SplitsState,
     modifier: Modifier = Modifier
 ) {
     val currentProfilePB = splitsState.personalBests.values.firstOrNull()
 
     if (currentProfilePB != null) {
-        Card(
-            modifier = modifier,
-            colors = CardDefaults.cardColors(
-                containerColor = Color.Black.copy(alpha = 0.8f)
-            ),
-            shape = RoundedCornerShape(3.dp)
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(20.dp) // Match split row height
+                .padding(horizontal = 4.dp, vertical = 1.dp), // Match split row padding
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            // Personal Best name (left side)
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(
-                        1.dp,
-                        TrackerColors.Success.copy(alpha = 0.3f),
-                        RoundedCornerShape(3.dp)
-                    )
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "🏆 PERSONAL BEST",
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        color = TrackerColors.Success,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp
+                    text = "Personal Best",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = TrackerColors.OnSurface,
+                        fontWeight = FontWeight.Medium
                     )
                 )
+            }
+
+            // Personal Best time (right side)
+            Row(
+                modifier = Modifier.width(192.dp), // Match split row time column width
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Spacer(modifier = Modifier.width(72.dp))
                 Text(
                     text = formatTimeNoMillis(currentProfilePB.totalTime),
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = TrackerColors.Success,
+                        color = TrackerColors.OnSurface,
                         fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
                         fontSize = 12.sp
-                    )
+                    ),
+                    modifier = Modifier.width(120.dp),
+                    textAlign = TextAlign.End
                 )
             }
         }
