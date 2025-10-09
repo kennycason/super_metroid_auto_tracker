@@ -296,7 +296,6 @@ fun SuperMetroidTrackerLayout(
             SplitsList(
                 splitsState = splitsState,
                 autoSplitsEngine = autoSplitsEngine,
-                iconSizeService = iconSizeService,
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 maxHeight = 900 // Increased height for taller window
             )
