@@ -32,6 +32,7 @@ fun SettingsPanel(
     themeService: com.supermetroid.service.ThemeService,
     iconSizeService: com.supermetroid.service.IconSizeService,
     splitIconSizeService: com.supermetroid.service.SplitIconSizeService,
+    splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
     iconConfigService: com.supermetroid.service.IconConfigService,
     roomNameService: com.supermetroid.service.RoomNameService,
     modifier: Modifier = Modifier
@@ -77,6 +78,14 @@ fun SettingsPanel(
             // Split Icon Size Selection Section
             SplitIconSizeSelectionSection(
                 splitIconSizeService = splitIconSizeService,
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Split Display Mode Section
+            SplitDisplayModeSection(
+                splitDisplayModeService = splitDisplayModeService,
                 modifier = Modifier.fillMaxWidth()
             )
             
@@ -389,6 +398,88 @@ private fun SplitIconSizeSelectionSection(
                         onClick = {
                             scope.launch {
                                 splitIconSizeService.setSplitIconSize(iconSize)
+                            }
+                            expanded = false
+                        },
+                        colors = MenuDefaults.itemColors(
+                            textColor = TrackerColors.OnSurface
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SplitDisplayModeSection(
+    splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
+    modifier: Modifier = Modifier
+) {
+    val currentDisplayMode by splitDisplayModeService.currentDisplayMode.collectAsState()
+    var expanded by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Title
+        Text(
+            text = "Split Display Mode",
+            style = MaterialTheme.typography.titleSmall.copy(
+                color = TrackerColors.Primary,
+                fontWeight = FontWeight.Bold
+            ),
+            modifier = Modifier.padding(bottom = 6.dp)
+        )
+
+        // Split Display Mode Dropdown
+        Box {
+            Button(
+                onClick = { expanded = !expanded },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = TrackerColors.SurfaceOverlayLight,
+                    contentColor = TrackerColors.OnSurface
+                ),
+                shape = RoundedCornerShape(6.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                modifier = Modifier.fillMaxWidth(0.8f)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = currentDisplayMode.displayName,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        text = if (expanded) "▲" else "▼",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(TrackerColors.Surface)
+            ) {
+                com.supermetroid.model.SplitDisplayMode.values().forEach { mode ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = mode.displayName,
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = if (mode == currentDisplayMode) TrackerColors.Primary else TrackerColors.OnSurface
+                                )
+                            )
+                        },
+                        onClick = {
+                            scope.launch {
+                                splitDisplayModeService.setDisplayMode(mode)
                             }
                             expanded = false
                         },

@@ -33,6 +33,7 @@ val autoSplitsEngine = AutoSplitsEngine(fileStorageService)
 val themeService = com.supermetroid.service.ThemeService(fileStorageService)
 val iconSizeService = com.supermetroid.service.IconSizeService(fileStorageService)
 val splitIconSizeService = com.supermetroid.service.SplitIconSizeService(fileStorageService)
+val splitDisplayModeService = com.supermetroid.service.SplitDisplayModeService(fileStorageService)
 val iconConfigService = com.supermetroid.service.IconConfigService(fileStorageService)
 val roomNameService = com.supermetroid.service.RoomNameService(fileStorageService)
 
@@ -113,6 +114,9 @@ fun SuperMetroidTrackerApp(
         
         // Initialize split icon size service
         splitIconSizeService.initialize()
+        
+        // Initialize split display mode service
+        splitDisplayModeService.initialize()
         
         // Initialize icon config service
         iconConfigService.initialize()
@@ -301,6 +305,7 @@ fun SuperMetroidTrackerLayout(
                 splitsState = splitsState,
                 autoSplitsEngine = autoSplitsEngine,
                 splitIconSizeService = splitIconSizeService,
+                splitDisplayModeService = splitDisplayModeService,
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 maxHeight = 900 // Increased height for taller window
             )
@@ -322,6 +327,7 @@ fun SuperMetroidTrackerLayout(
                 themeService = themeService,
                 iconSizeService = iconSizeService,
                 splitIconSizeService = splitIconSizeService,
+                splitDisplayModeService = splitDisplayModeService,
                 iconConfigService = iconConfigService,
                 roomNameService = roomNameService,
                 modifier = Modifier

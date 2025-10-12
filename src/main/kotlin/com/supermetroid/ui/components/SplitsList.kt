@@ -31,10 +31,13 @@ fun SplitsList(
     splitsState: SplitsState,
     autoSplitsEngine: AutoSplitsEngine,
     splitIconSizeService: com.supermetroid.service.SplitIconSizeService,
+    splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
     modifier: Modifier = Modifier,
     maxHeight: Int = 400
 ) {
     val currentSplitIconSize by splitIconSizeService.currentSplitIconSize.collectAsState()
+    val showSplitIcons by splitDisplayModeService.showSplitIcons.collectAsState()
+    val showSplitNames by splitDisplayModeService.showSplitNames.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -83,7 +86,9 @@ fun SplitsList(
                         splitIndex = index,
                         splitsState = splitsState,
                         autoSplitsEngine = autoSplitsEngine,
-                        splitIconSize = currentSplitIconSize.size
+                        splitIconSize = currentSplitIconSize.size,
+                        showIcon = showSplitIcons,
+                        showName = showSplitNames
                     )
                 }
             }
@@ -161,7 +166,9 @@ private fun SplitRow(
     splitIndex: Int,
     splitsState: SplitsState,
     autoSplitsEngine: AutoSplitsEngine,
-    splitIconSize: Int
+    splitIconSize: Int,
+    showIcon: Boolean,
+    showName: Boolean
 ) {
     val currentRun = splitsState.currentRun
     val completedSplit = currentRun?.completedSplits?.find { it.splitId == split.id }
@@ -224,27 +231,31 @@ private fun SplitRow(
                 //     modifier = Modifier.width(20.dp)
                 // )
 
-                // Split icon (uses configurable split icon size)
-                SpriteIcon(
-                    itemId = getSplitItemId(split),
-                    isObtained = isCompleted,
-                    size = splitIconSize,
-                    modifier = Modifier.padding(end = 4.dp) // Reduced padding for compact layout
-                )
-
-                // Split name
-                Text(
-                    text = split.name,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = when {
-                            isActive -> TrackerColors.SplitActive
-                            isCompleted -> TrackerColors.SplitCompleted
-                            else -> TrackerColors.OnBackground
-                        },
-                        fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                        fontSize = 12.sp
+                // Split icon (conditionally shown, uses configurable split icon size)
+                if (showIcon) {
+                    SpriteIcon(
+                        itemId = getSplitItemId(split),
+                        isObtained = isCompleted,
+                        size = splitIconSize,
+                        modifier = Modifier.padding(end = if (showName) 4.dp else 0.dp)
                     )
-                )
+                }
+
+                // Split name (conditionally shown)
+                if (showName) {
+                    Text(
+                        text = split.name,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = when {
+                                isActive -> TrackerColors.SplitActive
+                                isCompleted -> TrackerColors.SplitCompleted
+                                else -> TrackerColors.OnBackground
+                            },
+                            fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
+                            fontSize = 12.sp
+                        )
+                    )
+                }
             }
 
             // Times section (BEST | TIME with delta, right-aligned)
