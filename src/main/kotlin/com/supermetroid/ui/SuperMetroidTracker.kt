@@ -27,11 +27,12 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.swing.Swing
 
 // Global services
-val gameStateService = GameStateService()
-val autoSplitsEngine = AutoSplitsEngine()
 val fileStorageService = FileStorageService()
+val gameStateService = GameStateService()
+val autoSplitsEngine = AutoSplitsEngine(fileStorageService)
 val themeService = com.supermetroid.service.ThemeService(fileStorageService)
 val iconSizeService = com.supermetroid.service.IconSizeService(fileStorageService)
+val splitIconSizeService = com.supermetroid.service.SplitIconSizeService(fileStorageService)
 val iconConfigService = com.supermetroid.service.IconConfigService(fileStorageService)
 val roomNameService = com.supermetroid.service.RoomNameService(fileStorageService)
 
@@ -109,6 +110,9 @@ fun SuperMetroidTrackerApp(
         
         // Initialize icon size service
         iconSizeService.initialize()
+        
+        // Initialize split icon size service
+        splitIconSizeService.initialize()
         
         // Initialize icon config service
         iconConfigService.initialize()
@@ -296,6 +300,7 @@ fun SuperMetroidTrackerLayout(
             SplitsList(
                 splitsState = splitsState,
                 autoSplitsEngine = autoSplitsEngine,
+                splitIconSizeService = splitIconSizeService,
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 maxHeight = 900 // Increased height for taller window
             )
@@ -316,6 +321,7 @@ fun SuperMetroidTrackerLayout(
             SettingsPanel(
                 themeService = themeService,
                 iconSizeService = iconSizeService,
+                splitIconSizeService = splitIconSizeService,
                 iconConfigService = iconConfigService,
                 roomNameService = roomNameService,
                 modifier = Modifier

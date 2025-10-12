@@ -3,9 +3,14 @@ package com.supermetroid.autosplits
 import com.supermetroid.gamestate.GameStateConstants
 import com.supermetroid.gamestate.RoomIds
 import com.supermetroid.model.*
+import com.supermetroid.storage.FileStorageService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.math.abs
@@ -15,7 +20,8 @@ private val logger = KotlinLogging.logger {}
 /**
  * AutoSplits engine for detecting split conditions and managing run sessions
  */
-class AutoSplitsEngine {
+class AutoSplitsEngine(private val fileStorageService: FileStorageService? = null) {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var previousGameState: GameState? = null
     private var currentProfile: SplitProfile? = null
     private var currentSplitIndex = 0
@@ -826,9 +832,31 @@ class AutoSplitsEngine {
 
         logger.info { "⏰ Split triggered: ${split.name} at ${formatTime(totalTimeMs)} (segment: ${formatTime(segmentTimeMs)})" }
 
-        if (isComplete) {
+        if (isComplete || split.id == "ship") {
             logger.info { "🏁 Run completed in ${formatTime(totalTimeMs)}" }
             updatePersonalBest(finalRun)
+            
+            // Save completed run to individual file (new format)
+            fileStorageService?.let { storage ->
+                scope.launch {
+                    try {
+                        storage.saveRun(finalRun)
+                        logger.info { "💾 Saved completed run to runs/ directory" }
+                        
+                        // Update run summaries after saving the run
+                        val summaries = storage.loadRunSummaries()
+                        val updatedProfile = storage.deriveBestSplits(finalRun.profileId)
+                        val updatedSummaries = summaries.copy(
+                            lastUpdated = Clock.System.now(),
+                            profiles = summaries.profiles + (finalRun.profileId to updatedProfile)
+                        )
+                        storage.saveRunSummaries(updatedSummaries)
+                        logger.info { "📊 Updated run summaries with completed run" }
+                    } catch (e: Exception) {
+                        logger.error(e) { "❌ Failed to save completed run" }
+                    }
+                }
+            }
         }
     }
 

@@ -31,6 +31,7 @@ import com.supermetroid.ui.theme.TrackerColors
 fun SettingsPanel(
     themeService: com.supermetroid.service.ThemeService,
     iconSizeService: com.supermetroid.service.IconSizeService,
+    splitIconSizeService: com.supermetroid.service.SplitIconSizeService,
     iconConfigService: com.supermetroid.service.IconConfigService,
     roomNameService: com.supermetroid.service.RoomNameService,
     modifier: Modifier = Modifier
@@ -68,6 +69,14 @@ fun SettingsPanel(
             // Icon Size Selection Section
             IconSizeSelectionSection(
                 iconSizeService = iconSizeService,
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Split Icon Size Selection Section
+            SplitIconSizeSelectionSection(
+                splitIconSizeService = splitIconSizeService,
                 modifier = Modifier.fillMaxWidth()
             )
             
@@ -279,6 +288,107 @@ private fun IconSizeSelectionSection(
                         onClick = {
                             scope.launch {
                                 iconSizeService.setIconSize(iconSize)
+                            }
+                            expanded = false
+                        },
+                        colors = MenuDefaults.itemColors(
+                            textColor = TrackerColors.OnSurface
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SplitIconSizeSelectionSection(
+    splitIconSizeService: com.supermetroid.service.SplitIconSizeService,
+    modifier: Modifier = Modifier
+) {
+    val currentSplitIconSize by splitIconSizeService.currentSplitIconSize.collectAsState()
+    var expanded by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Title
+        Text(
+            text = "Split Icon Size",
+            style = MaterialTheme.typography.titleSmall.copy(
+                color = TrackerColors.Primary,
+                fontWeight = FontWeight.Bold
+            ),
+            modifier = Modifier.padding(bottom = 6.dp)
+        )
+
+        // Split Icon Size Dropdown
+        Box {
+            Button(
+                onClick = { expanded = !expanded },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = TrackerColors.SurfaceOverlayLight,
+                    contentColor = TrackerColors.OnSurface
+                ),
+                shape = RoundedCornerShape(6.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                modifier = Modifier.fillMaxWidth(0.8f)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = currentSplitIconSize.displayName,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        text = if (expanded) "▲" else "▼",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(TrackerColors.Surface)
+            ) {
+                IconSize.values().forEach { iconSize ->
+                    DropdownMenuItem(
+                        text = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                // Icon size preview
+                                Box(
+                                    modifier = Modifier
+                                        .size(iconSize.size.dp)
+                                        .background(
+                                            TrackerColors.SurfaceVariant,
+                                            RoundedCornerShape(2.dp)
+                                        )
+                                        .border(
+                                            1.dp,
+                                            TrackerColors.Border,
+                                            RoundedCornerShape(2.dp)
+                                        )
+                                )
+                                Text(
+                                    text = iconSize.displayName,
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = if (iconSize == currentSplitIconSize) TrackerColors.Primary else TrackerColors.OnSurface
+                                    )
+                                )
+                            }
+                        },
+                        onClick = {
+                            scope.launch {
+                                splitIconSizeService.setSplitIconSize(iconSize)
                             }
                             expanded = false
                         },

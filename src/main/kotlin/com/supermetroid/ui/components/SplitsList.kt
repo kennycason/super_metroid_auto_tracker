@@ -30,9 +30,11 @@ import com.supermetroid.ui.theme.TrackerColors
 fun SplitsList(
     splitsState: SplitsState,
     autoSplitsEngine: AutoSplitsEngine,
+    splitIconSizeService: com.supermetroid.service.SplitIconSizeService,
     modifier: Modifier = Modifier,
     maxHeight: Int = 400
 ) {
+    val currentSplitIconSize by splitIconSizeService.currentSplitIconSize.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -80,7 +82,8 @@ fun SplitsList(
                         split = split,
                         splitIndex = index,
                         splitsState = splitsState,
-                        autoSplitsEngine = autoSplitsEngine
+                        autoSplitsEngine = autoSplitsEngine,
+                        splitIconSize = currentSplitIconSize.size
                     )
                 }
             }
@@ -157,7 +160,8 @@ private fun SplitRow(
     split: Split,
     splitIndex: Int,
     splitsState: SplitsState,
-    autoSplitsEngine: AutoSplitsEngine
+    autoSplitsEngine: AutoSplitsEngine,
+    splitIconSize: Int
 ) {
     val currentRun = splitsState.currentRun
     val completedSplit = currentRun?.completedSplits?.find { it.splitId == split.id }
@@ -193,12 +197,15 @@ private fun SplitRow(
         isCompleted -> Color.Transparent // No border for completed splits
         else -> TrackerColors.Border.copy(alpha = 0.3f)
     }
+    
+    // Calculate row height: max of icon size or 24dp base height, plus padding
+    val rowHeight = kotlin.math.max(splitIconSize, 24) + 2 // +2 for vertical padding
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(40.dp) // Reduced height for compact layout
-                    .padding(horizontal = 4.dp, vertical = 1.dp), // Reduced padding for compact layout
+                    .height(rowHeight.dp)
+                    .padding(horizontal = 4.dp, vertical = 1.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -217,11 +224,11 @@ private fun SplitRow(
                 //     modifier = Modifier.width(20.dp)
                 // )
 
-                // Split icon (always 32x32 for compact layout)
+                // Split icon (uses configurable split icon size)
                 SpriteIcon(
                     itemId = getSplitItemId(split),
                     isObtained = isCompleted,
-                    size = 32, // Fixed size for splits, independent of global icon size
+                    size = splitIconSize,
                     modifier = Modifier.padding(end = 4.dp) // Reduced padding for compact layout
                 )
 
