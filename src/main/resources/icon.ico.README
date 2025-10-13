@@ -1,0 +1,4 @@
+Note: icon.ico will need to be created on Windows or with a tool like ImageMagick
+To create icon.ico on Windows or Linux:
+  Install ImageMagick: brew install imagemagick (macOS) or apt-get install imagemagick (Linux)
+  Run: convert icon.png -define icon:auto-resize=256,128,64,48,32,16 icon.ico

@@ -103,15 +103,51 @@ A real-time item, boss, and location tracker for Super Metroid with automatic sp
    ./gradlew packageDistributionForCurrentOS
    ```
    
-### Creating a macOS App Bundle with Packaged JRE
+### Creating Platform-Specific Installers
+
+#### macOS DMG (with bundled JRE)
 To create a macOS .app bundle with a packaged JRE:
-1. Run the following command:
-   ```
-   ./gradlew packageDmg
-   ```
-2. This will create a .dmg file in the `build/compose/binaries/main/dmg/` directory
-3. Open the .dmg file and drag the application to your Applications folder
-4. The app will include a bundled JRE, so it will run without requiring Java to be installed
+```bash
+./gradlew packageDmg
+```
+The `.dmg` file will be created in `build/compose/binaries/main/dmg/`
+
+The app includes a bundled JRE and runs without requiring Java to be installed.
+
+#### Windows MSI/EXE (requires Windows)
+To create a Windows installer, **you must build on a Windows machine**:
+```bash
+./gradlew packageMsi
+```
+The `.msi` file will be created in `build/compose/binaries/main/msi/`
+
+**Important Notes**:
+- Building Windows installers requires Windows with WiX Toolset installed
+- The Gradle command will silently skip on macOS/Linux
+- Cross-compilation for Windows is not supported by jpackage
+- You can run the JAR on Windows without building an installer: `java -jar build/libs/*.jar`
+
+#### Linux DEB (requires Linux)
+To create a Debian package, **you must build on a Linux machine**:
+```bash
+./gradlew packageDeb
+```
+The `.deb` file will be created in `build/compose/binaries/main/deb/`
+
+**Important Notes**:
+- Building Linux packages requires Linux
+- The Gradle command will silently skip on macOS/Windows
+- Cross-compilation for Linux is not supported by jpackage
+- You can run the JAR on Linux without building a package: `java -jar build/libs/*.jar`
+
+### Universal JAR (works on all platforms)
+The JAR file works on any platform with Java 11+:
+```bash
+./gradlew jar
+java -jar build/libs/super_metroid_auto_tracker-1.0.0.jar
+```
+
+This is the easiest way to distribute for Windows and Linux if you don't have access to those platforms for building native installers.
 
 ### Testing
 Run the tests with:

@@ -74,6 +74,14 @@ compose.desktop {
                 bundleID = "com.supermetroid.autotracker"
                 iconFile.set(project.file("src/main/resources/icon.icns"))
             }
+            
+            windows {
+                iconFile.set(project.file("src/main/resources/icon.ico"))
+            }
+            
+            linux {
+                iconFile.set(project.file("src/main/resources/icon.png"))
+            }
         }
     }
 }
