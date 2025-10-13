@@ -10,7 +10,9 @@ enum class IconSize(val size: Int, val displayName: String) {
     MEDIUM_SMALL(24, "24x24"),
     MEDIUM(32, "32x32"),
     LARGE(48, "48x48"),
-    EXTRA_LARGE(64, "64x64");
+    EXTRA_LARGE(64, "64x64"),
+    HUGE(128, "128x128"),
+    MASSIVE(256, "256x256");
     
     companion object {
         fun fromSize(size: Int): IconSize {

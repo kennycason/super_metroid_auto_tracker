@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -220,9 +222,12 @@ fun SimpleStatusGrid(
         ),
         shape = RoundedCornerShape(4.dp) // Reduced corner radius for more compact look
     ) {
+        // Add vertical scroll support with max height constraint
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(max = 600.dp) // Limit maximum height to prevent pushing UI off screen
+                .verticalScroll(rememberScrollState()) // Make scrollable
                 .padding(2.dp) // Minimal padding for very compact layout
         ) {
             // Unified fixed-size grid for enabled items and bosses in configured order

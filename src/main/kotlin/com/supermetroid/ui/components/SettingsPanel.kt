@@ -268,31 +268,12 @@ private fun IconSizeSelectionSection(
                 IconSize.values().forEach { iconSize ->
                     DropdownMenuItem(
                         text = {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                // Icon size preview
-                                Box(
-                                    modifier = Modifier
-                                        .size(iconSize.size.dp)
-                                        .background(
-                                            TrackerColors.SurfaceVariant,
-                                            RoundedCornerShape(2.dp)
-                                        )
-                                        .border(
-                                            1.dp,
-                                            TrackerColors.Border,
-                                            RoundedCornerShape(2.dp)
-                                        )
+                            Text(
+                                text = iconSize.displayName,
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = if (iconSize == currentIconSize) TrackerColors.Primary else TrackerColors.OnSurface
                                 )
-                                Text(
-                                    text = iconSize.displayName,
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        color = if (iconSize == currentIconSize) TrackerColors.Primary else TrackerColors.OnSurface
-                                    )
-                                )
-                            }
+                            )
                         },
                         onClick = {
                             scope.launch {
@@ -369,31 +350,12 @@ private fun SplitIconSizeSelectionSection(
                 IconSize.values().forEach { iconSize ->
                     DropdownMenuItem(
                         text = {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                // Icon size preview
-                                Box(
-                                    modifier = Modifier
-                                        .size(iconSize.size.dp)
-                                        .background(
-                                            TrackerColors.SurfaceVariant,
-                                            RoundedCornerShape(2.dp)
-                                        )
-                                        .border(
-                                            1.dp,
-                                            TrackerColors.Border,
-                                            RoundedCornerShape(2.dp)
-                                        )
+                            Text(
+                                text = iconSize.displayName,
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = if (iconSize == currentSplitIconSize) TrackerColors.Primary else TrackerColors.OnSurface
                                 )
-                                Text(
-                                    text = iconSize.displayName,
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        color = if (iconSize == currentSplitIconSize) TrackerColors.Primary else TrackerColors.OnSurface
-                                    )
-                                )
-                            }
+                            )
                         },
                         onClick = {
                             scope.launch {
@@ -635,18 +597,17 @@ private fun IconManagementItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Icon with click to toggle
-        val currentIconSize by iconSizeService.currentIconSize.collectAsState()
+        // Icon with click to toggle (fixed 32x32 size for settings consistency)
         Box(
             modifier = Modifier
-                .size(currentIconSize.size.dp)
+                .size(32.dp)
                 .clickable { onToggleEnabled() },
             contentAlignment = Alignment.Center
         ) {
             SpriteIcon(
                 itemId = icon.id,
                 isObtained = icon.enabled, // Use enabled state for grayscale/color
-                size = currentIconSize.size
+                size = 32
             )
         }
         
