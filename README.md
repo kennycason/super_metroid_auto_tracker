@@ -255,18 +255,9 @@ The tracker stores all data in `~/.smtracker/`:
 The memory addresses and logic used in this project are based on:
 - [Super Metroid RAM Map](https://jathys.zophar.net/supermetroid/kejardon/RAMMap.txt)
 - [Super Metroid AutoSplitter](https://github.com/UNHchabo/AutoSplitters)
-- [SNES9x Memory Mapping](https://github.com/gocha/snes9x-rr-lua/blob/master/snes9x-rr-1.43-src/cheats2.cpp)
 - [SNI (SNES Network Access)](https://github.com/alttpo/sni) - gRPC-based SNES memory access
 
-## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
 
 ## 📝 License
 
