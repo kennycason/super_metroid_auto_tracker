@@ -1,6 +1,6 @@
 # Super Metroid Auto Tracker
 
-A real-time item, boss, and location tracker for Super Metroid that automatically reads game state from RetroArch via UDP.
+A real-time item, boss, and location tracker for Super Metroid with automatic speedrun splits. Supports multiple connection methods including RetroArch Network Commands and SNI (SNES Classic/SD2SNES).
 
 <!-- Icons Only View -->
 <div align="left">
@@ -22,45 +22,131 @@ A real-time item, boss, and location tracker for Super Metroid that automaticall
   <img src="screenshots/screenshot_settings03.png" width="30%"/>
 </div>
 
+## ✨ Features
+
+- **Multi-Platform Support**: Works with RetroArch (any platform) and SNI-compatible devices (SD2SNES, SNES Classic, etc.)
+- **Automatic Item & Boss Tracking**: Real-time detection of all items, beams, suits, and boss defeats
+- **Auto-Splits**: Automatic speedrun splits for KPDR Any% route with best possible time calculation
+- **Customizable UI**: 
+  - Adjustable icon sizes (16x16 to 256x256)
+  - Multiple themes (Dark, Light, Matrix Green, etc.)
+  - Show/hide individual icons
+  - Configurable split display modes (icons, names, or both)
+- **Room Name Display**: Shows current area and room name
+- **Run Statistics**: Personal best tracking with best possible time derived from best segments across all runs
+- **Persistent Storage**: All settings, icon configurations, and run history saved to `~/.smtracker/`
+
 ## 🚀 Installation
 
 ### Prerequisites
 - Java 11 or higher
-- RetroArch with network commands enabled
-- Super Metroid ROM loaded in RetroArch
+- One of the following:
+  - **RetroArch** with network commands enabled, OR
+  - **SNI** with a compatible device (SD2SNES, SNES Classic, etc.)
 
 ### RetroArch Configuration
 1. In RetroArch, go to Settings → Network
 2. Enable "Network Commands" (set to ON)
 3. Keep the default port (55355) or note your custom port for configuration
 
+### SNI Configuration
+1. Download and run [SNI](https://github.com/alttpo/sni) (default port: 8191)
+2. Connect your SD2SNES or SNES Classic device
+3. Load Super Metroid
+4. The tracker will automatically detect and connect to SNI
+
+
 ## 🎯 Usage
 
 ### Basic Operation
-1. Start RetroArch and load Super Metroid
+1. Start RetroArch (or SNI) and load Super Metroid
 2. Launch Super Metroid Auto Tracker
-3. The application will automatically connect to RetroArch and begin tracking
+3. The application will automatically detect and connect to the best available connection method
+4. Start playing - items and bosses will be tracked automatically!
 
 ### Keyboard Shortcuts
-- **Spacebar**: Start/pause the timer for speedruns
-- **R**: Reset the current run
+- **Spacebar**: Start/pause the run timer
+- **R**: Reset the current run (requires confirmation)
 
 ### UI Controls
-- Use the toggle buttons at the bottom of the window to show/hide:
+- **Bottom Navigation**: Toggle between different views
   - **icons**: Item and boss status grid
-  - **splits**: Speedrun split times
-  - **timer**: Run timer
+  - **splits**: Speedrun splits with auto-detection
+  - **timer**: Standalone run timer
+  - **settings**: Customize themes, icon sizes, and more
 
-## 🔍 Methodology for Tracking Items/Bosses
+### Settings Panel
+- **Theme Selection**: Choose from multiple color schemes
+- **Icon Size**: Adjust main icon grid size (16x16 to 256x256)
+- **Split Icon Size**: Separate size control for split icons
+- **Split Display Mode**: Show icons, names, or both in splits view
+- **Room Name Display**: Toggle current room name visibility
+- **Icon Management**: Show/hide individual icons and reorder them
 
-The application uses a sophisticated memory reading approach to track game state:
+
+## 🧪 Building and Testing
+
+### Building from Source
+1. Clone the repository
+2. Build and run the application with a single command:
+   ```
+   ./gradlew build && ./gradlew run
+   ```
+   
+   Or build and run separately:
+   ```
+   ./gradlew build
+   ./gradlew run
+   ```
+3. Create a distribution package:
+   ```
+   ./gradlew packageDistributionForCurrentOS
+   ```
+   
+### Creating a macOS App Bundle with Packaged JRE
+To create a macOS .app bundle with a packaged JRE:
+1. Run the following command:
+   ```
+   ./gradlew packageDmg
+   ```
+2. This will create a .dmg file in the `build/compose/binaries/main/dmg/` directory
+3. Open the .dmg file and drag the application to your Applications folder
+4. The app will include a bundled JRE, so it will run without requiring Java to be installed
+
+### Testing
+Run the tests with:
+```
+./gradlew test
+```
+
+The project includes tests for:
+- Auto-splits logic
+- Game state parsing
+- Memory reading stability
+
+
+## 🔍 How It Works
+
+### Connection Methods
+The tracker supports multiple connection methods and automatically detects the best available option:
+
+1. **SNI (SNES Network Access)** - Preferred method
+   - Connects to SNI server at `localhost:8191` (default)
+   - Works with SD2SNES, SNES Classic, and other SNI-compatible devices
+   - Uses gRPC for efficient communication
+
+2. **RetroArch Network Commands** - Fallback method
+   - Connects via UDP to RetroArch at `localhost:55355` (default)
+   - Works with any platform running RetroArch
+   - Compatible with all SNES cores
 
 ### Memory Reading Process
-1. Connects to RetroArch via UDP on port 55355 (configurable)
-2. Polls game memory at regular intervals (default: 500ms)
-3. Parses raw memory values into structured game state
-4. Applies stability checks to prevent erratic updates
-5. Updates the UI with the latest verified game state
+1. Automatically detects available connection methods on startup
+2. Connects to the preferred adapter (SNI first, then RetroArch)
+3. Polls game memory at regular intervals (default: 500ms)
+4. Parses raw memory values into structured game state
+5. Applies stability checks to prevent erratic updates
+6. Updates the UI with the latest verified game state
 
 ### Item Tracking
 Items are tracked by reading specific memory addresses and bit flags:
@@ -143,56 +229,26 @@ Some bosses require special detection logic:
 ```
 src/
 ├── main/kotlin/com/supermetroid/
-│   ├── autosplits/        # Auto-splitting logic for speedruns
+│   ├── autosplits/        # Auto-splitting logic for speedruns (KPDR Any% route)
 │   ├── gamestate/         # Game state parsing and memory mapping
-│   ├── model/             # Data models (GameState, Items, Bosses, etc.)
-│   ├── network/           # RetroArch UDP communication
-│   ├── service/           # Background services for polling and state management
-│   ├── storage/           # File storage for saving/loading split data
+│   ├── model/             # Data models (GameState, Items, Bosses, AppConfig, etc.)
+│   ├── network/           # Network adapters (SNI gRPC, RetroArch UDP, dual adapter)
+│   ├── service/           # Services (GameState, Theme, IconSize, AutoSplits, etc.)
+│   ├── storage/           # File storage for settings and run data
 │   └── ui/                # Jetpack Compose UI components
-│       ├── components/    # Reusable UI components
-│       └── theme/         # UI theme and styling
+│       ├── components/    # Reusable UI components (grids, splits, settings, etc.)
+│       └── theme/         # UI themes and color schemes
+└── test/kotlin/com/supermetroid/  # Unit tests
 ```
 
-## 🧪 Building and Testing
+## 📁 Data Storage
 
-### Building from Source
-1. Clone the repository
-2. Build and run the application with a single command:
-   ```
-   ./gradlew build && ./gradlew run
-   ```
-   
-   Or build and run separately:
-   ```
-   ./gradlew build
-   ./gradlew run
-   ```
-3. Create a distribution package:
-   ```
-   ./gradlew packageDistributionForCurrentOS
-   ```
-   
-### Creating a macOS App Bundle with Packaged JRE
-To create a macOS .app bundle with a packaged JRE:
-1. Run the following command:
-   ```
-   ./gradlew packageDmg
-   ```
-2. This will create a .dmg file in the `build/compose/binaries/main/dmg/` directory
-3. Open the .dmg file and drag the application to your Applications folder
-4. The app will include a bundled JRE, so it will run without requiring Java to be installed
-
-### Testing
-Run the tests with:
-```
-./gradlew test
-```
-
-The project includes tests for:
-- Auto-splits logic
-- Game state parsing
-- Memory reading stability
+The tracker stores all data in `~/.smtracker/`:
+- `smtracker.json` - Application settings and preferences
+- `icon-config.json` - Icon visibility and ordering
+- `splits-data.json` - Current run and personal bests (legacy format)
+- `runs/` - Individual run files for detailed history
+- `run-summaries.json` - Best splits and statistics (derived from runs)
 
 ## 📚 Research and References
 
@@ -200,6 +256,7 @@ The memory addresses and logic used in this project are based on:
 - [Super Metroid RAM Map](https://jathys.zophar.net/supermetroid/kejardon/RAMMap.txt)
 - [Super Metroid AutoSplitter](https://github.com/UNHchabo/AutoSplitters)
 - [SNES9x Memory Mapping](https://github.com/gocha/snes9x-rr-lua/blob/master/snes9x-rr-1.43-src/cheats2.cpp)
+- [SNI (SNES Network Access)](https://github.com/alttpo/sni) - gRPC-based SNES memory access
 
 ## 🤝 Contributing
 
@@ -218,5 +275,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🙏 Acknowledgments
 
 - The Super Metroid speedrunning community for documenting memory addresses
+- [alttpo](https://github.com/alttpo) for creating SNI (SNES Network Access)
 - RetroArch developers for providing the network interface
-- JetBrains for Kotlin and Compose for Desktop
+- All contributors and testers
+- Nintendo, for Super Metroid
