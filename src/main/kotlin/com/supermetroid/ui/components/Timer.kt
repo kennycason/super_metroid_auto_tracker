@@ -68,15 +68,16 @@ fun Timer(
             pausedDisplayTime = 0L
             wasPaused = false
         } else if (currentRun.isPaused) {
-            // Just paused - save the current display time
+            // Just paused - use the run's totalTime as the authoritative source
+            // This works for both manual pause and setTimer
             println("[DEBUG_LOG] $timerId: Run is paused")
             if (!wasPaused) {
-                println("[DEBUG_LOG] $timerId: Newly paused, saving display time: $currentTime")
-                pausedDisplayTime = currentTime
+                println("[DEBUG_LOG] $timerId: Newly paused, totalTime: ${currentRun.totalTime}")
+                pausedDisplayTime = currentRun.totalTime
             }
-            // When paused, just display the saved time
-            currentTime = pausedDisplayTime
-            println("[DEBUG_LOG] $timerId: Set current time to pausedDisplayTime: $pausedDisplayTime")
+            // When paused, always display the run's totalTime
+            currentTime = currentRun.totalTime
+            println("[DEBUG_LOG] $timerId: Set current time to totalTime: ${currentRun.totalTime}")
             wasPaused = true
         } else {
             // Run is active (not paused)

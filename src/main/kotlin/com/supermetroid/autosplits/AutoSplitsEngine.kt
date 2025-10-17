@@ -319,7 +319,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     private fun pauseRun() {
         val currentRun = _splitsState.value.currentRun ?: return
 
-        // Log detailed state before pausing
+        // Calculate the current running time
         val runningTime = System.currentTimeMillis() - currentRun.startTime.toEpochMilliseconds() - currentRun.pausedTime
         logger.info { "⏸️ Pausing run ${currentRun.id} - current time: ${formatTime(runningTime)}, paused time: ${formatTime(currentRun.pausedTime)}" }
 
@@ -327,13 +327,16 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         pauseStartTime = Clock.System.now()
         logger.info { "⏸️ Pause start time set to: ${pauseStartTime}" }
 
-        // Update the state to mark the run as paused
+        // Update the state to mark the run as paused AND update totalTime to the current running time
         val currentState = _splitsState.value
         _splitsState.value = currentState.copy(
-            currentRun = currentRun.copy(isPaused = true)
+            currentRun = currentRun.copy(
+                isPaused = true,
+                totalTime = runningTime  // Update totalTime to current running time
+            )
         )
 
-        logger.info { "⏸️ Run ${currentRun.id} paused successfully" }
+        logger.info { "⏸️ Run ${currentRun.id} paused successfully at ${formatTime(runningTime)}" }
     }
 
     /**
