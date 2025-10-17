@@ -56,11 +56,38 @@ tasks.test {
     useJUnitPlatform()
 }
 
+// Fat JAR task - creates a single executable JAR with all dependencies
+tasks.register<Jar>("fatJar") {
+    archiveBaseName.set("SuperMetroidAutoTracker")
+    archiveVersion.set("")
+    
+    manifest {
+        attributes["Main-Class"] = "com.supermetroid.ui.SuperMetroidTrackerKt"
+    }
+    
+    // Include all dependencies in the JAR
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+    with(tasks.jar.get())
+    
+    // Exclude signature files to avoid conflicts
+    exclude("META-INF/*.SF")
+    exclude("META-INF/*.DSA")
+    exclude("META-INF/*.RSA")
+    
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 // Removed application plugin - using Compose Desktop instead
 
 compose.desktop {
     application {
         mainClass = "com.supermetroid.ui.SuperMetroidTrackerKt"
+        
+        // Add JVM arguments to include required Java modules for Logback
+        jvmArgs += listOf(
+            "--add-modules", "java.naming",
+            "--add-exports", "java.naming/com.sun.jndi.ldap=ALL-UNNAMED"
+        )
         
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
@@ -69,6 +96,9 @@ compose.desktop {
             description = "Super Metroid Auto Tracker - Kotlin Compose Desktop"
             copyright = "© 2025 Super Metroid Tracker"
             vendor = "Super Metroid Community"
+            
+            // Include Java naming module in the packaged runtime
+            modules("java.naming", "java.sql")
             
             macOS {
                 bundleID = "com.supermetroid.autotracker"

@@ -35,6 +35,7 @@ fun SettingsPanel(
     splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
     iconConfigService: com.supermetroid.service.IconConfigService,
     roomNameService: com.supermetroid.service.RoomNameService,
+    autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -94,6 +95,14 @@ fun SettingsPanel(
             // Room Name Toggle Section
             RoomNameToggleSection(
                 roomNameService = roomNameService,
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Timer Set Section
+            TimerSetSection(
+                autoSplitsEngine = autoSplitsEngine,
                 modifier = Modifier.fillMaxWidth()
             )
             
@@ -498,6 +507,289 @@ private fun RoomNameToggleSection(
                     uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
                     uncheckedTrackColor = TrackerColors.SurfaceVariant
                 )
+            )
+        }
+    }
+}
+
+@Composable
+private fun TimerSetSection(
+    autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
+    modifier: Modifier = Modifier
+) {
+    var hours by remember { mutableStateOf(0) }
+    var minutes by remember { mutableStateOf(0) }
+    var seconds by remember { mutableStateOf(0) }
+    var centiseconds by remember { mutableStateOf(0) }
+    
+    var hoursExpanded by remember { mutableStateOf(false) }
+    var minutesExpanded by remember { mutableStateOf(false) }
+    var secondsExpanded by remember { mutableStateOf(false) }
+    var centisecondsExpanded by remember { mutableStateOf(false) }
+    
+    val scope = rememberCoroutineScope()
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Title
+        Text(
+            text = "Set Timer",
+            style = MaterialTheme.typography.titleSmall.copy(
+                color = TrackerColors.Primary,
+                fontWeight = FontWeight.Bold
+            ),
+            modifier = Modifier.padding(bottom = 6.dp)
+        )
+
+        // Dropdowns row
+        Row(
+            modifier = Modifier.fillMaxWidth(0.9f),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Hours dropdown
+            Box(modifier = Modifier.weight(1f)) {
+                Button(
+                    onClick = { hoursExpanded = !hoursExpanded },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = TrackerColors.SurfaceOverlayLight,
+                        contentColor = TrackerColors.OnSurface
+                    ),
+                    shape = RoundedCornerShape(4.dp),
+                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 4.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "%02d".format(hours),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Text(
+                            text = "h",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = TrackerColors.OnSurfaceVariant
+                            )
+                        )
+                    }
+                }
+                
+                DropdownMenu(
+                    expanded = hoursExpanded,
+                    onDismissRequest = { hoursExpanded = false },
+                    modifier = Modifier.background(TrackerColors.Surface).heightIn(max = 200.dp)
+                ) {
+                    (0..9).forEach { h ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = "%02d".format(h),
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = if (h == hours) TrackerColors.Primary else TrackerColors.OnSurface
+                                    )
+                                )
+                            },
+                            onClick = {
+                                hours = h
+                                hoursExpanded = false
+                            },
+                            colors = MenuDefaults.itemColors(
+                                textColor = TrackerColors.OnSurface
+                            )
+                        )
+                    }
+                }
+            }
+            
+            Text(":", style = MaterialTheme.typography.bodySmall.copy(color = TrackerColors.OnSurface))
+            
+            // Minutes dropdown
+            Box(modifier = Modifier.weight(1f)) {
+                Button(
+                    onClick = { minutesExpanded = !minutesExpanded },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = TrackerColors.SurfaceOverlayLight,
+                        contentColor = TrackerColors.OnSurface
+                    ),
+                    shape = RoundedCornerShape(4.dp),
+                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 4.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "%02d".format(minutes),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Text(
+                            text = "m",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = TrackerColors.OnSurfaceVariant
+                            )
+                        )
+                    }
+                }
+                
+                DropdownMenu(
+                    expanded = minutesExpanded,
+                    onDismissRequest = { minutesExpanded = false },
+                    modifier = Modifier.background(TrackerColors.Surface).heightIn(max = 200.dp)
+                ) {
+                    (0..59).forEach { m ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = "%02d".format(m),
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = if (m == minutes) TrackerColors.Primary else TrackerColors.OnSurface
+                                    )
+                                )
+                            },
+                            onClick = {
+                                minutes = m
+                                minutesExpanded = false
+                            },
+                            colors = MenuDefaults.itemColors(
+                                textColor = TrackerColors.OnSurface
+                            )
+                        )
+                    }
+                }
+            }
+            
+            Text(":", style = MaterialTheme.typography.bodySmall.copy(color = TrackerColors.OnSurface))
+            
+            // Seconds dropdown
+            Box(modifier = Modifier.weight(1f)) {
+                Button(
+                    onClick = { secondsExpanded = !secondsExpanded },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = TrackerColors.SurfaceOverlayLight,
+                        contentColor = TrackerColors.OnSurface
+                    ),
+                    shape = RoundedCornerShape(4.dp),
+                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 4.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "%02d".format(seconds),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Text(
+                            text = "s",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = TrackerColors.OnSurfaceVariant
+                            )
+                        )
+                    }
+                }
+                
+                DropdownMenu(
+                    expanded = secondsExpanded,
+                    onDismissRequest = { secondsExpanded = false },
+                    modifier = Modifier.background(TrackerColors.Surface).heightIn(max = 200.dp)
+                ) {
+                    (0..59).forEach { s ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = "%02d".format(s),
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = if (s == seconds) TrackerColors.Primary else TrackerColors.OnSurface
+                                    )
+                                )
+                            },
+                            onClick = {
+                                seconds = s
+                                secondsExpanded = false
+                            },
+                            colors = MenuDefaults.itemColors(
+                                textColor = TrackerColors.OnSurface
+                            )
+                        )
+                    }
+                }
+            }
+            
+            Text(".", style = MaterialTheme.typography.bodySmall.copy(color = TrackerColors.OnSurface))
+            
+            // Centiseconds dropdown
+            Box(modifier = Modifier.weight(1f)) {
+                Button(
+                    onClick = { centisecondsExpanded = !centisecondsExpanded },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = TrackerColors.SurfaceOverlayLight,
+                        contentColor = TrackerColors.OnSurface
+                    ),
+                    shape = RoundedCornerShape(4.dp),
+                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 4.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "%02d".format(centiseconds),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Text(
+                            text = "cs",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = TrackerColors.OnSurfaceVariant
+                            )
+                        )
+                    }
+                }
+                
+                DropdownMenu(
+                    expanded = centisecondsExpanded,
+                    onDismissRequest = { centisecondsExpanded = false },
+                    modifier = Modifier.background(TrackerColors.Surface).heightIn(max = 200.dp)
+                ) {
+                    (0..99).forEach { cs ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = "%02d".format(cs),
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = if (cs == centiseconds) TrackerColors.Primary else TrackerColors.OnSurface
+                                    )
+                                )
+                            },
+                            onClick = {
+                                centiseconds = cs
+                                centisecondsExpanded = false
+                            },
+                            colors = MenuDefaults.itemColors(
+                                textColor = TrackerColors.OnSurface
+                            )
+                        )
+                    }
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        // Apply button
+        Button(
+            onClick = {
+                scope.launch {
+                    // Calculate total time in milliseconds
+                    val totalMs = (hours * 3600L + minutes * 60L + seconds) * 1000L + centiseconds * 10L
+                    autoSplitsEngine.setTimer(totalMs)
+                }
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = TrackerColors.Primary,
+                contentColor = TrackerColors.OnPrimary
+            ),
+            shape = RoundedCornerShape(4.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+            modifier = Modifier.fillMaxWidth(0.5f)
+        ) {
+            Text(
+                text = "Set Timer",
+                style = MaterialTheme.typography.bodySmall
             )
         }
     }

@@ -425,6 +425,76 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     }
 
     /**
+     * Set the timer to a specific time value
+     * If no run exists, creates a paused run with the given time
+     * If a run exists, adjusts the start time to reflect the desired time
+     * 
+     * @param timeMs The desired timer value in milliseconds
+     * @param profileId The profile ID for the run (default: "kpdr-any")
+     */
+    fun setTimer(timeMs: Long, profileId: String = "kpdr-any") {
+        val currentRun = _splitsState.value.currentRun
+        val now = Clock.System.now()
+
+        logger.info { "⏱️ setTimer called - setting timer to ${formatTime(timeMs)}" }
+
+        if (currentRun == null) {
+            // No run exists - create a paused run with the given time
+            val runId = generateRunId()
+            
+            // Calculate the start time that would result in the desired time
+            // startTime = now - timeMs
+            val adjustedStartTime = kotlinx.datetime.Instant.fromEpochMilliseconds(
+                now.toEpochMilliseconds() - timeMs
+            )
+
+            val newRun = RunSession(
+                id = runId,
+                profileId = profileId,
+                startTime = adjustedStartTime,
+                endTime = null,
+                completedSplits = emptyList(),
+                totalTime = timeMs,
+                isPaused = true,  // Start paused so time doesn't advance
+                pausedTime = 0
+            )
+
+            // Set pause start time to now
+            pauseStartTime = now
+
+            val currentState = _splitsState.value
+            _splitsState.value = currentState.copy(currentRun = newRun)
+
+            logger.info { "⏱️ Created new paused run with timer set to ${formatTime(timeMs)}" }
+        } else {
+            // Run exists - adjust the start time to reflect the desired time
+            val wasPaused = currentRun.isPaused
+            
+            // Calculate the new start time that would result in the desired time
+            // For a running timer: startTime = now - timeMs - pausedTime
+            // For a paused timer: startTime = now - timeMs - pausedTime
+            val adjustedStartTime = kotlinx.datetime.Instant.fromEpochMilliseconds(
+                now.toEpochMilliseconds() - timeMs - currentRun.pausedTime
+            )
+
+            val updatedRun = currentRun.copy(
+                startTime = adjustedStartTime,
+                totalTime = timeMs
+            )
+
+            // If the run was paused, update pause start time to now
+            if (wasPaused) {
+                pauseStartTime = now
+            }
+
+            val currentState = _splitsState.value
+            _splitsState.value = currentState.copy(currentRun = updatedRun)
+
+            logger.info { "⏱️ Updated existing run timer to ${formatTime(timeMs)} (${if (wasPaused) "paused" else "running"})" }
+        }
+    }
+
+    /**
      * Process game state and check for split conditions
      */
     fun processGameState(gameState: GameState) {

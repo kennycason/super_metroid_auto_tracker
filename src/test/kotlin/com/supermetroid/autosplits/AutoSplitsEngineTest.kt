@@ -243,4 +243,115 @@ class AutoSplitsEngineTest {
 
         assertTrue(true, "Test skipped - functionality verified manually")
     }
+
+    @Test
+    fun `test setTimer creates paused run when no run exists`() {
+        // Set timer to 1 minute 30 seconds 50 centiseconds
+        val targetTimeMs = 1 * 60 * 1000L + 30 * 1000L + 50 * 10L // 90,500 ms
+        
+        engine.setTimer(targetTimeMs)
+        
+        // Wait a bit for the state to update
+        Thread.sleep(100)
+        
+        val currentRun = engine.splitsState.value.currentRun
+        
+        assertNotNull(currentRun, "A run should be created")
+        assertTrue(currentRun!!.isPaused, "The run should be paused")
+        assertEquals(targetTimeMs, currentRun.totalTime, "Total time should match target time")
+        assertTrue(currentRun.completedSplits.isEmpty(), "No splits should be completed")
+    }
+
+    @Test
+    fun `test setTimer updates existing paused run`() {
+        // Start a new run first
+        engine.startNewRun()
+        Thread.sleep(100)
+        
+        // Pause the run
+        engine.toggleRunState()
+        Thread.sleep(100)
+        
+        // Now set timer to a specific value
+        val targetTimeMs = 2 * 60 * 1000L + 15 * 1000L + 75 * 10L // 2:15.75 = 135,750 ms
+        
+        engine.setTimer(targetTimeMs)
+        Thread.sleep(100)
+        
+        val currentRun = engine.splitsState.value.currentRun
+        
+        assertNotNull(currentRun, "Run should still exist")
+        assertTrue(currentRun!!.isPaused, "Run should still be paused")
+        assertEquals(targetTimeMs, currentRun.totalTime, "Total time should be updated to target time")
+    }
+
+    @Test
+    fun `test setTimer updates existing running run`() {
+        // Start a new run
+        engine.startNewRun()
+        Thread.sleep(100)
+        
+        val initialRun = engine.splitsState.value.currentRun
+        assertNotNull(initialRun, "Run should exist")
+        assertFalse(initialRun!!.isPaused, "Run should be running")
+        
+        // Set timer while run is active
+        val targetTimeMs = 45 * 1000L + 25 * 10L // 45.25 seconds = 45,250 ms
+        
+        engine.setTimer(targetTimeMs)
+        Thread.sleep(100)
+        
+        val currentRun = engine.splitsState.value.currentRun
+        
+        assertNotNull(currentRun, "Run should still exist")
+        assertFalse(currentRun!!.isPaused, "Run should still be running")
+        
+        // The totalTime should be approximately the target time
+        // Allow some tolerance for timing precision
+        assertTrue(
+            kotlin.math.abs(currentRun.totalTime - targetTimeMs) < 100,
+            "Total time should be approximately the target time (within 100ms tolerance)"
+        )
+    }
+
+    @Test
+    fun `test setTimer with zero time`() {
+        // Set timer to 0
+        engine.setTimer(0L)
+        Thread.sleep(100)
+        
+        val currentRun = engine.splitsState.value.currentRun
+        
+        assertNotNull(currentRun, "A run should be created")
+        assertTrue(currentRun!!.isPaused, "The run should be paused")
+        assertEquals(0L, currentRun.totalTime, "Total time should be 0")
+    }
+
+    @Test
+    fun `test setTimer with large time value`() {
+        // Set timer to 9:59:99 (9 hours, 59 minutes, 59.99 seconds)
+        val targetTimeMs = 9 * 3600 * 1000L + 59 * 60 * 1000L + 59 * 1000L + 99 * 10L
+        
+        engine.setTimer(targetTimeMs)
+        Thread.sleep(100)
+        
+        val currentRun = engine.splitsState.value.currentRun
+        
+        assertNotNull(currentRun, "A run should be created")
+        assertTrue(currentRun!!.isPaused, "The run should be paused")
+        assertEquals(targetTimeMs, currentRun.totalTime, "Total time should match target time")
+    }
+
+    @Test
+    fun `test setTimer preserves profile ID`() {
+        val customProfileId = "custom-profile"
+        
+        engine.setTimer(5000L, customProfileId)
+        Thread.sleep(100)
+        
+        val currentRun = engine.splitsState.value.currentRun
+        
+        assertNotNull(currentRun, "A run should be created")
+        assertEquals(customProfileId, currentRun!!.profileId, "Profile ID should match")
+    }
 }

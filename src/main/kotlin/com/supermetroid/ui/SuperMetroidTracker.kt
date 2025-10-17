@@ -330,6 +330,7 @@ fun SuperMetroidTrackerLayout(
                 splitDisplayModeService = splitDisplayModeService,
                 iconConfigService = iconConfigService,
                 roomNameService = roomNameService,
+                autoSplitsEngine = autoSplitsEngine,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f) // Takes all remaining vertical space
