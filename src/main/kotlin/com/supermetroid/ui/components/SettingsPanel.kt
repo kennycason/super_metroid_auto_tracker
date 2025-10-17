@@ -25,7 +25,7 @@ import com.supermetroid.model.IconSize
 import com.supermetroid.ui.theme.TrackerColors
 
 /**
- * Settings panel with theme selection
+ * Settings panel with tabbed organization
  */
 @Composable
 fun SettingsPanel(
@@ -38,8 +38,11 @@ fun SettingsPanel(
     autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
     modifier: Modifier = Modifier
 ) {
+    var selectedTab by remember { mutableStateOf(0) }
+    val tabs = listOf("General", "Icons", "Splits")
+
     Card(
-        modifier = modifier.fillMaxSize(), // Fill all available space
+        modifier = modifier.fillMaxSize(),
         colors = CardDefaults.cardColors(
             containerColor = TrackerColors.Surface
         ),
@@ -47,7 +50,7 @@ fun SettingsPanel(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize() // Fill all available space
+                .fillMaxSize()
                 .padding(8.dp)
         ) {
             // Title
@@ -60,63 +63,196 @@ fun SettingsPanel(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             
-            // Theme Selection Section
-            ThemeSelectionSection(
-                themeService = themeService,
+            // Tab Row
+            TabRow(
+                selectedTabIndex = selectedTab,
+                containerColor = TrackerColors.SurfaceOverlayLight,
+                contentColor = TrackerColors.Primary,
                 modifier = Modifier.fillMaxWidth()
-            )
+            ) {
+                tabs.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        text = {
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal
+                                )
+                            )
+                        },
+                        selectedContentColor = TrackerColors.Primary,
+                        unselectedContentColor = TrackerColors.OnSurfaceVariant
+                    )
+                }
+            }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             
-            // Icon Size Selection Section
-            IconSizeSelectionSection(
-                iconSizeService = iconSizeService,
-                modifier = Modifier.fillMaxWidth()
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Split Icon Size Selection Section
-            SplitIconSizeSelectionSection(
-                splitIconSizeService = splitIconSizeService,
-                modifier = Modifier.fillMaxWidth()
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Split Display Mode Section
-            SplitDisplayModeSection(
-                splitDisplayModeService = splitDisplayModeService,
-                modifier = Modifier.fillMaxWidth()
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Room Name Toggle Section
-            RoomNameToggleSection(
-                roomNameService = roomNameService,
-                modifier = Modifier.fillMaxWidth()
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Timer Set Section
-            TimerSetSection(
-                autoSplitsEngine = autoSplitsEngine,
-                modifier = Modifier.fillMaxWidth()
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Icon Management Section - takes remaining space
-            IconManagementSection(
-                iconConfigService = iconConfigService,
-                iconSizeService = iconSizeService,
+            // Tab Content
+            when (selectedTab) {
+                0 -> GeneralSettingsTab(
+                    themeService = themeService,
+                    roomNameService = roomNameService,
+                    autoSplitsEngine = autoSplitsEngine,
+                    modifier = Modifier.fillMaxSize()
+                )
+                1 -> IconsSettingsTab(
+                    iconSizeService = iconSizeService,
+                    iconConfigService = iconConfigService,
+                    modifier = Modifier.fillMaxSize()
+                )
+                2 -> SplitsSettingsTab(
+                    splitIconSizeService = splitIconSizeService,
+                    splitDisplayModeService = splitDisplayModeService,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun GeneralSettingsTab(
+    themeService: com.supermetroid.service.ThemeService,
+    roomNameService: com.supermetroid.service.RoomNameService,
+    autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Theme Selection Section
+        ThemeSelectionSection(
+            themeService = themeService,
+            modifier = Modifier.fillMaxWidth()
+        )
+        
+        // Room Name Toggle Section
+        RoomNameToggleSection(
+            roomNameService = roomNameService,
+            modifier = Modifier.fillMaxWidth()
+        )
+        
+        // Timer Set Section
+        TimerSetSection(
+            autoSplitsEngine = autoSplitsEngine,
+            modifier = Modifier.fillMaxWidth()
+        )
+        
+        Spacer(modifier = Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun IconsSettingsTab(
+    iconSizeService: com.supermetroid.service.IconSizeService,
+    iconConfigService: com.supermetroid.service.IconConfigService,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Icon Size Selection Section
+        IconSizeSelectionSection(
+            iconSizeService = iconSizeService,
+            modifier = Modifier.fillMaxWidth()
+        )
+        
+        // Icon Management Section - takes remaining space
+        IconManagementSection(
+            iconConfigService = iconConfigService,
+            iconSizeService = iconSizeService,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun SplitsSettingsTab(
+    splitIconSizeService: com.supermetroid.service.SplitIconSizeService,
+    splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Split Profile Section (placeholder for now)
+        SplitProfileSection(
+            modifier = Modifier.fillMaxWidth()
+        )
+        
+        // Split Icon Size Selection Section
+        SplitIconSizeSelectionSection(
+            splitIconSizeService = splitIconSizeService,
+            modifier = Modifier.fillMaxWidth()
+        )
+        
+        // Split Display Mode Section
+        SplitDisplayModeSection(
+            splitDisplayModeService = splitDisplayModeService,
+            modifier = Modifier.fillMaxWidth()
+        )
+        
+        Spacer(modifier = Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun SplitProfileSection(
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Title
+        Text(
+            text = "Split Profile",
+            style = MaterialTheme.typography.titleSmall.copy(
+                color = TrackerColors.Primary,
+                fontWeight = FontWeight.Bold
+            ),
+            modifier = Modifier.padding(bottom = 6.dp)
+        )
+
+        // Profile Display (not a dropdown for now since only one profile exists)
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = TrackerColors.SurfaceOverlayLight
+            ),
+            shape = RoundedCornerShape(6.dp),
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) {
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f) // Takes all remaining vertical space
-            )
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "KPDR Any%",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = TrackerColors.OnSurface
+                    )
+                )
+            }
         }
+        
+        Text(
+            text = "24 splits",
+            style = MaterialTheme.typography.labelSmall.copy(
+                color = TrackerColors.OnSurfaceVariant
+            ),
+            modifier = Modifier.padding(top = 4.dp)
+        )
     }
 }
 
