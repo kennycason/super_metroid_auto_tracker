@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.Dp
 import com.supermetroid.ui.theme.TrackerColors
 
 /**
@@ -133,6 +134,63 @@ fun SpriteImage(
         // Fallback if sprite loading fails
         Box(
             modifier = Modifier.size(displaySize.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "?",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = if (isObtained) TrackerColors.Success else TrackerColors.Inactive,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun SpriteImageSized(
+    spriteFile: String,
+    spriteX: Int,
+    spriteY: Int,
+    spriteWidth: Int,
+    spriteHeight: Int,
+    displayWidth: Dp,
+    displayHeight: Dp,
+    isObtained: Boolean
+) {
+    val spriteBitmap = remember(spriteFile) {
+        try {
+            useResource(spriteFile) { inputStream ->
+                loadImageBitmap(inputStream)
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    if (spriteBitmap != null) {
+        Canvas(
+            modifier = Modifier.size(displayWidth, displayHeight)
+        ) {
+            val canvasWidth = size.width
+            val canvasHeight = size.height
+
+            drawImage(
+                image = spriteBitmap,
+                srcOffset = IntOffset(spriteX, spriteY),
+                srcSize = IntSize(spriteWidth, spriteHeight),
+                dstOffset = IntOffset(0, 0),
+                dstSize = IntSize(canvasWidth.toInt(), canvasHeight.toInt()),
+                alpha = if (isObtained) 1.0f else 0.7f,
+                colorFilter = if (isObtained) null else ColorFilter.colorMatrix(
+                    ColorMatrix().apply { setToSaturation(0f) }
+                )
+            )
+        }
+    } else {
+        Box(
+            modifier = Modifier.size(displayWidth, displayHeight),
             contentAlignment = Alignment.Center
         ) {
             Text(

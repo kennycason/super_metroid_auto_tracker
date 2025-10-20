@@ -194,18 +194,28 @@ private fun MapRandoGrid(
         horizontalArrangement = Arrangement.spacedBy(spacing)
     ) {
         // Column 1: bosses (4 tall, stretched to 5*tile height)
+        val bossTileDim = ((tile * 5) + (spacing * 4) - (spacing * 3)) / 4
         Column(
             verticalArrangement = Arrangement.spacedBy(spacing),
-            modifier = Modifier.width(tile)
+            modifier = Modifier.width(bossTileDim),
         ) {
-            val bossHeight = ((tile * 5) - spacing * 3) / 4 // distribute with spacing
+            // Make four boss tiles stack to the exact height of five standard tiles
+            // We have 3 internal spacings between 4 tiles; total column height should equal (5*tile + 4*spacing)
             listOf("kraid", "phantoon", "draygon", "ridley").forEach { id ->
-                Box(modifier = Modifier.size(tile, bossHeight)) {
-                    SpriteIcon(
-                        itemId = id,
-                        isObtained = getBossObtained(gameState, id),
-                        size = currentIconSize.size
+                val sprite = getSpriteInfo(id)
+                if (sprite != null) {
+                    SpriteImageSized(
+                        spriteFile = sprite.spriteFile,
+                        spriteX = sprite.x,
+                        spriteY = sprite.y,
+                        spriteWidth = sprite.width,
+                        spriteHeight = sprite.height,
+                        displayWidth = bossTileDim,
+                        displayHeight = bossTileDim,
+                        isObtained = getBossObtained(gameState, id)
                     )
+                } else {
+                    Box(modifier = Modifier.size(bossTileDim, bossTileDim))
                 }
             }
         }
