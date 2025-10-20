@@ -378,6 +378,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
     /**
      * Reset current run
+     * Saves the run (if it has any completed splits) before resetting
      */
     fun resetRun() {
         // Log the current state before reset
@@ -407,6 +408,48 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         // Log full stack trace for debugging
         val fullStackTrace = stackTrace.joinToString("\n  at ")
         logger.info { "🔄 FULL CALL STACK:\n  at $fullStackTrace" }
+
+        // Save the run before resetting (if it has any completed splits)
+        // This preserves segment PB data from partial runs
+        if (currentRun != null && currentRun.completedSplits.isNotEmpty()) {
+            logger.info { "💾 Saving partial run with ${currentRun.completedSplits.size} completed splits before reset" }
+            
+            // Calculate current time for the saved run
+            val finalTime = if (currentRun.isPaused) {
+                currentRun.totalTime
+            } else {
+                System.currentTimeMillis() - currentRun.startTime.toEpochMilliseconds() - currentRun.pausedTime
+            }
+            
+            val runToSave = currentRun.copy(
+                endTime = Clock.System.now(),
+                totalTime = finalTime
+            )
+            
+            // Save asynchronously to avoid blocking the reset
+            fileStorageService?.let { storage ->
+                scope.launch {
+                    try {
+                        storage.saveRun(runToSave)
+                        logger.info { "💾 Saved partial run to runs/ directory (${currentRun.completedSplits.size} splits, ${formatTime(finalTime)})" }
+                        
+                        // Update run summaries to include segment PBs from this partial run
+                        val summaries = storage.loadRunSummaries()
+                        val updatedProfile = storage.deriveBestSplits(runToSave.profileId)
+                        val updatedSummaries = summaries.copy(
+                            lastUpdated = Clock.System.now(),
+                            profiles = summaries.profiles + (runToSave.profileId to updatedProfile)
+                        )
+                        storage.saveRunSummaries(updatedSummaries)
+                        logger.info { "📊 Updated run summaries with partial run segments" }
+                    } catch (e: Exception) {
+                        logger.error(e) { "❌ Failed to save partial run" }
+                    }
+                }
+            }
+        } else if (currentRun != null) {
+            logger.info { "⏭️ Not saving run - no completed splits" }
+        }
 
         // Reset the state
         currentSplitIndex = 0
@@ -905,31 +948,32 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         logger.info { "⏰ Split triggered: ${split.name} at ${formatTime(totalTimeMs)} (segment: ${formatTime(segmentTimeMs)})" }
 
+        // Save run incrementally after each split to prevent data loss
+        // This saves partial runs with completed segments even if the app crashes or run is reset
+        fileStorageService?.let { storage ->
+            scope.launch {
+                try {
+                    storage.saveRun(finalRun)
+                    logger.debug { "💾 Saved run progress (${finalRun.completedSplits.size} splits) to runs/ directory" }
+                    
+                    // Update run summaries to track segment PBs from this run so far
+                    val summaries = storage.loadRunSummaries()
+                    val updatedProfile = storage.deriveBestSplits(finalRun.profileId)
+                    val updatedSummaries = summaries.copy(
+                        lastUpdated = Clock.System.now(),
+                        profiles = summaries.profiles + (finalRun.profileId to updatedProfile)
+                    )
+                    storage.saveRunSummaries(updatedSummaries)
+                    logger.debug { "📊 Updated run summaries with current segments" }
+                } catch (e: Exception) {
+                    logger.error(e) { "❌ Failed to save run progress" }
+                }
+            }
+        }
+
         if (isComplete || split.id == "ship") {
             logger.info { "🏁 Run completed in ${formatTime(totalTimeMs)}" }
             updatePersonalBest(finalRun)
-            
-            // Save completed run to individual file (new format)
-            fileStorageService?.let { storage ->
-                scope.launch {
-                    try {
-                        storage.saveRun(finalRun)
-                        logger.info { "💾 Saved completed run to runs/ directory" }
-                        
-                        // Update run summaries after saving the run
-                        val summaries = storage.loadRunSummaries()
-                        val updatedProfile = storage.deriveBestSplits(finalRun.profileId)
-                        val updatedSummaries = summaries.copy(
-                            lastUpdated = Clock.System.now(),
-                            profiles = summaries.profiles + (finalRun.profileId to updatedProfile)
-                        )
-                        storage.saveRunSummaries(updatedSummaries)
-                        logger.info { "📊 Updated run summaries with completed run" }
-                    } catch (e: Exception) {
-                        logger.error(e) { "❌ Failed to save completed run" }
-                    }
-                }
-            }
         }
     }
 
