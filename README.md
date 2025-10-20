@@ -4,8 +4,9 @@ A real-time item, boss, and location tracker for Super Metroid with automatic sp
 
 <!-- Icons Only View -->
 <div align="left">
-  <img src="screenshots/screenshot_icons_only.png" width="45%"/>
-  <img src="screenshots/screenshot_large_icons_bosses_only.png" width="45%"/>
+  <img src="screenshots/screenshot_icons_only.png" width="30%"/>
+  <img src="screenshots/screenshot_large_icons_bosses_only.png" width="30%"/>
+  <img src="screenshots/map_rando01.png.png" width="30%"/>
 </div>
 
 <!-- Splits Views -->
@@ -21,6 +22,7 @@ A real-time item, boss, and location tracker for Super Metroid with automatic sp
   <img src="screenshots/screenshot_settings02.png" width="30%"/>
   <img src="screenshots/screenshot_settings03.png" width="30%"/>
 </div>
+
 
 ## ✨ Features
 
