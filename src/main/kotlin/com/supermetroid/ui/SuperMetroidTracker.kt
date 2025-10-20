@@ -36,24 +36,37 @@ val splitIconSizeService = com.supermetroid.service.SplitIconSizeService(fileSto
 val splitDisplayModeService = com.supermetroid.service.SplitDisplayModeService(fileStorageService)
 val iconConfigService = com.supermetroid.service.IconConfigService(fileStorageService)
 val roomNameService = com.supermetroid.service.RoomNameService(fileStorageService)
+val iconViewModeService = com.supermetroid.service.IconViewModeService(fileStorageService)
+val uiVisibilityService = com.supermetroid.service.UIVisibilityService(fileStorageService)
 
 fun main() = application {
-    // Move showSplits state to Window level so keyboard shortcuts can access it
-    var showSplits by remember { mutableStateOf(true) }
+    // Load saved window dimensions
+    val config = runBlocking { fileStorageService.loadAppConfig() }
+    val windowState = rememberWindowState(
+        width = config.windowWidth.dp,
+        height = config.windowHeight.dp
+    )
     
     Window(
         onCloseRequest = {
+            // Save window dimensions before closing
+            runBlocking {
+                val currentConfig = fileStorageService.loadAppConfig()
+                fileStorageService.saveAppConfig(
+                    currentConfig.copy(
+                        windowWidth = windowState.size.width.value.toInt(),
+                        windowHeight = windowState.size.height.value.toInt()
+                    )
+                )
+            }
             gameStateService.stop()
             exitApplication()
         },
         title = "Super Metroid Tracker",
-        state = androidx.compose.ui.window.rememberWindowState(
-            width = 416.dp,  // Optimized for tall/skinny like image 2
-            height = 1100.dp // Increased by 300dp for better splits visibility
-        ),
+        state = windowState,
         onKeyEvent = { keyEvent ->
             // Only process keyboard shortcuts when splits are visible
-            if (showSplits) {
+            if (uiVisibilityService.showSplits.value) {
                 when {
                     keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyDown -> {
                         // Spacebar to start/pause timer
@@ -84,22 +97,20 @@ fun main() = application {
             }
         }
     ) {
-        SuperMetroidTrackerApp(
-            showSplits = showSplits,
-            onShowSplitsChanged = { showSplits = it }
-        )
+        SuperMetroidTrackerApp()
     }
 }
 
 @Composable
 @Preview
-fun SuperMetroidTrackerApp(
-    showSplits: Boolean = true,
-    onShowSplitsChanged: (Boolean) -> Unit = {}
-) {
+fun SuperMetroidTrackerApp() {
     val trackerState by gameStateService.trackerState.collectAsState()
     val splitsState by autoSplitsEngine.splitsState.collectAsState()
     val currentTheme by themeService.currentTheme.collectAsState()
+    val showSplits by uiVisibilityService.showSplits.collectAsState()
+    val showIcons by uiVisibilityService.showIcons.collectAsState()
+    val showTimer by uiVisibilityService.showTimer.collectAsState()
+    val showSettings by uiVisibilityService.showSettings.collectAsState()
     
     // Track if services are initialized
     var servicesInitialized by remember { mutableStateOf(false) }
@@ -120,6 +131,12 @@ fun SuperMetroidTrackerApp(
         
         // Initialize icon config service
         iconConfigService.initialize()
+        
+        // Initialize icon view mode service
+        iconViewModeService.initialize()
+        
+        // Initialize UI visibility service
+        uiVisibilityService.initialize()
         
         // Initialize room name service
         roomNameService.initialize()
@@ -217,7 +234,10 @@ fun SuperMetroidTrackerApp(
                         trackerState = trackerState,
                         splitsState = splitsState,
                         showSplits = showSplits,
-                        onShowSplitsChanged = onShowSplitsChanged,
+                        showIcons = showIcons,
+                        showTimer = showTimer,
+                        showSettings = showSettings,
+                        uiVisibilityService = uiVisibilityService,
                         themeService = themeService,
                         iconConfigService = iconConfigService,
                         roomNameService = roomNameService
@@ -234,15 +254,14 @@ fun SuperMetroidTrackerLayout(
     trackerState: com.supermetroid.model.TrackerState,
     splitsState: com.supermetroid.model.SplitsState,
     showSplits: Boolean,
-    onShowSplitsChanged: (Boolean) -> Unit,
+    showIcons: Boolean,
+    showTimer: Boolean,
+    showSettings: Boolean,
+    uiVisibilityService: com.supermetroid.service.UIVisibilityService,
     themeService: com.supermetroid.service.ThemeService,
     iconConfigService: com.supermetroid.service.IconConfigService,
     roomNameService: com.supermetroid.service.RoomNameService
 ) {
-    // UI visibility toggles (removed showSplits since it's now passed in)
-    var showIcons by remember { mutableStateOf(true) }
-    var showTimer by remember { mutableStateOf(true) }
-    var showSettings by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -294,6 +313,7 @@ fun SuperMetroidTrackerLayout(
                 gameState = trackerState.gameState,
                 iconConfigService = iconConfigService,
                 iconSizeService = iconSizeService,
+                iconViewModeService = iconViewModeService,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
@@ -331,6 +351,7 @@ fun SuperMetroidTrackerLayout(
                 iconConfigService = iconConfigService,
                 roomNameService = roomNameService,
                 autoSplitsEngine = autoSplitsEngine,
+                iconViewModeService = iconViewModeService,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f) // Takes all remaining vertical space
@@ -366,7 +387,11 @@ fun SuperMetroidTrackerLayout(
             ) {
                 // Icons toggle
                 TextButton(
-                    onClick = { showIcons = !showIcons },
+                    onClick = { 
+                        CoroutineScope(Dispatchers.Swing).launch {
+                            uiVisibilityService.setShowIcons(!showIcons)
+                        }
+                    },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = if (showIcons) TrackerColors.Success else TrackerColors.OnSurfaceVariant
                     ),
@@ -381,7 +406,11 @@ fun SuperMetroidTrackerLayout(
 
                 // Splits toggle
                 TextButton(
-                    onClick = { onShowSplitsChanged(!showSplits) },
+                    onClick = { 
+                        CoroutineScope(Dispatchers.Swing).launch {
+                            uiVisibilityService.setShowSplits(!showSplits)
+                        }
+                    },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = if (showSplits) TrackerColors.Success else TrackerColors.OnSurfaceVariant
                     ),
@@ -396,7 +425,11 @@ fun SuperMetroidTrackerLayout(
 
                 // Timer toggle
                 TextButton(
-                    onClick = { showTimer = !showTimer },
+                    onClick = { 
+                        CoroutineScope(Dispatchers.Swing).launch {
+                            uiVisibilityService.setShowTimer(!showTimer)
+                        }
+                    },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = if (showTimer) TrackerColors.Success else TrackerColors.OnSurfaceVariant
                     ),
@@ -411,7 +444,11 @@ fun SuperMetroidTrackerLayout(
 
                 // Settings toggle
                 TextButton(
-                    onClick = { showSettings = !showSettings },
+                    onClick = { 
+                        CoroutineScope(Dispatchers.Swing).launch {
+                            uiVisibilityService.setShowSettings(!showSettings)
+                        }
+                    },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = if (showSettings) TrackerColors.Success else TrackerColors.OnSurfaceVariant
                     ),

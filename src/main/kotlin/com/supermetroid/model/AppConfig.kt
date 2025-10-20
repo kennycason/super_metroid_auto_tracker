@@ -42,6 +42,22 @@ enum class SplitDisplayMode(val displayName: String, val showIcons: Boolean, val
 }
 
 /**
+ * Icon view modes for the status icons area
+ */
+enum class IconViewMode(val displayName: String) {
+    DEFAULT("Default"),
+    MAP_RANDO("Map Rando");
+}
+
+/**
+ * How to render numbers on ammo/energy icons
+ */
+enum class AmmoNumberMode(val displayName: String) {
+    AMOUNT("Amount (current/max)"),
+    COUNT("Count (# found)");
+}
+
+/**
  * Application configuration that persists between app launches
  * Stored in ~/.smtracker/smtracker.json
  */
@@ -55,7 +71,15 @@ data class AppConfig(
     val showRoomName: Boolean = true,   // Show room name in status display
     val retroarchPort: Int = 55355,        // Future: RetroArch port config  
     val pollIntervalMs: Long = 500,        // Future: Polling interval config
-    val windowWidth: Int = 800,            // Future: Window size persistence
-    val windowHeight: Int = 600,           // Future: Window size persistence
-    val autoSplitsEnabled: Boolean = false // Future: Auto-splits default state
+    val windowWidth: Int = 416,            // Window width persistence
+    val windowHeight: Int = 1100,          // Window height persistence
+    val autoSplitsEnabled: Boolean = false, // Future: Auto-splits default state
+    // New icon layout + ammo number modes (string names to be forward/backward compatible)
+    val iconViewMode: String = IconViewMode.DEFAULT.name,
+    val ammoNumberMode: String = AmmoNumberMode.AMOUNT.name,
+    // UI visibility state persistence
+    val showSplits: Boolean = true,
+    val showIcons: Boolean = true,
+    val showTimer: Boolean = true,
+    val showSettings: Boolean = false
 )

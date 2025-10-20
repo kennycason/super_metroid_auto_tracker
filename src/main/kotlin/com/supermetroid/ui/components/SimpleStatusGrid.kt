@@ -21,9 +21,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.supermetroid.model.AmmoNumberMode
 import com.supermetroid.model.GameState
 import com.supermetroid.ui.theme.TrackerColors
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 /**
  * Get room name from room ID, returns empty string if unknown
@@ -178,13 +180,155 @@ private fun getRoomName(roomId: Int): String {
 }
 
 @Composable
+private fun MapRandoGrid(
+    gameState: GameState,
+    iconSizeService: com.supermetroid.service.IconSizeService,
+    ammoNumberModeService: com.supermetroid.service.IconViewModeService
+) {
+    val currentIconSize by iconSizeService.currentIconSize.collectAsState()
+    val tile = currentIconSize.size.dp
+    val spacing = 2.dp
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(spacing)
+    ) {
+        // Column 1: bosses (4 tall, stretched to 5*tile height)
+        Column(
+            verticalArrangement = Arrangement.spacedBy(spacing),
+            modifier = Modifier.width(tile)
+        ) {
+            val bossHeight = ((tile * 5) - spacing * 3) / 4 // distribute with spacing
+            listOf("kraid", "phantoon", "draygon", "ridley").forEach { id ->
+                Box(modifier = Modifier.size(tile, bossHeight)) {
+                    SpriteIcon(
+                        itemId = id,
+                        isObtained = getBossObtained(gameState, id),
+                        size = currentIconSize.size
+                    )
+                }
+            }
+        }
+
+        // Helper to render a vertical list of ids
+        @Composable
+        fun ColumnOf(ids: List<String>) {
+            Column(verticalArrangement = Arrangement.spacedBy(spacing)) {
+                ids.forEach { id ->
+                    Box(modifier = Modifier.size(tile)) {
+                        if (isAmmo(id)) {
+                            val ammoMode by ammoNumberModeService.ammoNumberMode.collectAsState()
+                            val (cur, max) = ammoValues(gameState, id)
+                            val label = when (ammoMode) {
+                                AmmoNumberMode.COUNT -> countFromMax(id, max)
+                                else -> "$cur/$max"
+                            }
+                            val fontSize = when (ammoMode) {
+                                AmmoNumberMode.COUNT -> 16.sp
+                                else -> if (cur < 100 && max < 100) 14.sp
+                                else 8.sp
+                            }
+                            val sprite = getSpriteInfo(id)
+                            if (sprite != null) {
+                                SpriteImage(
+                                    spriteFile = sprite.spriteFile,
+                                    spriteX = sprite.x,
+                                    spriteY = sprite.y,
+                                    spriteWidth = sprite.width,
+                                    spriteHeight = sprite.height,
+                                    displaySize = currentIconSize.size,
+                                    isObtained = max > 0
+                                )
+                            }
+                            if (cur > 0) {
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = fontSize,
+                                        fontFamily = FontFamily.Monospace
+                                    ),
+                                    modifier = Modifier.align(Alignment.BottomEnd).padding(1.dp)
+                                )
+                            }
+                        } else {
+                            SpriteIcon(
+                                itemId = id,
+                                isObtained = getObtained(gameState, id),
+                                size = currentIconSize.size
+                            )
+                        }
+                    }
+                }
+                // pad to 5 rows if fewer
+                val pad = 5 - ids.size
+                repeat(maxOf(0, pad)) { Spacer(modifier = Modifier.size(tile)) }
+            }
+        }
+
+        ColumnOf(listOf("charge", "ice", "wave", "spazer", "plasma"))
+        ColumnOf(listOf("varia", "gravity", "grapple", "xray"))
+        ColumnOf(listOf("morph", "bombs", "spring"))
+        ColumnOf(listOf("hijump", "space", "speed", "screw"))
+        ColumnOf(listOf("missiles", "supers", "powerbombs", "health", "reserve_tank"))
+    }
+}
+
+// Utility lookups for Map Rando grid
+private fun getBossObtained(gameState: GameState, id: String): Boolean = when (id) {
+    "kraid" -> gameState.bosses.kraid
+    "phantoon" -> gameState.bosses.phantoon
+    "draygon" -> gameState.bosses.draygon
+    "ridley" -> gameState.bosses.ridley
+    else -> false
+}
+
+private fun getObtained(gameState: GameState, id: String): Boolean = when (id) {
+    "morph" -> gameState.items.morph
+    "bombs" -> gameState.items.bombs
+    "spring" -> gameState.items.spring
+    "screw" -> gameState.items.screw
+    "hijump" -> gameState.items.hiJump
+    "space" -> gameState.items.spaceJump
+    "speed" -> gameState.items.speed
+    "varia" -> gameState.items.varia
+    "gravity" -> gameState.items.gravity
+    "grapple" -> gameState.items.grapple
+    "xray" -> gameState.items.xray
+    "charge" -> gameState.beams.charge
+    "ice" -> gameState.beams.ice
+    "wave" -> gameState.beams.wave
+    "spazer" -> gameState.beams.spazer
+    "plasma" -> gameState.beams.plasma
+    else -> false
+}
+
+private fun isAmmo(id: String) = id in setOf("health", "reserve_tank", "missiles", "supers", "powerbombs")
+
+private fun ammoValues(gameState: GameState, id: String): Pair<Int, Int> = when (id) {
+    "health" -> gameState.health to gameState.maxHealth
+    "reserve_tank" -> gameState.reserveEnergy to gameState.maxReserveEnergy
+    "missiles" -> gameState.missiles to gameState.maxMissiles
+    "supers" -> gameState.supers to gameState.maxSupers
+    "powerbombs" -> gameState.powerBombs to gameState.maxPowerBombs
+    else -> 0 to 0
+}
+
+private fun countFromMax(id: String, max: Int): String = when (id) {
+    "health", "reserve_tank" -> (max / 100).toString()
+    "missiles", "supers", "powerbombs" -> (max / 5).toString()
+    else -> "0"
+}
+
+@Composable
 fun RoomNameDisplay(
     gameState: GameState,
     roomNameService: com.supermetroid.service.RoomNameService,
     modifier: Modifier = Modifier
 ) {
     val showRoomName by roomNameService.showRoomName.collectAsState()
-    
+
     if (showRoomName) {
         Card(
             modifier = modifier.fillMaxWidth(),
@@ -213,6 +357,7 @@ fun SimpleStatusGrid(
     gameState: GameState,
     iconConfigService: com.supermetroid.service.IconConfigService,
     iconSizeService: com.supermetroid.service.IconSizeService,
+    iconViewModeService: com.supermetroid.service.IconViewModeService,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -230,11 +375,25 @@ fun SimpleStatusGrid(
                 .verticalScroll(rememberScrollState()) // Make scrollable
                 .padding(2.dp) // Minimal padding for very compact layout
         ) {
-            // Unified fixed-size grid for enabled items and bosses in configured order
-            FixedTileGrid(
-                allItems = getFilteredItemsAndBosses(gameState, iconConfigService),
-                iconSizeService = iconSizeService
-            )
+            val iconViewMode by iconViewModeService.iconViewMode.collectAsState()
+            when (iconViewMode) {
+                com.supermetroid.model.IconViewMode.DEFAULT -> {
+                    // Unified fixed-size grid for enabled items and bosses in configured order
+                    FixedTileGrid(
+                        allItems = getFilteredItemsAndBosses(gameState, iconConfigService),
+                        iconSizeService = iconSizeService,
+                        ammoNumberModeService = iconViewModeService
+                    )
+                }
+                com.supermetroid.model.IconViewMode.MAP_RANDO -> {
+                    MapRandoGrid(
+                        gameState = gameState,
+                        iconSizeService = iconSizeService,
+                        ammoNumberModeService = iconViewModeService
+                    )
+                }
+                else -> { /* no-op */ }
+            }
         }
     }
 }
@@ -242,7 +401,8 @@ fun SimpleStatusGrid(
 @Composable
 fun FixedTileGrid(
     allItems: List<ItemStatus>,
-    iconSizeService: com.supermetroid.service.IconSizeService
+    iconSizeService: com.supermetroid.service.IconSizeService,
+    ammoNumberModeService: com.supermetroid.service.IconViewModeService
 ) {
     val currentIconSize by iconSizeService.currentIconSize.collectAsState()
     val fixedTileSize = currentIconSize.size.dp // Use configurable icon size
@@ -253,7 +413,8 @@ fun FixedTileGrid(
         items = allItems,
         tileSize = fixedTileSize,
         spacing = spacing,
-        iconSizeService = iconSizeService
+        iconSizeService = iconSizeService,
+        ammoNumberModeService = ammoNumberModeService
         )
 }
 
@@ -262,7 +423,8 @@ fun FlowRowLayout(
     items: List<ItemStatus>,
     tileSize: androidx.compose.ui.unit.Dp,
     spacing: androidx.compose.ui.unit.Dp,
-    iconSizeService: com.supermetroid.service.IconSizeService
+    iconSizeService: com.supermetroid.service.IconSizeService,
+    ammoNumberModeService: com.supermetroid.service.IconViewModeService
 ) {
     // Custom layout that behaves like CSS flexbox
     // Items flow left-to-right, wrap to next row when needed
@@ -293,6 +455,7 @@ fun FlowRowLayout(
                             ) {
                                 // Check if this is an ammo item (has current/max values)
                                 if (item.max > 0) {
+                                    val ammoMode by ammoNumberModeService.ammoNumberMode.collectAsState()
                                     // Render ammo tile content directly in the Box to match size
                                     Box(
                                         modifier = Modifier.fillMaxSize()
@@ -316,9 +479,23 @@ fun FlowRowLayout(
                                             }
                                         }
 
-                                        // Total in bottom right
+                                        val label = when (ammoMode) {
+                                            AmmoNumberMode.AMOUNT -> "${item.current}/${item.max}"
+                                            AmmoNumberMode.COUNT -> {
+                                                // Derive count by unit sizes
+                                                when (item.id) {
+                                                    "health" -> (item.max / 100).toString() // 1 tank = 100 max health
+                                                    "reserve_tank" -> (item.max / 100).toString()
+                                                    "missiles" -> (item.max / 5).toString()
+                                                    "supers" -> (item.max / 5).toString()
+                                                    "powerbombs" -> (item.max / 5).toString()
+                                                    else -> item.current.toString()
+                                                }
+                                            }
+                                        }
+                                        // Number in bottom right
                                         Text(
-                                            text = "${item.current}/${item.max}",
+                                            text = label,
                                             style = MaterialTheme.typography.labelSmall.copy(
                                                 color = Color.White,
                                                 fontWeight = FontWeight.Bold,
@@ -366,13 +543,13 @@ private fun ItemStatus.isEmpty(): Boolean = id.isEmpty()
 // Filtered list of items and bosses based on icon configuration
 @Composable
 private fun getFilteredItemsAndBosses(
-    gameState: GameState, 
+    gameState: GameState,
     iconConfigService: com.supermetroid.service.IconConfigService
 ): List<ItemStatus> {
     val iconConfig by iconConfigService.iconConfig.collectAsState()
     val enabledIcons = iconConfig.icons.filter { it.enabled }.sortedBy { it.order }
     val allItems = getAllItemsAndBosses(gameState)
-    
+
     // Filter and reorder based on icon configuration
     return enabledIcons.mapNotNull { iconItem ->
         allItems.find { it.id == iconItem.id }

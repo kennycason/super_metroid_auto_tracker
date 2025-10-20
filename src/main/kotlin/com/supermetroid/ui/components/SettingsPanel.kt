@@ -31,11 +31,14 @@ import com.supermetroid.ui.theme.TrackerColors
 fun SettingsPanel(
     themeService: com.supermetroid.service.ThemeService,
     iconSizeService: com.supermetroid.service.IconSizeService,
+    
     splitIconSizeService: com.supermetroid.service.SplitIconSizeService,
     splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
     iconConfigService: com.supermetroid.service.IconConfigService,
     roomNameService: com.supermetroid.service.RoomNameService,
     autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
+    iconViewModeService: com.supermetroid.service.IconViewModeService,
+    
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableStateOf(0) }
@@ -101,6 +104,7 @@ fun SettingsPanel(
                 1 -> IconsSettingsTab(
                     iconSizeService = iconSizeService,
                     iconConfigService = iconConfigService,
+                    iconViewModeService = iconViewModeService,
                     modifier = Modifier.fillMaxSize()
                 )
                 2 -> SplitsSettingsTab(
@@ -150,6 +154,7 @@ private fun GeneralSettingsTab(
 private fun IconsSettingsTab(
     iconSizeService: com.supermetroid.service.IconSizeService,
     iconConfigService: com.supermetroid.service.IconConfigService,
+    iconViewModeService: com.supermetroid.service.IconViewModeService,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -162,6 +167,11 @@ private fun IconsSettingsTab(
             modifier = Modifier.fillMaxWidth()
         )
         
+        IconViewModeSection(
+            iconViewModeService = iconViewModeService,
+            modifier = Modifier.fillMaxWidth()
+        )
+        
         // Icon Management Section - takes remaining space
         IconManagementSection(
             iconConfigService = iconConfigService,
@@ -170,6 +180,67 @@ private fun IconsSettingsTab(
                 .fillMaxWidth()
                 .weight(1f)
         )
+    }
+}
+
+@Composable
+private fun IconViewModeSection(
+    iconViewModeService: com.supermetroid.service.IconViewModeService,
+    modifier: Modifier = Modifier
+) {
+    val currentMode by iconViewModeService.iconViewMode.collectAsState()
+    val ammoMode by iconViewModeService.ammoNumberMode.collectAsState()
+    var layoutExpanded by remember { mutableStateOf(false) }
+    var ammoExpanded by remember { mutableStateOf(false) }
+
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = "Icon Layout",
+            style = MaterialTheme.typography.titleSmall.copy(color = TrackerColors.Primary, fontWeight = FontWeight.Bold),
+            modifier = Modifier.padding(bottom = 6.dp)
+        )
+        Box {
+            Button(
+                onClick = { layoutExpanded = !layoutExpanded },
+                colors = ButtonDefaults.buttonColors(containerColor = TrackerColors.SurfaceOverlayLight, contentColor = TrackerColors.OnSurface),
+                shape = RoundedCornerShape(6.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                modifier = Modifier.fillMaxWidth(0.8f)
+            ) { Text(text = currentMode.displayName, style = MaterialTheme.typography.bodySmall) }
+            DropdownMenu(expanded = layoutExpanded, onDismissRequest = { layoutExpanded = false }, modifier = Modifier.background(TrackerColors.Surface)) {
+                com.supermetroid.model.IconViewMode.values().forEach { mode ->
+                    DropdownMenuItem(text = { Text(mode.displayName, style = MaterialTheme.typography.bodySmall) }, onClick = {
+                        kotlinx.coroutines.GlobalScope.launch { iconViewModeService.setIconViewMode(mode) }
+                        layoutExpanded = false
+                    })
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Ammo Numbers",
+            style = MaterialTheme.typography.titleSmall.copy(color = TrackerColors.Primary, fontWeight = FontWeight.Bold),
+            modifier = Modifier.padding(bottom = 6.dp)
+        )
+        Box {
+            Button(
+                onClick = { ammoExpanded = !ammoExpanded },
+                colors = ButtonDefaults.buttonColors(containerColor = TrackerColors.SurfaceOverlayLight, contentColor = TrackerColors.OnSurface),
+                shape = RoundedCornerShape(6.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                modifier = Modifier.fillMaxWidth(0.8f)
+            ) { Text(text = ammoMode.displayName, style = MaterialTheme.typography.bodySmall) }
+            DropdownMenu(expanded = ammoExpanded, onDismissRequest = { ammoExpanded = false }, modifier = Modifier.background(TrackerColors.Surface)) {
+                com.supermetroid.model.AmmoNumberMode.values().forEach { mode ->
+                    DropdownMenuItem(text = { Text(mode.displayName, style = MaterialTheme.typography.bodySmall) }, onClick = {
+                        kotlinx.coroutines.GlobalScope.launch { iconViewModeService.setAmmoNumberMode(mode) }
+                        ammoExpanded = false
+                    })
+                }
+            }
+        }
     }
 }
 

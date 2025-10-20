@@ -47,9 +47,9 @@ fun SpriteIcon(
         }
         return
     }
-    
+
     val spriteInfo = getSpriteInfo(itemId)
-    
+
     Box(
         modifier = modifier
             .size(size.dp) // Always square - width and height are the same
@@ -101,21 +101,21 @@ fun SpriteImage(
             null
         }
     }
-    
+
     if (spriteBitmap != null) {
         Canvas(
             modifier = Modifier.size(displaySize.dp)
         ) {
             val canvasWidth = size.width
             val canvasHeight = size.height
-            
+
             // FILL the entire display area (stretch sprite to fit)
             // This makes item sprites (16x16) fill the same size as boss sprites (64x64)
             val scaledWidth = canvasWidth
             val scaledHeight = canvasHeight
             val offsetX = 0f
             val offsetY = 0f
-            
+
             // Draw the actual sprite
             drawImage(
                 image = spriteBitmap,
@@ -164,13 +164,13 @@ data class SpriteInfo(
  */
 fun getSpriteInfo(itemId: String): SpriteInfo? {
     return when (itemId) {
-        // === ITEM SPRITES (item_sprites.png) - 16x16 sprites in 512x512 sheet === 
+        // === ITEM SPRITES (item_sprites.png) - 16x16 sprites in 512x512 sheet ===
         // Need to convert from TypeScript 64px grid coordinates to 16px coordinates
         // TypeScript uses -128px = 128/64 = position 2, so 2*16 = 32px
-        
-        // Quantity items 
+
+        // Quantity items
         "missile", "missiles" -> SpriteInfo("item_sprites.png", 0, 16, 16, 16)  // Row 1, Col 0
-        "super", "supers", "super_missile" -> SpriteInfo("item_sprites.png", 32, 16, 16, 16)  // Row 1, Col 2  
+        "super", "supers", "super_missile" -> SpriteInfo("item_sprites.png", 32, 16, 16, 16)  // Row 1, Col 2
         "power_bomb", "power_bombs", "powerbombs" -> SpriteInfo("item_sprites.png", 64, 16, 16, 16)  // Row 1, Col 4
         "health", "energy_tank" -> SpriteInfo("item_sprites.png", 64, 0, 16, 16)  // Row 0, Col 4
         "reserve_tank" -> SpriteInfo("item_sprites.png", 96, 16, 16, 16)  // Row 1, Col 6
@@ -178,8 +178,8 @@ fun getSpriteInfo(itemId: String): SpriteInfo? {
         // Major items - Row 0
         "morph", "morph_ball" -> SpriteInfo("item_sprites.png", 0, 0, 16, 16)
         "bomb", "bombs" -> SpriteInfo("item_sprites.png", 32, 0, 16, 16)
-        
-        // Major items - Row 2  
+
+        // Major items - Row 2
         "hijump", "hi_jump" -> SpriteInfo("item_sprites.png", 0, 32, 16, 16)
         "speed", "speed_booster" -> SpriteInfo("item_sprites.png", 32, 32, 16, 16)
         "grapple", "grappling_beam" -> SpriteInfo("item_sprites.png", 64, 32, 16, 16)
