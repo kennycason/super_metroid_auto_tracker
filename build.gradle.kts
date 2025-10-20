@@ -90,7 +90,9 @@ compose.desktop {
         )
         
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            // Bundle all modules including JRE for true cross-platform distribution
+            includeAllModules = true
+            
             packageName = "Super Metroid Auto Tracker"
             packageVersion = "2.0.0"
             description = "Super Metroid Auto Tracker - Kotlin Compose Desktop"
@@ -99,6 +101,9 @@ compose.desktop {
             
             // Include Java naming module in the packaged runtime
             modules("java.naming", "java.sql")
+            
+            // Global target formats - this should enable cross-platform builds
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             
             macOS {
                 bundleID = "com.supermetroid.autotracker"
@@ -110,6 +115,10 @@ compose.desktop {
             }
             
             linux {
+                packageName = "supermetroidautotracker"
+                packageVersion = "2.0.0"
+                description = "Super Metroid Auto Tracker"
+                shortcut = true
                 iconFile.set(project.file("src/main/resources/icon.png"))
             }
         }

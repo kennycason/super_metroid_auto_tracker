@@ -1,0 +1,100 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:  # Manual trigger only
+  release:
+    types: [published]  # Also trigger on GitHub releases
+
+jobs:
+  build-and-release:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+            
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+        
+      - name: Build application
+        run: ./gradlew packageDistributionForCurrentOS
+        
+      - name: Upload macOS build
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: super-metroid-tracker-macos
+          path: build/compose/binaries/main/dmg/*.dmg
+          
+      - name: Upload Windows build
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: super-metroid-tracker-windows
+          path: build/compose/binaries/main/msi/*.msi
+          
+      - name: Upload Linux build
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: super-metroid-tracker-linux
+          path: build/compose/binaries/main/deb/*.deb
+
+  create-release:
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        
+      - name: Create Release Assets
+        run: |
+          # Create a release directory
+          mkdir -p release-assets
+          
+          # Copy and rename files for clarity
+          if [ -f "super-metroid-tracker-macos"/*.dmg ]; then
+            cp "super-metroid-tracker-macos"/*.dmg release-assets/SuperMetroidAutoTracker-macOS.dmg
+          fi
+          
+          if [ -f "super-metroid-tracker-windows"/*.msi ]; then
+            cp "super-metroid-tracker-windows"/*.msi release-assets/SuperMetroidAutoTracker-Windows.msi
+          fi
+          
+          if [ -f "super-metroid-tracker-linux"/*.deb ]; then
+            cp "super-metroid-tracker-linux"/*.deb release-assets/SuperMetroidAutoTracker-Linux.deb
+          fi
+          
+          # List what we have
+          ls -la release-assets/
+          
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./release-assets/
+          asset_name: SuperMetroidAutoTracker-${{ github.event.release.tag_name }}
+          asset_content_type: application/octet-stream

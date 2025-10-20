@@ -1,0 +1,61 @@
+name: Build Cross-Platform
+
+on:
+  workflow_dispatch:  # Manual trigger only
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+            
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+        
+      - name: Build application
+        run: ./gradlew packageDistributionForCurrentOS
+        
+      - name: Upload macOS build
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: SuperMetroidAutoTracker-macOS-${{ github.run_number }}
+          path: build/compose/binaries/main/dmg/*.dmg
+          retention-days: 30
+          
+      - name: Upload Windows build
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: SuperMetroidAutoTracker-Windows-${{ github.run_number }}
+          path: build/compose/binaries/main/msi/*.msi
+          retention-days: 30
+          
+      - name: Upload Linux build
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: SuperMetroidAutoTracker-Linux-${{ github.run_number }}
+          path: build/compose/binaries/main/deb/*.deb
+          retention-days: 30

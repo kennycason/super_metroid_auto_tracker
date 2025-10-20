@@ -40,8 +40,21 @@ A real-time item, boss, and location tracker for Super Metroid with automatic sp
 
 ## 🚀 Installation
 
+### Download Pre-built Executables (Recommended)
+
+1. Go to the [Releases](https://github.com/kennycason/super_metroid_auto_tracker/releases) page
+2. Download the appropriate file for your platform:
+   - **macOS**: `SuperMetroidAutoTracker-macOS.dmg`
+   - **Windows**: `SuperMetroidAutoTracker-Windows.msi` 
+   - **Linux**: `SuperMetroidAutoTracker-Linux.deb`
+
+### Installation
+- **macOS**: Double-click the `.dmg` file and drag to Applications
+- **Windows**: Double-click the `.msi` file and follow the installer
+- **Linux**: `sudo dpkg -i SuperMetroidAutoTracker-Linux.deb`
+
 ### Prerequisites
-- Java 11 or higher
+- **No Java installation required** (bundled in all builds)
 - One of the following:
   - **RetroArch** with network commands enabled, OR
   - **SNI** with a compatible device (SD2SNES, SNES Classic, etc.)
