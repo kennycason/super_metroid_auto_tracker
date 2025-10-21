@@ -1,0 +1,42 @@
+# Dockerfile for testing the .deb package in a clean Ubuntu environment
+FROM ubuntu:22.04
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install basic tools
+RUN apt-get update && apt-get install -y \
+    openjdk-17-jdk \
+    gradle \
+    wget \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy the entire project
+COPY . .
+
+# Make gradlew executable
+RUN chmod +x ./gradlew
+
+# Build the .deb package
+RUN ./gradlew clean packageDeb --no-daemon
+
+# Install the .deb package
+RUN dpkg -i build/compose/binaries/main/deb/supermetroidautotracker_*.deb || apt-get install -f -y
+
+# Verify installation
+RUN ls -la /opt/supermetroidautotracker/bin/ && \
+    ls -la /opt/supermetroidautotracker/lib/*.png && \
+    ls -la /usr/share/applications/supermetroidautotracker*.desktop
+
+# Display the desktop file contents
+RUN echo "=== Desktop File Contents ===" && \
+    cat /usr/share/applications/supermetroidautotracker*.desktop
+
+# Set the entrypoint to bash for manual testing
+CMD ["/bin/bash"]
+

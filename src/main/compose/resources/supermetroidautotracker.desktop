@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Super Metroid Auto Tracker
+Comment=An auto-tracker for Super Metroid randomizer
+Exec="/opt/supermetroidautotracker/bin/Super Metroid Auto Tracker"
+Icon=/opt/supermetroidautotracker/lib/Super_Metroid_Auto_Tracker.png
+Type=Application
+Categories=Game;ActionGame;
+Terminal=false
