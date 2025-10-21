@@ -35,15 +35,17 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
         
-      - name: Build application
-        run: |
-          if [ "${{ matrix.os }}" == "macOS" ]; then
-            ./gradlew packageDmg
-          elif [ "${{ matrix.os }}" == "Windows" ]; then
-            ./gradlew packageMsi
-          elif [ "${{ matrix.os }}" == "Linux" ]; then
-            ./gradlew packageDeb
-          fi
+      - name: Build macOS application
+        if: matrix.os == 'macOS'
+        run: ./gradlew packageDmg
+        
+      - name: Build Windows application
+        if: matrix.os == 'Windows'
+        run: ./gradlew packageMsi
+        
+      - name: Build Linux application
+        if: matrix.os == 'Linux'
+        run: ./gradlew packageDeb
         
       - name: Upload macOS build
         if: runner.os == 'macOS'
