@@ -279,12 +279,12 @@ private fun BossesSection(gameState: GameState) {
 private fun createStatusItems(gameState: GameState): List<StatusItem> {
     return listOf(
         // Items
-        StatusItem("morph", "Morph Ball", "MORPH", "item", gameState.items.morph),
+        StatusItem("morph_ball", "Morph Ball", "MORPH", "item", gameState.items.morph),
         StatusItem("bombs", "Bombs", "BOMB", "item", gameState.items.bombs),
         StatusItem("varia", "Varia Suit", "VARIA", "item", gameState.items.varia),
         StatusItem("gravity", "Gravity Suit", "GRAV", "item", gameState.items.gravity),
         StatusItem("hijump", "Hi-Jump", "HI-J", "item", gameState.items.hiJump),
-        StatusItem("speed", "Speed Booster", "SPEED", "item", gameState.items.speed),
+        StatusItem("speed_booster", "Speed Booster", "SPEED", "item", gameState.items.speed),
         StatusItem("space", "Space Jump", "SPACE", "item", gameState.items.spaceJump),
         StatusItem("screw", "Screw Attack", "SCREW", "item", gameState.items.screw),
         StatusItem("spring", "Spring Ball", "SPRING", "item", gameState.items.spring),

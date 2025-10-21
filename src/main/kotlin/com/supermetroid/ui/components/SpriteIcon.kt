@@ -234,12 +234,12 @@ fun getSpriteInfo(itemId: String): SpriteInfo? {
         "reserve_tank" -> SpriteInfo("item_sprites.png", 96, 16, 16, 16)  // Row 1, Col 6
 
         // Major items - Row 0
-        "morph", "morph_ball" -> SpriteInfo("item_sprites.png", 0, 0, 16, 16)
+        "morph_ball", "morph_ball" -> SpriteInfo("item_sprites.png", 0, 0, 16, 16)
         "bomb", "bombs" -> SpriteInfo("item_sprites.png", 32, 0, 16, 16)
 
         // Major items - Row 2
         "hijump", "hi_jump" -> SpriteInfo("item_sprites.png", 0, 32, 16, 16)
-        "speed", "speed_booster" -> SpriteInfo("item_sprites.png", 32, 32, 16, 16)
+        "speed_booster" -> SpriteInfo("item_sprites.png", 32, 32, 16, 16)
         "grapple", "grappling_beam" -> SpriteInfo("item_sprites.png", 64, 32, 16, 16)
         "xray", "x_ray" -> SpriteInfo("item_sprites.png", 96, 32, 16, 16)
 

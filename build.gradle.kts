@@ -34,6 +34,9 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.4.14")
     implementation("io.github.oshai:kotlin-logging-jvm:5.1.1")
     
+    // MP3 support
+    implementation("com.googlecode.soundlibs:jlayer:1.0.1.4")
+    
     // gRPC for SNI integration
     implementation("io.grpc:grpc-kotlin-stub:1.4.0")
     implementation("io.grpc:grpc-protobuf:1.58.0")

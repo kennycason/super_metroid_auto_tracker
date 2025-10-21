@@ -20,11 +20,14 @@ import com.supermetroid.ui.components.*
 import com.supermetroid.ui.theme.TrackerColors
 import com.supermetroid.ui.theme.TrackerTypography
 import com.supermetroid.ui.theme.ProvideThemeService
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.swing.Swing
+
+private val logger = KotlinLogging.logger {}
 
 // Global services
 val fileStorageService = FileStorageService()
@@ -38,6 +41,7 @@ val iconConfigService = com.supermetroid.service.IconConfigService(fileStorageSe
 val roomNameService = com.supermetroid.service.RoomNameService(fileStorageService)
 val iconViewModeService = com.supermetroid.service.IconViewModeService(fileStorageService)
 val uiVisibilityService = com.supermetroid.service.UIVisibilityService(fileStorageService)
+val soundService = com.supermetroid.service.SoundService(fileStorageService)
 
 fun main() = application {
     // Load saved window dimensions
@@ -70,9 +74,9 @@ fun main() = application {
                 when {
                     keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyDown -> {
                         // Spacebar to start/pause timer
-                        println("[DEBUG_LOG] Spacebar key event detected in Window.onKeyEvent")
+                        logger.debug { "⌨️ Spacebar key event detected in Window.onKeyEvent" }
                         CoroutineScope(Dispatchers.Swing).launch {
-                            println("[DEBUG_LOG] Executing toggleRunState from Spacebar key event on Swing dispatcher")
+                            logger.debug { "⌨️ Executing toggleRunState from Spacebar key event on Swing dispatcher" }
                             autoSplitsEngine.toggleRunState()
                         }
                         true
@@ -80,9 +84,9 @@ fun main() = application {
 
                     keyEvent.key == Key.R && keyEvent.type == KeyEventType.KeyDown -> {
                         // R key to reset run
-                        println("[DEBUG_LOG] R key event detected")
+                        logger.debug { "⌨️ R key event detected" }
                         CoroutineScope(Dispatchers.Swing).launch {
-                            println("[DEBUG_LOG] Executing resetRun from R key event on Swing dispatcher")
+                            logger.debug { "⌨️ Executing resetRun from R key event on Swing dispatcher" }
                             autoSplitsEngine.resetRun()
                         }
                         true
@@ -92,7 +96,7 @@ fun main() = application {
                 }
             } else {
                 // Splits are hidden - ignore all keyboard shortcuts
-                println("[DEBUG_LOG] Ignoring keyboard shortcuts - splits are hidden")
+                logger.debug { "⌨️ Ignoring keyboard shortcuts - splits are hidden" }
                 false
             }
         }
@@ -141,6 +145,9 @@ fun SuperMetroidTrackerApp() {
         // Initialize room name service
         roomNameService.initialize()
         
+        // Initialize sound service
+        soundService.initialize()
+        
         // Mark services as initialized
         servicesInitialized = true
         
@@ -169,8 +176,11 @@ fun SuperMetroidTrackerApp() {
     
     // TEMPORARY FIX: Always enable splits to ensure auto-start works
     LaunchedEffect(trackerState.gameState) {
-        println("[DEBUG_LOG] Auto-splits processing: area=${trackerState.gameState.areaId}, room=${trackerState.gameState.roomId}, gameState=${trackerState.gameState.gameState}")
+        logger.debug { "🎮 Auto-splits processing: area=${trackerState.gameState.areaId}, room=${trackerState.gameState.roomId}, gameState=${trackerState.gameState.gameState}" }
         autoSplitsEngine.processGameState(trackerState.gameState)
+        
+        // Process sound effects for item collection and boss defeats
+        soundService.processGameStateChange(trackerState.gameState)
     }
 
     // Save splits state periodically (but not if it's empty - prevents overwriting loaded data)
@@ -283,13 +293,13 @@ fun SuperMetroidTrackerLayout(
             Timer(
                 splitsState = splitsState,
                 onToggleRun = {
-                    println("[DEBUG_LOG] Timer UI button clicked - onToggleRun callback")
+                    logger.debug { "🖱️ Timer UI button clicked - onToggleRun callback" }
                     CoroutineScope(Dispatchers.Swing).launch {
                         autoSplitsEngine.toggleRunState()
                     }
                 },
                 onResetRun = {
-                    println("[DEBUG_LOG] Timer UI reset button clicked")
+                    logger.debug { "🖱️ Timer UI reset button clicked" }
                     CoroutineScope(Dispatchers.Swing).launch {
                         autoSplitsEngine.resetRun()
                     }
@@ -352,6 +362,7 @@ fun SuperMetroidTrackerLayout(
                 roomNameService = roomNameService,
                 autoSplitsEngine = autoSplitsEngine,
                 iconViewModeService = iconViewModeService,
+                soundService = soundService,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f) // Takes all remaining vertical space

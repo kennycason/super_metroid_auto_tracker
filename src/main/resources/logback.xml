@@ -38,7 +38,7 @@
     </root>
     
     <!-- More verbose logging for our app components -->
-    <logger name="com.supermetroid" level="DEBUG" />
+    <logger name="com.supermetroid" level="INFO" />
     
     <!-- Less verbose logging for external libraries -->
     <logger name="org.jetbrains.compose" level="WARN" />

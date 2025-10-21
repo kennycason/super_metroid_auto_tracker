@@ -14,6 +14,8 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -38,11 +40,12 @@ fun SettingsPanel(
     roomNameService: com.supermetroid.service.RoomNameService,
     autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
     iconViewModeService: com.supermetroid.service.IconViewModeService,
+    soundService: com.supermetroid.service.SoundService,
     
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableStateOf(0) }
-    val tabs = listOf("General", "Icons", "Splits")
+    val tabs = listOf("General", "Icons", "Splits", "FX")
 
     Card(
         modifier = modifier.fillMaxSize(),
@@ -110,6 +113,10 @@ fun SettingsPanel(
                 2 -> SplitsSettingsTab(
                     splitIconSizeService = splitIconSizeService,
                     splitDisplayModeService = splitDisplayModeService,
+                    modifier = Modifier.fillMaxSize()
+                )
+                3 -> FXSettingsTab(
+                    soundService = soundService,
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -1155,6 +1162,189 @@ private fun IconManagementItem(
                 tint = if (index < totalItems - 1) TrackerColors.OnSurface else TrackerColors.OnSurfaceVariant.copy(alpha = 0.3f),
                 modifier = Modifier.size(16.dp)
             )
+        }
+    }
+}
+
+@Composable
+private fun FXSettingsTab(
+    soundService: com.supermetroid.service.SoundService,
+    modifier: Modifier = Modifier
+) {
+    val soundEnabled by soundService.soundEnabled.collectAsState()
+    val volume by soundService.volume.collectAsState()
+    
+    Column(
+        modifier = modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = "Sound Effects",
+            style = MaterialTheme.typography.headlineSmall.copy(
+                color = TrackerColors.Primary,
+                fontWeight = FontWeight.Bold
+            )
+        )
+        
+        Text(
+            text = "Configure sound effects for item collection and boss defeats. Sound files should be placed in ~/.smtracker/sounds/ and configured in sounds.json",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = TrackerColors.OnSurfaceVariant
+            )
+        )
+        
+        // Sound Controls
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = TrackerColors.SurfaceOverlayLight
+            ),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = "Sound Controls",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        color = TrackerColors.Primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                
+                // Enable/Disable Sound Effects
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Enable Sound Effects",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = TrackerColors.OnSurface
+                        )
+                    )
+                    
+                    Switch(
+                        checked = soundEnabled,
+                        onCheckedChange = { enabled ->
+                            CoroutineScope(Dispatchers.IO).launch {
+                                soundService.setSoundEnabled(enabled)
+                            }
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = TrackerColors.Primary,
+                            checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.3f),
+                            uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
+                            uncheckedTrackColor = TrackerColors.OnSurfaceVariant.copy(alpha = 0.3f)
+                        )
+                    )
+                }
+                
+                // Volume Control
+                if (soundEnabled) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Volume",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = TrackerColors.OnSurface
+                                )
+                            )
+                            
+                            Text(
+                                text = "${(volume * 100).toInt()}%",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = TrackerColors.Primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
+                        
+                        Slider(
+                            value = volume,
+                            onValueChange = { newVolume ->
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    soundService.setVolume(newVolume)
+                                }
+                            },
+                            valueRange = 0f..1f,
+                            colors = SliderDefaults.colors(
+                                thumbColor = TrackerColors.Primary,
+                                activeTrackColor = TrackerColors.Primary,
+                                inactiveTrackColor = TrackerColors.OnSurfaceVariant.copy(alpha = 0.3f)
+                            )
+                        )
+                    }
+                }
+            }
+        }
+        
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = TrackerColors.SurfaceOverlayLight
+            ),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Sound Configuration",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        color = TrackerColors.Primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                
+                Text(
+                    text = "The sounds.json file will be automatically created with all tracked items when you first open this tab. You can then edit the file to add your own sound files.",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = TrackerColors.OnSurfaceVariant
+                    )
+                )
+                
+                Text(
+                    text = "Supported formats: .wav, .mp3, .ogg",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = TrackerColors.OnSurfaceVariant
+                    )
+                )
+            }
+        }
+        
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = TrackerColors.SurfaceOverlayLight
+            ),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Future Features",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        color = TrackerColors.Primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                
+                Text(
+                    text = "• Webhook notifications for item collection\n• Custom sound triggers for specific events\n• Volume control and sound mixing\n• Visual effects and animations",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = TrackerColors.OnSurfaceVariant
+                    )
+                )
+            }
         }
     }
 }

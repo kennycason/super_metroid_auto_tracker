@@ -279,8 +279,8 @@ private fun MapRandoGrid(
 
         ColumnOf(listOf("charge", "ice", "wave", "spazer", "plasma"))
         ColumnOf(listOf("varia", "gravity", "grapple", "xray"))
-        ColumnOf(listOf("morph", "bombs", "spring"))
-        ColumnOf(listOf("hijump", "space", "speed", "screw"))
+        ColumnOf(listOf("morph_ball", "bombs", "spring"))
+        ColumnOf(listOf("hijump", "space", "speed_booster", "screw"))
         ColumnOf(listOf("missiles", "supers", "powerbombs", "health", "reserve_tank"))
     }
 }
@@ -295,13 +295,13 @@ private fun getBossObtained(gameState: GameState, id: String): Boolean = when (i
 }
 
 private fun getObtained(gameState: GameState, id: String): Boolean = when (id) {
-    "morph" -> gameState.items.morph
+    "morph_ball" -> gameState.items.morph
     "bombs" -> gameState.items.bombs
     "spring" -> gameState.items.spring
     "screw" -> gameState.items.screw
     "hijump" -> gameState.items.hiJump
     "space" -> gameState.items.spaceJump
-    "speed" -> gameState.items.speed
+    "speed_booster" -> gameState.items.speed
     "varia" -> gameState.items.varia
     "gravity" -> gameState.items.gravity
     "grapple" -> gameState.items.grapple
@@ -575,13 +575,13 @@ private fun getAllItemsAndBosses(gameState: GameState): List<ItemStatus> = listO
     ItemStatus("supers", "Super Missiles", gameState.maxSupers > 0, gameState.supers, gameState.maxSupers),
     ItemStatus("powerbombs", "Power Bombs", gameState.maxPowerBombs > 0, gameState.powerBombs, gameState.maxPowerBombs),
 
-    ItemStatus("morph", "Morph Ball", gameState.items.morph),
+    ItemStatus("morph_ball", "Morph Ball", gameState.items.morph),
     ItemStatus("bombs", "Bombs", gameState.items.bombs),
     ItemStatus("charge", "Charge Beam", gameState.beams.charge),
     ItemStatus("spazer", "Spazer", gameState.beams.spazer),
     ItemStatus("varia", "Varia Suit", gameState.items.varia),
     ItemStatus("hijump", "Hi-Jump", gameState.items.hiJump),
-    ItemStatus("speed", "Speed Booster", gameState.items.speed),
+    ItemStatus("speed_booster", "Speed Booster", gameState.items.speed),
     ItemStatus("wave", "Wave Beam", gameState.beams.wave),
     ItemStatus("ice", "Ice Beam", gameState.beams.ice),
     ItemStatus("gravity", "Gravity Suit", gameState.items.gravity),

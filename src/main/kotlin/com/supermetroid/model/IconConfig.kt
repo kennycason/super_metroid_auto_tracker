@@ -37,13 +37,13 @@ object DefaultIconConfig {
             IconItem("powerbombs", "Power Bombs", "collectible", true, 4),
             
             // Major Items
-            IconItem("morph", "Morph Ball", "item", true, 5),
+            IconItem("morph_ball", "Morph Ball", "item", true, 5),
             IconItem("bombs", "Bombs", "item", true, 6),
             IconItem("charge", "Charge Beam", "beam", true, 7),
             IconItem("spazer", "Spazer", "beam", true, 8),
             IconItem("varia", "Varia Suit", "item", true, 9),
             IconItem("hijump", "Hi-Jump", "item", true, 10),
-            IconItem("speed", "Speed Booster", "item", true, 11),
+            IconItem("speed_booster", "Speed Booster", "item", true, 11),
             IconItem("wave", "Wave Beam", "beam", true, 12),
             IconItem("ice", "Ice Beam", "beam", true, 13),
             IconItem("gravity", "Gravity Suit", "item", true, 14),
