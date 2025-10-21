@@ -81,5 +81,8 @@ data class AppConfig(
     val showSplits: Boolean = true,
     val showIcons: Boolean = true,
     val showTimer: Boolean = true,
-    val showSettings: Boolean = false
+    val showSettings: Boolean = false,
+    // Sound effects settings
+    val soundEnabled: Boolean = false,
+    val volume: Float = 1.0f
 )

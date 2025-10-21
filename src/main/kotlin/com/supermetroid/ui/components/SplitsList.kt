@@ -32,7 +32,6 @@ fun SplitsList(
     autoSplitsEngine: AutoSplitsEngine,
     splitIconSizeService: com.supermetroid.service.SplitIconSizeService,
     splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
-    suitThemeService: com.supermetroid.service.SuitThemeService,
     modifier: Modifier = Modifier,
     maxHeight: Int = 400
 ) {

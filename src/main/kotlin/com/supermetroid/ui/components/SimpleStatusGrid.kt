@@ -368,7 +368,6 @@ fun SimpleStatusGrid(
     iconConfigService: com.supermetroid.service.IconConfigService,
     iconSizeService: com.supermetroid.service.IconSizeService,
     iconViewModeService: com.supermetroid.service.IconViewModeService,
-    suitThemeService: com.supermetroid.service.SuitThemeService,
     modifier: Modifier = Modifier
 ) {
     Card(

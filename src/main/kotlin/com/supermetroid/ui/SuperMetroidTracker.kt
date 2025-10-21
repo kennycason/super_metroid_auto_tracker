@@ -42,7 +42,6 @@ val roomNameService = com.supermetroid.service.RoomNameService(fileStorageServic
 val iconViewModeService = com.supermetroid.service.IconViewModeService(fileStorageService)
 val uiVisibilityService = com.supermetroid.service.UIVisibilityService(fileStorageService)
 val soundService = com.supermetroid.service.SoundService(fileStorageService)
-val suitThemeService = com.supermetroid.service.SuitThemeService()
 
 fun main() = application {
     // Load saved window dimensions
@@ -182,9 +181,6 @@ fun SuperMetroidTrackerApp() {
         
         // Process sound effects for item collection and boss defeats
         soundService.processGameStateChange(trackerState.gameState)
-        
-        // Update suit-based visual theme
-        suitThemeService.updateSuitTheme(trackerState.gameState)
     }
 
     // Save splits state periodically (but not if it's empty - prevents overwriting loaded data)
@@ -328,7 +324,6 @@ fun SuperMetroidTrackerLayout(
                 iconConfigService = iconConfigService,
                 iconSizeService = iconSizeService,
                 iconViewModeService = iconViewModeService,
-                suitThemeService = suitThemeService,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
@@ -341,7 +336,6 @@ fun SuperMetroidTrackerLayout(
                 autoSplitsEngine = autoSplitsEngine,
                 splitIconSizeService = splitIconSizeService,
                 splitDisplayModeService = splitDisplayModeService,
-                suitThemeService = suitThemeService,
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 maxHeight = 900 // Increased height for taller window
             )
@@ -369,7 +363,6 @@ fun SuperMetroidTrackerLayout(
                 autoSplitsEngine = autoSplitsEngine,
                 iconViewModeService = iconViewModeService,
                 soundService = soundService,
-                suitThemeService = suitThemeService,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f) // Takes all remaining vertical space
