@@ -316,8 +316,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🙏 Acknowledgments
 
-- The Super Metroid speedrunning community for documenting memory addresses
-- [alttpo](https://github.com/alttpo) for creating SNI (SNES Network Access)
+- The Super Metroid Community
+- [MetroidConstruction's Super Metroid Mod Guide](http://www.metroidconstruction.com/SMMM/)
+- [alttpo](https://github.com/alttpo) for creating SNI (SNES Network Interface)
 - RetroArch developers for providing the network interface
-- All contributors and testers
+- All contributors
+- Testers - MrFoxDemon, Grapdedrinkz
 - Nintendo, for Super Metroid
