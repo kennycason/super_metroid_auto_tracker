@@ -9,7 +9,7 @@ jobs:
   build-and-release:
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
     
     steps:
@@ -39,10 +39,6 @@ jobs:
         if: matrix.os == 'macOS'
         run: ./gradlew packageDmg
         
-      - name: Build Windows application
-        if: matrix.os == 'Windows'
-        run: ./gradlew packageMsi
-        
       - name: Build Linux application
         if: matrix.os == 'Linux'
         run: ./gradlew packageDeb
@@ -53,13 +49,6 @@ jobs:
         with:
           name: super-metroid-tracker-macos
           path: build/compose/binaries/main/dmg/*.dmg
-          
-      - name: Upload Windows build
-        if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
-        with:
-          name: super-metroid-tracker-windows
-          path: build/compose/binaries/main/msi/*.msi
           
       - name: Upload Linux build
         if: runner.os == 'Linux'
@@ -85,10 +74,6 @@ jobs:
           # Copy and rename files for clarity
           if [ -f "super-metroid-tracker-macos"/*.dmg ]; then
             cp "super-metroid-tracker-macos"/*.dmg release-assets/SuperMetroidAutoTracker-macOS.dmg
-          fi
-          
-          if [ -f "super-metroid-tracker-windows"/*.msi ]; then
-            cp "super-metroid-tracker-windows"/*.msi release-assets/SuperMetroidAutoTracker-Windows.msi
           fi
           
           if [ -f "super-metroid-tracker-linux"/*.deb ]; then

@@ -7,7 +7,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
     
     steps:
@@ -37,10 +37,6 @@ jobs:
         if: matrix.os == 'macOS'
         run: ./gradlew packageDmg
         
-      - name: Build Windows application
-        if: matrix.os == 'Windows'
-        run: ./gradlew packageMsi
-        
       - name: Build Linux application
         if: matrix.os == 'Linux'
         run: ./gradlew packageDeb
@@ -51,14 +47,6 @@ jobs:
         with:
           name: SuperMetroidAutoTracker-macOS-${{ github.run_number }}
           path: build/compose/binaries/main/dmg/*.dmg
-          retention-days: 30
-          
-      - name: Upload Windows build
-        if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
-        with:
-          name: SuperMetroidAutoTracker-Windows-${{ github.run_number }}
-          path: build/compose/binaries/main/msi/*.msi
           retention-days: 30
           
       - name: Upload Linux build
