@@ -34,7 +34,14 @@ jobs:
         run: chmod +x ./gradlew
         
       - name: Build application
-        run: ./gradlew packageDistributionForCurrentOS
+        run: |
+          if [ "${{ matrix.os }}" == "macOS" ]; then
+            ./gradlew packageDmg
+          elif [ "${{ matrix.os }}" == "Windows" ]; then
+            ./gradlew packageMsi
+          elif [ "${{ matrix.os }}" == "Linux" ]; then
+            ./gradlew packageDeb
+          fi
         
       - name: Upload macOS build
         if: runner.os == 'macOS'

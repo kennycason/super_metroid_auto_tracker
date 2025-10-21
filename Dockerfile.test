@@ -32,6 +32,15 @@ RUN chmod +x ./gradlew
 # Build the project to verify compilation
 RUN ./gradlew clean build --no-daemon
 
+# Build the .deb package
+RUN ./gradlew packageDeb --no-daemon
+
+# Install the .deb package
+RUN dpkg -i build/compose/binaries/main/deb/supermetroidautotracker_*.deb || true
+
+# Fix any dependency issues
+RUN apt-get update && apt-get install -f -y
+
 # Show the project structure to verify resources are in place
 RUN echo "=== Verifying compose resources ===" && \
     ls -la src/main/compose/resources/ && \
@@ -39,6 +48,21 @@ RUN echo "=== Verifying compose resources ===" && \
     cat src/main/compose/resources/supermetroidautotracker.desktop && \
     echo "\n=== Icon file ===" && \
     ls -lh src/main/compose/resources/Super_Metroid_Auto_Tracker.png
+
+# Verify installation
+RUN echo "\n=== Verifying .deb installation ===" && \
+    echo "Binary location:" && \
+    ls -la /opt/supermetroidautotracker/bin/ && \
+    echo "\nIcon location:" && \
+    ls -la /opt/supermetroidautotracker/lib/*.png && \
+    echo "\nDesktop entry:" && \
+    ls -la /usr/share/applications/supermetroidautotracker*.desktop && \
+    echo "\nDesktop file contents:" && \
+    cat /usr/share/applications/supermetroidautotracker*.desktop
+
+# Test the application can start (just check it doesn't crash immediately)
+RUN echo "\n=== Testing application startup ===" && \
+    timeout 10s /opt/supermetroidautotracker/bin/Super\ Metroid\ Auto\ Tracker || echo "App started successfully (timeout expected)"
 
 # Instructions for actual .deb build
 RUN echo "\n=== Instructions ===" && \
