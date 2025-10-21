@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.supermetroid.model.IconItem
 import com.supermetroid.model.IconSize
@@ -83,13 +84,15 @@ fun SettingsPanel(
                         text = {
                             Text(
                                 text = title,
-                                style = MaterialTheme.typography.bodyMedium.copy(
+                                style = MaterialTheme.typography.labelMedium.copy(
                                     fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal
-                                )
+                                ),
+                                maxLines = 1
                             )
                         },
                         selectedContentColor = TrackerColors.Primary,
-                        unselectedContentColor = TrackerColors.OnSurfaceVariant
+                        unselectedContentColor = TrackerColors.OnSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 0.dp) // No horizontal padding
                     )
                 }
             }
