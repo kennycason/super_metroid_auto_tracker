@@ -35,13 +35,8 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
         
-      - name: Build macOS application
-        if: matrix.os == 'macOS'
-        run: ./gradlew packageDmg
-        
-      - name: Build Linux application
-        if: matrix.os == 'Linux'
-        run: ./gradlew packageDeb
+      - name: Build application
+        run: ./gradlew packageDistributionForCurrentOS
         
       - name: Upload macOS build
         if: runner.os == 'macOS'

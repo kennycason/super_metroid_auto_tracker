@@ -105,20 +105,19 @@ compose.desktop {
             // Include Java naming module in the packaged runtime
             modules("java.naming", "java.sql")
             
-            // Platform-specific target formats
+            // Global target formats for cross-platform builds
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            
             macOS {
-                targetFormats(TargetFormat.Dmg)
                 bundleID = "com.supermetroid.autotracker"
                 iconFile.set(project.file("src/main/resources/icon.icns"))
             }
             
             windows {
-                targetFormats(TargetFormat.Msi)
                 iconFile.set(project.file("src/main/resources/icon.ico"))
             }
             
             linux {
-                targetFormats(TargetFormat.Deb)
                 packageName = "supermetroidautotracker"
                 packageVersion = "2.0.0"
                 description = "Super Metroid Auto Tracker"
