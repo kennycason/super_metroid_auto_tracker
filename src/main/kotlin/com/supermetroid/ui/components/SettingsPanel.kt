@@ -41,11 +41,12 @@ fun SettingsPanel(
     autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
     iconViewModeService: com.supermetroid.service.IconViewModeService,
     soundService: com.supermetroid.service.SoundService,
+    suitThemeService: com.supermetroid.service.SuitThemeService,
     
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableStateOf(0) }
-    val tabs = listOf("General", "Icons", "Splits", "FX")
+    val tabs = listOf("General", "Icons", "Splits", "SFX", "VFX")
 
     Card(
         modifier = modifier.fillMaxSize(),
@@ -115,8 +116,12 @@ fun SettingsPanel(
                     splitDisplayModeService = splitDisplayModeService,
                     modifier = Modifier.fillMaxSize()
                 )
-                3 -> FXSettingsTab(
+                3 -> SFXSettingsTab(
                     soundService = soundService,
+                    modifier = Modifier.fillMaxSize()
+                )
+                4 -> VFXSettingsTab(
+                    suitThemeService = suitThemeService,
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -1167,7 +1172,7 @@ private fun IconManagementItem(
 }
 
 @Composable
-private fun FXSettingsTab(
+private fun SFXSettingsTab(
     soundService: com.supermetroid.service.SoundService,
     modifier: Modifier = Modifier
 ) {
@@ -1286,40 +1291,78 @@ private fun FXSettingsTab(
             }
         }
         
+    }
+}
+
+@Composable
+private fun VFXSettingsTab(
+    suitThemeService: com.supermetroid.service.SuitThemeService,
+    modifier: Modifier = Modifier
+) {
+    val visualEffectsEnabled by suitThemeService.visualEffectsEnabled.collectAsState()
+    val glowIntensity by suitThemeService.glowIntensity.collectAsState()
+    val animationSpeed by suitThemeService.animationSpeed.collectAsState()
+    val currentSuitTheme by suitThemeService.currentSuitTheme.collectAsState()
+    
+    Column(
+        modifier = modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = "Visual Effects",
+            style = MaterialTheme.typography.headlineSmall.copy(
+                color = TrackerColors.Primary,
+                fontWeight = FontWeight.Bold
+            )
+        )
+        
+        // Current Suit Theme Display
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = TrackerColors.SurfaceOverlayLight
             ),
             shape = RoundedCornerShape(8.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text(
-                    text = "Sound Configuration",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        color = TrackerColors.Primary,
-                        fontWeight = FontWeight.Bold
-                    )
+                // Suit theme indicator box with dynamic color
+                val themeColor = when (currentSuitTheme) {
+                    com.supermetroid.service.SuitTheme.POWER_SUIT -> androidx.compose.ui.graphics.Color(0xFF4A90E2)
+                    com.supermetroid.service.SuitTheme.VARIA_SUIT -> androidx.compose.ui.graphics.Color(0xFFFF6B35)
+                    com.supermetroid.service.SuitTheme.GRAVITY_SUIT -> androidx.compose.ui.graphics.Color(0xFF8A2BE2)
+                }
+                
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .background(
+                            themeColor,
+                            RoundedCornerShape(4.dp)
+                        )
                 )
                 
-                Text(
-                    text = "The sounds.json file will be automatically created with all tracked items when you first open this tab. You can then edit the file to add your own sound files.",
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = TrackerColors.OnSurfaceVariant
+                Column {
+                    Text(
+                        text = "Current Theme: ${currentSuitTheme.displayName}",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = TrackerColors.OnSurface,
+                            fontWeight = FontWeight.Medium
+                        )
                     )
-                )
-                
-                Text(
-                    text = "Supported formats: .wav, .mp3, .ogg",
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = TrackerColors.OnSurfaceVariant
+                    Text(
+                        text = currentSuitTheme.description,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = TrackerColors.OnSurfaceVariant
+                        )
                     )
-                )
+                }
             }
         }
         
+        // Visual Effects Controls
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = TrackerColors.SurfaceOverlayLight
@@ -1328,22 +1371,122 @@ private fun FXSettingsTab(
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(
-                    text = "Future Features",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        color = TrackerColors.Primary,
-                        fontWeight = FontWeight.Bold
+                // Enable/Disable Visual Effects
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Enable Visual Effects",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = TrackerColors.OnSurface
+                        )
                     )
-                )
+                    
+                    Switch(
+                        checked = visualEffectsEnabled,
+                        onCheckedChange = { enabled ->
+                            CoroutineScope(Dispatchers.IO).launch {
+                                suitThemeService.setVisualEffectsEnabled(enabled)
+                            }
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = TrackerColors.Primary,
+                            checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.3f),
+                            uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
+                            uncheckedTrackColor = TrackerColors.OnSurfaceVariant.copy(alpha = 0.3f)
+                        )
+                    )
+                }
                 
-                Text(
-                    text = "• Webhook notifications for item collection\n• Custom sound triggers for specific events\n• Volume control and sound mixing\n• Visual effects and animations",
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = TrackerColors.OnSurfaceVariant
-                    )
-                )
+                // Glow Intensity Control
+                if (visualEffectsEnabled) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Glow Intensity",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = TrackerColors.OnSurface
+                                )
+                            )
+                            
+                            Text(
+                                text = "${(glowIntensity * 100).toInt()}%",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = TrackerColors.Primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
+                        
+                        Slider(
+                            value = glowIntensity,
+                            onValueChange = { newIntensity ->
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    suitThemeService.setGlowIntensity(newIntensity)
+                                }
+                            },
+                            valueRange = 0.1f..1.0f,
+                            colors = SliderDefaults.colors(
+                                thumbColor = TrackerColors.Primary,
+                                activeTrackColor = TrackerColors.Primary,
+                                inactiveTrackColor = TrackerColors.OnSurfaceVariant.copy(alpha = 0.3f)
+                            )
+                        )
+                    }
+                }
+                
+                // Animation Speed Control
+                if (visualEffectsEnabled) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Animation Speed",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = TrackerColors.OnSurface
+                                )
+                            )
+                            
+                            Text(
+                                text = "${(animationSpeed * 100).toInt()}%",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = TrackerColors.Primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
+                        
+                        Slider(
+                            value = animationSpeed,
+                            onValueChange = { newSpeed ->
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    suitThemeService.setAnimationSpeed(newSpeed)
+                                }
+                            },
+                            valueRange = 0.1f..3.0f,
+                            colors = SliderDefaults.colors(
+                                thumbColor = TrackerColors.Primary,
+                                activeTrackColor = TrackerColors.Primary,
+                                inactiveTrackColor = TrackerColors.OnSurfaceVariant.copy(alpha = 0.3f)
+                            )
+                        )
+                    }
+                }
             }
         }
     }
