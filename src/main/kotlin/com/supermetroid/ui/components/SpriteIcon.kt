@@ -26,6 +26,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.Dp
 import com.supermetroid.ui.theme.TrackerColors
+import com.supermetroid.util.Logging
+
+private object SpriteIconLog : Logging
 
 /**
  * Real sprite icon that crops from sprite sheets
@@ -276,7 +279,7 @@ fun getSpriteInfo(itemId: String): SpriteInfo? {
         "golden_four", "g4" -> SpriteInfo("boss_sprites.png", 832, 0, 64, 64)
 
         else -> {
-            println("❌ No sprite mapping found for itemId: '$itemId'")
+            SpriteIconLog.logger.warn { "No sprite mapping found for itemId: '$itemId'" }
             null
         }
     }

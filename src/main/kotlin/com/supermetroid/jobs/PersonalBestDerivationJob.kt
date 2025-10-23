@@ -1,10 +1,10 @@
 package com.supermetroid.jobs
 
 import com.supermetroid.service.RunHistoryManager
-import io.github.oshai.kotlinlogging.KotlinLogging
+import com.supermetroid.util.Logging
 import java.io.File
 
-private val logger = KotlinLogging.logger {}
+private object PBJobLog : Logging
 
 /**
  * Standalone job for deriving personal bests from run history
@@ -17,7 +17,7 @@ private val logger = KotlinLogging.logger {}
  */
 class PersonalBestDerivationJob(
     private val smtrackerDir: File = File(System.getProperty("user.home"), ".smtracker")
-) {
+) : Logging {
     
     private val runHistoryManager = RunHistoryManager(
         File(smtrackerDir, "run-history.json")
@@ -139,22 +139,22 @@ fun main(args: Array<String>) {
     val job = PersonalBestDerivationJob()
     
     val result = if (dryRun) {
-        println("Running Personal Best derivation in DRY RUN mode...")
+        PBJobLog.logger.info { "Running Personal Best derivation in DRY RUN mode..." }
         job.dryRun()
     } else {
-        println("Running Personal Best derivation job...")
+        PBJobLog.logger.info { "Running Personal Best derivation job..." }
         job.execute()
     }
     
     when (result) {
         is JobResult.Success -> {
-            println("✅ SUCCESS: ${result.message}")
-            println("Processed ${result.profilesProcessed} profiles")
+            PBJobLog.logger.info { "✅ SUCCESS: ${result.message}" }
+            PBJobLog.logger.info { "Processed ${result.profilesProcessed} profiles" }
             System.exit(0)
         }
         is JobResult.Failure -> {
-            println("❌ FAILURE: ${result.message}")
-            result.error.printStackTrace()
+            PBJobLog.logger.error { "❌ FAILURE: ${result.message}" }
+            PBJobLog.logger.error(result.error) { "Personal Best derivation job failed" }
             System.exit(1)
         }
     }

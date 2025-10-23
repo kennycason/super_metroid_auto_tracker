@@ -560,26 +560,26 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         if (currentRun == null) {
             logger.debug { "🔍 No current run - checking auto-start conditions" }
-            println("[DEBUG_LOG] No current run - checking auto-start conditions")
+            logger.debug { "[DEBUG_LOG] No current run - checking auto-start conditions" }
             // Check for auto-start conditions (like ASL zebesStart logic)
             val shouldAutoStart = checkAutoStartCondition(previousGameState, gameState)
             if (shouldAutoStart) {
                 logger.info { "🚀 Auto-starting new game run in Ceres Station!" }
-                println("[DEBUG_LOG] STARTING NEW RUN - Auto-start triggered!")
+                logger.info { "[DEBUG_LOG] STARTING NEW RUN - Auto-start triggered!" }
                 startNewRun()
             }
             previousGameState = gameState
             return
         } else {
             logger.debug { "▶️ Run in progress: ${currentRun.id}, paused: ${currentRun.isPaused}" }
-            println("[DEBUG_LOG] Run already exists: ${currentRun.id}, paused: ${currentRun.isPaused}")
+            logger.debug { "Run already exists: ${currentRun.id}, paused: ${currentRun.isPaused}" }
             
             // Auto-reset paused runs when starting a new game in Ceres
             if (currentRun.isPaused) {
                 val shouldAutoStart = checkAutoStartCondition(previousGameState, gameState)
                 if (shouldAutoStart) {
                     logger.info { "🔄 Auto-resetting paused run to start new game in Ceres!" }
-                    println("[DEBUG_LOG] AUTO-RESET: Clearing paused run to start new game!")
+                    logger.info { "AUTO-RESET: Clearing paused run to start new game!" }
                     resetRun() // Reset the current run
                     startNewRun() // Start fresh run
                     previousGameState = gameState
@@ -756,12 +756,12 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         logger.debug { "🔎 Auto-start check: Ceres=$inCeres, gameplay=$normalGameplay, early=$earlyGame, condition=$shouldAutoStart" }
         logger.debug { "📊 Stats: health=${currentState.maxHealth}, missiles=${currentState.maxMissiles}, room=${currentState.roomId}" }
-        println("[DEBUG_LOG] Auto-start check: area=${currentState.areaId}, gameState=${currentState.gameState}, health=${currentState.maxHealth}, missiles=${currentState.maxMissiles}")
-        println("[DEBUG_LOG] Conditions: Ceres=$inCeres, gameplay=$normalGameplay, early=$earlyGame, shouldStart=$shouldAutoStart")
+        logger.debug { "Auto-start check: area=${currentState.areaId}, gameState=${currentState.gameState}, health=${currentState.maxHealth}, missiles=${currentState.maxMissiles}" }
+        logger.debug { "Conditions: Ceres=$inCeres, gameplay=$normalGameplay, early=$earlyGame, shouldStart=$shouldAutoStart" }
 
         if (shouldAutoStart) {
             logger.info { "🎯 Auto-start condition detected: New game in Ceres Station!" }
-            println("[DEBUG_LOG] AUTO-START TRIGGERED! New game in Ceres Station!")
+            logger.info { "AUTO-START TRIGGERED! New game in Ceres Station!" }
         }
 
         return shouldAutoStart
@@ -1036,9 +1036,9 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             logger.info { "🚨 CERES DEBUG - room:0x${curr.roomId.toString(16)}, prevState:${prev.gameState}, currState:${curr.gameState}, area:${curr.areaName}" }
             logger.info { "🚨 CERES CONDITIONS - inElevator:$inCeresElevator, gameStateTransition:$gameStateTransition, primary:$primaryDetection" }
             logger.info { "🚨 CERES FALLBACK - ceresCompleted:$ceresCompleted, leftCeresArea:$leftCeresArea, fallback:$fallbackDetection" }
-            println("[DEBUG_LOG] CERES DEBUG - room:0x${curr.roomId.toString(16)}, prevState:${prev.gameState}, currState:${curr.gameState}, area:${curr.areaName}")
-            println("[DEBUG_LOG] CERES CONDITIONS - inElevator:$inCeresElevator, gameStateTransition:$gameStateTransition, primary:$primaryDetection")
-            println("[DEBUG_LOG] CERES FALLBACK - ceresCompleted:$ceresCompleted, leftCeresArea:$leftCeresArea, fallback:$fallbackDetection")
+            logger.info { "CERES DEBUG - room:0x${curr.roomId.toString(16)}, prevState:${prev.gameState}, currState:${curr.gameState}, area:${curr.areaName}" }
+            logger.info { "CERES CONDITIONS - inElevator:$inCeresElevator, gameStateTransition:$gameStateTransition, primary:$primaryDetection" }
+            logger.info { "CERES FALLBACK - ceresCompleted:$ceresCompleted, leftCeresArea:$leftCeresArea, fallback:$fallbackDetection" }
         }
 
         val shouldSplit = primaryDetection || fallbackDetection
@@ -1046,7 +1046,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         if (shouldSplit) {
             val method = if (primaryDetection) "PRIMARY (ASL)" else "FALLBACK (Memory)"
             logger.info { "🎯 CERES SPLIT TRIGGERED via $method - Leaving Ceres Station!" }
-            println("[DEBUG_LOG] 🎯 CERES SPLIT TRIGGERED via $method - Leaving Ceres Station!")
+            logger.info { "🎯 CERES SPLIT TRIGGERED via $method - Leaving Ceres Station!" }
         }
 
         return shouldSplit
