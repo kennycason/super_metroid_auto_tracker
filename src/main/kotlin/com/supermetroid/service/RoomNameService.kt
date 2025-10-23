@@ -9,15 +9,15 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import com.supermetroid.storage.FileStorageService
 import com.supermetroid.model.AppConfig
+import com.supermetroid.util.Logging
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 /**
  * Service for managing room name visibility configuration
  */
-class RoomNameService(private val fileStorageService: FileStorageService) {
-    private val logger = KotlinLogging.logger {}
+class RoomNameService(private val fileStorageService: FileStorageService) : Logging {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    
+
     private val _showRoomName = MutableStateFlow(true)
     val showRoomName: StateFlow<Boolean> = _showRoomName.asStateFlow()
 
@@ -39,7 +39,7 @@ class RoomNameService(private val fileStorageService: FileStorageService) {
      */
     fun setShowRoomName(show: Boolean) {
         _showRoomName.value = show
-        
+
         // Save room name preference to config asynchronously
         scope.launch {
             try {
@@ -52,7 +52,7 @@ class RoomNameService(private val fileStorageService: FileStorageService) {
             }
         }
     }
-    
+
     /**
      * Get current room name visibility setting
      */
@@ -60,4 +60,3 @@ class RoomNameService(private val fileStorageService: FileStorageService) {
         return _showRoomName.value
     }
 }
-

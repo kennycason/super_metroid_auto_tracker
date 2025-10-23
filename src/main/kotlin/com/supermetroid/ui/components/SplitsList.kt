@@ -72,13 +72,13 @@ fun SplitsList(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Splits list - full height now
+            // Splits list
             LazyColumn(
                 state = listState,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(maxHeight.dp),
-                verticalArrangement = Arrangement.spacedBy(1.dp) // Reduced spacing
+                verticalArrangement = Arrangement.spacedBy(1.dp) // 1.dp spacing between rows
             ) {
                 itemsIndexed(KpdrAnyProfile.profile.splits) { index, split ->
                     SplitRow(
@@ -142,7 +142,7 @@ private fun SplitsHeader(
                     fontWeight = FontWeight.Bold,
                     fontSize = 10.sp
                 ),
-                modifier = Modifier.width(70.dp), // Increased width to prevent line wrapping
+                modifier = Modifier.width(70.dp), // Width to prevent label wrapping
                 textAlign = TextAlign.End
             )
             Spacer(modifier = Modifier.width(2.dp)) // Reduced to move BEST closer to TIME

@@ -10,15 +10,15 @@ import kotlinx.coroutines.launch
 import com.supermetroid.storage.FileStorageService
 import com.supermetroid.model.AppConfig
 import com.supermetroid.model.IconSize
+import com.supermetroid.util.Logging
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 /**
  * Service for managing icon size configuration
  */
-class IconSizeService(private val fileStorageService: FileStorageService) {
-    private val logger = KotlinLogging.logger {}
+class IconSizeService(private val fileStorageService: FileStorageService) : Logging {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    
+
     private val _currentIconSize = MutableStateFlow(IconSize.MEDIUM)
     val currentIconSize: StateFlow<IconSize> = _currentIconSize.asStateFlow()
 
@@ -41,7 +41,7 @@ class IconSizeService(private val fileStorageService: FileStorageService) {
      */
     suspend fun setIconSize(iconSize: IconSize) {
         _currentIconSize.value = iconSize
-        
+
         // Save icon size to config synchronously
         try {
             val currentConfig = fileStorageService.loadAppConfig()
@@ -52,7 +52,7 @@ class IconSizeService(private val fileStorageService: FileStorageService) {
             logger.error(e) { "❌ Failed to save icon size preference" }
         }
     }
-    
+
     /**
      * Get current icon size in pixels
      */
@@ -60,4 +60,3 @@ class IconSizeService(private val fileStorageService: FileStorageService) {
         return _currentIconSize.value.size
     }
 }
-

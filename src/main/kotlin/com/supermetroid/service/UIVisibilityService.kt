@@ -1,6 +1,7 @@
 package com.supermetroid.service
 
 import com.supermetroid.storage.FileStorageService
+import com.supermetroid.util.Logging
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -9,8 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 /**
  * Service to manage UI visibility state (splits, icons, timer, settings)
  */
-class UIVisibilityService(private val fileStorageService: FileStorageService) {
-    private val logger = KotlinLogging.logger {}
+class UIVisibilityService(private val fileStorageService: FileStorageService) : Logging {
 
     private val _showSplits = MutableStateFlow(true)
     val showSplits: StateFlow<Boolean> = _showSplits.asStateFlow()

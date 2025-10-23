@@ -175,7 +175,7 @@ fun SuperMetroidTrackerApp() {
         }
     }
     
-    // TEMPORARY FIX: Always enable splits to ensure auto-start works
+    // Process autosplits on every game state to ensure reliable auto-start and phase detection
     LaunchedEffect(trackerState.gameState) {
         logger.debug { "🎮 Auto-splits processing: area=${trackerState.gameState.areaId}, room=${trackerState.gameState.roomId}, gameState=${trackerState.gameState.gameState}" }
         autoSplitsEngine.processGameState(trackerState.gameState)
@@ -339,7 +339,7 @@ fun SuperMetroidTrackerLayout(
                 splitIconSizeService = splitIconSizeService,
                 splitDisplayModeService = splitDisplayModeService,
                 modifier = Modifier.fillMaxWidth().weight(1f),
-                maxHeight = 900 // Increased height for taller window
+                maxHeight = 900 // Maximum list height for tall windows
             )
             
             // Personal Best section - appears below splits when splits are showing

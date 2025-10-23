@@ -3,15 +3,14 @@ package com.supermetroid.gamestate
 import com.supermetroid.model.*
 import com.supermetroid.network.readInt16LE
 import com.supermetroid.network.readInt8
+import com.supermetroid.util.Logging
 import io.github.oshai.kotlinlogging.KotlinLogging
-
-private val logger = KotlinLogging.logger {}
 
 /**
  * Parses raw memory data into structured GameState objects
  * Implements exact logic from the original TypeScript backend
  */
-class GameStateParser {
+class GameStateParser : Logging {
 
     /**
      * Parse raw memory data into GameState

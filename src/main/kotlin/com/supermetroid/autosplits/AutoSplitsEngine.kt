@@ -4,6 +4,7 @@ import com.supermetroid.gamestate.GameStateConstants
 import com.supermetroid.gamestate.RoomIds
 import com.supermetroid.model.*
 import com.supermetroid.storage.FileStorageService
+import com.supermetroid.util.Logging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,12 +16,10 @@ import kotlinx.datetime.Clock
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.math.abs
 
-private val logger = KotlinLogging.logger {}
-
 /**
  * AutoSplits engine for detecting split conditions and managing run sessions
  */
-class AutoSplitsEngine(private val fileStorageService: FileStorageService? = null) {
+class AutoSplitsEngine(private val fileStorageService: FileStorageService? = null) : Logging {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var previousGameState: GameState? = null
     private var currentProfile: SplitProfile? = null
@@ -48,7 +47,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
      */
     fun loadSavedState(savedState: SplitsState) {
         logger.info { "📄 Loading saved state - PersonalBests: ${savedState.personalBests.size}, RunHistory: ${savedState.runHistory.size}" }
-        
+
         // First, update personal bests from run history
         val updatedState = updatePersonalBestsFromRunHistory(savedState)
         _splitsState.value = updatedState
@@ -413,26 +412,26 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         // This preserves segment PB data from partial runs
         if (currentRun != null && currentRun.completedSplits.isNotEmpty()) {
             logger.info { "💾 Saving partial run with ${currentRun.completedSplits.size} completed splits before reset" }
-            
+
             // Calculate current time for the saved run
             val finalTime = if (currentRun.isPaused) {
                 currentRun.totalTime
             } else {
                 System.currentTimeMillis() - currentRun.startTime.toEpochMilliseconds() - currentRun.pausedTime
             }
-            
+
             val runToSave = currentRun.copy(
                 endTime = Clock.System.now(),
                 totalTime = finalTime
             )
-            
+
             // Save asynchronously to avoid blocking the reset
             fileStorageService?.let { storage ->
                 scope.launch {
                     try {
                         storage.saveRun(runToSave)
                         logger.info { "💾 Saved partial run to runs/ directory (${currentRun.completedSplits.size} splits, ${formatTime(finalTime)})" }
-                        
+
                         // Update run summaries to include segment PBs from this partial run
                         val summaries = storage.loadRunSummaries()
                         val updatedProfile = storage.deriveBestSplits(runToSave.profileId)
@@ -476,7 +475,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
      * Set the timer to a specific time value
      * If no run exists, creates a paused run with the given time
      * If a run exists, adjusts the start time to reflect the desired time
-     * 
+     *
      * @param timeMs The desired timer value in milliseconds
      * @param profileId The profile ID for the run (default: "kpdr-any")
      */
@@ -489,7 +488,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         if (currentRun == null) {
             // No run exists - create a paused run with the given time
             val runId = generateRunId()
-            
+
             // Calculate the start time that would result in the desired time
             // startTime = now - timeMs
             val adjustedStartTime = kotlinx.datetime.Instant.fromEpochMilliseconds(
@@ -517,7 +516,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         } else {
             // Run exists - adjust the start time to reflect the desired time
             val wasPaused = currentRun.isPaused
-            
+
             // Calculate the new start time that would result in the desired time
             // For a running timer: startTime = now - timeMs - pausedTime
             // For a paused timer: startTime = now - timeMs - pausedTime
@@ -560,12 +559,11 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         if (currentRun == null) {
             logger.debug { "🔍 No current run - checking auto-start conditions" }
-            logger.debug { "[DEBUG_LOG] No current run - checking auto-start conditions" }
             // Check for auto-start conditions (like ASL zebesStart logic)
             val shouldAutoStart = checkAutoStartCondition(previousGameState, gameState)
             if (shouldAutoStart) {
                 logger.info { "🚀 Auto-starting new game run in Ceres Station!" }
-                logger.info { "[DEBUG_LOG] STARTING NEW RUN - Auto-start triggered!" }
+                logger.info { "STARTING NEW RUN - Auto-start triggered!" }
                 startNewRun()
             }
             previousGameState = gameState
@@ -573,7 +571,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         } else {
             logger.debug { "▶️ Run in progress: ${currentRun.id}, paused: ${currentRun.isPaused}" }
             logger.debug { "Run already exists: ${currentRun.id}, paused: ${currentRun.isPaused}" }
-            
+
             // Auto-reset paused runs when starting a new game in Ceres
             if (currentRun.isPaused) {
                 val shouldAutoStart = checkAutoStartCondition(previousGameState, gameState)
@@ -756,8 +754,6 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         logger.debug { "🔎 Auto-start check: Ceres=$inCeres, gameplay=$normalGameplay, early=$earlyGame, condition=$shouldAutoStart" }
         logger.debug { "📊 Stats: health=${currentState.maxHealth}, missiles=${currentState.maxMissiles}, room=${currentState.roomId}" }
-        logger.debug { "Auto-start check: area=${currentState.areaId}, gameState=${currentState.gameState}, health=${currentState.maxHealth}, missiles=${currentState.maxMissiles}" }
-        logger.debug { "Conditions: Ceres=$inCeres, gameplay=$normalGameplay, early=$earlyGame, shouldStart=$shouldAutoStart" }
 
         if (shouldAutoStart) {
             logger.info { "🎯 Auto-start condition detected: New game in Ceres Station!" }
@@ -957,7 +953,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                 try {
                     storage.saveRun(finalRun)
                     logger.debug { "💾 Saved run progress (${finalRun.completedSplits.size} splits) to runs/ directory" }
-                    
+
                     // Update run summaries to track segment PBs from this run so far
                     val summaries = storage.loadRunSummaries()
                     val updatedProfile = storage.deriveBestSplits(finalRun.profileId)
@@ -1036,16 +1032,12 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             logger.info { "🚨 CERES DEBUG - room:0x${curr.roomId.toString(16)}, prevState:${prev.gameState}, currState:${curr.gameState}, area:${curr.areaName}" }
             logger.info { "🚨 CERES CONDITIONS - inElevator:$inCeresElevator, gameStateTransition:$gameStateTransition, primary:$primaryDetection" }
             logger.info { "🚨 CERES FALLBACK - ceresCompleted:$ceresCompleted, leftCeresArea:$leftCeresArea, fallback:$fallbackDetection" }
-            logger.info { "CERES DEBUG - room:0x${curr.roomId.toString(16)}, prevState:${prev.gameState}, currState:${curr.gameState}, area:${curr.areaName}" }
-            logger.info { "CERES CONDITIONS - inElevator:$inCeresElevator, gameStateTransition:$gameStateTransition, primary:$primaryDetection" }
-            logger.info { "CERES FALLBACK - ceresCompleted:$ceresCompleted, leftCeresArea:$leftCeresArea, fallback:$fallbackDetection" }
         }
 
         val shouldSplit = primaryDetection || fallbackDetection
 
         if (shouldSplit) {
             val method = if (primaryDetection) "PRIMARY (ASL)" else "FALLBACK (Memory)"
-            logger.info { "🎯 CERES SPLIT TRIGGERED via $method - Leaving Ceres Station!" }
             logger.info { "🎯 CERES SPLIT TRIGGERED via $method - Leaving Ceres Station!" }
         }
 

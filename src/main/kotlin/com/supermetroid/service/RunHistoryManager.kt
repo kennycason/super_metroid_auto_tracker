@@ -1,6 +1,7 @@
 package com.supermetroid.service
 
 import com.supermetroid.model.*
+import com.supermetroid.util.Logging
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.encodeToString
@@ -10,20 +11,18 @@ import java.io.File
 import java.io.IOException
 import kotlin.time.Duration.Companion.days
 
-private val logger = KotlinLogging.logger {}
-
 /**
  * Manages run history persistence separately from the main splits engine
  * This ensures we don't break existing auto-splits functionality
  */
 class RunHistoryManager(
     private val runHistoryFile: File
-) {
-    private val json = Json { 
+) : Logging {
+    private val json = Json {
         prettyPrint = true
         ignoreUnknownKeys = true // For backward compatibility
     }
-    
+
     /**
      * Load run history from disk
      */
@@ -53,7 +52,7 @@ class RunHistoryManager(
             )
         }
     }
-    
+
     /**
      * Save run history to disk
      */
@@ -61,16 +60,16 @@ class RunHistoryManager(
         try {
             // Ensure parent directory exists
             runHistoryFile.parentFile?.mkdirs()
-            
+
             val content = json.encodeToString(runHistory)
             runHistoryFile.writeText(content)
-            
+
             logger.debug { "Saved run history with ${runHistory.completedRuns.size} completed and ${runHistory.incompleteRuns.size} incomplete runs" }
         } catch (e: IOException) {
             logger.error(e) { "Failed to save run history to ${runHistoryFile.absolutePath}" }
         }
     }
-    
+
     /**
      * Convert RunSession to StoredRunSession
      */
@@ -90,7 +89,7 @@ class RunHistoryManager(
             pausedTime = this.pausedTime
         )
     }
-    
+
     /**
      * Store a completed run
      */
@@ -100,13 +99,13 @@ class RunHistoryManager(
             isComplete = true,
             completionReason = RunCompletionReason.FINISHED
         )
-        
+
         val updatedHistory = RunHistoryService().addRunToHistory(currentHistory, storedRun)
         saveRunHistory(updatedHistory)
-        
+
         logger.info { "Stored completed run ${run.id} for profile ${run.profileId} with total time ${run.totalTime}ms" }
     }
-    
+
     /**
      * Store an incomplete run (reset or abandoned)
      */
@@ -116,19 +115,19 @@ class RunHistoryManager(
             logger.debug { "Skipping storage of incomplete run ${run.id} - no completed splits" }
             return
         }
-        
+
         val currentHistory = loadRunHistory()
         val storedRun = run.toStoredRunSession(
             isComplete = false,
             completionReason = completionReason
         )
-        
+
         val updatedHistory = RunHistoryService().addRunToHistory(currentHistory, storedRun)
         saveRunHistory(updatedHistory)
-        
+
         logger.info { "Stored incomplete run ${run.id} for profile ${run.profileId} with ${run.completedSplits.size} splits (reason: $completionReason)" }
     }
-    
+
     /**
      * Derive personal bests from all run history
      * This is the "one-off job" entry point
@@ -136,18 +135,18 @@ class RunHistoryManager(
     fun derivePersonalBestsFromHistory(): Map<String, PersonalBest> {
         val runHistory = loadRunHistory()
         val derivedPBs = RunHistoryService().derivePersonalBestsFromHistory(runHistory)
-        
+
         // Update the stored derived PBs
         val updatedHistory = runHistory.copy(
             derivedPersonalBests = derivedPBs,
             lastUpdated = Clock.System.now()
         )
         saveRunHistory(updatedHistory)
-        
+
         logger.info { "Derived personal bests for ${derivedPBs.size} profiles from run history" }
         return derivedPBs
     }
-    
+
     /**
      * Get statistics for a profile
      */
@@ -155,7 +154,7 @@ class RunHistoryManager(
         val runHistory = loadRunHistory()
         return RunHistoryService().generateStatistics(profileId, runHistory)
     }
-    
+
     /**
      * Get all stored runs for a profile (complete and incomplete)
      */
@@ -165,7 +164,7 @@ class RunHistoryManager(
             .filter { it.profileId == profileId }
             .sortedByDescending { it.startTime }
     }
-    
+
     /**
      * Cleanup old incomplete runs (keep only recent ones to avoid file bloat)
      * Keeps incomplete runs from the last 30 days by default
@@ -173,10 +172,10 @@ class RunHistoryManager(
     fun cleanupOldIncompleteRuns(keepDays: Int = 30) {
         val cutoffTime = Clock.System.now().minus(keepDays.days)
         val runHistory = loadRunHistory()
-        
+
         val keptIncompleteRuns = runHistory.incompleteRuns.filter { it.startTime >= cutoffTime }
         val removedCount = runHistory.incompleteRuns.size - keptIncompleteRuns.size
-        
+
         if (removedCount > 0) {
             val updatedHistory = runHistory.copy(
                 incompleteRuns = keptIncompleteRuns,

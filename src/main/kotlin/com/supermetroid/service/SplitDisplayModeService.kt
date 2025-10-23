@@ -5,20 +5,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import com.supermetroid.storage.FileStorageService
 import com.supermetroid.model.SplitDisplayMode
+import com.supermetroid.util.Logging
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 /**
  * Service for managing split display mode configuration
  */
-class SplitDisplayModeService(private val fileStorageService: FileStorageService) {
-    private val logger = KotlinLogging.logger {}
-    
+class SplitDisplayModeService(private val fileStorageService: FileStorageService) : Logging {
+
     private val _currentDisplayMode = MutableStateFlow(SplitDisplayMode.BOTH)
     val currentDisplayMode: StateFlow<SplitDisplayMode> = _currentDisplayMode.asStateFlow()
-    
+
     private val _showSplitIcons = MutableStateFlow(true)
     val showSplitIcons: StateFlow<Boolean> = _showSplitIcons.asStateFlow()
-    
+
     private val _showSplitNames = MutableStateFlow(true)
     val showSplitNames: StateFlow<Boolean> = _showSplitNames.asStateFlow()
 
@@ -44,7 +44,7 @@ class SplitDisplayModeService(private val fileStorageService: FileStorageService
         _currentDisplayMode.value = mode
         _showSplitIcons.value = mode.showIcons
         _showSplitNames.value = mode.showNames
-        
+
         // Save to config
         try {
             val currentConfig = fileStorageService.loadAppConfig()
@@ -59,4 +59,3 @@ class SplitDisplayModeService(private val fileStorageService: FileStorageService
         }
     }
 }
-

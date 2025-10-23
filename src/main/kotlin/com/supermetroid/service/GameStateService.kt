@@ -9,14 +9,13 @@ import com.supermetroid.network.MemoryAdapterDetectionService
 import com.supermetroid.network.RetroArchUdpClient
 import com.supermetroid.network.SuperMetroidAddresses
 import com.supermetroid.network.SuperMetroidMemoryReader
+import com.supermetroid.util.Logging
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.time.Duration.Companion.milliseconds
-
-private val logger = KotlinLogging.logger {}
 
 /**
  * Core service for managing game state polling from SNI or RetroArch
@@ -26,9 +25,9 @@ class GameStateService(
     private val host: String = "localhost",
     private val port: Int = 55355,
     private val pollIntervalMs: Long = 500 // Much slower polling to prevent chaotic data jumping
-) {
+) : Logging {
     private var lastStableGameState: GameState? = null
-    
+
     // Dual adapter for SNI/RetroArch support
     private val dualAdapter = DualMemoryAdapter(
         MemoryAdapterDetectionService.DetectionPreferences(
@@ -37,11 +36,11 @@ class GameStateService(
             retroArchPort = port
         )
     )
-    
+
     // Legacy support - will be removed once all services are migrated
     private val legacyUdpClient = RetroArchUdpClient(host, port)
     private val legacyMemoryReader = SuperMetroidMemoryReader(legacyUdpClient)
-    
+
     private val gameStateParser = GameStateParser()
 
     private var pollingJob: Job? = null
@@ -71,7 +70,7 @@ class GameStateService(
 
         try {
             logger.info { "🚀 Starting game state service..." }
-            
+
             // Try to connect using the dual adapter first
             val connected = dualAdapter.connect()
             if (connected) {
@@ -160,22 +159,22 @@ class GameStateService(
         // 2. Small changes (normal gameplay)
         // 3. Item collection patterns (specific large increases in max values)
         // 4. Save file loading (dramatic but consistent changes)
-        
+
         val roomChanged = gameState.roomId != lastState.roomId
         val smallChanges = healthDiff < 100 && missileDiff < 50 && maxHealthDiff < 100
         val itemCollection = (
             maxHealthDiff in 1..200 ||      // Energy Tanks give +100, allow some tolerance
             maxMissilesDiff in 1..50 ||     // Missile expansions
-            maxSupersDiff in 1..20 ||       // Super Missile expansions  
+            maxSupersDiff in 1..20 ||       // Super Missile expansions
             maxPowerBombsDiff in 1..20      // Power Bomb expansions
         )
         val saveFileLoad = (
-            maxHealthDiff > 200 || maxMissilesDiff > 50 || 
+            maxHealthDiff > 200 || maxMissilesDiff > 50 ||
             maxSupersDiff > 20 || maxPowerBombsDiff > 20
         ) && gameState.roomId == lastState.roomId  // Same room but big stat changes = save file change
 
         val isStable = roomChanged || smallChanges || itemCollection || saveFileLoad
-        
+
         if (!isStable) {
             logger.debug { "🔄 Rejecting change - Health: ${lastState.health}->${gameState.health} (Δ$healthDiff), MaxHealth: ${lastState.maxHealth}->${gameState.maxHealth} (Δ$maxHealthDiff), Room: ${lastState.roomId}->${gameState.roomId}" }
         } else {
@@ -192,14 +191,14 @@ class GameStateService(
                 gameState.items != lastState.items ||
                 gameState.beams != lastState.beams ||
                 gameState.bosses != lastState.bosses
-                
+
             if (hasActualChanges) {
                 logger.info { "✅ SIGNIFICANT CHANGE - Health: ${lastState.health}->${gameState.health}, MaxHealth: ${lastState.maxHealth}->${gameState.maxHealth}, Missiles: ${lastState.missiles}/${lastState.maxMissiles}->${gameState.missiles}/${gameState.maxMissiles}, Room: ${lastState.roomId}->${gameState.roomId}" }
             } else {
                 logger.debug { "✅ Accepting change - Health: ${lastState.health}->${gameState.health}, MaxHealth: ${lastState.maxHealth}->${gameState.maxHealth}, Room: ${lastState.roomId}->${gameState.roomId}" }
             }
         }
-        
+
         return isStable
     }
 
@@ -224,9 +223,11 @@ class GameStateService(
 
                 pollCount++
 
-                // Determine if game is loaded (room ID > 0 usually indicates loaded game)
-                // Use the stable game state to avoid inconsistencies
-                val gameLoaded = stableGameState.roomId > 0
+                // Determine if game is loaded using robust heuristics
+                // - Valid gameplay states (normal/door/elevator/Ceres cutscene)
+                // - Known area IDs (0..6) with any non-zero capacity
+                // - Or a positive roomId
+                val gameLoaded = isGameLoaded(stableGameState)
 
                 val trackerState = TrackerState(
                     connection = ConnectionInfo(
@@ -250,7 +251,7 @@ class GameStateService(
                     gameState.maxMissiles != previousState.maxMissiles ||
                     gameState.maxSupers != previousState.maxSupers ||
                     gameState.maxPowerBombs != previousState.maxPowerBombs
-                
+
                 if (pollCount % 100L == 0L || significantChange) {
                     logger.info { "🔄 Poll #$pollCount: ${gameState.areaName}, Room ${gameState.roomId}, Health ${gameState.health}/${gameState.maxHealth}, Missiles ${gameState.missiles}/${gameState.maxMissiles}, Supers ${gameState.supers}/${gameState.maxSupers}, PBs ${gameState.powerBombs}/${gameState.maxPowerBombs}" }
                 }
@@ -280,6 +281,26 @@ class GameStateService(
 
             delay(currentDelayMs.milliseconds)
         }
+    }
+
+    /**
+     * Determine if the game is actually loaded and active.
+     * Heuristics:
+     * - Valid gameplay states (normal gameplay, door or elevator transitions, Ceres cutscene)
+     * - Known area IDs (0..6) with any non-zero capacity (health/missiles/supers/power bombs)
+     * - Or a positive roomId
+     */
+    private fun isGameLoaded(state: GameState): Boolean {
+        val validGameplay =
+            state.gameState == com.supermetroid.gamestate.GameStateConstants.NORMAL_GAMEPLAY ||
+            state.gameState == com.supermetroid.gamestate.GameStateConstants.DOOR_TRANSITION ||
+            state.gameState == com.supermetroid.gamestate.GameStateConstants.ELEVATOR ||
+            state.gameState == com.supermetroid.gamestate.GameStateConstants.START_OF_CERES_CUTSCENE ||
+            state.gameState == 34 // Ceres continuation
+        val validArea = state.areaId in 0..6
+        val hasCapacities = state.maxHealth > 0 || state.maxMissiles > 0 || state.maxSupers > 0 || state.maxPowerBombs > 0
+
+        return state.roomId > 0 || validGameplay || (validArea && hasCapacities)
     }
 
     /**
@@ -371,7 +392,7 @@ class GameStateService(
             dualAdapter.readMemoryBatch(addresses)
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to read memory via dual adapter, falling back to legacy method" }
-            
+
             // Fallback to legacy method if dual adapter fails
             try {
                 // Ensure legacy client is connected
@@ -390,7 +411,7 @@ class GameStateService(
      * Get the dual memory adapter
      */
     fun getDualAdapter(): DualMemoryAdapter = dualAdapter
-    
+
     /**
      * Get the UDP client for direct memory access (legacy compatibility)
      * Used by other services that need to read/write memory

@@ -3,6 +3,7 @@ package com.supermetroid.service
 import com.supermetroid.model.AmmoNumberMode
 import com.supermetroid.model.IconViewMode
 import com.supermetroid.storage.FileStorageService
+import com.supermetroid.util.Logging
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,9 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 /**
  * Service to manage icon view layout and ammo number display mode
  */
-class IconViewModeService(private val fileStorageService: FileStorageService) {
-    private val logger = KotlinLogging.logger {}
-
+class IconViewModeService(private val fileStorageService: FileStorageService) : Logging {
     private val _iconViewMode = MutableStateFlow(IconViewMode.DEFAULT)
     val iconViewMode: StateFlow<IconViewMode> = _iconViewMode.asStateFlow()
 
@@ -53,5 +52,3 @@ class IconViewModeService(private val fileStorageService: FileStorageService) {
         }
     }
 }
-
-

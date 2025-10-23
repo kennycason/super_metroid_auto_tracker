@@ -2,6 +2,7 @@ package com.supermetroid.storage
 
 import com.supermetroid.autosplits.KpdrAnyProfile
 import com.supermetroid.model.*
+import com.supermetroid.util.Logging
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -12,26 +13,24 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 
-private val logger = KotlinLogging.logger {}
-
 /**
  * File-based storage service for splits data and personal bests
  * Stores data in ~/.smtracker/ directory to match the old system
  */
-class FileStorageService(private val configDir: String? = null) {
+class FileStorageService(private val configDir: String? = null) : Logging {
     private val homeDir = configDir ?: System.getProperty("user.home")
     private val trackerDir = File(homeDir, ".smtracker")
     private val splitsFile = File(trackerDir, "splits-data.json")
     private val configFile = File(trackerDir, "smtracker.json")
     private val runsDir = File(trackerDir, "runs")
     private val runSummariesFile = File(trackerDir, "run-summaries.json")
-    
+
     private val json = Json {
         prettyPrint = true
         ignoreUnknownKeys = true
         encodeDefaults = true  // Always encode default values in JSON
     }
-    
+
     init {
         // Ensure directories exist
         if (!trackerDir.exists()) {
@@ -43,7 +42,7 @@ class FileStorageService(private val configDir: String? = null) {
             logger.info { "📁 Created runs directory: ${runsDir.absolutePath}" }
         }
     }
-    
+
     /**
      * Save splits state to file
      */
@@ -57,7 +56,7 @@ class FileStorageService(private val configDir: String? = null) {
             throw e
         }
     }
-    
+
     /**
      * Load splits state from file
      * Prioritizes new format (runs/ directory) over legacy format (splits-data.json)
@@ -65,21 +64,21 @@ class FileStorageService(private val configDir: String? = null) {
     suspend fun loadSplitsState(): SplitsState = withContext(Dispatchers.IO) {
         try {
             // Check if new format exists (runs directory with files)
-            val hasNewFormat = runsDir.exists() && runsDir.listFiles()?.any { 
+            val hasNewFormat = runsDir.exists() && runsDir.listFiles()?.any {
                 it.isFile && it.extension == "json" && !it.name.contains("corrupted")
             } == true
-            
+
             if (hasNewFormat) {
                 logger.info { "📊 Using new file-based format from ${runsDir.absolutePath}" }
                 return@withContext loadSplitsStateFromNewFormat()
             }
-            
+
             // Fall back to legacy format
             if (!splitsFile.exists()) {
                 logger.info { "📄 No existing splits file found, returning empty state" }
                 return@withContext SplitsState()
             }
-            
+
             val jsonString = splitsFile.readText()
             val splitsState = json.decodeFromString<SplitsState>(jsonString)
             logger.info { "📄 Loaded splits state from legacy format: ${splitsFile.absolutePath}" }
@@ -89,17 +88,17 @@ class FileStorageService(private val configDir: String? = null) {
             SplitsState()
         }
     }
-    
+
     /**
      * Check if splits file exists
      */
     fun splitsFileExists(): Boolean = splitsFile.exists()
-    
+
     /**
      * Get splits file path for debugging
      */
     fun getSplitsFilePath(): String = splitsFile.absolutePath
-    
+
     /**
      * Create backup of current splits file
      */
@@ -115,7 +114,7 @@ class FileStorageService(private val configDir: String? = null) {
             logger.error(e) { "❌ Failed to create backup" }
         }
     }
-    
+
     /**
      * Save app config to file
      */
@@ -129,7 +128,7 @@ class FileStorageService(private val configDir: String? = null) {
             throw e
         }
     }
-    
+
     /**
      * Load app config from file
      */
@@ -139,7 +138,7 @@ class FileStorageService(private val configDir: String? = null) {
                 logger.info { "📄 No existing config file found, returning default config" }
                 return@withContext AppConfig()
             }
-            
+
             val jsonString = configFile.readText()
             val config = json.decodeFromString<AppConfig>(jsonString)
             logger.info { "📄 Loaded app config from ${configFile.absolutePath}" }
@@ -149,16 +148,16 @@ class FileStorageService(private val configDir: String? = null) {
             AppConfig()
         }
     }
-    
+
     /**
      * Get config file path for debugging
      */
     fun getConfigFilePath(): String = configFile.absolutePath
-    
+
     // ========================================
     // NEW FILE-BASED RUN STORAGE (v2.0.0)
     // ========================================
-    
+
     /**
      * Save a completed run as an individual file
      */
@@ -169,7 +168,7 @@ class FileStorageService(private val configDir: String? = null) {
             val timeStr = formatRunTime(run.totalTime)
             val filename = "${dateStr}_${run.profileId}_${timeStr}.json"
             val runFile = File(runsDir, filename)
-            
+
             val jsonString = json.encodeToString(run)
             runFile.writeText(jsonString)
             logger.info { "💾 Saved run to ${runFile.name}" }
@@ -178,7 +177,7 @@ class FileStorageService(private val configDir: String? = null) {
             throw e
         }
     }
-    
+
     /**
      * Load all runs from the runs directory
      */
@@ -188,11 +187,11 @@ class FileStorageService(private val configDir: String? = null) {
                 logger.info { "📁 Runs directory doesn't exist yet" }
                 return@withContext emptyList()
             }
-            
-            val runFiles = runsDir.listFiles { file -> 
+
+            val runFiles = runsDir.listFiles { file ->
                 file.isFile && file.extension == "json" && !file.name.contains("corrupted")
             } ?: emptyArray()
-            
+
             val runs = runFiles.mapNotNull { file ->
                 try {
                     val jsonString = file.readText()
@@ -202,7 +201,7 @@ class FileStorageService(private val configDir: String? = null) {
                     null
                 }
             }
-            
+
             logger.info { "📄 Loaded ${runs.size} runs from ${runsDir.absolutePath}" }
             runs
         } catch (e: Exception) {
@@ -210,20 +209,20 @@ class FileStorageService(private val configDir: String? = null) {
             emptyList()
         }
     }
-    
+
     /**
      * Derive best splits from all completed runs
      */
     suspend fun deriveBestSplits(profileId: String): ProfileSummary = withContext(Dispatchers.IO) {
         val allRuns = loadAllRuns().filter { it.profileId == profileId }
         val completedRuns = allRuns.filter { it.endTime != null }
-        
+
         // Find best total time
         val bestRun = completedRuns.minByOrNull { it.totalTime }
-        
+
         // Find best time for each split across all runs
         val bestSplitTimes = mutableMapOf<String, BestSplitTime>()
-        
+
         for (run in completedRuns) {
             for (completedSplit in run.completedSplits) {
                 val existing = bestSplitTimes[completedSplit.splitId]
@@ -236,7 +235,7 @@ class FileStorageService(private val configDir: String? = null) {
                 }
             }
         }
-        
+
         ProfileSummary(
             profileId = profileId,
             profileName = getProfileName(profileId),
@@ -248,7 +247,7 @@ class FileStorageService(private val configDir: String? = null) {
             bestSplitTimes = bestSplitTimes
         )
     }
-    
+
     /**
      * Save run summaries to file
      */
@@ -262,7 +261,7 @@ class FileStorageService(private val configDir: String? = null) {
             throw e
         }
     }
-    
+
     /**
      * Load run summaries by deriving from individual run files (source of truth)
      * Saves a summary file for human browsing convenience (but never reads from it)
@@ -272,21 +271,21 @@ class FileStorageService(private val configDir: String? = null) {
             // Always derive summaries from individual run files (source of truth)
             logger.info { "📊 Deriving run summaries from individual runs..." }
             val profiles = mutableMapOf<String, ProfileSummary>()
-            
+
             // Find all unique profile IDs
             val allRuns = loadAllRuns()
             val profileIds = allRuns.map { it.profileId }.distinct()
-            
+
             for (profileId in profileIds) {
                 profiles[profileId] = deriveBestSplits(profileId)
             }
-            
+
             val summaries = RunSummaries(
                 version = "2.0.0",
                 lastUpdated = Clock.System.now(),
                 profiles = profiles
             )
-            
+
             // Save for human browsing convenience (but never read from it)
             try {
                 saveRunSummaries(summaries)
@@ -294,7 +293,7 @@ class FileStorageService(private val configDir: String? = null) {
             } catch (e: Exception) {
                 logger.warn(e) { "⚠️ Failed to save run summaries cache (non-critical)" }
             }
-            
+
             summaries
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to derive run summaries, returning empty" }
@@ -305,7 +304,7 @@ class FileStorageService(private val configDir: String? = null) {
             )
         }
     }
-    
+
     /**
      * Update splits state to use new format data
      * Calculates "Best Possible" times from best segments across all runs
@@ -314,12 +313,12 @@ class FileStorageService(private val configDir: String? = null) {
         try {
             val summaries = loadRunSummaries()
             val kpdrSummary = summaries.profiles["kpdr-any"]
-            
+
             if (kpdrSummary == null) {
                 logger.info { "📄 No run summaries found, returning empty state" }
                 return@withContext SplitsState()
             }
-            
+
             // Use best segments from summary (already calculated in deriveBestSplits)
             val splitTimes = kpdrSummary.bestSplitTimes.mapValues { (_, bestSplit) ->
                 SplitTime(
@@ -329,19 +328,19 @@ class FileStorageService(private val configDir: String? = null) {
                     originalDelta = 0
                 )
             }
-            
+
             // Calculate theoretical best possible time
             val bestPossibleTime = splitTimes.values.sumOf { it.segmentTime }
-            
+
             logger.info { "📊 Loaded best segments - PB: ${formatTime(kpdrSummary.bestTotalTime ?: 0)}, Best Possible: ${formatTime(bestPossibleTime)}" }
-            
+
             val personalBest = PersonalBest(
                 profileId = "kpdr-any",
                 runSessionId = kpdrSummary.bestRunId ?: "",
                 totalTime = kpdrSummary.bestTotalTime ?: 0, // Actual PB run time
                 splitTimes = splitTimes // Best segments for "Best Possible" calculation
             )
-            
+
             SplitsState(
                 currentRun = null,
                 personalBests = mapOf("kpdr-any" to personalBest),
@@ -352,7 +351,7 @@ class FileStorageService(private val configDir: String? = null) {
             SplitsState()
         }
     }
-    
+
     private fun formatTime(timeMs: Long): String {
         val totalSeconds = timeMs / 1000
         val hours = totalSeconds / 3600
@@ -365,9 +364,9 @@ class FileStorageService(private val configDir: String? = null) {
             "%d:%02d.%02d".format(minutes, seconds, millis)
         }
     }
-    
+
     // Helper functions
-    
+
     private fun formatRunTime(timeMs: Long): String {
         val totalSeconds = timeMs / 1000
         val hours = totalSeconds / 3600
@@ -375,14 +374,14 @@ class FileStorageService(private val configDir: String? = null) {
         val seconds = totalSeconds % 60
         return "%d-%02d-%02d".format(hours, minutes, seconds)
     }
-    
+
     private fun getProfileName(profileId: String): String {
         return when (profileId) {
             "kpdr-any" -> "KPDR Any%"
             else -> profileId
         }
     }
-    
+
     private fun findRunFileName(runId: String): String? {
         val runFiles = runsDir.listFiles { file -> file.isFile && file.extension == "json" } ?: return null
         for (file in runFiles) {

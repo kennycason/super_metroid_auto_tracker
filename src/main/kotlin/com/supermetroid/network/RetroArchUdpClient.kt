@@ -1,5 +1,6 @@
 package com.supermetroid.network
 
+import com.supermetroid.util.Logging
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -9,8 +10,6 @@ import java.net.DatagramSocket
 import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
-
-private val logger = KotlinLogging.logger {}
 
 /**
  * UDP client for communicating with RetroArch's network command interface
@@ -27,7 +26,7 @@ class RetroArchUdpClient(
     private val port: Int = 55355,
     private val timeoutMs: Int = 5000,
     private val maxRetries: Int = 3
-) {
+) : Logging {
     private var socket: DatagramSocket? = null
     private val address = InetAddress.getByName(host)
 
@@ -81,6 +80,15 @@ class RetroArchUdpClient(
         socket = null
         connectionState = ConnectionState.DISCONNECTED
         logger.info { "🔌 Disconnected from RetroArch UDP" }
+    }
+
+    /**
+     * Public connection check used by adapters/services.
+     * True only if we have a socket and our tracked state is CONNECTED.
+     */
+    fun isConnected(): Boolean {
+        val s = socket
+        return connectionState == ConnectionState.CONNECTED && s != null && !s.isClosed
     }
 
     /**
@@ -363,21 +371,8 @@ class RetroArchUdpClient(
     suspend fun writeByte(address: Int, value: Byte): Boolean {
         return writeMemory(address, byteArrayOf(value))
     }
-
-    /**
-     * Check if connected to RetroArch
-     */
-    fun isConnected(): Boolean = socket != null && !socket!!.isClosed
-
-    /**
-     * Get connection info
-     */
-    fun getConnectionInfo(): String = if (isConnected()) {
-        "Connected to $host:$port"
-    } else {
-        "Disconnected"
-    }
 }
+
 
 /**
  * Memory address constants for Super Metroid

@@ -10,15 +10,15 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import com.supermetroid.storage.FileStorageService
 import com.supermetroid.model.AppConfig
+import com.supermetroid.util.Logging
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 /**
  * Service for managing configurable app themes
  */
-class ThemeService(private val fileStorageService: FileStorageService) {
-    private val logger = KotlinLogging.logger {}
+class ThemeService(private val fileStorageService: FileStorageService) : Logging {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    
+
     private val _currentTheme = MutableStateFlow(AppTheme.RETRO_GREEN)
     val currentTheme: StateFlow<AppTheme> = _currentTheme.asStateFlow()
 
@@ -30,17 +30,17 @@ class ThemeService(private val fileStorageService: FileStorageService) {
             // Check if this is the first run (no config file exists)
             val configFile = java.io.File(System.getProperty("user.home"), ".smtracker/smtracker.json")
             val isFirstRun = !configFile.exists()
-            
+
             val config = fileStorageService.loadAppConfig()
             val savedTheme = AppTheme.values().find { it.name == config.theme } ?: AppTheme.RETRO_GREEN
             _currentTheme.value = savedTheme
-            
+
             // If this is the first run, save the full default config
             if (isFirstRun) {
                 logger.info { "📄 First run detected, creating full default config file" }
                 fileStorageService.saveAppConfig(config)
             }
-            
+
             logger.info { "🎨 Loaded theme: ${savedTheme.displayName}" }
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to load theme from config, using default" }
@@ -52,7 +52,7 @@ class ThemeService(private val fileStorageService: FileStorageService) {
      */
     fun setTheme(theme: AppTheme) {
         _currentTheme.value = theme
-        
+
         // Save theme to config asynchronously
         scope.launch {
             try {
@@ -65,7 +65,7 @@ class ThemeService(private val fileStorageService: FileStorageService) {
             }
         }
     }
-    
+
     fun getColors(): ThemeColors {
         return _currentTheme.value.colors
     }
@@ -75,7 +75,7 @@ class ThemeService(private val fileStorageService: FileStorageService) {
  * Available app themes
  */
 enum class AppTheme(val displayName: String, val colors: ThemeColors) {
-    RETRO_GREEN("Classic Green", 
+    RETRO_GREEN("Classic Green",
         ThemeColors(
             primary = Color(0xFF00FF00),
             primaryVariant = Color(0xFF00CC00),
@@ -104,7 +104,7 @@ enum class AppTheme(val displayName: String, val colors: ThemeColors) {
             splitPending = Color(0xFF666666)
         )
     ),
-    
+
     NEON_BLUE("Neon Blue",
         ThemeColors(
             primary = Color(0xFF00CCFF),
@@ -134,7 +134,7 @@ enum class AppTheme(val displayName: String, val colors: ThemeColors) {
             splitPending = Color(0xFF666666)
         )
     ),
-    
+
     ELECTRIC_PURPLE("Electric Purple",
         ThemeColors(
             primary = Color(0xFFCC00FF),
@@ -164,7 +164,7 @@ enum class AppTheme(val displayName: String, val colors: ThemeColors) {
             splitPending = Color(0xFF666666)
         )
     ),
-    
+
     CYBER_RED("Cyber Red",
         ThemeColors(
             primary = Color(0xFFFF0066),
@@ -194,7 +194,7 @@ enum class AppTheme(val displayName: String, val colors: ThemeColors) {
             splitPending = Color(0xFF666666)
         )
     ),
-    
+
     AMBER_GOLD("Amber Gold",
         ThemeColors(
             primary = Color(0xFFFFBB00),
@@ -224,7 +224,7 @@ enum class AppTheme(val displayName: String, val colors: ThemeColors) {
             splitPending = Color(0xFF666666)
         )
     ),
-    
+
     DARK_BLACK("Dark Black",
         ThemeColors(
             primary = Color(0xFFFFFFFF),
@@ -254,7 +254,7 @@ enum class AppTheme(val displayName: String, val colors: ThemeColors) {
             splitPending = Color(0xFF666666)
         )
     ),
-    
+
     WHITE_LIGHT("White Light",
         ThemeColors(
             primary = Color(0xFF000000),
@@ -294,33 +294,33 @@ data class ThemeColors(
     val primary: Color,
     val primaryVariant: Color,
     val primaryLight: Color,
-    
+
     // Background colors
     val background: Color,
     val backgroundVariant: Color,
     val surface: Color,
     val surfaceVariant: Color,
-    
+
     // Border and accent colors
     val border: Color,
     val borderActive: Color,
-    
+
     // Status colors
     val connected: Color,
     val disconnected: Color,
     val warning: Color,
-    
+
     // Text colors
     val onPrimary: Color,
     val onBackground: Color,
     val onSurface: Color,
     val onSurfaceVariant: Color,
-    
+
     // Translucent overlays
     val surfaceOverlay: Color,
     val surfaceOverlayLight: Color,
     val surfaceOverlayHover: Color,
-    
+
     // Special states
     val success: Color,
     val error: Color,

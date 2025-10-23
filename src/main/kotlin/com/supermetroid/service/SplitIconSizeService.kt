@@ -10,15 +10,15 @@ import kotlinx.coroutines.launch
 import com.supermetroid.storage.FileStorageService
 import com.supermetroid.model.AppConfig
 import com.supermetroid.model.IconSize
+import com.supermetroid.util.Logging
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 /**
  * Service for managing split icon size configuration
  */
-class SplitIconSizeService(private val fileStorageService: FileStorageService) {
-    private val logger = KotlinLogging.logger {}
+class SplitIconSizeService(private val fileStorageService: FileStorageService) : Logging {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    
+
     private val _currentSplitIconSize = MutableStateFlow(IconSize.MEDIUM)
     val currentSplitIconSize: StateFlow<IconSize> = _currentSplitIconSize.asStateFlow()
 
@@ -41,7 +41,7 @@ class SplitIconSizeService(private val fileStorageService: FileStorageService) {
      */
     suspend fun setSplitIconSize(iconSize: IconSize) {
         _currentSplitIconSize.value = iconSize
-        
+
         // Save split icon size to config synchronously
         try {
             val currentConfig = fileStorageService.loadAppConfig()
@@ -52,7 +52,7 @@ class SplitIconSizeService(private val fileStorageService: FileStorageService) {
             logger.error(e) { "❌ Failed to save split icon size preference" }
         }
     }
-    
+
     /**
      * Get current split icon size in pixels
      */
@@ -60,4 +60,3 @@ class SplitIconSizeService(private val fileStorageService: FileStorageService) {
         return _currentSplitIconSize.value.size
     }
 }
-
