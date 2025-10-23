@@ -298,9 +298,19 @@ class GameStateService(
             state.gameState == com.supermetroid.gamestate.GameStateConstants.START_OF_CERES_CUTSCENE ||
             state.gameState == 34 // Ceres continuation
         val validArea = state.areaId in 0..6
-        val hasCapacities = state.maxHealth > 0 || state.maxMissiles > 0 || state.maxSupers > 0 || state.maxPowerBombs > 0
 
-        return state.roomId > 0 || validGameplay || (validArea && hasCapacities)
+        // Any non-zero capacity or current ammo/health implies a loaded save/game
+        val hasCapacities = state.maxHealth > 0 || state.maxMissiles > 0 || state.maxSupers > 0 || state.maxPowerBombs > 0
+        val anyCombatValues = state.health > 0 || state.missiles > 0 || state.supers > 0 || state.powerBombs > 0
+
+        // Event/boss flags also indicate a running game even if roomId is temporarily 0
+        val anyFlags = state.eventFlags != 0 || state.tourianBosses != 0 || state.ceresBosses != 0
+
+        // Consider loaded if:
+        // - We have a positive roomId (normal case), or
+        // - We're in a valid gameplay state, or
+        // - We're in a known area and see any capacities/combat values/flags
+        return state.roomId > 0 || validGameplay || (validArea && (hasCapacities || anyCombatValues || anyFlags))
     }
 
     /**

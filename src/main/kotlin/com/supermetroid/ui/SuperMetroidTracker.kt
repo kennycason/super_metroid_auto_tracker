@@ -386,7 +386,7 @@ fun SuperMetroidTrackerLayout(
             // Connection status (left side)
             Text(
                 text = if (trackerState.connection.connected) {
-                    if (trackerState.connection.gameLoaded) "Connected" else "No Game"
+                    if (trackerState.connection.gameLoaded) "Connected" else "Connected (No Game)"
                 } else "Disconnected",
                 style = MaterialTheme.typography.labelSmall.copy(
                     color = if (trackerState.connection.connected) TrackerColors.Success else TrackerColors.Error
