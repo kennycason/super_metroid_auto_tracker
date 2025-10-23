@@ -304,7 +304,7 @@ class GameStateService(
         val anyCombatValues = state.health > 0 || state.missiles > 0 || state.supers > 0 || state.powerBombs > 0
 
         // Event/boss flags also indicate a running game even if roomId is temporarily 0
-        val anyFlags = state.eventFlags != 0 || state.tourianBosses != 0 || state.ceresBosses != 0
+        val anyFlags = state.eventFlags != 0 || state.tourianBosses != 0 || state.bosses.ceresStation
 
         // Consider loaded if:
         // - We have a positive roomId (normal case), or
