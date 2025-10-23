@@ -2,6 +2,7 @@ package com.supermetroid.ui
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -272,6 +273,7 @@ fun SuperMetroidTrackerLayout(
     iconConfigService: com.supermetroid.service.IconConfigService,
     roomNameService: com.supermetroid.service.RoomNameService
 ) {
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -388,7 +390,13 @@ fun SuperMetroidTrackerLayout(
                 } else "Disconnected",
                 style = MaterialTheme.typography.labelSmall.copy(
                     color = if (trackerState.connection.connected) TrackerColors.Success else TrackerColors.Error
-                )
+                ),
+                modifier = Modifier.clickable {
+                    // Manual reconnect to SNI/RetroArch: tries both and restarts backoff
+                    scope.launch {
+                        gameStateService.reconnectNow()
+                    }
+                }
             )
 
             // Toggle buttons (right side)

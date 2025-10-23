@@ -110,6 +110,23 @@ class GameStateService(
         logger.info { "✅ Game state service stopped" }
     }
 
+    suspend fun reconnectNow() {
+        logger.info { "🔄 Manual reconnect requested" }
+        try {
+            resetErrorCount()
+            val success = dualAdapter.forceRedetection()
+            updateConnectionState(connected = success, gameLoaded = false)
+            if (pollingJob?.isActive != true) {
+                pollingJob = CoroutineScope(Dispatchers.IO).launch {
+                    pollGameState()
+                }
+            }
+            logger.info { if (success) "✅ Reconnected" else "⚠️ Reconnect attempt did not find any adapter" }
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Manual reconnect failed" }
+        }
+    }
+
     /**
      * Improved stability check that allows item collection and save file changes
      */
@@ -190,6 +207,7 @@ class GameStateService(
      * Main polling loop
      */
     private suspend fun pollGameState() {
+        var currentDelayMs = pollIntervalMs
         while (currentCoroutineContext().isActive) {
             try {
                 // Try to read memory using the dual adapter
@@ -236,6 +254,8 @@ class GameStateService(
                 if (pollCount % 100L == 0L || significantChange) {
                     logger.info { "🔄 Poll #$pollCount: ${gameState.areaName}, Room ${gameState.roomId}, Health ${gameState.health}/${gameState.maxHealth}, Missiles ${gameState.missiles}/${gameState.maxMissiles}, Supers ${gameState.supers}/${gameState.maxSupers}, PBs ${gameState.powerBombs}/${gameState.maxPowerBombs}" }
                 }
+                // Reset backoff on successful poll
+                currentDelayMs = pollIntervalMs
 
             } catch (e: Exception) {
                 errorCount++
@@ -254,9 +274,11 @@ class GameStateService(
                     updateConnectionState(connected = false, gameLoaded = false)
                     delay(1000) // Wait longer after errors
                 }
+                // Exponential backoff on errors (max 5000ms)
+                currentDelayMs = (currentDelayMs * 2).coerceAtMost(5000)
             }
 
-            delay(pollIntervalMs.milliseconds)
+            delay(currentDelayMs.milliseconds)
         }
     }
 
