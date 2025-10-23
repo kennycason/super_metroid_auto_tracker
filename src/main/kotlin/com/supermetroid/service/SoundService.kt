@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
 import java.io.File
 import java.nio.file.Paths
 import javax.sound.sampled.AudioSystem
@@ -108,7 +109,7 @@ class SoundService(private val fileStorageService: FileStorageService) {
             val json = Json {
                 prettyPrint = true
                 prettyPrintIndent = "  "
-            }.encodeToString(SoundConfig.serializer(), config)
+            }.encodeToString(config)
             soundsConfigFile.writeText(json)
             logger.info { "💾 Saved sounds.json" }
         } catch (e: Exception) {
@@ -272,18 +273,21 @@ class SoundService(private val fileStorageService: FileStorageService) {
             val bufferedStream = java.io.BufferedInputStream(inputStream)
             val player = javazoom.jl.player.Player(bufferedStream)
             
-            // Note: JLayer doesn't have volume control built-in
-            // We'd need to implement our own audio device for volume control
-            // For now, play at system volume (volume control works for WAV files)
+            // Note: JLayer doesn't have volume control built-in.
+            // We'd need to implement our own audio device for volume control.
+            // For now, play at system volume (volume control works for WAV files).
+            // Assumption: sounds are short and non-looping; resources are closed after playback.
             
             // Play in a separate thread so it doesn't block
             Thread {
                 try {
                     player.play()
-                    player.close()
-                    inputStream.close()
                 } catch (e: Exception) {
                     logger.error(e) { "❌ Error during MP3 playback" }
+                } finally {
+                    try { player.close() } catch (_: Exception) {}
+                    try { bufferedStream.close() } catch (_: Exception) {}
+                    try { inputStream.close() } catch (_: Exception) {}
                 }
             }.start()
         } catch (e: Exception) {

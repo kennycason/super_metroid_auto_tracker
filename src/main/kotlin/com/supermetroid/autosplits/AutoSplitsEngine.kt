@@ -466,6 +466,8 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         // Add a small delay before allowing new toggleRunState calls
         // This helps prevent accidental immediate restart after reset
+        // TODO(safety): Convert to a suspend-friendly cooldown using delay(100) by making resetRun() suspend.
+        // Avoid blocking UI threads (e.g., Swing dispatcher). Keep Thread.sleep for now to avoid behavior changes.
         Thread.sleep(100)
         logger.info { "🔄 Reset cooldown complete - ready for new run" }
     }
