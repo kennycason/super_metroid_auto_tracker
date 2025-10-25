@@ -40,6 +40,11 @@ class SoundService(private val fileStorageService: FileStorageService) : Logging
 
     suspend fun initialize() {
         try {
+            // Load sound settings from app config
+            val config = fileStorageService.loadAppConfig()
+            _soundEnabled.value = config.soundEnabled
+            _volume.value = config.volume
+
             // Create sounds directory if it doesn't exist
             if (!soundsDirectory.exists()) {
                 soundsDirectory.mkdirs()
@@ -50,7 +55,7 @@ class SoundService(private val fileStorageService: FileStorageService) : Logging
             loadOrCreateSoundsConfig()
 
             isInitialized = true
-            logger.info { "🔊 Sound service initialized" }
+            logger.info { "🔊 Sound service initialized: ${if (_soundEnabled.value) "enabled" else "disabled"}, volume: ${(_volume.value * 100).toInt()}%" }
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to initialize sound service" }
         }
@@ -297,11 +302,19 @@ class SoundService(private val fileStorageService: FileStorageService) : Logging
 
     suspend fun setSoundEnabled(enabled: Boolean) {
         _soundEnabled.value = enabled
+        // Save to app config
+        val config = fileStorageService.loadAppConfig()
+        val updatedConfig = config.copy(soundEnabled = enabled)
+        fileStorageService.saveAppConfig(updatedConfig)
         logger.info { "🔊 Sound effects ${if (enabled) "enabled" else "disabled"}" }
     }
 
     suspend fun setVolume(volume: Float) {
         _volume.value = volume.coerceIn(0.0f, 1.0f)
+        // Save to app config
+        val config = fileStorageService.loadAppConfig()
+        val updatedConfig = config.copy(volume = _volume.value)
+        fileStorageService.saveAppConfig(updatedConfig)
         logger.info { "🔊 Volume set to ${(_volume.value * 100).toInt()}%" }
     }
 }

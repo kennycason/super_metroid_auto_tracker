@@ -43,6 +43,7 @@ val roomNameService = com.supermetroid.service.RoomNameService(fileStorageServic
 val iconViewModeService = com.supermetroid.service.IconViewModeService(fileStorageService)
 val uiVisibilityService = com.supermetroid.service.UIVisibilityService(fileStorageService)
 val soundService = com.supermetroid.service.SoundService(fileStorageService)
+val gameGenieService = com.supermetroid.service.GameGenieService(fileStorageService)
 
 fun main() = application {
     // Load saved window dimensions
@@ -116,6 +117,8 @@ fun SuperMetroidTrackerApp() {
     val showIcons by uiVisibilityService.showIcons.collectAsState()
     val showTimer by uiVisibilityService.showTimer.collectAsState()
     val showSettings by uiVisibilityService.showSettings.collectAsState()
+    val showGameGenie by uiVisibilityService.showGameGenie.collectAsState()
+    val gameGenieEnabled by gameGenieService.gameGenieEnabled.collectAsState()
     
     // Track if services are initialized
     var servicesInitialized by remember { mutableStateOf(false) }
@@ -148,6 +151,9 @@ fun SuperMetroidTrackerApp() {
         
         // Initialize sound service
         soundService.initialize()
+        
+        // Initialize Game Genie service
+        gameGenieService.initialize()
         
         // Mark services as initialized
         servicesInitialized = true
@@ -248,6 +254,8 @@ fun SuperMetroidTrackerApp() {
                         showIcons = showIcons,
                         showTimer = showTimer,
                         showSettings = showSettings,
+                        showGameGenie = showGameGenie,
+                        gameGenieEnabled = gameGenieEnabled,
                         uiVisibilityService = uiVisibilityService,
                         themeService = themeService,
                         iconConfigService = iconConfigService,
@@ -268,6 +276,8 @@ fun SuperMetroidTrackerLayout(
     showIcons: Boolean,
     showTimer: Boolean,
     showSettings: Boolean,
+    showGameGenie: Boolean,
+    gameGenieEnabled: Boolean,
     uiVisibilityService: com.supermetroid.service.UIVisibilityService,
     themeService: com.supermetroid.service.ThemeService,
     iconConfigService: com.supermetroid.service.IconConfigService,
@@ -365,6 +375,7 @@ fun SuperMetroidTrackerLayout(
                 autoSplitsEngine = autoSplitsEngine,
                 iconViewModeService = iconViewModeService,
                 soundService = soundService,
+                gameGenieService = gameGenieService,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f) // Takes all remaining vertical space
@@ -372,8 +383,18 @@ fun SuperMetroidTrackerLayout(
             Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
         }
 
-        // Spacer to push footer to bottom when splits are hidden and settings not shown
-        if (!showSplits && !showSettings) {
+        // Game Genie panel - takes remaining space when visible
+        if (showGameGenie && gameGenieEnabled) {
+            GameGenieTab(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f) // Takes all remaining vertical space
+            )
+            Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
+        }
+
+        // Spacer to push footer to bottom when splits are hidden and settings/Game Genie not shown
+        if (!showSplits && !showSettings && !(showGameGenie && gameGenieEnabled)) {
             Spacer(modifier = Modifier.weight(1f))
         }
 
@@ -459,6 +480,27 @@ fun SuperMetroidTrackerLayout(
                         text = "timer",
                         style = MaterialTheme.typography.labelSmall
                     )
+                }
+
+                // Game Genie toggle (only show if Game Genie is enabled in settings)
+                if (gameGenieEnabled) {
+                    TextButton(
+                        onClick = { 
+                            CoroutineScope(Dispatchers.Swing).launch {
+                                uiVisibilityService.setShowGameGenie(!showGameGenie)
+                            }
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = if (showGameGenie) TrackerColors.Success else TrackerColors.OnSurfaceVariant
+                        ),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                        modifier = Modifier.height(20.dp)
+                    ) {
+                        Text(
+                            text = "genie",
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
                 }
 
                 // Settings toggle

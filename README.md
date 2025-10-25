@@ -321,5 +321,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [alttpo](https://github.com/alttpo) for creating SNI (SNES Network Interface)
 - RetroArch developers for providing the network interface
 - All contributors
-- Testers - MrFoxDemon, Grapdedrinkz
+- Testers - Mr_FoxDemon, grapdedrinkz
 - Nintendo, for Super Metroid

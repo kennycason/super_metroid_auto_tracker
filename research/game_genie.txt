@@ -1,0 +1,70 @@
+CODE    KEY IN . . .    EFFECT . . .
+1       DD38-C4A8       Skip intro and start on Planet Zebes when 
+starting a new game
+2       DDCF-4461 + 6DCC-47A1   Select area when loading a game 
+(press right on map screen to select)
+3       C225-3005       No energy loss from enemies
+4       C22A-456D       Super jumps don't drain energy
+5       C288-C5A7       Almost infinite missiles
+6       C28A-C9D7       Almost infinite super missiles
+7       3CA4-450D       Almost infinite super bombs
+8       62C5-14A6       Start with hyper gun in inventory
+SAVE GAME MODIFICATION CODES (9 THRU 57) ONLY WORK FOR SAVED 
+GAME "A." A SAVED GAME MUST ALREADY EXIST-DO NOT TRY ON A 
+NEW GAME
+9       FA68-4760 + DD6A-C7DF   MASTER CODE-MUST BE USED WITH 
+CODES 10 THRU 57
+10      E7D7-FAAD + DFD7-FA6D   Start with about 500 energy tanks
+11      88D7-FAAD + D4D7-FA6D   Start with about 700 energy tanks
+12      35D7-FAAD + D7D7-FA6D   Start with about 1000 energy 
+tanks
+13      CED7-FAAD + D0D7-FA6D   Start with about 1200 energy 
+tanks
+14      28D7-FAAD + D9D7-FA6D   Start with about 1500 energy 
+tanks
+15      DCD7-F26D       Maximum missiles=10
+16      FBD7-F26D       Maximum missiles=25
+17      74D7-F26D       Maximum missiles=50
+18      08D7-F26D       Maximum missiles=75
+19      10D7-F26D       Maximum missiles=100
+20      52D7-F26D       Maximum missiles=125
+21      B1D7-F26D       Maximum missiles=150
+22      CED7-F26D       Maximum missiles=175
+23      A6D7-F26D       Maximum missiles=200
+24      D9D7-F36D       Maximum super missiles=5
+25      DCD7-F36D       Maximum super missiles=10
+26      FBD7-F36D       Maximum super missiles=25
+27      74D7-F36D       Maximum super missiles=50
+28      D9D7-FE6D       Maximum super bombs=5
+29      DCD7-FE6D       Maximum super bombs=10
+30      FBD7-FE6D       Maximum super bombs=25
+31      74D7-FE6D       Maximum super bombs=50
+32      DDD0-FE6D       Set hours played to 0 (for better ending)
+33      FDDF-F2AD       Add charge beam
+34      DFDF-F26D       Get wave beam
+35      D7DF-F26D       Get ice and wave beams
+36      D5DF-F26D       Get ice, wave, and spazer beam
+37      DEDF-F26D       Get ice, wave, spazer, and plasma beams
+38      D0DF-FA6D       Add ball
+39      D9DF-FA6D       Add ball and varia suit
+40      D5DF-FA6D       Add ball, varia suit, spring ball
+41      45DF-FA6D       Add ball, varia suit, spring ball, gravity suit
+42      4EDF-FA6D       Add ball, varia suit, spring ball, screw 
+attack, gravity suit
+43      FDDF-FAAD       Add bomb
+44      6DDF-FAAD + 6DDF-FA0D   Add X-ray
+45      ADDF-FAAD + ADDF-FA0D   Add X-ray and grapple
+46      BDDF-FAAD + BDDF-FA0D   Add X-ray and bomb
+47      2DDF-FAAD + 2DDF-FA0D   Add X-ray, grapple, bomb
+48      FFDF-FAAD       Add bomb and hi-jump boots
+49      7FDF-FAAD       Add bomb, hi-jump boots and speed boots
+50      77DF-FAAD       Add bomb, all boots
+51      E7DF-FAAD + E7DF-FA0D   Add all boots, bomb, grapple, X-
+ray
+52      EED9-93DD       Crateria is already mapped out
+53      EED9-930D       Brinstar is already mapped out
+54      EED9-936D       Norfair is already mapped out
+55      EED9-93AD       Wrecked ship is already mapped out
+56      EED9-9EDD       Maridia is already mapped out
+57      EED9-9E0D       Tourian is already mapped out
+

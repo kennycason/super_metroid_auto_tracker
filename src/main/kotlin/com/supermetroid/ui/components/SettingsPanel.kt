@@ -42,6 +42,7 @@ fun SettingsPanel(
     autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
     iconViewModeService: com.supermetroid.service.IconViewModeService,
     soundService: com.supermetroid.service.SoundService,
+    gameGenieService: com.supermetroid.service.GameGenieService,
     
     modifier: Modifier = Modifier
 ) {
@@ -105,6 +106,7 @@ fun SettingsPanel(
                     themeService = themeService,
                     roomNameService = roomNameService,
                     autoSplitsEngine = autoSplitsEngine,
+                    gameGenieService = gameGenieService,
                     modifier = Modifier.fillMaxSize()
                 )
                 1 -> IconsSettingsTab(
@@ -135,6 +137,7 @@ private fun GeneralSettingsTab(
     themeService: com.supermetroid.service.ThemeService,
     roomNameService: com.supermetroid.service.RoomNameService,
     autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
+    gameGenieService: com.supermetroid.service.GameGenieService,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -159,7 +162,47 @@ private fun GeneralSettingsTab(
             modifier = Modifier.fillMaxWidth()
         )
         
+        // Game Genie Toggle Section
+        GameGenieToggleSection(
+            gameGenieService = gameGenieService,
+            modifier = Modifier.fillMaxWidth()
+        )
+        
         Spacer(modifier = Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun GameGenieToggleSection(
+    gameGenieService: com.supermetroid.service.GameGenieService,
+    modifier: Modifier = Modifier
+) {
+    val gameGenieEnabled by gameGenieService.gameGenieEnabled.collectAsState()
+    
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Enable Game Genie",
+            style = MaterialTheme.typography.titleSmall.copy(color = TrackerColors.Primary, fontWeight = FontWeight.Bold)
+        )
+        
+        Switch(
+            checked = gameGenieEnabled,
+            onCheckedChange = { enabled ->
+                kotlinx.coroutines.GlobalScope.launch {
+                    gameGenieService.setGameGenieEnabled(enabled)
+                }
+            },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = TrackerColors.Primary,
+                checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.3f),
+                uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
+                uncheckedTrackColor = TrackerColors.SurfaceVariant
+            )
+        )
     }
 }
 
