@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import androidx.compose.ui.res.painterResource
 import com.supermetroid.autosplits.AutoSplitsEngine
 import com.supermetroid.autosplits.KpdrAnyProfile
 import com.supermetroid.service.GameStateService
@@ -69,6 +70,7 @@ fun main() = application {
             exitApplication()
         },
         title = "Super Metroid Tracker",
+        icon = painterResource("icon.png"),
         state = windowState,
         onKeyEvent = { keyEvent ->
             // Only process keyboard shortcuts when splits are visible

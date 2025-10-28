@@ -122,7 +122,7 @@ compose.desktop {
                 packageVersion = "2.0.0"
                 description = "Super Metroid Auto Tracker"
                 shortcut = true
-                iconFile.set(project.file("src/main/compose/resources/Super_Metroid_Auto_Tracker.png"))
+                iconFile.set(project.file("src/main/resources/icon.png"))
                 menuGroup = "Games"
             }
         }
