@@ -550,41 +550,43 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         // Always log current area for debugging
         logger.debug { "🎮 Current area: ${gameState.areaName} (ID: ${gameState.areaId}), gameState: ${gameState.gameState}" }
 
+        // Check for auto-start conditions BEFORE filtering invalid states
+        // This allows detection of title screen transitions (gameState 2 → 31) for ASL-accurate timing
+        if (currentRun == null) {
+            logger.debug { "🔍 No current run - checking auto-start conditions" }
+            val shouldAutoStart = checkAutoStartCondition(previousGameState, gameState)
+            if (shouldAutoStart) {
+                logger.info { "🚀 Auto-starting new game run!" }
+                logger.info { "STARTING NEW RUN - Auto-start triggered!" }
+                startNewRun()
+            }
+            previousGameState = gameState
+            return
+        }
+
+        // Auto-reset paused runs when starting a new game (check BEFORE gameplay state validation)
+        if (currentRun.isPaused) {
+            val shouldAutoStart = checkAutoStartCondition(previousGameState, gameState)
+            if (shouldAutoStart) {
+                logger.info { "🔄 Auto-resetting paused run to start new game!" }
+                logger.info { "AUTO-RESET: Clearing paused run to start new game!" }
+                resetRun() // Reset the current run
+                startNewRun() // Start fresh run
+                previousGameState = gameState
+                return
+            }
+        }
+
         // CRITICAL: Prevent false splits during intro/cutscenes
+        // Now that auto-start has been checked, filter out invalid states for split processing
         if (!isValidGameplayState(gameState)) {
             logger.debug { "🚫 Ignoring game state - not in valid gameplay (state: ${gameState.gameState})" }
             previousGameState = gameState
             return
         }
 
-        if (currentRun == null) {
-            logger.debug { "🔍 No current run - checking auto-start conditions" }
-            // Check for auto-start conditions (like ASL zebesStart logic)
-            val shouldAutoStart = checkAutoStartCondition(previousGameState, gameState)
-            if (shouldAutoStart) {
-                logger.info { "🚀 Auto-starting new game run in Ceres Station!" }
-                logger.info { "STARTING NEW RUN - Auto-start triggered!" }
-                startNewRun()
-            }
-            previousGameState = gameState
-            return
-        } else {
-            logger.debug { "▶️ Run in progress: ${currentRun.id}, paused: ${currentRun.isPaused}" }
-            logger.debug { "Run already exists: ${currentRun.id}, paused: ${currentRun.isPaused}" }
-
-            // Auto-reset paused runs when starting a new game in Ceres
-            if (currentRun.isPaused) {
-                val shouldAutoStart = checkAutoStartCondition(previousGameState, gameState)
-                if (shouldAutoStart) {
-                    logger.info { "🔄 Auto-resetting paused run to start new game in Ceres!" }
-                    logger.info { "AUTO-RESET: Clearing paused run to start new game!" }
-                    resetRun() // Reset the current run
-                    startNewRun() // Start fresh run
-                    previousGameState = gameState
-                    return
-                }
-            }
-        }
+        logger.debug { "▶️ Run in progress: ${currentRun.id}, paused: ${currentRun.isPaused}" }
+        logger.debug { "Run already exists: ${currentRun.id}, paused: ${currentRun.isPaused}" }
 
         // Don't process splits if paused
         if (currentRun.isPaused) {
@@ -738,26 +740,42 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
     /**
      * Check for auto-start conditions for new game
-     * Auto-start when gaining control in Ceres Station at the beginning of a new game
+     * Matches ASL auto-start behavior: starts when pressing Start on title screen
+     * ASL logic: gameState 2 → 31 (title screen → game start transition)
      */
     private fun checkAutoStartCondition(previousState: GameState?, currentState: GameState): Boolean {
-        // For new game auto-start, look for:
-        // 1. Being in Ceres Station (area ID 6)
-        // 2. Normal gameplay state (gaining control)
-        // 3. No significant progress (early in the game)
-
+        // PRIMARY: ASL-style start - Pressing start on title screen (gameState 2 → 31)
+        // This matches SuperMetroid.asl line 778: vars.watchers["gameState"].Old == 2 && vars.watchers["gameState"].Current == 0x1F
+        val titleScreenStart = previousState?.gameState == GameStateConstants.TITLE_SCREEN && 
+                              currentState.gameState == GameStateConstants.GAME_START_TRANSITION
+        
+        // SECONDARY: Zebes start for categories that skip Ceres (e.g., Spore Spawn RTA)
+        // This matches SuperMetroid.asl line 782: vars.watchers["gameState"].Old == 5 && vars.watchers["gameState"].Current == 6
+        val zebesStart = previousState?.gameState == GameStateConstants.ELEVATOR && 
+                        currentState.gameState == GameStateConstants.ZEBES_TRANSITION_END
+        
+        // FALLBACK: Original Ceres start (backup for mid-run detection)
+        // Keep this as a backup in case title screen transition is missed
         val inCeres = currentState.areaId == 6
-        val normalGameplay = currentState.gameState == 8 // Normal gameplay
-        val earlyGame = currentState.maxHealth <= 99 && currentState.maxMissiles <= 5 // Starting stats
+        val normalGameplay = currentState.gameState == GameStateConstants.NORMAL_GAMEPLAY
+        val earlyGame = currentState.maxHealth <= 99 && currentState.maxMissiles <= 5
+        val ceresStart = inCeres && normalGameplay && earlyGame
 
-        val shouldAutoStart = inCeres && normalGameplay && earlyGame
+        val shouldAutoStart = titleScreenStart || zebesStart || ceresStart
 
-        logger.debug { "🔎 Auto-start check: Ceres=$inCeres, gameplay=$normalGameplay, early=$earlyGame, condition=$shouldAutoStart" }
-        logger.debug { "📊 Stats: health=${currentState.maxHealth}, missiles=${currentState.maxMissiles}, room=${currentState.roomId}" }
+        // Log for debugging
+        if (previousState != null) {
+            logger.debug { "🔎 Auto-start check: titleScreen=$titleScreenStart (${previousState.gameState}→${currentState.gameState}), zebes=$zebesStart, ceres=$ceresStart" }
+        }
 
         if (shouldAutoStart) {
-            logger.info { "🎯 Auto-start condition detected: New game in Ceres Station!" }
-            logger.info { "AUTO-START TRIGGERED! New game in Ceres Station!" }
+            val method = when {
+                titleScreenStart -> "TITLE_SCREEN_TRANSITION (ASL normalStart)"
+                zebesStart -> "ZEBES_START (ASL zebesStart)"
+                else -> "CERES_CONTROL (Fallback)"
+            }
+            logger.info { "🎯 Auto-start triggered via $method" }
+            logger.info { "AUTO-START: gameState ${previousState?.gameState}→${currentState.gameState}" }
         }
 
         return shouldAutoStart
