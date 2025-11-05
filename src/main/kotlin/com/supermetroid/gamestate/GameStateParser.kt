@@ -1,6 +1,7 @@
 package com.supermetroid.gamestate
 
 import com.supermetroid.model.*
+import com.supermetroid.model.RoomDatabase
 import com.supermetroid.network.readInt16LE
 import com.supermetroid.network.readInt8
 import com.supermetroid.util.Logging
@@ -338,13 +339,13 @@ object GameStateConstants {
 }
 
 /**
- * Room ID constants for important locations
+ * Room ID constants for important locations (sourced from RoomDatabase)
  */
 object RoomIds {
-    const val MOTHER_BRAIN_ROOM = 56664  // 0xDD58 - Mother Brain fight room (CORRECTED from ASL)
-    const val CERES_STATION = 42164     // 0xE0B5 - Ceres ridley fight room
-    const val CERES_ELEVATOR = 57157    // 0xDF45 - Ceres elevator (escape trigger)
-    const val LANDING_SITE = 37368      // 0x91F8 - Ship landing site
-    const val STATUES_HALLWAY = 42477   // 0xA5ED - Hallway before statues room
-    const val STATUES = 42602            // 0xA66A - Golden four statues room
+    val MOTHER_BRAIN_ROOM = RoomDatabase.getRoomByHandle("motherBrain")?.id ?: 0xDD58
+    val CERES_STATION = RoomDatabase.getRoomByHandle("ceresRidley")?.id ?: 0xE0B5
+    val CERES_ELEVATOR = RoomDatabase.getRoomByHandle("ceresElevator")?.id ?: 0xDF45
+    val LANDING_SITE = RoomDatabase.getRoomByHandle("landingSite")?.id ?: 0x91F8
+    val STATUES_HALLWAY = RoomDatabase.getRoomByHandle("statuesHallway")?.id ?: 0xA5ED
+    val STATUES = RoomDatabase.getRoomByHandle("statues")?.id ?: 0xA66A
 }
