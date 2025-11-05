@@ -1,0 +1,862 @@
+{
+  "rooms": {
+    "landingSite": {
+      "id": "0X91F8",
+      "handle": "landingSite",
+      "name": "Landing Site",
+      "comment": null
+    },
+    "crateriaPowerBombRoom": {
+      "id": "0X93AA",
+      "handle": "crateriaPowerBombRoom",
+      "name": "Crateria Power Bomb Room",
+      "comment": null
+    },
+    "westOcean": {
+      "id": "0X93FE",
+      "handle": "westOcean",
+      "name": "West Ocean",
+      "comment": null
+    },
+    "elevatorToMaridia": {
+      "id": "0X94CC",
+      "handle": "elevatorToMaridia",
+      "name": "Elevator To Maridia",
+      "comment": null
+    },
+    "crateriaMoat": {
+      "id": "0X95FF",
+      "handle": "crateriaMoat",
+      "name": "The Moat",
+      "comment": null
+    },
+    "elevatorToCaterpillar": {
+      "id": "0X962A",
+      "handle": "elevatorToCaterpillar",
+      "name": "Elevator To Caterpillar",
+      "comment": null
+    },
+    "gauntletETankRoom": {
+      "id": "0X965B",
+      "handle": "gauntletETankRoom",
+      "name": "Gauntlet Energy Tank Room",
+      "comment": null
+    },
+    "climb": {
+      "id": "0X96BA",
+      "handle": "climb",
+      "name": "The Climb",
+      "comment": null
+    },
+    "pitRoom": {
+      "id": "0X975C",
+      "handle": "pitRoom",
+      "name": "Pit Room",
+      "comment": null
+    },
+    "elevatorToMorphBall": {
+      "id": "0X97B5",
+      "handle": "elevatorToMorphBall",
+      "name": "Elevator To Morph Ball",
+      "comment": null
+    },
+    "bombTorizo": {
+      "id": "0X9804",
+      "handle": "bombTorizo",
+      "name": "Bomb Torizo Room",
+      "comment": null
+    },
+    "terminator": {
+      "id": "0X990D",
+      "handle": "terminator",
+      "name": "Terminator Room",
+      "comment": null
+    },
+    "elevatorToGreenBrinstar": {
+      "id": "0X9938",
+      "handle": "elevatorToGreenBrinstar",
+      "name": "Elevator To Green Brinstar",
+      "comment": null
+    },
+    "greenPirateShaft": {
+      "id": "0X99BD",
+      "handle": "greenPirateShaft",
+      "name": "Green Pirates Shaft",
+      "comment": null
+    },
+    "crateriaSupersRoom": {
+      "id": "0X99F9",
+      "handle": "crateriaSupersRoom",
+      "name": "Crateria Super Room",
+      "comment": null
+    },
+    "theFinalMissile": {
+      "id": "0X9A90",
+      "handle": "theFinalMissile",
+      "name": "The Final Missile",
+      "comment": null
+    },
+    "greenBrinstarMainShaft": {
+      "id": "0X9AD9",
+      "handle": "greenBrinstarMainShaft",
+      "name": "Green Brinstar Main Shaft",
+      "comment": null
+    },
+    "sporeSpawnSuper": {
+      "id": "0X9B5B",
+      "handle": "sporeSpawnSuper",
+      "name": "Spore Spawn Super Room",
+      "comment": null
+    },
+    "earlySupers": {
+      "id": "0X9BC8",
+      "handle": "earlySupers",
+      "name": "Early Supers Room",
+      "comment": null
+    },
+    "brinstarReserveRoom": {
+      "id": "0X9C07",
+      "handle": "brinstarReserveRoom",
+      "name": "Brinstar Reserve Tank Room",
+      "comment": null
+    },
+    "bigPink": {
+      "id": "0X9D19",
+      "handle": "bigPink",
+      "name": "Big Pink",
+      "comment": null
+    },
+    "sporeSpawnKeyhunter": {
+      "id": "0X9D9C",
+      "handle": "sporeSpawnKeyhunter",
+      "name": "Spore Spawn Keyhunter Room",
+      "comment": null
+    },
+    "sporeSpawn": {
+      "id": "0X9DC7",
+      "handle": "sporeSpawn",
+      "name": "Spore Spawn Room",
+      "comment": null
+    },
+    "pinkBrinstarPowerBombRoom": {
+      "id": "0X9E11",
+      "handle": "pinkBrinstarPowerBombRoom",
+      "name": "Pink Brinstar Power Bomb Room",
+      "comment": null
+    },
+    "greenHills": {
+      "id": "0X9E52",
+      "handle": "greenHills",
+      "name": "Green Hill Zone",
+      "comment": null
+    },
+    "noobBridge": {
+      "id": "0X9FBA",
+      "handle": "noobBridge",
+      "name": "Noob Bridge",
+      "comment": null
+    },
+    "morphBall": {
+      "id": "0X9E9F",
+      "handle": "morphBall",
+      "name": "Morph Ball Room",
+      "comment": null
+    },
+    "blueBrinstarETankRoom": {
+      "id": "0X9F64",
+      "handle": "blueBrinstarETankRoom",
+      "name": "Blue Brinstar Energy Tank Room",
+      "comment": null
+    },
+    "etacoonETankRoom": {
+      "id": "0XA011",
+      "handle": "etacoonETankRoom",
+      "name": "Etacoon Energy Tank Room",
+      "comment": null
+    },
+    "etacoonSuperRoom": {
+      "id": "0XA051",
+      "handle": "etacoonSuperRoom",
+      "name": "Etacoon Super Room",
+      "comment": null
+    },
+    "waterway": {
+      "id": "0XA0D2",
+      "handle": "waterway",
+      "name": "Waterway",
+      "comment": null
+    },
+    "alphaMissileRoom": {
+      "id": "0XA107",
+      "handle": "alphaMissileRoom",
+      "name": "First Missile Room",
+      "comment": null
+    },
+    "hopperETankRoom": {
+      "id": "0XA15B",
+      "handle": "hopperETankRoom",
+      "name": "Hopper Energy Tank Room",
+      "comment": null
+    },
+    "billyMays": {
+      "id": "0XA1D8",
+      "handle": "billyMays",
+      "name": "Billy Mays' Room",
+      "comment": null
+    },
+    "redTower": {
+      "id": "0XA253",
+      "handle": "redTower",
+      "name": "Red Tower",
+      "comment": null
+    },
+    "xRay": {
+      "id": "0XA2CE",
+      "handle": "xRay",
+      "name": "X-Ray Room",
+      "comment": null
+    },
+    "caterpillar": {
+      "id": "0XA322",
+      "handle": "caterpillar",
+      "name": "Caterpillar Room",
+      "comment": null
+    },
+    "betaPowerBombRoom": {
+      "id": "0XA37C",
+      "handle": "betaPowerBombRoom",
+      "name": "Beta Power Bomb Room",
+      "comment": null
+    },
+    "alphaPowerBombsRoom": {
+      "id": "0XA3AE",
+      "handle": "alphaPowerBombsRoom",
+      "name": "Alpha Power Bomb Room",
+      "comment": null
+    },
+    "bat": {
+      "id": "0XA3DD",
+      "handle": "bat",
+      "name": "Bat Room",
+      "comment": null
+    },
+    "spazer": {
+      "id": "0XA447",
+      "handle": "spazer",
+      "name": "Spazer Room",
+      "comment": null
+    },
+    "warehouseETankRoom": {
+      "id": "0XA4B1",
+      "handle": "warehouseETankRoom",
+      "name": "Warehouse Energy Tank Room",
+      "comment": null
+    },
+    "warehouseZeela": {
+      "id": "0XA471",
+      "handle": "warehouseZeela",
+      "name": "Warehouse Zeela Room",
+      "comment": null
+    },
+    "warehouseKiHunters": {
+      "id": "0XA4DA",
+      "handle": "warehouseKiHunters",
+      "name": "Warehouse Kihunter Room",
+      "comment": null
+    },
+    "kraidEyeDoor": {
+      "id": "0XA56B",
+      "handle": "kraidEyeDoor",
+      "name": "Kraid's Eye Door",
+      "comment": null
+    },
+    "kraid": {
+      "id": "0XA59F",
+      "handle": "kraid",
+      "name": "Kraid's Room",
+      "comment": null
+    },
+    "statuesHallway": {
+      "id": "0XA5ED",
+      "handle": "statuesHallway",
+      "name": "Statues Hallway",
+      "comment": null
+    },
+    "statues": {
+      "id": "0XA66A",
+      "handle": "statues",
+      "name": "Statues Room",
+      "comment": null
+    },
+    "warehouseEntrance": {
+      "id": "0XA6A1",
+      "handle": "warehouseEntrance",
+      "name": "Warehouse Entrance",
+      "comment": null
+    },
+    "varia": {
+      "id": "0XA6E2",
+      "handle": "varia",
+      "name": "Varia Suit Room",
+      "comment": null
+    },
+    "cathedral": {
+      "id": "0XA788",
+      "handle": "cathedral",
+      "name": "Cathedral",
+      "comment": null
+    },
+    "businessCenter": {
+      "id": "0XA7DE",
+      "handle": "businessCenter",
+      "name": "Business Center",
+      "comment": null
+    },
+    "iceBeam": {
+      "id": "0XA890",
+      "handle": "iceBeam",
+      "name": "Ice Beam Room",
+      "comment": null
+    },
+    "crumbleShaft": {
+      "id": "0XA8F8",
+      "handle": "crumbleShaft",
+      "name": "Crumble Shaft",
+      "comment": null
+    },
+    "crocomireSpeedway": {
+      "id": "0XA923",
+      "handle": "crocomireSpeedway",
+      "name": "Crocomire Speedway",
+      "comment": null
+    },
+    "crocomire": {
+      "id": "0XA98D",
+      "handle": "crocomire",
+      "name": "Crocomire's Room",
+      "comment": null
+    },
+    "hiJump": {
+      "id": "0XA9E5",
+      "handle": "hiJump",
+      "name": "Hi-Jump Room",
+      "comment": null
+    },
+    "crocomireEscape": {
+      "id": "0XAA0E",
+      "handle": "crocomireEscape",
+      "name": "Crocomire Escape",
+      "comment": null
+    },
+    "hiJumpShaft": {
+      "id": "0XAA41",
+      "handle": "hiJumpShaft",
+      "name": "Hi-Jump Shaft",
+      "comment": null
+    },
+    "postCrocomirePowerBombRoom": {
+      "id": "0XAADE",
+      "handle": "postCrocomirePowerBombRoom",
+      "name": "Post Crocomire Power Bomb Room",
+      "comment": null
+    },
+    "cosineRoom": {
+      "id": "0XAB3B",
+      "handle": "cosineRoom",
+      "name": "Cosine Room",
+      "comment": null
+    },
+    "preGrapple": {
+      "id": "0XAB8F",
+      "handle": "preGrapple",
+      "name": "Post Crocomire Jump Room",
+      "comment": null
+    },
+    "grapple": {
+      "id": "0XAC2B",
+      "handle": "grapple",
+      "name": "Grapple Beam Room",
+      "comment": null
+    },
+    "norfairReserveRoom": {
+      "id": "0XAC5A",
+      "handle": "norfairReserveRoom",
+      "name": "Norfair Reserve Tank Room",
+      "comment": null
+    },
+    "greenBubblesRoom": {
+      "id": "0XAC83",
+      "handle": "greenBubblesRoom",
+      "name": "Green Bubbles Missile Room",
+      "comment": null
+    },
+    "bubbleMountain": {
+      "id": "0XACB3",
+      "handle": "bubbleMountain",
+      "name": "Bubble Mountain",
+      "comment": null
+    },
+    "speedBoostHall": {
+      "id": "0XACF0",
+      "handle": "speedBoostHall",
+      "name": "Speed Booster Hall",
+      "comment": null
+    },
+    "speedBooster": {
+      "id": "0XAD1B",
+      "handle": "speedBooster",
+      "name": "Speed Booster Room",
+      "comment": null
+    },
+    "singleChamber": {
+      "id": "0XAD5E",
+      "handle": "singleChamber",
+      "name": "Single Chamber",
+      "comment": "Exit room from Lower Norfair, also on the path to Wave"
+    },
+    "doubleChamber": {
+      "id": "0XADAD",
+      "handle": "doubleChamber",
+      "name": "Double Chamber",
+      "comment": null
+    },
+    "waveBeam": {
+      "id": "0XADDE",
+      "handle": "waveBeam",
+      "name": "Wave Beam Room",
+      "comment": null
+    },
+    "volcano": {
+      "id": "0XAE32",
+      "handle": "volcano",
+      "name": "Volcano Room",
+      "comment": null
+    },
+    "kronicBoost": {
+      "id": "0XAE74",
+      "handle": "kronicBoost",
+      "name": "Kronic Boost Room",
+      "comment": null
+    },
+    "magdolliteTunnel": {
+      "id": "0XAEB4",
+      "handle": "magdolliteTunnel",
+      "name": "Magdollite Tunnel",
+      "comment": null
+    },
+    "lowerNorfairElevator": {
+      "id": "0XAF3F",
+      "handle": "lowerNorfairElevator",
+      "name": "Lower Norfair Elevator",
+      "comment": null
+    },
+    "risingTide": {
+      "id": "0XAFA3",
+      "handle": "risingTide",
+      "name": "Rising Tide",
+      "comment": null
+    },
+    "spikyAcidSnakes": {
+      "id": "0XAFFB",
+      "handle": "spikyAcidSnakes",
+      "name": "Spiky Acid Snakes Room",
+      "comment": null
+    },
+    "acidStatue": {
+      "id": "0XB1E5",
+      "handle": "acidStatue",
+      "name": "Acid Statue Room",
+      "comment": null
+    },
+    "mainHall": {
+      "id": "0XB236",
+      "handle": "mainHall",
+      "name": "Main Hall",
+      "comment": "First room in Lower Norfair"
+    },
+    "goldenTorizo": {
+      "id": "0XB283",
+      "handle": "goldenTorizo",
+      "name": "Golden Torizo's Room",
+      "comment": null
+    },
+    "ridley": {
+      "id": "0XB32E",
+      "handle": "ridley",
+      "name": "Ridley's Room",
+      "comment": null
+    },
+    "lowerNorfairFarming": {
+      "id": "0XB37A",
+      "handle": "lowerNorfairFarming",
+      "name": "Lower Norfair Farming Room",
+      "comment": null
+    },
+    "mickeyMouse": {
+      "id": "0XB40A",
+      "handle": "mickeyMouse",
+      "name": "Mickey Mouse Room",
+      "comment": null
+    },
+    "pillars": {
+      "id": "0XB457",
+      "handle": "pillars",
+      "name": "Pillar Room",
+      "comment": null
+    },
+    "writg": {
+      "id": "0XB4AD",
+      "handle": "writg",
+      "name": "Worst Room in the Game",
+      "comment": null
+    },
+    "amphitheatre": {
+      "id": "0XB4E5",
+      "handle": "amphitheatre",
+      "name": "Amphitheatre",
+      "comment": null
+    },
+    "lowerNorfairSpringMaze": {
+      "id": "0XB510",
+      "handle": "lowerNorfairSpringMaze",
+      "name": "Lower Norfair Springball Maze Room",
+      "comment": null
+    },
+    "lowerNorfairEscapePowerBombRoom": {
+      "id": "0XB55A",
+      "handle": "lowerNorfairEscapePowerBombRoom",
+      "name": "Lower Norfair Escape Power Bomb Room",
+      "comment": null
+    },
+    "redKiShaft": {
+      "id": "0XB585",
+      "handle": "redKiShaft",
+      "name": "Red Kihunter Shaft",
+      "comment": null
+    },
+    "wasteland": {
+      "id": "0XB5D5",
+      "handle": "wasteland",
+      "name": "Wasteland",
+      "comment": null
+    },
+    "metalPirates": {
+      "id": "0XB62B",
+      "handle": "metalPirates",
+      "name": "Metal Pirates Room",
+      "comment": null
+    },
+    "threeMusketeers": {
+      "id": "0XB656",
+      "handle": "threeMusketeers",
+      "name": "The Musketeers' Room",
+      "comment": null
+    },
+    "ridleyETankRoom": {
+      "id": "0XB698",
+      "handle": "ridleyETankRoom",
+      "name": "Ridley Tank Room",
+      "comment": null
+    },
+    "screwAttack": {
+      "id": "0XB6C1",
+      "handle": "screwAttack",
+      "name": "Screw Attack Room",
+      "comment": null
+    },
+    "lowerNorfairFireflea": {
+      "id": "0XB6EE",
+      "handle": "lowerNorfairFireflea",
+      "name": "Lower Norfair Fireflea Room",
+      "comment": null
+    },
+    "bowling": {
+      "id": "0XC98E",
+      "handle": "bowling",
+      "name": "Bowling Alley",
+      "comment": null
+    },
+    "wreckedShipEntrance": {
+      "id": "0XCA08",
+      "handle": "wreckedShipEntrance",
+      "name": "Wrecked Ship Entrance",
+      "comment": null
+    },
+    "attic": {
+      "id": "0XCA52",
+      "handle": "attic",
+      "name": "Attic",
+      "comment": null
+    },
+    "atticWorkerRobotRoom": {
+      "id": "0XCAAE",
+      "handle": "atticWorkerRobotRoom",
+      "name": "Wrecked Ship East Missile Room",
+      "comment": null
+    },
+    "wreckedShipMainShaft": {
+      "id": "0XCAF6",
+      "handle": "wreckedShipMainShaft",
+      "name": "Wrecked Ship Main Shaft",
+      "comment": null
+    },
+    "wreckedShipETankRoom": {
+      "id": "0XCC27",
+      "handle": "wreckedShipETankRoom",
+      "name": "Wrecked Ship Energy Tank Room",
+      "comment": null
+    },
+    "basement": {
+      "id": "0XCC6F",
+      "handle": "basement",
+      "name": "Wrecked Ship Basement",
+      "comment": "Basement of Wrecked Ship"
+    },
+    "phantoon": {
+      "id": "0XCD13",
+      "handle": "phantoon",
+      "name": "Phantoon's Room",
+      "comment": null
+    },
+    "wreckedShipLeftSuperRoom": {
+      "id": "0XCDA8",
+      "handle": "wreckedShipLeftSuperRoom",
+      "name": "Wrecked Ship West Super Room",
+      "comment": null
+    },
+    "wreckedShipRightSuperRoom": {
+      "id": "0XCDF1",
+      "handle": "wreckedShipRightSuperRoom",
+      "name": "Wrecked Ship East Super Room",
+      "comment": null
+    },
+    "gravity": {
+      "id": "0XCE40",
+      "handle": "gravity",
+      "name": "Gravity Suit Room",
+      "comment": null
+    },
+    "glassTunnel": {
+      "id": "0XCEFB",
+      "handle": "glassTunnel",
+      "name": "Glass Tunnel",
+      "comment": null
+    },
+    "mainStreet": {
+      "id": "0XCFC9",
+      "handle": "mainStreet",
+      "name": "Main Street",
+      "comment": null
+    },
+    "mamaTurtle": {
+      "id": "0XD055",
+      "handle": "mamaTurtle",
+      "name": "Mama Turtle Room",
+      "comment": null
+    },
+    "wateringHole": {
+      "id": "0XD13B",
+      "handle": "wateringHole",
+      "name": "Watering Hole",
+      "comment": null
+    },
+    "beach": {
+      "id": "0XD1DD",
+      "handle": "beach",
+      "name": "Pseudo Plasma Spark Room",
+      "comment": null
+    },
+    "plasmaBeam": {
+      "id": "0XD2AA",
+      "handle": "plasmaBeam",
+      "name": "Plasma Beam Room",
+      "comment": null
+    },
+    "maridiaElevator": {
+      "id": "0XD30B",
+      "handle": "maridiaElevator",
+      "name": "Maridia Elevator",
+      "comment": null
+    },
+    "plasmaSpark": {
+      "id": "0XD340",
+      "handle": "plasmaSpark",
+      "name": "Plasma Spark Room",
+      "comment": null
+    },
+    "toiletBowl": {
+      "id": "0XD408",
+      "handle": "toiletBowl",
+      "name": "Toilet Bowl",
+      "comment": null
+    },
+    "oasis": {
+      "id": "0XD48E",
+      "handle": "oasis",
+      "name": "Oasis",
+      "comment": null
+    },
+    "leftSandPit": {
+      "id": "0XD4EF",
+      "handle": "leftSandPit",
+      "name": "West Sand Hole",
+      "comment": null
+    },
+    "rightSandPit": {
+      "id": "0XD51E",
+      "handle": "rightSandPit",
+      "name": "East Sand Hole",
+      "comment": null
+    },
+    "aqueduct": {
+      "id": "0XD5A7",
+      "handle": "aqueduct",
+      "name": "Aqueduct",
+      "comment": null
+    },
+    "butterflyRoom": {
+      "id": "0XD5EC",
+      "handle": "butterflyRoom",
+      "name": "Butterfly Room",
+      "comment": null
+    },
+    "botwoonHallway": {
+      "id": "0XD617",
+      "handle": "botwoonHallway",
+      "name": "Botwoon Hallway",
+      "comment": null
+    },
+    "springBall": {
+      "id": "0XD6D0",
+      "handle": "springBall",
+      "name": "Spring Ball Room",
+      "comment": null
+    },
+    "precious": {
+      "id": "0XD78F",
+      "handle": "precious",
+      "name": "The Precious Room",
+      "comment": null
+    },
+    "botwoonETankRoom": {
+      "id": "0XD7E4",
+      "handle": "botwoonETankRoom",
+      "name": "Botwoon Energy Tank Room",
+      "comment": null
+    },
+    "botwoon": {
+      "id": "0XD95E",
+      "handle": "botwoon",
+      "name": "Botwoon's Room",
+      "comment": null
+    },
+    "spaceJump": {
+      "id": "0XD9AA",
+      "handle": "spaceJump",
+      "name": "Space Jump Room",
+      "comment": null
+    },
+    "westCactusAlley": {
+      "id": "0XD9FE",
+      "handle": "westCactusAlley",
+      "name": "West Cacattack Alley",
+      "comment": null
+    },
+    "draygon": {
+      "id": "0XDA60",
+      "handle": "draygon",
+      "name": "Draygon's Room",
+      "comment": null
+    },
+    "tourianElevator": {
+      "id": "0XDAAE",
+      "handle": "tourianElevator",
+      "name": "Tourian Elevator",
+      "comment": null
+    },
+    "metroidOne": {
+      "id": "0XDAE1",
+      "handle": "metroidOne",
+      "name": "Metroid Room 1",
+      "comment": null
+    },
+    "metroidTwo": {
+      "id": "0XDB31",
+      "handle": "metroidTwo",
+      "name": "Metroid Room 2",
+      "comment": null
+    },
+    "metroidThree": {
+      "id": "0XDB7D",
+      "handle": "metroidThree",
+      "name": "Metroid Room 3",
+      "comment": null
+    },
+    "metroidFour": {
+      "id": "0XDBCD",
+      "handle": "metroidFour",
+      "name": "Metroid Room 4",
+      "comment": null
+    },
+    "dustTorizo": {
+      "id": "0XDC65",
+      "handle": "dustTorizo",
+      "name": "Dust Torizo Room",
+      "comment": null
+    },
+    "tourianHopper": {
+      "id": "0XDC19",
+      "handle": "tourianHopper",
+      "name": "Tourian Hopper Room",
+      "comment": null
+    },
+    "tourianEyeDoor": {
+      "id": "0XDDC4",
+      "handle": "tourianEyeDoor",
+      "name": "Tourian Eye Door Room",
+      "comment": null
+    },
+    "bigBoy": {
+      "id": "0XDCB1",
+      "handle": "bigBoy",
+      "name": "Big Boy Room",
+      "comment": null
+    },
+    "motherBrain": {
+      "id": "0XDD58",
+      "handle": "motherBrain",
+      "name": "Mother Brain's Room",
+      "comment": null
+    },
+    "rinkaShaft": {
+      "id": "0XDDF3",
+      "handle": "rinkaShaft",
+      "name": "Rinka Shaft",
+      "comment": null
+    },
+    "tourianEscape4": {
+      "id": "0XDEDE",
+      "handle": "tourianEscape4",
+      "name": "Tourian Escape Room 4",
+      "comment": null
+    },
+    "ceresElevator": {
+      "id": "0XDF45",
+      "handle": "ceresElevator",
+      "name": "Ceres Elevator",
+      "comment": null
+    },
+    "flatRoom": {
+      "id": "0XE06B",
+      "handle": "flatRoom",
+      "name": "Ceres Flat Room",
+      "comment": "Placeholder name for the flat room in Ceres Station"
+    },
+    "ceresRidley": {
+      "id": "0XE0B5",
+      "handle": "ceresRidley",
+      "name": "Ceres Ridley Room",
+      "comment": null
+    }
+  }
+}
