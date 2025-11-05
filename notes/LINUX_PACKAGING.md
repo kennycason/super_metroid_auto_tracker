@@ -56,7 +56,7 @@ The Linux-specific configuration in the `nativeDistributions` block:
 linux {
     targetFormats(TargetFormat.Deb)
     packageName = "supermetroidautotracker"
-    packageVersion = "2.0.0"
+    packageVersion = "1.0.0"
     description = "Super Metroid Auto Tracker"
     shortcut = true
     iconFile.set(project.file("src/main/compose/resources/Super_Metroid_Auto_Tracker.png"))

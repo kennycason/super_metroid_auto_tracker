@@ -281,7 +281,7 @@ class FileStorageService(private val configDir: String? = null) : Logging {
             }
 
             val summaries = RunSummaries(
-                version = "2.0.0",
+                version = "1.0.0",
                 lastUpdated = Clock.System.now(),
                 profiles = profiles
             )
@@ -298,7 +298,7 @@ class FileStorageService(private val configDir: String? = null) : Logging {
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to derive run summaries, returning empty" }
             RunSummaries(
-                version = "2.0.0",
+                version = "1.0.0",
                 lastUpdated = Clock.System.now(),
                 profiles = emptyMap()
             )

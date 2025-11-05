@@ -97,7 +97,7 @@ compose.desktop {
             includeAllModules = true
             
             packageName = "Super Metroid Auto Tracker"
-            packageVersion = "2.0.0"
+            packageVersion = "1.0.0"
             description = "Super Metroid Auto Tracker - Kotlin Compose Desktop"
             copyright = "© 2025 Super Metroid Tracker"
             vendor = "Super Metroid Community"
@@ -119,7 +119,7 @@ compose.desktop {
             
             linux {
                 packageName = "supermetroidautotracker"
-                packageVersion = "2.0.0"
+                packageVersion = "1.0.0"
                 description = "Super Metroid Auto Tracker"
                 shortcut = true
                 iconFile.set(project.file("src/main/resources/icon.png"))

@@ -29,7 +29,7 @@ data class ProfileSummary(
 
 @Serializable
 data class RunSummaries(
-    val version: String = "2.0.0",
+    val version: String = "1.0.0",
     val lastUpdated: Instant,
     val profiles: Map<String, ProfileSummary>
 )

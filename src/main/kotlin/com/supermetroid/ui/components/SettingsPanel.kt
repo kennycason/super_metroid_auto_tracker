@@ -738,15 +738,6 @@ private fun RoomNameToggleSection(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Title
-        Text(
-            text = "Room Name Display",
-            style = MaterialTheme.typography.titleSmall.copy(
-                color = TrackerColors.Primary,
-                fontWeight = FontWeight.Bold
-            ),
-            modifier = Modifier.padding(bottom = 6.dp)
-        )
 
         // Toggle switch
         Row(
@@ -797,14 +788,14 @@ private fun TimerSetSection(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Title
-        Text(
-            text = "Set Timer",
-            style = MaterialTheme.typography.titleSmall.copy(
-                color = TrackerColors.Primary,
-                fontWeight = FontWeight.Bold
-            ),
-            modifier = Modifier.padding(bottom = 6.dp)
-        )
+        // Text(
+        //     text = "Set Timer",
+        //     style = MaterialTheme.typography.titleSmall.copy(
+        //         color = TrackerColors.Primary,
+        //         fontWeight = FontWeight.Bold
+        //     ),
+        //     modifier = Modifier.padding(bottom = 6.dp)
+        // )
 
         // Dropdowns row
         Row(
@@ -843,7 +834,7 @@ private fun TimerSetSection(
                     onDismissRequest = { hoursExpanded = false },
                     modifier = Modifier.background(TrackerColors.Surface).heightIn(max = 200.dp)
                 ) {
-                    (0..9).forEach { h ->
+                    (0..100).forEach { h ->
                         DropdownMenuItem(
                             text = {
                                 Text(
