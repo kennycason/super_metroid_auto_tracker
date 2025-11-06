@@ -16,3 +16,4 @@ classes/
 build/
 .gradle/
 ../.gradle/*
+test_data/

@@ -420,8 +420,10 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                 System.currentTimeMillis() - currentRun.startTime.toEpochMilliseconds() - currentRun.pausedTime
             }
 
+            // Don't set endTime for reset runs - only completed runs should have endTime
+            // This prevents incomplete runs from being counted as PBs
             val runToSave = currentRun.copy(
-                endTime = Clock.System.now(),
+                endTime = null,  // Reset runs should NOT have endTime
                 totalTime = finalTime
             )
 

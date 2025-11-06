@@ -175,7 +175,7 @@ fun Timer(
             // Main Timer Display with hover controls
             val interactionSource = remember { MutableInteractionSource() }
             val isHovered by interactionSource.collectIsHoveredAsState()
-            
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -256,9 +256,10 @@ private fun formatTime(milliseconds: Long): String {
     val seconds = totalSeconds % 60
     val centiseconds = (milliseconds % 1000) / 10
 
-    return if (hours > 0) {
-        "%d:%02d:%02d.%02d".format(hours, minutes, seconds, centiseconds)
-    } else {
-        "%02d:%02d.%02d".format(minutes, seconds, centiseconds)
-    }
+    return "%d:%02d:%02d.%02d".format(hours, minutes, seconds, centiseconds)
+//    return if (hours > 0) {
+//        "%d:%02d:%02d.%02d".format(hours, minutes, seconds, centiseconds)
+//    } else {
+//        "%02d:%02d.%02d".format(minutes, seconds, centiseconds)
+//    }
 }

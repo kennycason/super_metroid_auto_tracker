@@ -236,15 +236,17 @@ class IncompleteRunBestSplitBugTest {
         println("Best split times in summary: ${summary.bestSplitTimes.keys.sorted()}")
         
         // The expected splits based on the data
+        // The 1:03:55 complete run has all 24 splits!
         val expectedSplits = listOf(
             "ceres_station", "morph_ball", "first_missile", "bomb", "first_super",
             "charge_beam", "spazer", "kraid", "varia_suit", "hi_jump",
             "speed_booster", "wave_beam", "ice_beam", "first_power_bomb", "phantoon",
-            "gravity_suit", "draygon", "space_jump", "plasma_beam"
+            "gravity_suit", "draygon", "space_jump", "plasma_beam", "ridley",
+            "golden_four", "mother_brain_1", "mother_brain_2", "ship"
         )
         
-        // These splits should NOT have best times because NO complete run has them
-        val shouldNotExist = listOf("ridley", "g4", "mother_brain_1", "mother_brain_2", "ship")
+        // All splits should have best times since the complete run has all 24 splits
+        val shouldNotExist = emptyList<String>()
         
         // Verify that splits that don't exist in complete runs don't have best times
         for (splitId in shouldNotExist) {

@@ -15,11 +15,17 @@ import java.util.Date
 
 /**
  * File-based storage service for splits data and personal bests
- * Stores data in ~/.smtracker/ directory to match the old system
+ * Stores data in ~/.smtracker/ directory by default
+ * 
+ * @param dataDir Optional custom data directory path. If provided, uses that directory directly.
+ *                If null, uses ~/.smtracker/ as the default.
  */
-class FileStorageService(private val configDir: String? = null) : Logging {
-    private val homeDir = configDir ?: System.getProperty("user.home")
-    private val trackerDir = File(homeDir, ".smtracker")
+class FileStorageService(private val dataDir: String? = null) : Logging {
+    private val trackerDir = if (dataDir != null) {
+        File(dataDir)
+    } else {
+        File(System.getProperty("user.home"), ".smtracker")
+    }
     private val splitsFile = File(trackerDir, "splits-data.json")
     private val configFile = File(trackerDir, "smtracker.json")
     private val runsDir = File(trackerDir, "runs")
@@ -44,45 +50,25 @@ class FileStorageService(private val configDir: String? = null) : Logging {
     }
 
     /**
-     * Save splits state to file
+     * Save splits state to file (deprecated - no longer used)
+     * @deprecated Legacy format no longer supported. Runs are saved individually in runs/ directory.
      */
+    @Deprecated("Legacy format no longer supported. Use saveRun() instead.")
     suspend fun saveSplitsState(splitsState: SplitsState) = withContext(Dispatchers.IO) {
-        try {
-            val jsonString = json.encodeToString(splitsState)
-            splitsFile.writeText(jsonString)
-            logger.debug { "💾 Saved splits state to ${splitsFile.absolutePath}" }
-        } catch (e: Exception) {
-            logger.error(e) { "❌ Failed to save splits state" }
-            throw e
-        }
+        // No-op: Legacy format is no longer saved
+        // Individual runs are saved to runs/ directory instead
+        logger.debug { "⚠️ saveSplitsState called but is deprecated - runs are saved individually" }
     }
 
     /**
-     * Load splits state from file
-     * Prioritizes new format (runs/ directory) over legacy format (splits-data.json)
+     * Load splits state from runs directory (new format only)
+     * Legacy splits-data.json format is no longer supported
      */
     suspend fun loadSplitsState(): SplitsState = withContext(Dispatchers.IO) {
         try {
-            // Check if new format exists (runs directory with files)
-            val hasNewFormat = runsDir.exists() && runsDir.listFiles()?.any {
-                it.isFile && it.extension == "json" && !it.name.contains("corrupted")
-            } == true
-
-            if (hasNewFormat) {
-                logger.info { "📊 Using new file-based format from ${runsDir.absolutePath}" }
-                return@withContext loadSplitsStateFromNewFormat()
-            }
-
-            // Fall back to legacy format
-            if (!splitsFile.exists()) {
-                logger.info { "📄 No existing splits file found, returning empty state" }
-                return@withContext SplitsState()
-            }
-
-            val jsonString = splitsFile.readText()
-            val splitsState = json.decodeFromString<SplitsState>(jsonString)
-            logger.info { "📄 Loaded splits state from legacy format: ${splitsFile.absolutePath}" }
-            splitsState
+            // Always use new format - load from runs/ directory
+            logger.info { "📊 Loading splits state from runs directory: ${runsDir.absolutePath}" }
+            return@withContext loadSplitsStateFromNewFormat()
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to load splits state, returning empty state" }
             SplitsState()
@@ -90,18 +76,24 @@ class FileStorageService(private val configDir: String? = null) : Logging {
     }
 
     /**
-     * Check if splits file exists
+     * Check if legacy splits file exists (deprecated)
+     * @deprecated Legacy format no longer supported, kept for migration checking only
      */
+    @Deprecated("Legacy format no longer supported")
     fun splitsFileExists(): Boolean = splitsFile.exists()
 
     /**
-     * Get splits file path for debugging
+     * Get legacy splits file path (deprecated)
+     * @deprecated Legacy format no longer supported, kept for migration checking only
      */
+    @Deprecated("Legacy format no longer supported")
     fun getSplitsFilePath(): String = splitsFile.absolutePath
 
     /**
-     * Create backup of current splits file
+     * Create backup of legacy splits file (deprecated)
+     * @deprecated Legacy format no longer supported, runs/ directory is the source of truth
      */
+    @Deprecated("Legacy format no longer supported")
     suspend fun backupSplitsFile() = withContext(Dispatchers.IO) {
         try {
             if (splitsFile.exists()) {

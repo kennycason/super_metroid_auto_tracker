@@ -31,44 +31,67 @@ import kotlinx.coroutines.swing.Swing
 
 private val logger = KotlinLogging.logger {}
 
-// Global services
-val fileStorageService = FileStorageService()
-val gameStateService = GameStateService()
-val autoSplitsEngine = AutoSplitsEngine(fileStorageService)
-val themeService = com.supermetroid.service.ThemeService(fileStorageService)
-val iconSizeService = com.supermetroid.service.IconSizeService(fileStorageService)
-val splitIconSizeService = com.supermetroid.service.SplitIconSizeService(fileStorageService)
-val splitDisplayModeService = com.supermetroid.service.SplitDisplayModeService(fileStorageService)
-val iconConfigService = com.supermetroid.service.IconConfigService(fileStorageService)
-val roomNameService = com.supermetroid.service.RoomNameService(fileStorageService)
-val iconViewModeService = com.supermetroid.service.IconViewModeService(fileStorageService)
-val uiVisibilityService = com.supermetroid.service.UIVisibilityService(fileStorageService)
-val soundService = com.supermetroid.service.SoundService(fileStorageService)
-val gameGenieService = com.supermetroid.service.GameGenieService(fileStorageService)
+// Global services - initialized in main()
+lateinit var fileStorageService: FileStorageService
+lateinit var gameStateService: GameStateService
+lateinit var autoSplitsEngine: AutoSplitsEngine
+lateinit var themeService: com.supermetroid.service.ThemeService
+lateinit var iconSizeService: com.supermetroid.service.IconSizeService
+lateinit var splitIconSizeService: com.supermetroid.service.SplitIconSizeService
+lateinit var splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService
+lateinit var iconConfigService: com.supermetroid.service.IconConfigService
+lateinit var roomNameService: com.supermetroid.service.RoomNameService
+lateinit var iconViewModeService: com.supermetroid.service.IconViewModeService
+lateinit var uiVisibilityService: com.supermetroid.service.UIVisibilityService
+lateinit var soundService: com.supermetroid.service.SoundService
+lateinit var gameGenieService: com.supermetroid.service.GameGenieService
 
-fun main() = application {
-    // Load saved window dimensions
-    val config = runBlocking { fileStorageService.loadAppConfig() }
-    val windowState = rememberWindowState(
-        width = config.windowWidth.dp,
-        height = config.windowHeight.dp
-    )
+fun main(args: Array<String>) {
+    // Parse command-line arguments
+    val customDataDir = parseDataDirArg(args)
     
-    Window(
-        onCloseRequest = {
-            // Save window dimensions before closing
-            runBlocking {
-                val currentConfig = fileStorageService.loadAppConfig()
-                fileStorageService.saveAppConfig(
-                    currentConfig.copy(
-                        windowWidth = windowState.size.width.value.toInt(),
-                        windowHeight = windowState.size.height.value.toInt()
+    if (customDataDir != null) {
+        logger.info { "🗂️  Using custom data directory: $customDataDir" }
+    }
+    
+    // Initialize services with optional custom data directory
+    fileStorageService = FileStorageService(customDataDir)
+    gameStateService = GameStateService()
+    autoSplitsEngine = AutoSplitsEngine(fileStorageService)
+    themeService = com.supermetroid.service.ThemeService(fileStorageService)
+    iconSizeService = com.supermetroid.service.IconSizeService(fileStorageService)
+    splitIconSizeService = com.supermetroid.service.SplitIconSizeService(fileStorageService)
+    splitDisplayModeService = com.supermetroid.service.SplitDisplayModeService(fileStorageService)
+    iconConfigService = com.supermetroid.service.IconConfigService(fileStorageService)
+    roomNameService = com.supermetroid.service.RoomNameService(fileStorageService)
+    iconViewModeService = com.supermetroid.service.IconViewModeService(fileStorageService)
+    uiVisibilityService = com.supermetroid.service.UIVisibilityService(fileStorageService)
+    soundService = com.supermetroid.service.SoundService(fileStorageService)
+    gameGenieService = com.supermetroid.service.GameGenieService(fileStorageService)
+    
+    application {
+        // Load saved window dimensions
+        val config = runBlocking { fileStorageService.loadAppConfig() }
+        val windowState = rememberWindowState(
+            width = config.windowWidth.dp,
+            height = config.windowHeight.dp
+        )
+        
+        Window(
+            onCloseRequest = {
+                // Save window dimensions before closing
+                runBlocking {
+                    val currentConfig = fileStorageService.loadAppConfig()
+                    fileStorageService.saveAppConfig(
+                        currentConfig.copy(
+                            windowWidth = windowState.size.width.value.toInt(),
+                            windowHeight = windowState.size.height.value.toInt()
+                        )
                     )
-                )
-            }
-            gameStateService.stop()
-            exitApplication()
-        },
+                }
+                gameStateService.stop()
+                exitApplication()
+            },
         title = "Super Metroid Tracker",
         icon = painterResource("icon.png"),
         state = windowState,
@@ -107,6 +130,59 @@ fun main() = application {
     ) {
         SuperMetroidTrackerApp()
     }
+    }
+}
+
+/**
+ * Parse command-line arguments for custom data directory
+ * Usage: --data-dir=/path/to/directory
+ */
+private fun parseDataDirArg(args: Array<String>): String? {
+    for (arg in args) {
+        when {
+            arg.startsWith("--data-dir=") -> {
+                return arg.substring("--data-dir=".length)
+            }
+            arg == "--help" || arg == "-h" -> {
+                printHelp()
+                System.exit(0)
+            }
+        }
+    }
+    return null
+}
+
+private fun printHelp() {
+    println("""
+        Super Metroid Auto Tracker
+        
+        Usage: SuperMetroidTracker [options]
+        
+        Options:
+          --data-dir=<path>    Use a custom data directory instead of ~/.smtracker/
+                               NOTE: Specify the PARENT directory that CONTAINS runs/
+                               NOT the runs/ directory itself!
+          --help, -h           Show this help message
+        
+        Directory Structure:
+          <data-dir>/
+            ├── runs/*.json          ← Run files
+            ├── smtracker.json       ← Config
+            └── run-summaries.json   ← Cache
+        
+        Examples:
+          # Use default directory (~/.smtracker/)
+          SuperMetroidTracker
+          
+          # ✅ CORRECT - Use custom test directory
+          SuperMetroidTracker --data-dir=test_data
+          
+          # ✅ CORRECT - Use real data with explicit path
+          SuperMetroidTracker --data-dir=/Users/kenny/.smtracker
+          
+          # ❌ WRONG - Don't include /runs in the path!
+          SuperMetroidTracker --data-dir=test_data/runs
+    """.trimIndent())
 }
 
 @Composable
@@ -192,17 +268,8 @@ fun SuperMetroidTrackerApp() {
         soundService.processGameStateChange(trackerState.gameState)
     }
 
-    // Save splits state periodically (but not if it's empty - prevents overwriting loaded data)
-    LaunchedEffect(splitsState) {
-        // Don't save empty states - this prevents overwriting good data with empty state on startup
-        if (splitsState.personalBests.isNotEmpty() || splitsState.runHistory.isNotEmpty() || splitsState.currentRun != null) {
-            try {
-                fileStorageService.saveSplitsState(splitsState)
-            } catch (e: Exception) {
-                // Handle save error gracefully
-            }
-        }
-    }
+    // Note: Splits are now saved automatically to runs/ directory by AutoSplitsEngine
+    // No need to save to legacy splits-data.json format anymore
 
     ProvideThemeService(themeService) {
         if (servicesInitialized) {
