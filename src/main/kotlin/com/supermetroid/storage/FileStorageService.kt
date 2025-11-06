@@ -203,6 +203,41 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
     }
 
     /**
+     * Load a specific run by its ID
+     */
+    suspend fun loadRunById(runId: String): RunSession? = withContext(Dispatchers.IO) {
+        try {
+            if (!runsDir.exists()) {
+                logger.info { "📁 Runs directory doesn't exist" }
+                return@withContext null
+            }
+
+            val runFiles = runsDir.listFiles { file ->
+                file.isFile && file.extension == "json" && !file.name.contains("corrupted")
+            } ?: emptyArray()
+
+            for (file in runFiles) {
+                try {
+                    val jsonString = file.readText()
+                    val run = json.decodeFromString<RunSession>(jsonString)
+                    if (run.id == runId) {
+                        logger.info { "📄 Loaded run ${runId} from ${file.name}" }
+                        return@withContext run
+                    }
+                } catch (e: Exception) {
+                    logger.error(e) { "❌ Failed to parse run from ${file.name}" }
+                }
+            }
+
+            logger.warn { "⚠️  Run with ID ${runId} not found" }
+            null
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to load run by ID" }
+            null
+        }
+    }
+
+    /**
      * Derive best splits from all completed runs
      */
     suspend fun deriveBestSplits(profileId: String): ProfileSummary = withContext(Dispatchers.IO) {
@@ -326,9 +361,23 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
 
             logger.info { "📊 Loaded best segments - PB: ${formatTime(kpdrSummary.bestTotalTime ?: 0)}, Best Possible: ${formatTime(bestPossibleTime)}" }
 
+            // Load the PB run from disk so the BEST column can display it
+            val pbRunId = kpdrSummary.bestRunId ?: ""
+            val pbRun = if (pbRunId.isNotEmpty()) {
+                loadRunById(pbRunId)
+            } else {
+                null
+            }
+            
+            val runHistory = if (pbRun != null) {
+                listOf(pbRun)
+            } else {
+                emptyList()
+            }
+
             val personalBest = PersonalBest(
                 profileId = "kpdr-any",
-                runSessionId = kpdrSummary.bestRunId ?: "",
+                runSessionId = pbRunId,
                 totalTime = kpdrSummary.bestTotalTime ?: 0, // Actual PB run time
                 splitTimes = splitTimes // Best segments for "Best Possible" calculation
             )
@@ -336,7 +385,7 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
             SplitsState(
                 currentRun = null,
                 personalBests = mapOf("kpdr-any" to personalBest),
-                runHistory = emptyList() // Run history is now in individual files
+                runHistory = runHistory // Include the PB run so BEST column can display it
             )
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to load splits state from new format" }

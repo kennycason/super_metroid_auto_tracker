@@ -416,6 +416,16 @@ private fun SplitsSettingsTab(
             modifier = Modifier.fillMaxWidth()
         )
 
+        BobColumnToggleSection(
+            splitDisplayModeService = splitDisplayModeService,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        BestColumnToggleSection(
+            splitDisplayModeService = splitDisplayModeService,
+            modifier = Modifier.fillMaxWidth()
+        )
+
         Spacer(modifier = Modifier.weight(1f))
     }
 }
@@ -851,6 +861,82 @@ private fun SegmentDeltasToggleSection(
             onCheckedChange = { enabled ->
                 scope.launch {
                     splitDisplayModeService.setShowSegmentDeltas(enabled)
+                }
+            },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = TrackerColors.Primary,
+                checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.5f),
+                uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
+                uncheckedTrackColor = TrackerColors.SurfaceVariant
+            )
+        )
+    }
+}
+
+@Composable
+private fun BobColumnToggleSection(
+    splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
+    modifier: Modifier = Modifier
+) {
+    val showBobColumn by splitDisplayModeService.showBobColumn.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    Row(
+        modifier = modifier.fillMaxWidth(0.9f),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Show BoB Column",
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = TrackerColors.OnSurface,
+                fontWeight = FontWeight.Medium
+            )
+        )
+
+        Switch(
+            checked = showBobColumn,
+            onCheckedChange = { enabled ->
+                scope.launch {
+                    splitDisplayModeService.setShowBobColumn(enabled)
+                }
+            },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = TrackerColors.Primary,
+                checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.5f),
+                uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
+                uncheckedTrackColor = TrackerColors.SurfaceVariant
+            )
+        )
+    }
+}
+
+@Composable
+private fun BestColumnToggleSection(
+    splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
+    modifier: Modifier = Modifier
+) {
+    val showBestColumn by splitDisplayModeService.showBestColumn.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    Row(
+        modifier = modifier.fillMaxWidth(0.9f),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Show BEST Column",
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = TrackerColors.OnSurface,
+                fontWeight = FontWeight.Medium
+            )
+        )
+
+        Switch(
+            checked = showBestColumn,
+            onCheckedChange = { enabled ->
+                scope.launch {
+                    splitDisplayModeService.setShowBestColumn(enabled)
                 }
             },
             colors = SwitchDefaults.colors(

@@ -89,5 +89,7 @@ data class AppConfig(
     // Game Genie settings
     val gameGenieEnabled: Boolean = false,
     // Splits display settings
-    val showSegmentDeltas: Boolean = false
+    val showSegmentDeltas: Boolean = false,
+    val showBobColumn: Boolean = true,  // Show Best of Best (theoretical best) column
+    val showBestColumn: Boolean = true  // Show Personal Best run column
 )

@@ -25,6 +25,12 @@ class SplitDisplayModeService(private val fileStorageService: FileStorageService
     private val _showSegmentDeltas = MutableStateFlow(false)
     val showSegmentDeltas: StateFlow<Boolean> = _showSegmentDeltas.asStateFlow()
 
+    private val _showBobColumn = MutableStateFlow(true)
+    val showBobColumn: StateFlow<Boolean> = _showBobColumn.asStateFlow()
+
+    private val _showBestColumn = MutableStateFlow(true)
+    val showBestColumn: StateFlow<Boolean> = _showBestColumn.asStateFlow()
+
     /**
      * Initialize split display mode service and load saved settings from config
      */
@@ -34,6 +40,8 @@ class SplitDisplayModeService(private val fileStorageService: FileStorageService
             _showSplitIcons.value = config.showSplitIcons
             _showSplitNames.value = config.showSplitNames
             _showSegmentDeltas.value = config.showSegmentDeltas
+            _showBobColumn.value = config.showBobColumn
+            _showBestColumn.value = config.showBestColumn
             _currentDisplayMode.value = SplitDisplayMode.fromBooleans(config.showSplitIcons, config.showSplitNames)
             logger.info { "📋 Loaded split display mode: ${_currentDisplayMode.value.displayName}" }
         } catch (e: Exception) {
@@ -77,6 +85,40 @@ class SplitDisplayModeService(private val fileStorageService: FileStorageService
             logger.info { "💾 Saved show segment deltas: $show" }
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to save show segment deltas setting" }
+        }
+    }
+
+    /**
+     * Set whether to show BoB (Best of Best) column and save to config
+     */
+    suspend fun setShowBobColumn(show: Boolean) {
+        _showBobColumn.value = show
+
+        // Save to config
+        try {
+            val currentConfig = fileStorageService.loadAppConfig()
+            val updatedConfig = currentConfig.copy(showBobColumn = show)
+            fileStorageService.saveAppConfig(updatedConfig)
+            logger.info { "💾 Saved show BoB column: $show" }
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to save show BoB column setting" }
+        }
+    }
+
+    /**
+     * Set whether to show BEST (Personal Best run) column and save to config
+     */
+    suspend fun setShowBestColumn(show: Boolean) {
+        _showBestColumn.value = show
+
+        // Save to config
+        try {
+            val currentConfig = fileStorageService.loadAppConfig()
+            val updatedConfig = currentConfig.copy(showBestColumn = show)
+            fileStorageService.saveAppConfig(updatedConfig)
+            logger.info { "💾 Saved show BEST column: $show" }
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to save show BEST column setting" }
         }
     }
 }

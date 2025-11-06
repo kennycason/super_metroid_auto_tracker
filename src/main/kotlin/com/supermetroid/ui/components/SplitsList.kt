@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import com.supermetroid.autosplits.AutoSplitsEngine
 import com.supermetroid.autosplits.KpdrAnyProfile
 import com.supermetroid.model.Split
+import com.supermetroid.model.SplitTime
 import com.supermetroid.model.SplitsState
 import com.supermetroid.ui.theme.TrackerColors
 
@@ -39,6 +40,8 @@ fun SplitsList(
     val showSplitIcons by splitDisplayModeService.showSplitIcons.collectAsState()
     val showSplitNames by splitDisplayModeService.showSplitNames.collectAsState()
     val showSegmentDeltas by splitDisplayModeService.showSegmentDeltas.collectAsState()
+    val showBobColumn by splitDisplayModeService.showBobColumn.collectAsState()
+    val showBestColumn by splitDisplayModeService.showBestColumn.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -69,7 +72,12 @@ fun SplitsList(
             .padding(12.dp)
     ) {
             // Header
-            SplitsHeader(splitsState, autoSplitsEngine)
+            SplitsHeader(
+                splitsState = splitsState,
+                autoSplitsEngine = autoSplitsEngine,
+                showBobColumn = showBobColumn,
+                showBestColumn = showBestColumn
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -90,7 +98,9 @@ fun SplitsList(
                         splitIconSize = currentSplitIconSize.size,
                         showIcon = showSplitIcons,
                         showName = showSplitNames,
-                        showSegmentDeltas = showSegmentDeltas
+                        showSegmentDeltas = showSegmentDeltas,
+                        showBobColumn = showBobColumn,
+                        showBestColumn = showBestColumn
                     )
                 }
             }
@@ -100,7 +110,9 @@ fun SplitsList(
 @Composable
 private fun SplitsHeader(
     splitsState: SplitsState,
-    autoSplitsEngine: AutoSplitsEngine
+    autoSplitsEngine: AutoSplitsEngine,
+    showBobColumn: Boolean,
+    showBestColumn: Boolean
 ) {
     @Suppress("UNUSED_PARAMETER") // splitsState might be used in future
     val currentSplit = autoSplitsEngine.getCurrentSplit()
@@ -120,34 +132,39 @@ private fun SplitsHeader(
                     letterSpacing = 1.sp
                 )
             )
-            // if (currentSplit != null) {
-            //     Text(
-            //         text = "Next: ${currentSplit.name}",
-            //         style = MaterialTheme.typography.bodyMedium.copy(
-            //             color = TrackerColors.SplitActive,
-            //             fontWeight = FontWeight.Bold,
-            //             fontSize = 12.sp
-            //         )
-            //     )
-            // }
         }
 
-        // Column headers (BEST | TIME with delta)
+        // Column headers (BoB | BEST | TIME)
         Row(
             horizontalArrangement = Arrangement.End,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = "BEST",
-                style = MaterialTheme.typography.labelSmall.copy(
-                    color = TrackerColors.OnSurfaceVariant,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 10.sp
-                ),
-                modifier = Modifier.width(70.dp), // Width to prevent label wrapping
-                textAlign = TextAlign.End
-            )
-            Spacer(modifier = Modifier.width(2.dp)) // Reduced to move BEST closer to TIME
+            if (showBobColumn) {
+                Text(
+                    text = "BOB",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = TrackerColors.OnSurfaceVariant,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 10.sp
+                    ),
+                    modifier = Modifier.width(85.dp), // Width for BoB column with milliseconds
+                    textAlign = TextAlign.End
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+            }
+            if (showBestColumn) {
+                Text(
+                    text = "BEST",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = TrackerColors.OnSurfaceVariant,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 10.sp
+                    ),
+                    modifier = Modifier.width(85.dp), // Width for BEST column with milliseconds
+                    textAlign = TextAlign.End
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+            }
             Text(
                 text = "TIME",
                 style = MaterialTheme.typography.labelSmall.copy(
@@ -155,7 +172,7 @@ private fun SplitsHeader(
                     fontWeight = FontWeight.Bold,
                     fontSize = 10.sp
                 ),
-                modifier = Modifier.width(120.dp), // Match the TIME column width
+                modifier = Modifier.width(85.dp), // Match TIME column width with milliseconds
                 textAlign = TextAlign.End
             )
         }
@@ -171,19 +188,27 @@ private fun SplitRow(
     splitIconSize: Int,
     showIcon: Boolean,
     showName: Boolean,
-    showSegmentDeltas: Boolean
+    showSegmentDeltas: Boolean,
+    showBobColumn: Boolean,
+    showBestColumn: Boolean
 ) {
     val currentRun = splitsState.currentRun
     val completedSplit = currentRun?.completedSplits?.find { it.splitId == split.id }
     val isCompleted = completedSplit != null
     val isActive = autoSplitsEngine.getCurrentSplit()?.id == split.id
 
-    // Use a default profileId ("kpdr-any") when currentRun is null to ensure BEST column is always shown
+    // Use a default profileId ("kpdr-any") when currentRun is null to ensure columns are always shown
     val profileId = currentRun?.profileId ?: "kpdr-any"
-    val personalBest = splitsState.personalBests[profileId]?.splitTimes?.get(split.id)
+    val personalBest = splitsState.personalBests[profileId]
+    
+    // Get the best segment time for this split (BoB - Best of Best)
+    val bestSegmentTime = personalBest?.splitTimes?.get(split.id)
+    
+    // Get the PB run's segment time for this split (BEST - from Personal Best run)
+    val pbRunSegmentTime = getPbRunSegmentTime(splitsState, profileId, split.id)
 
-    // Calculate sum of best segments up to this point (including this split)
-    val profileSplitTimes = splitsState.personalBests[profileId]?.splitTimes
+    // Calculate sum of best segments up to this point for BoB column
+    val profileSplitTimes = personalBest?.splitTimes
     val sumOfBestUpToHere = if (profileSplitTimes != null) {
         KpdrAnyProfile.profile.splits.take(splitIndex + 1).sumOf { s ->
             profileSplitTimes[s.id]?.segmentTime ?: 0L
@@ -191,13 +216,12 @@ private fun SplitRow(
     } else {
         0L
     }
+    
+    // Calculate sum of PB run's segment times up to this point for BEST column
+    val sumOfPbRunUpToHere = calculatePbRunTimeUpTo(splitsState, profileId, splitIndex)
 
-    // Get best segment time for this split
-    val bestSegmentTime = personalBest?.segmentTime ?: 0L
-
-    // Only show sum of best if THIS split has a best segment time
-    // This prevents showing stale sums for splits that have never been completed
-    val showSumOfBest = bestSegmentTime > 0
+    // Only show BoB if THIS split has a best segment time
+    val showBob = (bestSegmentTime?.segmentTime ?: 0L) > 0
 
     // Determine row colors and styling
     val backgroundColor = when {
@@ -265,108 +289,102 @@ private fun SplitRow(
                 }
             }
 
-            // Times section (BEST | TIME with delta, right-aligned)
+            // Times section (BoB | BEST | TIME, right-aligned)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(2.dp), // Match header spacing
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
-                // Personal best (first column) - show sum of best segments
-                Column(
-                    modifier = Modifier.width(70.dp), // Match header width
-                    horizontalAlignment = Alignment.End
-                ) {
-                    // Sum of best segments up to this point (main line)
-                    // Only show if this split has a best segment time
-                    Text(
-                        text = if (showSumOfBest && sumOfBestUpToHere > 0) {
-                            formatTimeNoMillis(sumOfBestUpToHere)
-                        } else {
-                            "--:--:--"
-                        },
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = TrackerColors.OnSurfaceVariant,
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = if (showSegmentDeltas) 11.sp else 12.sp
-                        ),
-                        textAlign = TextAlign.End
-                    )
-
-                    // Best segment time for this split (second line) - conditionally shown
-                    if (showSegmentDeltas && bestSegmentTime > 0) {
+                // BoB Column (Best of Best - theoretical best from all segments)
+                if (showBobColumn) {
+                    Column(
+                        modifier = Modifier.width(85.dp), // Match header width
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        // Sum of best segments up to this point (main line)
                         Text(
-                            text = formatTime(bestSegmentTime),
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.7f),
+                            text = if (showBob && sumOfBestUpToHere > 0) {
+                                formatTimeWithMillis(sumOfBestUpToHere)
+                            } else {
+                                "--:--:--.--"
+                            },
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = TrackerColors.OnSurfaceVariant,
                                 fontFamily = FontFamily.Monospace,
-                                fontSize = 10.sp
+                                fontSize = if (showSegmentDeltas) 10.sp else 11.sp
                             ),
                             textAlign = TextAlign.End
                         )
+
+                        // Best segment time for this split (second line) - conditionally shown
+                        if (showSegmentDeltas && (bestSegmentTime?.segmentTime ?: 0L) > 0) {
+                            Text(
+                                text = formatTime(bestSegmentTime!!.segmentTime),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.7f),
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 9.sp
+                                ),
+                                textAlign = TextAlign.End
+                            )
+                        }
+                    }
+                }
+
+                // BEST Column (Personal Best run's segment time)
+                if (showBestColumn) {
+                    Column(
+                        modifier = Modifier.width(85.dp), // Match header width
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        // PB run's total time up to this point (main line)
+                        Text(
+                            text = if (sumOfPbRunUpToHere > 0) {
+                                formatTimeWithMillis(sumOfPbRunUpToHere)
+                            } else {
+                                "--:--:--.--"
+                            },
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.9f),
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = if (showSegmentDeltas) 10.sp else 11.sp
+                            ),
+                            textAlign = TextAlign.End
+                        )
+
+                        // PB run's segment time for this split (second line) - conditionally shown
+                        if (showSegmentDeltas && (pbRunSegmentTime?.segmentTime ?: 0L) > 0) {
+                            Text(
+                                text = formatTime(pbRunSegmentTime!!.segmentTime),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.7f),
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 9.sp
+                                ),
+                                textAlign = TextAlign.End
+                            )
+                        }
                     }
                 }
 
-                // Current time (second column) - no milliseconds
-                val timeText = if (isCompleted) {
-                    formatTimeNoMillis(completedSplit!!.time.totalTime)
-                } else {
-                    "--:--:--"
-                }
-
-                // Delta text with milliseconds for precision - compare SEGMENT times, not total times
-                val deltaText = if (isCompleted && personalBest != null && completedSplit != null) {
-                    try {
-                        // Check if this is a personal best with an original delta preserved
-                        // Use reflection to safely access the originalDelta field which might not exist in older data
-                        val isPB = personalBest.segmentTime == completedSplit.time.segmentTime
-                        val originalDeltaField = personalBest::class.java.getDeclaredField("originalDelta")
-                        originalDeltaField.isAccessible = true
-                        val originalDelta = originalDeltaField.get(personalBest) as? Long
-
-                        if (isPB && originalDelta != null) {
-                            // This is a PB, but we have the original delta preserved
-                            if (originalDelta < 0) {
-                                "(-${formatTime(-originalDelta)}) PB"
-                            } else if (originalDelta > 0) {
-                                "(+${formatTime(originalDelta)}) PB"
-                            } else {
-                                "PB" // First time or no improvement
-                            }
-                        } else {
-                            // Not a PB or no original delta preserved, calculate normally
-                            val delta = completedSplit.time.segmentTime - personalBest.segmentTime
-                            if (delta < 0) {
-                                "(-${formatTime(-delta)})"
-                            } else if (delta > 0) {
-                                "(+${formatTime(delta)})"
-                            } else {
-                                "PB" // This IS the personal best!
-                            }
-                        }
-                    } catch (e: Exception) {
-                        // Fallback to original calculation if reflection fails
-                        val delta = completedSplit.time.segmentTime - personalBest.segmentTime
-                        if (delta < 0) {
-                            "(-${formatTime(-delta)})"
-                        } else if (delta > 0) {
-                            "(+${formatTime(delta)})"
-                        } else {
-                            "PB" // This IS the personal best!
-                        }
-                    }
-                } else {
-                    ""
-                }
-
-                // Two-column layout: time | delta
+                // TIME Column (Current run time)
                 Column(
-                    modifier = Modifier.width(120.dp),
+                    modifier = Modifier.width(85.dp),
                     horizontalAlignment = Alignment.End
                 ) {
-                    // Time part (main line)
+                    // Current time (main line) with milliseconds
+                    val timeText = if (isCompleted) {
+                        formatTimeWithMillis(completedSplit!!.time.totalTime)
+                    } else {
+                        "--:--:--.--"
+                    }
+
+                    // Calculate delta against best segment time for coloring
+                    val delta = if (isCompleted && bestSegmentTime != null && completedSplit != null) {
+                        completedSplit.time.segmentTime - bestSegmentTime.segmentTime
+                    } else 0L
+
                     // Determine color: gold for good times (PB or ahead), red for bad times (behind)
-                    val timeColor = if (isCompleted && personalBest != null && completedSplit != null) {
-                        val delta = completedSplit.time.segmentTime - personalBest.segmentTime
+                    val timeColor = if (isCompleted && bestSegmentTime != null) {
                         when {
                             delta <= 0 -> Color(0xFFFFD700) // Gold for PB or ahead
                             else -> Color(0xFFFF4444) // Red for behind
@@ -382,21 +400,23 @@ private fun SplitRow(
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = timeColor,
                             fontFamily = FontFamily.Monospace,
-                            fontSize = if (showSegmentDeltas) 11.sp else 12.sp
+                            fontSize = if (showSegmentDeltas) 10.sp else 11.sp
                         ),
                         textAlign = TextAlign.End
                     )
 
-                    // Delta part (second line with milliseconds) - conditionally shown
-                    if (showSegmentDeltas && deltaText.isNotEmpty()) {
-                        val delta = if (isCompleted && personalBest != null && completedSplit != null) {
-                            completedSplit.time.segmentTime - personalBest.segmentTime
-                        } else 0L
+                    // Delta against best segment (second line) - conditionally shown
+                    if (showSegmentDeltas && isCompleted && bestSegmentTime != null && completedSplit != null) {
+                        val deltaText = if (delta < 0) {
+                            "(-${formatTime(-delta)})"
+                        } else if (delta > 0) {
+                            "(+${formatTime(delta)})"
+                        } else {
+                            "PB"
+                        }
 
                         val deltaColor = when {
-                            deltaText.contains("PB") -> Color(0xFFFFD700) // Gold for PB
-                            delta < 0 || deltaText.startsWith("(-") -> Color(0xFFFFD700) // Gold for improvements (faster than PB)
-                            delta == 0L -> Color(0xFFFFD700) // Gold for equal to PB
+                            delta <= 0 -> Color(0xFFFFD700) // Gold for PB or improvements
                             else -> Color(0xFFFF4444) // Red for slower
                         }
 
@@ -406,7 +426,7 @@ private fun SplitRow(
                                 color = deltaColor,
                                 fontFamily = FontFamily.Monospace,
                                 fontWeight = FontWeight.Medium,
-                                fontSize = 10.sp
+                                fontSize = 9.sp
                             ),
                             textAlign = TextAlign.End
                         )
@@ -446,7 +466,7 @@ fun PersonalBestSummary(
                 )
             }
 
-            // Personal Best time (right side)
+            // Personal Best time (right side) with milliseconds
             Row(
                 modifier = Modifier.width(192.dp), // Match split row time column width
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -454,7 +474,7 @@ fun PersonalBestSummary(
             ) {
                 Spacer(modifier = Modifier.width(72.dp))
                 Text(
-                    text = formatTimeNoMillis(currentProfilePB.totalTime),
+                    text = formatTimeWithMillis(currentProfilePB.totalTime),
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = TrackerColors.OnSurface,
                         fontFamily = FontFamily.Monospace,
@@ -507,6 +527,46 @@ private fun getSplitItemId(split: Split): String {
 }
 
 /**
+ * Get the Personal Best run's segment time for a specific split
+ */
+private fun getPbRunSegmentTime(splitsState: SplitsState, profileId: String, splitId: String): SplitTime? {
+    val personalBest = splitsState.personalBests[profileId] ?: return null
+    val pbRunId = personalBest.runSessionId
+    
+    // Find the PB run in run history
+    val pbRun = splitsState.runHistory.find { it.id == pbRunId } ?: return null
+    
+    // Find the completed split for this splitId
+    val completedSplit = pbRun.completedSplits.find { it.splitId == splitId } ?: return null
+    
+    return completedSplit.time
+}
+
+/**
+ * Calculate the sum of PB run's segment times up to (and including) the given split index
+ */
+private fun calculatePbRunTimeUpTo(splitsState: SplitsState, profileId: String, splitIndex: Int): Long {
+    val personalBest = splitsState.personalBests[profileId] ?: return 0L
+    val pbRunId = personalBest.runSessionId
+    
+    // Find the PB run in run history
+    val pbRun = splitsState.runHistory.find { it.id == pbRunId } ?: return 0L
+    
+    // Sum up the segment times for all splits up to splitIndex
+    var totalTime = 0L
+    for (i in 0..splitIndex) {
+        val split = KpdrAnyProfile.profile.splits.getOrNull(i) ?: continue
+        val completedSplit = pbRun.completedSplits.find { it.splitId == split.id }
+        if (completedSplit != null) {
+            // Use the total time from the completed split (cumulative time up to this split)
+            totalTime = completedSplit.time.totalTime
+        }
+    }
+    
+    return totalTime
+}
+
+/**
  * Format time for deltas in M:SS.ss format (with fractional seconds, no leading zero for minutes)
  */
 private fun formatTime(timeMs: Long): String {
@@ -519,7 +579,25 @@ private fun formatTime(timeMs: Long): String {
 }
 
 /**
+ * Format time with milliseconds in H:MM:SS.ss or MM:SS.ss format
+ */
+private fun formatTimeWithMillis(timeMs: Long): String {
+    val totalSeconds = timeMs / 1000
+    val hours = totalSeconds / 3600
+    val minutes = (totalSeconds % 3600) / 60
+    val seconds = totalSeconds % 60
+    val centiseconds = (timeMs % 1000) / 10
+
+    return if (hours > 0) {
+        "%d:%02d:%02d.%02d".format(hours, minutes, seconds, centiseconds)  // No leading zero for hours
+    } else {
+        "%02d:%02d.%02d".format(minutes, seconds, centiseconds)
+    }
+}
+
+/**
  * Format time for main times in H:MM:SS format (no leading zero for hours)
+ * @deprecated Use formatTimeWithMillis instead
  */
 private fun formatTimeNoMillis(timeMs: Long): String {
     val totalSeconds = timeMs / 1000
