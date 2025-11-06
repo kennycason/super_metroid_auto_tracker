@@ -968,23 +968,40 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         // Save run incrementally after each split to prevent data loss
         // This saves partial runs with completed segments even if the app crashes or run is reset
+        // Use runBlocking to ensure save completes before continuing
         fileStorageService?.let { storage ->
-            scope.launch {
-                try {
+            try {
+                logger.info { "💾 Saving run progress for split: ${split.name} (${finalRun.completedSplits.size} splits)" }
+                kotlinx.coroutines.runBlocking {
                     storage.saveRun(finalRun)
-                    logger.debug { "💾 Saved run progress (${finalRun.completedSplits.size} splits) to runs/ directory" }
+                }
+                logger.info { "✅ Successfully saved run progress to disk" }
 
-                    // Update run summaries to track segment PBs from this run so far
-                    val summaries = storage.loadRunSummaries()
-                    val updatedProfile = storage.deriveBestSplits(finalRun.profileId)
-                    val updatedSummaries = summaries.copy(
-                        lastUpdated = Clock.System.now(),
-                        profiles = summaries.profiles + (finalRun.profileId to updatedProfile)
-                    )
-                    storage.saveRunSummaries(updatedSummaries)
-                    logger.debug { "📊 Updated run summaries with current segments" }
+                // Update run summaries to track segment PBs from this run so far
+                try {
+                    kotlinx.coroutines.runBlocking {
+                        val summaries = storage.loadRunSummaries()
+                        val updatedProfile = storage.deriveBestSplits(finalRun.profileId)
+                        val updatedSummaries = summaries.copy(
+                            lastUpdated = Clock.System.now(),
+                            profiles = summaries.profiles + (finalRun.profileId to updatedProfile)
+                        )
+                        storage.saveRunSummaries(updatedSummaries)
+                    }
+                    logger.info { "✅ Updated run summaries with current segments" }
                 } catch (e: Exception) {
-                    logger.error(e) { "❌ Failed to save run progress" }
+                    logger.error(e) { "⚠️  Failed to update run summaries, but run data was saved" }
+                }
+            } catch (e: Exception) {
+                logger.error(e) { "❌ CRITICAL: Failed to save run progress after split ${split.name}" }
+                // Try to save with error recovery
+                try {
+                    kotlinx.coroutines.runBlocking {
+                        storage.saveRun(finalRun)
+                    }
+                    logger.info { "✅ Retry succeeded - run saved" }
+                } catch (e2: Exception) {
+                    logger.error(e2) { "❌ FATAL: Could not save run even after retry" }
                 }
             }
         }
