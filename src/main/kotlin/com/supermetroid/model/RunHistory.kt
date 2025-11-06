@@ -80,8 +80,8 @@ class RunHistoryService {
                 }
             }
             
-            // Find best segment times across all runs (complete AND incomplete)
-            val allRuns = runs + runHistory.incompleteRuns.filter { it.profileId == profileId }
+            // Find best segment times across all runs (ONLY complete runs)
+            val allRuns = runs.filter { it.isComplete }
             for (run in allRuns) {
                 for (split in run.completedSplits) {
                     val currentBest = bestSegmentTimes[split.splitId]
@@ -118,9 +118,9 @@ class RunHistoryService {
             completedRuns.map { it.totalTime }.average().toLong()
         } else null
         
-        // Best segment times across all runs
+        // Best segment times across ONLY complete runs
         val bestSegmentTimes = mutableMapOf<String, SplitTime>()
-        for (run in allRuns) {
+        for (run in completedRuns) {
             for (split in run.completedSplits) {
                 val currentBest = bestSegmentTimes[split.splitId]
                 if (currentBest == null || split.time.segmentTime < currentBest.segmentTime) {

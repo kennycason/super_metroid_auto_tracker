@@ -87,5 +87,7 @@ data class AppConfig(
     val soundEnabled: Boolean = false,
     val volume: Float = 1.0f,
     // Game Genie settings
-    val gameGenieEnabled: Boolean = false
+    val gameGenieEnabled: Boolean = false,
+    // Splits display settings
+    val showSegmentDeltas: Boolean = false
 )

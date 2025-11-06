@@ -1,0 +1,62 @@
+{
+    "id": "run_1762312648480",
+    "profileId": "kpdr-any",
+    "startTime": "2025-11-05T03:17:28.480058692Z",
+    "endTime": "2025-11-05T03:25:38.783893334Z",
+    "completedSplits": [
+        {
+            "splitId": "ceres_station",
+            "time": {
+                "totalTime": 89433,
+                "segmentTime": 89433,
+                "delta": -3901,
+                "originalDelta": -3901
+            },
+            "timestamp": "2025-11-05T03:18:57.913765289Z"
+        },
+        {
+            "splitId": "morph_ball",
+            "time": {
+                "totalTime": 191000,
+                "segmentTime": 101567,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-05T03:20:39.480393927Z"
+        },
+        {
+            "splitId": "first_missile",
+            "time": {
+                "totalTime": 214150,
+                "segmentTime": 23150,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-05T03:21:02.630457203Z"
+        },
+        {
+            "splitId": "bomb",
+            "time": {
+                "totalTime": 325234,
+                "segmentTime": 111084,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-05T03:22:53.714729709Z"
+        },
+        {
+            "splitId": "first_super",
+            "time": {
+                "totalTime": 454650,
+                "segmentTime": 129416,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-05T03:25:03.131045497Z"
+        }
+    ],
+    "totalTime": 490303,
+    "isPersonalBest": false,
+    "isPaused": false,
+    "pausedTime": 0
+}

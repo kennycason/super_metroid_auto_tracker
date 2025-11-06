@@ -38,6 +38,7 @@ fun SplitsList(
     val currentSplitIconSize by splitIconSizeService.currentSplitIconSize.collectAsState()
     val showSplitIcons by splitDisplayModeService.showSplitIcons.collectAsState()
     val showSplitNames by splitDisplayModeService.showSplitNames.collectAsState()
+    val showSegmentDeltas by splitDisplayModeService.showSegmentDeltas.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -61,7 +62,7 @@ fun SplitsList(
             }
         }
     }
-    
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -88,7 +89,8 @@ fun SplitsList(
                         autoSplitsEngine = autoSplitsEngine,
                         splitIconSize = currentSplitIconSize.size,
                         showIcon = showSplitIcons,
-                        showName = showSplitNames
+                        showName = showSplitNames,
+                        showSegmentDeltas = showSegmentDeltas
                     )
                 }
             }
@@ -168,7 +170,8 @@ private fun SplitRow(
     autoSplitsEngine: AutoSplitsEngine,
     splitIconSize: Int,
     showIcon: Boolean,
-    showName: Boolean
+    showName: Boolean,
+    showSegmentDeltas: Boolean
 ) {
     val currentRun = splitsState.currentRun
     val completedSplit = currentRun?.completedSplits?.find { it.splitId == split.id }
@@ -192,6 +195,10 @@ private fun SplitRow(
     // Get best segment time for this split
     val bestSegmentTime = personalBest?.segmentTime ?: 0L
 
+    // Only show sum of best if THIS split has a best segment time
+    // This prevents showing stale sums for splits that have never been completed
+    val showSumOfBest = bestSegmentTime > 0
+
     // Determine row colors and styling
     val backgroundColor = when {
         isActive -> TrackerColors.SplitActive.copy(alpha = 0.2f)
@@ -204,7 +211,7 @@ private fun SplitRow(
         isCompleted -> Color.Transparent // No border for completed splits
         else -> TrackerColors.Border.copy(alpha = 0.3f)
     }
-    
+
     // Calculate row height: max of icon size or 24dp base height, plus padding
     val rowHeight = kotlin.math.max(splitIconSize, 24) + 2 // +2 for vertical padding
 
@@ -264,14 +271,15 @@ private fun SplitRow(
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                // Personal best (first column) - show sum of best segments + individual segment time
+                // Personal best (first column) - show sum of best segments
                 Column(
                     modifier = Modifier.width(70.dp), // Match header width
                     horizontalAlignment = Alignment.End
                 ) {
                     // Sum of best segments up to this point (main line)
+                    // Only show if this split has a best segment time
                     Text(
-                        text = if (sumOfBestUpToHere > 0) {
+                        text = if (showSumOfBest && sumOfBestUpToHere > 0) {
                             formatTimeNoMillis(sumOfBestUpToHere)
                         } else {
                             "--:--:--"
@@ -279,13 +287,13 @@ private fun SplitRow(
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = TrackerColors.OnSurfaceVariant,
                             fontFamily = FontFamily.Monospace,
-                            fontSize = 11.sp
+                            fontSize = if (showSegmentDeltas) 11.sp else 12.sp
                         ),
                         textAlign = TextAlign.End
                     )
 
-                    // Best segment time for this split (second line)
-                    if (bestSegmentTime > 0) {
+                    // Best segment time for this split (second line) - conditionally shown
+                    if (showSegmentDeltas && bestSegmentTime > 0) {
                         Text(
                             text = formatTime(bestSegmentTime),
                             style = MaterialTheme.typography.bodySmall.copy(
@@ -356,35 +364,40 @@ private fun SplitRow(
                     horizontalAlignment = Alignment.End
                 ) {
                     // Time part (main line)
-                    val isPersonalBest = isCompleted && personalBest != null && completedSplit != null &&
-                                        completedSplit.time.segmentTime == personalBest.segmentTime
+                    // Determine color: gold for good times (PB or ahead), red for bad times (behind)
+                    val timeColor = if (isCompleted && personalBest != null && completedSplit != null) {
+                        val delta = completedSplit.time.segmentTime - personalBest.segmentTime
+                        when {
+                            delta <= 0 -> Color(0xFFFFD700) // Gold for PB or ahead
+                            else -> Color(0xFFFF4444) // Red for behind
+                        }
+                    } else if (isCompleted) {
+                        TrackerColors.SplitCompleted
+                    } else {
+                        TrackerColors.SplitPending
+                    }
 
                     Text(
                         text = timeText,
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = when {
-                                isPersonalBest -> Color(0xFF2196F3) // Blue for personal best
-                                isCompleted -> TrackerColors.SplitCompleted
-                                else -> TrackerColors.SplitPending
-                            },
+                            color = timeColor,
                             fontFamily = FontFamily.Monospace,
-                            fontSize = 11.sp
+                            fontSize = if (showSegmentDeltas) 11.sp else 12.sp
                         ),
                         textAlign = TextAlign.End
                     )
 
-                    // Delta part (second line with milliseconds)
-                    if (deltaText.isNotEmpty()) {
+                    // Delta part (second line with milliseconds) - conditionally shown
+                    if (showSegmentDeltas && deltaText.isNotEmpty()) {
                         val delta = if (isCompleted && personalBest != null && completedSplit != null) {
-                            completedSplit.time.totalTime - personalBest.totalTime
+                            completedSplit.time.segmentTime - personalBest.segmentTime
                         } else 0L
 
                         val deltaColor = when {
-                            deltaText.contains("PB") -> Color(0xFF2196F3) // Blue for PB
-                            delta < 0 || deltaText.startsWith("(-") -> Color(0xFF2196F3) // Blue for improvements (faster than PB)
-                            delta == 0L -> Color(0xFF2196F3) // Blue for equal to PB
-                            delta < 5000 -> TrackerColors.Warning // Slightly slower
-                            else -> TrackerColors.Error // Much slower
+                            deltaText.contains("PB") -> Color(0xFFFFD700) // Gold for PB
+                            delta < 0 || deltaText.startsWith("(-") -> Color(0xFFFFD700) // Gold for improvements (faster than PB)
+                            delta == 0L -> Color(0xFFFFD700) // Gold for equal to PB
+                            else -> Color(0xFFFF4444) // Red for slower
                         }
 
                         Text(

@@ -123,17 +123,18 @@ class RunHistoryTest {
                 createTestSplitWithSegment("morph_ball", 150000, 60000)      // 2:30 total, 1:00 segment
             ), true),
             
-            // Run 2: Slow Ceres, fast Morph Ball  
-            createTestRun("run2", "test_profile", now.plus(1.minutes), 140000, listOf(
+            // Run 2: Slow Ceres, fast Morph Ball, has Bomb segment
+            createTestRun("run2", "test_profile", now.plus(1.minutes), 160000, listOf(
                 createTestSplitWithSegment("ceres_station", 100000, 100000), // 1:40 total, 1:40 segment
-                createTestSplitWithSegment("morph_ball", 140000, 40000)      // 2:20 total, 0:40 segment - BEST MORPH
+                createTestSplitWithSegment("morph_ball", 140000, 40000),     // 2:20 total, 0:40 segment - BEST MORPH
+                createTestSplitWithSegment("bomb", 160000, 20000)            // 2:40 total, 0:20 segment - BEST BOMB
             ), true),
             
-            // Run 3: Incomplete but has best Bombs segment
+            // Run 3: Incomplete - should NOT contribute to best splits (BUG FIX!)
             createTestRun("run3", "test_profile", now.plus(2.minutes), 180000, listOf(
-                createTestSplitWithSegment("ceres_station", 95000, 95000),   // 1:35 total, 1:35 segment
-                createTestSplitWithSegment("morph_ball", 160000, 65000),     // 2:40 total, 1:05 segment
-                createTestSplitWithSegment("bomb", 180000, 20000)            // 3:00 total, 0:20 segment - BEST BOMB
+                createTestSplitWithSegment("ceres_station", 50000, 50000),   // 0:50 total - FASTER but incomplete!
+                createTestSplitWithSegment("morph_ball", 80000, 30000),      // 1:20 total - FASTER but incomplete!
+                createTestSplitWithSegment("bomb", 100000, 10000)            // 1:40 total - FASTER but incomplete!
             ), false)
         )
         
@@ -152,15 +153,15 @@ class RunHistoryTest {
         expectThat(derivedPBs).hasSize(1)
         val pb = derivedPBs["test_profile"]!!
         
-            expectThat(pb) {
+        expectThat(pb) {
             get { profileId }.isEqualTo("test_profile")
-            get { totalTime }.isEqualTo(140000) // Run 2 had best total time
-            get { runSessionId }.isEqualTo("run2")
+            get { totalTime }.isEqualTo(150000) // Run 1 had best total time (run 2 is 160000)
+            get { runSessionId }.isEqualTo("run1")
             get { splitTimes }.and {
-                // Best segment times should come from different runs
+                // Best segment times should come ONLY from complete runs (run1 and run2)
                 get { getValue("ceres_station").segmentTime }.isEqualTo(90000)  // From run1 - best Ceres segment
                 get { getValue("morph_ball").segmentTime }.isEqualTo(40000)     // From run2 - best Morph Ball segment
-                get { getValue("bomb").segmentTime }.isEqualTo(20000)           // From run3 - best Bomb segment (from incomplete!)
+                get { getValue("bomb").segmentTime }.isEqualTo(20000)           // From run2 - best Bomb segment (NOT from incomplete run3!)
             }
         }
     }
@@ -197,7 +198,7 @@ class RunHistoryTest {
             get { bestTotalTime }.isEqualTo(110000)
             get { averageCompletionTime }.isEqualTo(115000) // (120000 + 110000) / 2
             get { completionRate }.isEqualTo(2.0 / 3.0)
-            get { bestSegmentTimes["ceres_station"]?.segmentTime }.isEqualTo(60000) // Best from incomplete run!
+            get { bestSegmentTimes["ceres_station"]?.segmentTime }.isEqualTo(85000) // Best from complete run (NOT incomplete!)
         }
     }
     

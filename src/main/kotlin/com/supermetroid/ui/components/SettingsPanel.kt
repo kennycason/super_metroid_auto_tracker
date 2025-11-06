@@ -34,7 +34,7 @@ import com.supermetroid.ui.theme.TrackerColors
 fun SettingsPanel(
     themeService: com.supermetroid.service.ThemeService,
     iconSizeService: com.supermetroid.service.IconSizeService,
-    
+
     splitIconSizeService: com.supermetroid.service.SplitIconSizeService,
     splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
     iconConfigService: com.supermetroid.service.IconConfigService,
@@ -43,7 +43,7 @@ fun SettingsPanel(
     iconViewModeService: com.supermetroid.service.IconViewModeService,
     soundService: com.supermetroid.service.SoundService,
     gameGenieService: com.supermetroid.service.GameGenieService,
-    
+
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableStateOf(0) }
@@ -70,7 +70,7 @@ fun SettingsPanel(
                 ),
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            
+
             // Tab Row
             TabRow(
                 selectedTabIndex = selectedTab,
@@ -97,9 +97,9 @@ fun SettingsPanel(
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(12.dp))
-            
+
             // Tab Content
             when (selectedTab) {
                 0 -> GeneralSettingsTab(
@@ -109,21 +109,25 @@ fun SettingsPanel(
                     gameGenieService = gameGenieService,
                     modifier = Modifier.fillMaxSize()
                 )
+
                 1 -> IconsSettingsTab(
                     iconSizeService = iconSizeService,
                     iconConfigService = iconConfigService,
                     iconViewModeService = iconViewModeService,
                     modifier = Modifier.fillMaxSize()
                 )
+
                 2 -> SplitsSettingsTab(
                     splitIconSizeService = splitIconSizeService,
                     splitDisplayModeService = splitDisplayModeService,
                     modifier = Modifier.fillMaxSize()
                 )
+
                 3 -> SFXSettingsTab(
                     soundService = soundService,
                     modifier = Modifier.fillMaxSize()
                 )
+
                 4 -> VFXSettingsTab(
                     modifier = Modifier.fillMaxSize()
                 )
@@ -142,32 +146,33 @@ private fun GeneralSettingsTab(
 ) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Theme Selection Section
         ThemeSelectionSection(
             themeService = themeService,
             modifier = Modifier.fillMaxWidth()
         )
-        
-        // Room Name Toggle Section
-        RoomNameToggleSection(
-            roomNameService = roomNameService,
-            modifier = Modifier.fillMaxWidth()
-        )
-        
+
         // Timer Set Section
         TimerSetSection(
             autoSplitsEngine = autoSplitsEngine,
             modifier = Modifier.fillMaxWidth()
         )
-        
+
+        // Room Name Toggle Section
+        RoomNameToggleSection(
+            roomNameService = roomNameService,
+            modifier = Modifier.fillMaxWidth()
+        )
+
         // Game Genie Toggle Section
         GameGenieToggleSection(
             gameGenieService = gameGenieService,
             modifier = Modifier.fillMaxWidth()
         )
-        
+
         Spacer(modifier = Modifier.weight(1f))
     }
 }
@@ -178,7 +183,7 @@ private fun GameGenieToggleSection(
     modifier: Modifier = Modifier
 ) {
     val gameGenieEnabled by gameGenieService.gameGenieEnabled.collectAsState()
-    
+
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -188,7 +193,7 @@ private fun GameGenieToggleSection(
             text = "Enable Game Genie",
             style = MaterialTheme.typography.titleSmall.copy(color = TrackerColors.Primary, fontWeight = FontWeight.Bold)
         )
-        
+
         Switch(
             checked = gameGenieEnabled,
             onCheckedChange = { enabled ->
@@ -215,19 +220,25 @@ private fun IconsSettingsTab(
 ) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Icon Size Selection Section
         IconSizeSelectionSection(
             iconSizeService = iconSizeService,
             modifier = Modifier.fillMaxWidth()
         )
-        
-        IconViewModeSection(
+
+        IconLayoutModeSection(
             iconViewModeService = iconViewModeService,
             modifier = Modifier.fillMaxWidth()
         )
-        
+
+        IconAmmoDisplayModeSection(
+            iconViewModeService = iconViewModeService,
+            modifier = Modifier.fillMaxWidth()
+        )
+
         // Icon Management Section - takes remaining space
         IconManagementSection(
             iconConfigService = iconConfigService,
@@ -240,60 +251,131 @@ private fun IconsSettingsTab(
 }
 
 @Composable
-private fun IconViewModeSection(
+private fun IconLayoutModeSection(
     iconViewModeService: com.supermetroid.service.IconViewModeService,
     modifier: Modifier = Modifier
 ) {
     val currentMode by iconViewModeService.iconViewMode.collectAsState()
-    val ammoMode by iconViewModeService.ammoNumberMode.collectAsState()
     var layoutExpanded by remember { mutableStateOf(false) }
-    var ammoExpanded by remember { mutableStateOf(false) }
 
-    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+    // Icon Layout row
+    Row(
+        modifier = modifier.fillMaxWidth(0.9f),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(
             text = "Icon Layout",
-            style = MaterialTheme.typography.titleSmall.copy(color = TrackerColors.Primary, fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(bottom = 6.dp)
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = TrackerColors.OnSurface,
+                fontWeight = FontWeight.Medium
+            )
         )
+
         Box {
             Button(
                 onClick = { layoutExpanded = !layoutExpanded },
-                colors = ButtonDefaults.buttonColors(containerColor = TrackerColors.SurfaceOverlayLight, contentColor = TrackerColors.OnSurface),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = TrackerColors.SurfaceOverlayLight,
+                    contentColor = TrackerColors.OnSurface
+                ),
                 shape = RoundedCornerShape(6.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                modifier = Modifier.fillMaxWidth(0.8f)
-            ) { Text(text = currentMode.displayName, style = MaterialTheme.typography.bodySmall) }
-            DropdownMenu(expanded = layoutExpanded, onDismissRequest = { layoutExpanded = false }, modifier = Modifier.background(TrackerColors.Surface)) {
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = currentMode.displayName, style = MaterialTheme.typography.bodySmall)
+                    Text(text = if (layoutExpanded) "▲" else "▼", style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            DropdownMenu(
+                expanded = layoutExpanded,
+                onDismissRequest = { layoutExpanded = false },
+                modifier = Modifier.background(TrackerColors.Surface)
+            ) {
                 com.supermetroid.model.IconViewMode.values().forEach { mode ->
-                    DropdownMenuItem(text = { Text(mode.displayName, style = MaterialTheme.typography.bodySmall) }, onClick = {
-                        kotlinx.coroutines.GlobalScope.launch { iconViewModeService.setIconViewMode(mode) }
-                        layoutExpanded = false
-                    })
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                mode.displayName,
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = if (mode == currentMode) TrackerColors.Primary else TrackerColors.OnSurface
+                                )
+                            )
+                        },
+                        onClick = {
+                            kotlinx.coroutines.GlobalScope.launch { iconViewModeService.setIconViewMode(mode) }
+                            layoutExpanded = false
+                        }
+                    )
                 }
             }
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(8.dp))
+@Composable
+private fun IconAmmoDisplayModeSection(
+    iconViewModeService: com.supermetroid.service.IconViewModeService,
+    modifier: Modifier = Modifier
+) {
+    val ammoMode by iconViewModeService.ammoNumberMode.collectAsState()
+    var ammoExpanded by remember { mutableStateOf(false) }
 
+    // Ammo Numbers row
+    Row(
+        modifier = modifier.fillMaxWidth(0.9f),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(
             text = "Ammo Numbers",
-            style = MaterialTheme.typography.titleSmall.copy(color = TrackerColors.Primary, fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(bottom = 6.dp)
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = TrackerColors.OnSurface,
+                fontWeight = FontWeight.Medium
+            )
         )
+
         Box {
             Button(
                 onClick = { ammoExpanded = !ammoExpanded },
-                colors = ButtonDefaults.buttonColors(containerColor = TrackerColors.SurfaceOverlayLight, contentColor = TrackerColors.OnSurface),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = TrackerColors.SurfaceOverlayLight,
+                    contentColor = TrackerColors.OnSurface
+                ),
                 shape = RoundedCornerShape(6.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                modifier = Modifier.fillMaxWidth(0.8f)
-            ) { Text(text = ammoMode.displayName, style = MaterialTheme.typography.bodySmall) }
-            DropdownMenu(expanded = ammoExpanded, onDismissRequest = { ammoExpanded = false }, modifier = Modifier.background(TrackerColors.Surface)) {
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = ammoMode.displayName, style = MaterialTheme.typography.bodySmall)
+                    Text(text = if (ammoExpanded) "▲" else "▼", style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            DropdownMenu(
+                expanded = ammoExpanded,
+                onDismissRequest = { ammoExpanded = false },
+                modifier = Modifier.background(TrackerColors.Surface)
+            ) {
                 com.supermetroid.model.AmmoNumberMode.values().forEach { mode ->
-                    DropdownMenuItem(text = { Text(mode.displayName, style = MaterialTheme.typography.bodySmall) }, onClick = {
-                        kotlinx.coroutines.GlobalScope.launch { iconViewModeService.setAmmoNumberMode(mode) }
-                        ammoExpanded = false
-                    })
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                mode.displayName,
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = if (mode == ammoMode) TrackerColors.Primary else TrackerColors.OnSurface
+                                )
+                            )
+                        },
+                        onClick = {
+                            kotlinx.coroutines.GlobalScope.launch { iconViewModeService.setAmmoNumberMode(mode) }
+                            ammoExpanded = false
+                        }
+                    )
                 }
             }
         }
@@ -308,25 +390,32 @@ private fun SplitsSettingsTab(
 ) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Split Profile Section (placeholder for now)
         SplitProfileSection(
             modifier = Modifier.fillMaxWidth()
         )
-        
+
         // Split Icon Size Selection Section
         SplitIconSizeSelectionSection(
             splitIconSizeService = splitIconSizeService,
             modifier = Modifier.fillMaxWidth()
         )
-        
+
         // Split Display Mode Section
         SplitDisplayModeSection(
             splitDisplayModeService = splitDisplayModeService,
             modifier = Modifier.fillMaxWidth()
         )
-        
+
+        // Segment Deltas Toggle Section
+        SegmentDeltasToggleSection(
+            splitDisplayModeService = splitDisplayModeService,
+            modifier = Modifier.fillMaxWidth()
+        )
+
         Spacer(modifier = Modifier.weight(1f))
     }
 }
@@ -335,18 +424,18 @@ private fun SplitsSettingsTab(
 private fun SplitProfileSection(
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
+    Row(
+        modifier = modifier.fillMaxWidth(0.9f),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // Title
+        // Label on left
         Text(
             text = "Split Profile",
-            style = MaterialTheme.typography.titleSmall.copy(
-                color = TrackerColors.Primary,
-                fontWeight = FontWeight.Bold
-            ),
-            modifier = Modifier.padding(bottom = 6.dp)
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = TrackerColors.OnSurface,
+                fontWeight = FontWeight.Medium
+            )
         )
 
         // Profile Display (not a dropdown for now since only one profile exists)
@@ -354,32 +443,16 @@ private fun SplitProfileSection(
             colors = CardDefaults.cardColors(
                 containerColor = TrackerColors.SurfaceOverlayLight
             ),
-            shape = RoundedCornerShape(6.dp),
-            modifier = Modifier.fillMaxWidth(0.8f)
+            shape = RoundedCornerShape(6.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "KPDR Any%",
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = TrackerColors.OnSurface
-                    )
-                )
-            }
+            Text(
+                text = "KPDR Any% (24 splits)",
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = TrackerColors.OnSurface
+                ),
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+            )
         }
-        
-        Text(
-            text = "24 splits",
-            style = MaterialTheme.typography.labelSmall.copy(
-                color = TrackerColors.OnSurfaceVariant
-            ),
-            modifier = Modifier.padding(top = 4.dp)
-        )
     }
 }
 
@@ -391,21 +464,21 @@ private fun ThemeSelectionSection(
     val currentTheme by themeService.currentTheme.collectAsState()
     var expanded by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
+    Row(
+        modifier = modifier.fillMaxWidth(0.9f),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // Title
+        // Label on left
         Text(
             text = "Theme",
-            style = MaterialTheme.typography.titleSmall.copy(
-                color = TrackerColors.Primary,
-                fontWeight = FontWeight.Bold
-            ),
-            modifier = Modifier.padding(bottom = 6.dp)
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = TrackerColors.OnSurface,
+                fontWeight = FontWeight.Medium
+            )
         )
 
-        // Theme Dropdown
+        // Theme Dropdown on right
         Box {
             Button(
                 onClick = { expanded = !expanded },
@@ -414,12 +487,10 @@ private fun ThemeSelectionSection(
                     contentColor = TrackerColors.OnSurface
                 ),
                 shape = RoundedCornerShape(6.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                modifier = Modifier.fillMaxWidth(0.8f)
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -490,21 +561,21 @@ private fun IconSizeSelectionSection(
     var expanded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
+    Row(
+        modifier = modifier.fillMaxWidth(0.9f),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // Title
+        // Label on left
         Text(
             text = "Icon Size",
-            style = MaterialTheme.typography.titleSmall.copy(
-                color = TrackerColors.Primary,
-                fontWeight = FontWeight.Bold
-            ),
-            modifier = Modifier.padding(bottom = 6.dp)
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = TrackerColors.OnSurface,
+                fontWeight = FontWeight.Medium
+            )
         )
 
-        // Icon Size Dropdown
+        // Icon Size Dropdown on right
         Box {
             Button(
                 onClick = { expanded = !expanded },
@@ -513,12 +584,10 @@ private fun IconSizeSelectionSection(
                     contentColor = TrackerColors.OnSurface
                 ),
                 shape = RoundedCornerShape(6.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                modifier = Modifier.fillMaxWidth(0.8f)
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -572,21 +641,21 @@ private fun SplitIconSizeSelectionSection(
     var expanded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
+    Row(
+        modifier = modifier.fillMaxWidth(0.9f),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // Title
+        // Label on left
         Text(
             text = "Split Icon Size",
-            style = MaterialTheme.typography.titleSmall.copy(
-                color = TrackerColors.Primary,
-                fontWeight = FontWeight.Bold
-            ),
-            modifier = Modifier.padding(bottom = 6.dp)
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = TrackerColors.OnSurface,
+                fontWeight = FontWeight.Medium
+            )
         )
 
-        // Split Icon Size Dropdown
+        // Split Icon Size Dropdown on right
         Box {
             Button(
                 onClick = { expanded = !expanded },
@@ -595,12 +664,10 @@ private fun SplitIconSizeSelectionSection(
                     contentColor = TrackerColors.OnSurface
                 ),
                 shape = RoundedCornerShape(6.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                modifier = Modifier.fillMaxWidth(0.8f)
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -654,21 +721,21 @@ private fun SplitDisplayModeSection(
     var expanded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
+    Row(
+        modifier = modifier.fillMaxWidth(0.9f),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // Title
+        // Label on left
         Text(
             text = "Split Display Mode",
-            style = MaterialTheme.typography.titleSmall.copy(
-                color = TrackerColors.Primary,
-                fontWeight = FontWeight.Bold
-            ),
-            modifier = Modifier.padding(bottom = 6.dp)
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = TrackerColors.OnSurface,
+                fontWeight = FontWeight.Medium
+            )
         )
 
-        // Split Display Mode Dropdown
+        // Split Display Mode Dropdown on right
         Box {
             Button(
                 onClick = { expanded = !expanded },
@@ -677,12 +744,10 @@ private fun SplitDisplayModeSection(
                     contentColor = TrackerColors.OnSurface
                 ),
                 shape = RoundedCornerShape(6.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                modifier = Modifier.fillMaxWidth(0.8f)
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -734,35 +799,67 @@ private fun RoomNameToggleSection(
 ) {
     val showRoomName by roomNameService.showRoomName.collectAsState()
 
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
+    // Toggle switch
+    Row(
+        modifier = modifier.fillMaxWidth(0.9f),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        Text(
+            text = "Show room names in status display",
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = TrackerColors.OnSurface
+            )
+        )
 
-        // Toggle switch
-        Row(
-            modifier = Modifier.fillMaxWidth(0.8f),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Show room names in status display",
-                style = MaterialTheme.typography.bodySmall.copy(
-                    color = TrackerColors.OnSurface
-                )
+        Switch(
+            checked = showRoomName,
+            onCheckedChange = { roomNameService.setShowRoomName(it) },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = TrackerColors.Primary,
+                checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.5f),
+                uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
+                uncheckedTrackColor = TrackerColors.SurfaceVariant
             )
-            
-            Switch(
-                checked = showRoomName,
-                onCheckedChange = { roomNameService.setShowRoomName(it) },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = TrackerColors.Primary,
-                    checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.5f),
-                    uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
-                    uncheckedTrackColor = TrackerColors.SurfaceVariant
-                )
+        )
+    }
+}
+
+@Composable
+private fun SegmentDeltasToggleSection(
+    splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
+    modifier: Modifier = Modifier
+) {
+    val showSegmentDeltas by splitDisplayModeService.showSegmentDeltas.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    Row(
+        modifier = modifier.fillMaxWidth(0.9f),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Show Segment Deltas",
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = TrackerColors.OnSurface,
+                fontWeight = FontWeight.Medium
             )
-        }
+        )
+
+        Switch(
+            checked = showSegmentDeltas,
+            onCheckedChange = { enabled ->
+                scope.launch {
+                    splitDisplayModeService.setShowSegmentDeltas(enabled)
+                }
+            },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = TrackerColors.Primary,
+                checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.5f),
+                uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
+                uncheckedTrackColor = TrackerColors.SurfaceVariant
+            )
+        )
     }
 }
 
@@ -775,12 +872,12 @@ private fun TimerSetSection(
     var minutes by remember { mutableStateOf(0) }
     var seconds by remember { mutableStateOf(0) }
     var centiseconds by remember { mutableStateOf(0) }
-    
+
     var hoursExpanded by remember { mutableStateOf(false) }
     var minutesExpanded by remember { mutableStateOf(false) }
     var secondsExpanded by remember { mutableStateOf(false) }
     var centisecondsExpanded by remember { mutableStateOf(false) }
-    
+
     val scope = rememberCoroutineScope()
 
     Column(
@@ -828,7 +925,7 @@ private fun TimerSetSection(
                         )
                     }
                 }
-                
+
                 DropdownMenu(
                     expanded = hoursExpanded,
                     onDismissRequest = { hoursExpanded = false },
@@ -855,9 +952,9 @@ private fun TimerSetSection(
                     }
                 }
             }
-            
+
             Text(":", style = MaterialTheme.typography.bodySmall.copy(color = TrackerColors.OnSurface))
-            
+
             // Minutes dropdown
             Box(modifier = Modifier.weight(1f)) {
                 Button(
@@ -883,7 +980,7 @@ private fun TimerSetSection(
                         )
                     }
                 }
-                
+
                 DropdownMenu(
                     expanded = minutesExpanded,
                     onDismissRequest = { minutesExpanded = false },
@@ -910,9 +1007,9 @@ private fun TimerSetSection(
                     }
                 }
             }
-            
+
             Text(":", style = MaterialTheme.typography.bodySmall.copy(color = TrackerColors.OnSurface))
-            
+
             // Seconds dropdown
             Box(modifier = Modifier.weight(1f)) {
                 Button(
@@ -938,7 +1035,7 @@ private fun TimerSetSection(
                         )
                     }
                 }
-                
+
                 DropdownMenu(
                     expanded = secondsExpanded,
                     onDismissRequest = { secondsExpanded = false },
@@ -965,9 +1062,9 @@ private fun TimerSetSection(
                     }
                 }
             }
-            
+
             Text(".", style = MaterialTheme.typography.bodySmall.copy(color = TrackerColors.OnSurface))
-            
+
             // Centiseconds dropdown
             Box(modifier = Modifier.weight(1f)) {
                 Button(
@@ -977,7 +1074,7 @@ private fun TimerSetSection(
                         contentColor = TrackerColors.OnSurface
                     ),
                     shape = RoundedCornerShape(4.dp),
-                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 4.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -993,7 +1090,7 @@ private fun TimerSetSection(
                         )
                     }
                 }
-                
+
                 DropdownMenu(
                     expanded = centisecondsExpanded,
                     onDismissRequest = { centisecondsExpanded = false },
@@ -1021,9 +1118,9 @@ private fun TimerSetSection(
                 }
             }
         }
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         // Apply button
         Button(
             onClick = {
@@ -1057,7 +1154,7 @@ private fun IconManagementSection(
 ) {
     val iconConfig by iconConfigService.iconConfig.collectAsState()
     val allIcons = iconConfig.icons.sortedBy { it.order }
-    
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -1071,7 +1168,7 @@ private fun IconManagementSection(
             ),
             modifier = Modifier.padding(bottom = 8.dp)
         )
-        
+
         // Instructions
         Text(
             text = "Click icons to toggle visibility • Use arrows to reorder",
@@ -1080,7 +1177,7 @@ private fun IconManagementSection(
             ),
             modifier = Modifier.padding(bottom = 8.dp)
         )
-        
+
         // Icon list with controls - now fills remaining space
         Card(
             colors = CardDefaults.cardColors(
@@ -1108,9 +1205,9 @@ private fun IconManagementSection(
                 }
             }
         }
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         // Reset button
         TextButton(
             onClick = { iconConfigService.resetToDefault() },
@@ -1156,7 +1253,7 @@ private fun IconManagementItem(
                 size = 32
             )
         }
-        
+
         // Icon name and category
         Column(
             modifier = Modifier.weight(1f)
@@ -1175,7 +1272,7 @@ private fun IconManagementItem(
                 )
             )
         }
-        
+
         // Move up button
         IconButton(
             onClick = onMoveUp,
@@ -1189,7 +1286,7 @@ private fun IconManagementItem(
                 modifier = Modifier.size(16.dp)
             )
         }
-        
+
         // Move down button
         IconButton(
             onClick = onMoveDown,
@@ -1213,7 +1310,7 @@ private fun SFXSettingsTab(
 ) {
     val soundEnabled by soundService.soundEnabled.collectAsState()
     val volume by soundService.volume.collectAsState()
-    
+
     Column(
         modifier = modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -1225,14 +1322,14 @@ private fun SFXSettingsTab(
                 fontWeight = FontWeight.Bold
             )
         )
-        
+
         Text(
             text = "Configure sound effects for item collection and boss defeats. Sound files should be placed in ~/.smtracker/sounds/ and configured in sounds.json",
             style = MaterialTheme.typography.bodyMedium.copy(
                 color = TrackerColors.OnSurfaceVariant
             )
         )
-        
+
         // Sound Controls
         Card(
             colors = CardDefaults.cardColors(
@@ -1251,7 +1348,7 @@ private fun SFXSettingsTab(
                         fontWeight = FontWeight.Bold
                     )
                 )
-                
+
                 // Enable/Disable Sound Effects
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -1264,7 +1361,7 @@ private fun SFXSettingsTab(
                             color = TrackerColors.OnSurface
                         )
                     )
-                    
+
                     Switch(
                         checked = soundEnabled,
                         onCheckedChange = { enabled ->
@@ -1280,7 +1377,7 @@ private fun SFXSettingsTab(
                         )
                     )
                 }
-                
+
                 // Volume Control
                 if (soundEnabled) {
                     Column(
@@ -1297,7 +1394,7 @@ private fun SFXSettingsTab(
                                     color = TrackerColors.OnSurface
                                 )
                             )
-                            
+
                             Text(
                                 text = "${(volume * 100).toInt()}%",
                                 style = MaterialTheme.typography.bodyMedium.copy(
@@ -1306,7 +1403,7 @@ private fun SFXSettingsTab(
                                 )
                             )
                         }
-                        
+
                         Slider(
                             value = volume,
                             onValueChange = { newVolume ->
@@ -1325,6 +1422,6 @@ private fun SFXSettingsTab(
                 }
             }
         }
-        
+
     }
 }

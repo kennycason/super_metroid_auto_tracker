@@ -1,0 +1,72 @@
+{
+    "id": "run_1762310782710",
+    "profileId": "kpdr-any",
+    "startTime": "2025-11-05T02:46:22.710659494Z",
+    "endTime": "2025-11-05T03:17:06.548128302Z",
+    "completedSplits": [
+        {
+            "splitId": "ceres_station",
+            "time": {
+                "totalTime": 96316,
+                "segmentTime": 96316,
+                "delta": 2982,
+                "originalDelta": 2982
+            },
+            "timestamp": "2025-11-05T02:47:59.027074096Z"
+        },
+        {
+            "splitId": "morph_ball",
+            "time": {
+                "totalTime": 194083,
+                "segmentTime": 97767,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-05T02:49:36.793797891Z"
+        },
+        {
+            "splitId": "first_missile",
+            "time": {
+                "totalTime": 219200,
+                "segmentTime": 25117,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-05T02:50:01.911108328Z"
+        },
+        {
+            "splitId": "bomb",
+            "time": {
+                "totalTime": 328517,
+                "segmentTime": 109317,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-05T02:51:51.227889580Z"
+        },
+        {
+            "splitId": "first_super",
+            "time": {
+                "totalTime": 460566,
+                "segmentTime": 132049,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-05T02:54:03.277499001Z"
+        },
+        {
+            "splitId": "charge_beam",
+            "time": {
+                "totalTime": 518283,
+                "segmentTime": 57717,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-05T02:55:00.994233349Z"
+        }
+    ],
+    "totalTime": 1843838,
+    "isPersonalBest": false,
+    "isPaused": false,
+    "pausedTime": 0
+}

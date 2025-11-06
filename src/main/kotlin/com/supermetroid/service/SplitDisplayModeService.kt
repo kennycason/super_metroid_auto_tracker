@@ -22,6 +22,9 @@ class SplitDisplayModeService(private val fileStorageService: FileStorageService
     private val _showSplitNames = MutableStateFlow(true)
     val showSplitNames: StateFlow<Boolean> = _showSplitNames.asStateFlow()
 
+    private val _showSegmentDeltas = MutableStateFlow(false)
+    val showSegmentDeltas: StateFlow<Boolean> = _showSegmentDeltas.asStateFlow()
+
     /**
      * Initialize split display mode service and load saved settings from config
      */
@@ -30,6 +33,7 @@ class SplitDisplayModeService(private val fileStorageService: FileStorageService
             val config = fileStorageService.loadAppConfig()
             _showSplitIcons.value = config.showSplitIcons
             _showSplitNames.value = config.showSplitNames
+            _showSegmentDeltas.value = config.showSegmentDeltas
             _currentDisplayMode.value = SplitDisplayMode.fromBooleans(config.showSplitIcons, config.showSplitNames)
             logger.info { "📋 Loaded split display mode: ${_currentDisplayMode.value.displayName}" }
         } catch (e: Exception) {
@@ -56,6 +60,23 @@ class SplitDisplayModeService(private val fileStorageService: FileStorageService
             logger.info { "💾 Saved split display mode: ${mode.displayName}" }
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to save split display mode" }
+        }
+    }
+
+    /**
+     * Set whether to show segment deltas and save to config
+     */
+    suspend fun setShowSegmentDeltas(show: Boolean) {
+        _showSegmentDeltas.value = show
+
+        // Save to config
+        try {
+            val currentConfig = fileStorageService.loadAppConfig()
+            val updatedConfig = currentConfig.copy(showSegmentDeltas = show)
+            fileStorageService.saveAppConfig(updatedConfig)
+            logger.info { "💾 Saved show segment deltas: $show" }
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to save show segment deltas setting" }
         }
     }
 }

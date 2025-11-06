@@ -1,0 +1,142 @@
+{
+    "id": "run_1762389976092",
+    "profileId": "kpdr-any",
+    "startTime": "2025-11-06T00:46:16.092786520Z",
+    "endTime": "2025-11-06T01:06:28.561384450Z",
+    "completedSplits": [
+        {
+            "splitId": "ceres_station",
+            "time": {
+                "totalTime": 93983,
+                "segmentTime": 93983,
+                "delta": 5332,
+                "originalDelta": 5332
+            },
+            "timestamp": "2025-11-06T00:47:50.076395359Z"
+        },
+        {
+            "splitId": "morph_ball",
+            "time": {
+                "totalTime": 193250,
+                "segmentTime": 99267,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-06T00:49:29.342971702Z"
+        },
+        {
+            "splitId": "first_missile",
+            "time": {
+                "totalTime": 217566,
+                "segmentTime": 24316,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-06T00:49:53.659652029Z"
+        },
+        {
+            "splitId": "bomb",
+            "time": {
+                "totalTime": 322867,
+                "segmentTime": 105301,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-06T00:51:38.959898013Z"
+        },
+        {
+            "splitId": "first_super",
+            "time": {
+                "totalTime": 453334,
+                "segmentTime": 130467,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-06T00:53:49.426827734Z"
+        },
+        {
+            "splitId": "charge_beam",
+            "time": {
+                "totalTime": 508350,
+                "segmentTime": 55016,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-06T00:54:44.443491585Z"
+        },
+        {
+            "splitId": "spazer",
+            "time": {
+                "totalTime": 588200,
+                "segmentTime": 79850,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-06T00:56:04.293572850Z"
+        },
+        {
+            "splitId": "kraid",
+            "time": {
+                "totalTime": 727834,
+                "segmentTime": 139634,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-06T00:58:23.927124243Z"
+        },
+        {
+            "splitId": "varia_suit",
+            "time": {
+                "totalTime": 733850,
+                "segmentTime": 6016,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-06T00:58:29.943784375Z"
+        },
+        {
+            "splitId": "hi_jump",
+            "time": {
+                "totalTime": 854251,
+                "segmentTime": 120401,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-06T01:00:30.343958370Z"
+        },
+        {
+            "splitId": "speed_booster",
+            "time": {
+                "totalTime": 970734,
+                "segmentTime": 116483,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-06T01:02:26.827424725Z"
+        },
+        {
+            "splitId": "wave_beam",
+            "time": {
+                "totalTime": 1048584,
+                "segmentTime": 77850,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-06T01:03:44.677613168Z"
+        },
+        {
+            "splitId": "ice_beam",
+            "time": {
+                "totalTime": 1151784,
+                "segmentTime": 103200,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-06T01:05:27.877659099Z"
+        }
+    ],
+    "totalTime": 1212469,
+    "isPersonalBest": false,
+    "isPaused": false,
+    "pausedTime": 0
+}
