@@ -655,10 +655,96 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                     totalTime = estimatedTime
                 )
 
-                _splitsState.value = _splitsState.value.copy(currentRun = currentRun)
-
                 currentSplitIndex++
                 skipped = true
+
+                // Check if this is the final split (run complete)
+                val isComplete = currentSplitIndex >= profile.splits.size || split.id == "ship"
+                
+                val finalRun = if (isComplete) {
+                    logger.info { "🏁 Run complete via auto-skip! Final time: ${formatTime(estimatedTime)}" }
+                    
+                    // Check if this is a personal best
+                    val currentBest = _splitsState.value.personalBests[currentRun.profileId]
+                    val isNewPersonalBest = currentBest == null || estimatedTime < currentBest.totalTime
+                    
+                    if (isNewPersonalBest) {
+                        logger.info { "🎉 NEW PERSONAL BEST (via auto-skip)! ${formatTime(estimatedTime)}" }
+                    }
+                    
+                    currentRun.copy(
+                        endTime = currentTime,
+                        isPaused = true,
+                        isPersonalBest = isNewPersonalBest
+                    )
+                } else {
+                    currentRun
+                }
+
+                // Update state
+                val currentState = _splitsState.value
+                val newRunHistory = if (isComplete) {
+                    currentState.runHistory + finalRun
+                } else {
+                    currentState.runHistory
+                }
+
+                // Update personal bests if this run set a new record
+                val finalPersonalBests = if (isComplete && finalRun.isPersonalBest) {
+                    val splitTimesMap = finalRun.completedSplits.associate { completedSplit ->
+                        completedSplit.splitId to completedSplit.time
+                    }
+                    
+                    val newPB = PersonalBest(
+                        profileId = finalRun.profileId,
+                        runSessionId = finalRun.id,
+                        totalTime = finalRun.totalTime,
+                        splitTimes = splitTimesMap
+                    )
+                    
+                    currentState.personalBests + (finalRun.profileId to newPB)
+                } else {
+                    currentState.personalBests
+                }
+
+                _splitsState.value = currentState.copy(
+                    currentRun = if (isComplete) null else finalRun,
+                    runHistory = newRunHistory,
+                    personalBests = finalPersonalBests
+                )
+
+                // Save the auto-skipped split to disk
+                fileStorageService?.let { storage ->
+                    scope.launch(Dispatchers.IO) {
+                        try {
+                            logger.info { "💾 Saving run progress after auto-skip: ${split.name} (${finalRun.completedSplits.size} splits)" }
+                            storage.saveRun(finalRun)
+                            logger.info { "✅ Successfully saved auto-skipped run progress for split: ${split.name}" }
+
+                            // Update run summaries
+                            try {
+                                val summaries = storage.loadRunSummaries()
+                                val updatedProfile = storage.deriveBestSplits(finalRun.profileId)
+                                val updatedSummaries = summaries.copy(
+                                    lastUpdated = Clock.System.now(),
+                                    profiles = summaries.profiles + (finalRun.profileId to updatedProfile)
+                                )
+                                storage.saveRunSummaries(updatedSummaries)
+                                logger.info { "✅ Updated run summaries after auto-skip" }
+                            } catch (e: Exception) {
+                                logger.error(e) { "⚠️  Failed to update run summaries after auto-skip, but run data was saved" }
+                            }
+                        } catch (e: Exception) {
+                            logger.error(e) { "❌ CRITICAL: Failed to save run progress after auto-skip ${split.name}" }
+                        }
+                    }
+                }
+
+                // Update personal best tracking if run is complete
+                if (isComplete) {
+                    logger.info { "🏁 Run completed via auto-skip in ${formatTime(estimatedTime)}" }
+                    updatePersonalBest(finalRun)
+                }
             } else {
                 break
             }
@@ -967,19 +1053,16 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         logger.info { "⏰ Split triggered: ${split.name} at ${formatTime(totalTimeMs)} (segment: ${formatTime(segmentTimeMs)})" }
 
         // Save run incrementally after each split to prevent data loss
-        // This saves partial runs with completed segments even if the app crashes or run is reset
-        // Use runBlocking to ensure save completes before continuing
+        // Launch async save but don't block the split detection thread
         fileStorageService?.let { storage ->
-            try {
-                logger.info { "💾 Saving run progress for split: ${split.name} (${finalRun.completedSplits.size} splits)" }
-                kotlinx.coroutines.runBlocking {
-                    storage.saveRun(finalRun)
-                }
-                logger.info { "✅ Successfully saved run progress to disk" }
-
-                // Update run summaries to track segment PBs from this run so far
+            scope.launch(Dispatchers.IO) {
                 try {
-                    kotlinx.coroutines.runBlocking {
+                    logger.info { "💾 Saving run progress for split: ${split.name} (${finalRun.completedSplits.size} splits)" }
+                    storage.saveRun(finalRun)
+                    logger.info { "✅ Successfully saved run progress to disk for split: ${split.name}" }
+
+                    // Update run summaries to track segment PBs from this run so far
+                    try {
                         val summaries = storage.loadRunSummaries()
                         val updatedProfile = storage.deriveBestSplits(finalRun.profileId)
                         val updatedSummaries = summaries.copy(
@@ -987,21 +1070,19 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                             profiles = summaries.profiles + (finalRun.profileId to updatedProfile)
                         )
                         storage.saveRunSummaries(updatedSummaries)
+                        logger.info { "✅ Updated run summaries with current segments" }
+                    } catch (e: Exception) {
+                        logger.error(e) { "⚠️  Failed to update run summaries, but run data was saved" }
                     }
-                    logger.info { "✅ Updated run summaries with current segments" }
                 } catch (e: Exception) {
-                    logger.error(e) { "⚠️  Failed to update run summaries, but run data was saved" }
-                }
-            } catch (e: Exception) {
-                logger.error(e) { "❌ CRITICAL: Failed to save run progress after split ${split.name}" }
-                // Try to save with error recovery
-                try {
-                    kotlinx.coroutines.runBlocking {
+                    logger.error(e) { "❌ CRITICAL: Failed to save run progress after split ${split.name}" }
+                    // Try to save with error recovery
+                    try {
                         storage.saveRun(finalRun)
+                        logger.info { "✅ Retry succeeded - run saved for split: ${split.name}" }
+                    } catch (e2: Exception) {
+                        logger.error(e2) { "❌ FATAL: Could not save run even after retry for split: ${split.name}" }
                     }
-                    logger.info { "✅ Retry succeeded - run saved" }
-                } catch (e2: Exception) {
-                    logger.error(e2) { "❌ FATAL: Could not save run even after retry" }
                 }
             }
         }

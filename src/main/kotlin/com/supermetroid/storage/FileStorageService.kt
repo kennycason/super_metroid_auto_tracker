@@ -157,8 +157,7 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
         try {
             val dateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
             val dateStr = dateFormat.format(Date(run.startTime.toEpochMilliseconds()))
-            val timeStr = formatRunTime(run.totalTime)
-            val filename = "${dateStr}_${run.profileId}_${timeStr}.json"
+            val filename = "${dateStr}_${run.profileId}.json"
             val runFile = File(runsDir, filename)
 
             val jsonString = json.encodeToString(run)
@@ -407,14 +406,6 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
     }
 
     // Helper functions
-
-    private fun formatRunTime(timeMs: Long): String {
-        val totalSeconds = timeMs / 1000
-        val hours = totalSeconds / 3600
-        val minutes = (totalSeconds % 3600) / 60
-        val seconds = totalSeconds % 60
-        return "%d-%02d-%02d".format(hours, minutes, seconds)
-    }
 
     private fun getProfileName(profileId: String): String {
         return when (profileId) {
