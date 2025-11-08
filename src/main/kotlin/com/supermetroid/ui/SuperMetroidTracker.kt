@@ -536,7 +536,10 @@ fun SuperMetroidTrackerLayout(
                 TextButton(
                     onClick = { 
                         CoroutineScope(Dispatchers.Swing).launch {
-                            uiVisibilityService.setShowTimer(!showTimer)
+                            val newShowTimer = !showTimer
+                            uiVisibilityService.setShowTimer(newShowTimer)
+                            // Disable auto-start when timer is hidden, enable when shown
+                            autoSplitsEngine.setAutoStartEnabled(newShowTimer)
                         }
                     },
                     colors = ButtonDefaults.textButtonColors(

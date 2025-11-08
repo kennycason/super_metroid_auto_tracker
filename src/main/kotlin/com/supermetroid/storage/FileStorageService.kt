@@ -152,12 +152,15 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
 
     /**
      * Save a completed run as an individual file
+     * Uses run ID to ensure uniqueness when multiple runs have the same start time
      */
     suspend fun saveRun(run: RunSession) = withContext(Dispatchers.IO) {
         try {
             val dateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
             val dateStr = dateFormat.format(Date(run.startTime.toEpochMilliseconds()))
-            val filename = "${dateStr}_${run.profileId}.json"
+            // Extract timestamp from run ID (format: run_<timestamp>) to ensure uniqueness
+            val runTimestamp = run.id.substringAfter("run_", "")
+            val filename = "${dateStr}_${run.profileId}_${runTimestamp}.json"
             val runFile = File(runsDir, filename)
 
             val jsonString = json.encodeToString(run)

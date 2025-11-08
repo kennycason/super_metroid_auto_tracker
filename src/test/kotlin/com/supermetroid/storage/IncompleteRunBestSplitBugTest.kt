@@ -221,8 +221,14 @@ class IncompleteRunBestSplitBugTest {
         val completeRuns = mrfoxRuns.filter { it.endTime != null }
         println("Complete runs: ${completeRuns.size}")
         
+        // Assign unique run IDs to avoid collisions (test data has duplicate IDs for snapshots)
+        var idCounter = 1000L
+        val uniqueRuns = mrfoxRuns.map { run ->
+            run.copy(id = "run_${System.currentTimeMillis() + idCounter++}")
+        }
+        
         // Save all runs
-        mrfoxRuns.forEach { storage.saveRun(it) }
+        uniqueRuns.forEach { storage.saveRun(it) }
         
         // Derive best splits
         val summary = storage.deriveBestSplits("kpdr-any")

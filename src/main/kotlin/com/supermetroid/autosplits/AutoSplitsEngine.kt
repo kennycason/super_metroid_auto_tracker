@@ -30,6 +30,10 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     private var lastToggleTime: Long = 0
     private val debounceTimeMs: Long = 300 // 300ms debounce window
 
+    // Auto-start control - can be disabled if user is manually managing timer
+    var autoStartEnabled: Boolean = true
+        private set
+
     // State flows for reactive UI
     private val _splitsState = MutableStateFlow(SplitsState())
     val splitsState: StateFlow<SplitsState> = _splitsState.asStateFlow()
@@ -267,9 +271,21 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     }
 
     /**
+     * Enable or disable auto-start
+     * This can be called when the timer visibility is toggled
+     */
+    fun setAutoStartEnabled(enabled: Boolean) {
+        autoStartEnabled = enabled
+        logger.info { if (enabled) "✅ Auto-start enabled" else "🚫 Auto-start disabled" }
+    }
+
+    /**
      * Start a completely new run
      */
     internal fun startNewRun(profileId: String = "kpdr-any") {
+        // Re-enable auto-start when starting a new run (unless user manually set time)
+        autoStartEnabled = true
+        
         // Log the current state before starting a new run
         val currentRun = _splitsState.value.currentRun
         if (currentRun != null) {
@@ -462,8 +478,11 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         // Reset the debounce timer to prevent issues with immediate start after reset
         lastToggleTime = 0
+        
+        // Re-enable auto-start when run is reset
+        autoStartEnabled = true
 
-        logger.info { "🔄 Run reset complete - timer state cleared" }
+        logger.info { "🔄 Run reset complete - timer state cleared, auto-start re-enabled" }
 
         // Add a small delay before allowing new toggleRunState calls
         // This helps prevent accidental immediate restart after reset
@@ -486,6 +505,16 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         val now = Clock.System.now()
 
         logger.info { "⏱️ setTimer called - setting timer to ${formatTime(timeMs)}" }
+        
+        // Disable auto-start when user manually sets a non-zero time
+        // Re-enable auto-start if timer is set to 0 (reset)
+        if (timeMs > 0) {
+            autoStartEnabled = false
+            logger.info { "🚫 Auto-start disabled - user manually set timer to ${formatTime(timeMs)}" }
+        } else {
+            autoStartEnabled = true
+            logger.info { "✅ Auto-start re-enabled - timer reset to 0" }
+        }
 
         if (currentRun == null) {
             // No run exists - create a paused run with the given time
@@ -832,6 +861,20 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
      * ASL logic: gameState 2 → 31 (title screen → game start transition)
      */
     private fun checkAutoStartCondition(previousState: GameState?, currentState: GameState): Boolean {
+        // Don't auto-start if:
+        // 1. Auto-start is explicitly disabled
+        // 2. There's a paused run with non-zero time (user manually set the timer)
+        if (!autoStartEnabled) {
+            logger.debug { "⏸️ Auto-start disabled" }
+            return false
+        }
+        
+        val currentRun = _splitsState.value.currentRun
+        if (currentRun != null && currentRun.isPaused && currentRun.totalTime > 0) {
+            logger.debug { "⏸️ Auto-start skipped - manual timer set (time: ${formatTime(currentRun.totalTime)})" }
+            return false
+        }
+
         // PRIMARY: ASL-style start - Pressing start on title screen (gameState 2 → 31)
         // This matches SuperMetroid.asl line 778: vars.watchers["gameState"].Old == 2 && vars.watchers["gameState"].Current == 0x1F
         val titleScreenStart = previousState?.gameState == GameStateConstants.TITLE_SCREEN && 
