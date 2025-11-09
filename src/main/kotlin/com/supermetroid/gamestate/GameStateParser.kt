@@ -42,6 +42,8 @@ class GameStateParser : Logging {
             eventFlags = memoryData["eventFlags"]?.readInt16LE() ?: 0,
             tourianBosses = memoryData["tourianBosses"]?.readInt16LE() ?: 0,
             shipAi = memoryData["shipAi"]?.readInt16LE() ?: 0,
+            deathCount = parseDeathCount(memoryData["deathCount"]),
+            resetCount = parseResetCount(memoryData["resetCount"]),
             items = parseItems(memoryData["collectedItems"]),
             beams = parseBeams(memoryData["collectedBeams"]),
             bosses = parseBosses(memoryData, parseAreaId(memoryData["areaId"]))
@@ -67,6 +69,16 @@ class GameStateParser : Logging {
         val hp = data?.readInt16LE() ?: 0
         logger.debug { "🧠💊 MB HP: $hp (0x${hp.toString(16)})" }
         return hp
+    }
+    
+    private fun parseDeathCount(data: ByteArray?): Int {
+        val count = data?.readInt16LE() ?: 0
+        return count
+    }
+    
+    private fun parseResetCount(data: ByteArray?): Int {
+        val count = data?.readInt16LE() ?: 0
+        return count
     }
 
     /**

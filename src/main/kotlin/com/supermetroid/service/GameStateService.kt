@@ -395,7 +395,10 @@ class GameStateService(
             "escapeTimer1" to (SuperMetroidAddresses.ESCAPE_TIMER_1 to 2),
             "escapeTimer2" to (SuperMetroidAddresses.ESCAPE_TIMER_2 to 2),
             "escapeTimer3" to (SuperMetroidAddresses.ESCAPE_TIMER_3 to 2),
-            "escapeTimer4" to (SuperMetroidAddresses.ESCAPE_TIMER_4 to 2)
+            "escapeTimer4" to (SuperMetroidAddresses.ESCAPE_TIMER_4 to 2),
+            // Map Rando stats (SRAM)
+            "deathCount" to (SuperMetroidAddresses.DEATH_COUNT to 2),
+            "resetCount" to (SuperMetroidAddresses.RESET_COUNT to 2)
         )
 
         return try {

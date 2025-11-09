@@ -76,25 +76,25 @@ class MapRandoDataService {
                     activeFetchJob = serviceScope.launch {
                         try {
                             val apiSettings = fetchSeedDataFromApi(seedName)
-                            cachedSettings = apiSettings.copy(deathCount = deathCount)
+                            cachedSettings = apiSettings.copy(deathCount = deathCount, resetCount = gameState.resetCount)
                             _settings.value = cachedSettings ?: MapRandoSettings()
                         } catch (e: CancellationException) {
                             logger.debug { "🚫 Seed fetch cancelled (expected during shutdown)" }
                         } catch (e: Exception) {
                             logger.error(e) { "❌ Failed to fetch seed data" }
-                            cachedSettings = MapRandoSettings(seedName = seedName, deathCount = deathCount)
+                            cachedSettings = MapRandoSettings(seedName = seedName, deathCount = deathCount, resetCount = gameState.resetCount)
                             _settings.value = cachedSettings ?: MapRandoSettings()
                         }
                     }
                 } else {
                     logger.debug { "📭 No Map Rando seed detected" }
-                    cachedSettings = MapRandoSettings(deathCount = deathCount)
+                    cachedSettings = MapRandoSettings(deathCount = deathCount, resetCount = gameState.resetCount)
                     _settings.value = cachedSettings ?: MapRandoSettings()
                 }
             } else {
-                // Update only death count if seed hasn't changed
+                // Update death and reset counts if seed hasn't changed
                 cachedSettings?.let {
-                    _settings.value = it.copy(deathCount = deathCount)
+                    _settings.value = it.copy(deathCount = deathCount, resetCount = gameState.resetCount)
                 }
             }
         } catch (e: Exception) {
@@ -117,14 +117,18 @@ class MapRandoDataService {
 
     /**
      * Read death count from SRAM at $701E16 (2 bytes, little-endian)
+     * 
+     * Memory format:
+     * - Address: $701E16 (SRAM)
+     * - Size: 2 bytes
+     * - Endianness: Little-endian
+     * - Example: 0x05 0x00 = 5 deaths
+     * 
+     * Note: Death count is now read from GameState which is populated by SNI/RetroArch
      */
     private fun readDeathCountFromMemory(gameState: GameState): Int {
-        // TODO: Implement actual memory read via SNI
-        // TEMPORARY TEST MODE: Hardcode a death count for testing
-        return 42 // TEST VALUE
-        
-        // For now, return 0 (will be implemented when SNI integration is added)
-        // return 0
+        // Read from GameState which already has the death count from memory
+        return gameState.deathCount
     }
 
     /**

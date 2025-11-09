@@ -47,6 +47,7 @@ lateinit var soundService: com.supermetroid.service.SoundService
 lateinit var gameGenieService: com.supermetroid.service.GameGenieService
 lateinit var mapRandoInfoFontSizeService: com.supermetroid.service.MapRandoInfoFontSizeService
 lateinit var mapRandoDataService: com.supermetroid.service.MapRandoDataService
+lateinit var mapRandoInfoConfigService: com.supermetroid.service.MapRandoInfoConfigService
 
 fun main(args: Array<String>) {
     // Parse command-line arguments
@@ -72,6 +73,7 @@ fun main(args: Array<String>) {
     gameGenieService = com.supermetroid.service.GameGenieService(fileStorageService)
     mapRandoInfoFontSizeService = com.supermetroid.service.MapRandoInfoFontSizeService(fileStorageService, kotlinx.coroutines.GlobalScope)
     mapRandoDataService = com.supermetroid.service.MapRandoDataService()
+    mapRandoInfoConfigService = com.supermetroid.service.MapRandoInfoConfigService()
     
     // Initialize autoSplitsEngine to restore saved timer
     runBlocking { autoSplitsEngine.initialize() }
@@ -242,6 +244,9 @@ fun SuperMetroidTrackerApp() {
         
         // Initialize Map Rando info font size service
         mapRandoInfoFontSizeService.initialize()
+        
+        // Initialize Map Rando info config service
+        mapRandoInfoConfigService.initialize()
         
         // Mark services as initialized
         servicesInitialized = true
@@ -438,6 +443,7 @@ fun SuperMetroidTrackerLayout(
                     MapRandoInfoPanel(
                         fontSizeService = mapRandoInfoFontSizeService,
                         mapRandoDataService = mapRandoDataService,
+                        mapRandoInfoConfigService = mapRandoInfoConfigService,
                         modifier = Modifier.wrapContentHeight()
                     )
                 }

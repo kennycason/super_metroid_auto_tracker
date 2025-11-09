@@ -420,6 +420,10 @@ object SuperMetroidAddresses {
     const val ESCAPE_TIMER_2 = 0x7E0945
     const val ESCAPE_TIMER_3 = 0x7E09E2
     const val ESCAPE_TIMER_4 = 0x7E09E0
+    
+    // Map Rando Stats (SRAM - requires bank 0x70)
+    const val DEATH_COUNT = 0x701E16  // 2 bytes, little-endian
+    const val RESET_COUNT = 0x701E1C  // 2 bytes, little-endian
 
     // Palette data (for visual effects)
     const val SAMUS_PALETTE_START = 0x7EC000

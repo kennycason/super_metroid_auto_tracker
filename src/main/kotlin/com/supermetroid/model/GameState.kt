@@ -27,6 +27,8 @@ data class GameState(
     val eventFlags: Int = 0,     // Added for ship detection
     val tourianBosses: Int = 0,  // Added for ship detection  
     val shipAi: Int = 0,         // Added for ship detection
+    val deathCount: Int = 0,     // Map Rando death counter from SRAM ($701E16)
+    val resetCount: Int = 0,     // Map Rando reset counter from SRAM ($701E1C)
     val items: Items = Items(),
     val beams: Beams = Beams(),
     val bosses: Bosses = Bosses()

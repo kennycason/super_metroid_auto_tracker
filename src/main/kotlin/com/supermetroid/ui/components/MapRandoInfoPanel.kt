@@ -20,10 +20,15 @@ import com.supermetroid.ui.theme.TrackerColors
 fun MapRandoInfoPanel(
     fontSizeService: com.supermetroid.service.MapRandoInfoFontSizeService,
     mapRandoDataService: com.supermetroid.service.MapRandoDataService,
+    mapRandoInfoConfigService: com.supermetroid.service.MapRandoInfoConfigService,
     modifier: Modifier = Modifier
 ) {
     val fontSize by fontSizeService.fontSize.collectAsState()
     val settings by mapRandoDataService.settings.collectAsState()
+    val config by mapRandoInfoConfigService.config.collectAsState()
+    
+    // Get visible items in order
+    val visibleItems = config.items.filter { it.visible }.sortedBy { it.order }
     
     Card(
         modifier = modifier.width(fontSize.panelWidth.dp), // Dynamic width based on font size
@@ -38,57 +43,79 @@ fun MapRandoInfoPanel(
                 .padding(4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            // Display real data from Map Rando API
-            // Shows "OFF" when no seed detected or API fails
-            
-            MapRandoInfoItem(
-                label = "OBJECTIVES",
-                value = settings.objectives,
-                valueColor = if (settings.objectives != "OFF") TrackerColors.Primary else TrackerColors.OnSurfaceVariant,
-                labelSize = fontSize.labelSize,
-                valueSize = fontSize.valueSize
-            )
-            
-            MapRandoInfoItem(
-                label = "DIFFICULTY",
-                value = settings.difficulty,
-                valueColor = if (settings.difficulty != "OFF") TrackerColors.Success else TrackerColors.OnSurfaceVariant,
-                labelSize = fontSize.labelSize,
-                valueSize = fontSize.valueSize
-            )
-            
-            MapRandoInfoItem(
-                label = "ITEM PROGRESSION",
-                value = settings.itemProgression,
-                valueColor = if (settings.itemProgression != "OFF") TrackerColors.Primary else TrackerColors.OnSurfaceVariant,
-                labelSize = fontSize.labelSize,
-                valueSize = fontSize.valueSize
-            )
-            
-            MapRandoInfoItem(
-                label = "QUALITY OF LIFE",
-                value = settings.qualityOfLife,
-                valueColor = if (settings.qualityOfLife != "OFF") TrackerColors.Warning else TrackerColors.OnSurfaceVariant,
-                labelSize = fontSize.labelSize,
-                valueSize = fontSize.valueSize
-            )
-            
-            MapRandoInfoItem(
-                label = "MAP LAYOUT",
-                value = settings.mapLayout,
-                valueColor = if (settings.mapLayout != "OFF") TrackerColors.Primary else TrackerColors.OnSurfaceVariant,
-                labelSize = fontSize.labelSize,
-                valueSize = fontSize.valueSize
-            )
-            
-            MapRandoInfoItem(
-                label = "DEATHS",
-                value = settings.deathCount.toString(),
-                valueColor = if (settings.deathCount > 0) TrackerColors.Error else TrackerColors.OnSurfaceVariant,
-                labelSize = fontSize.labelSize,
-                valueSize = fontSize.valueSize
-            )
+            // Display only visible items in configured order
+            visibleItems.forEach { item ->
+                RenderMapRandoInfoItem(
+                    itemId = item.id,
+                    settings = settings,
+                    labelSize = fontSize.labelSize,
+                    valueSize = fontSize.valueSize
+                )
+            }
         }
+    }
+}
+
+/**
+ * Render a single Map Rando info item based on its ID
+ */
+@Composable
+private fun RenderMapRandoInfoItem(
+    itemId: String,
+    settings: com.supermetroid.model.MapRandoSettings,
+    labelSize: Int,
+    valueSize: Int
+) {
+    when (itemId) {
+        "objectives" -> MapRandoInfoItem(
+            label = "OBJECTIVES",
+            value = settings.objectives,
+            valueColor = if (settings.objectives != "OFF") TrackerColors.Primary else TrackerColors.OnSurfaceVariant,
+            labelSize = labelSize,
+            valueSize = valueSize
+        )
+        "difficulty" -> MapRandoInfoItem(
+            label = "DIFFICULTY",
+            value = settings.difficulty,
+            valueColor = if (settings.difficulty != "OFF") TrackerColors.Success else TrackerColors.OnSurfaceVariant,
+            labelSize = labelSize,
+            valueSize = valueSize
+        )
+        "itemProgression" -> MapRandoInfoItem(
+            label = "ITEM PROGRESSION",
+            value = settings.itemProgression,
+            valueColor = if (settings.itemProgression != "OFF") TrackerColors.Primary else TrackerColors.OnSurfaceVariant,
+            labelSize = labelSize,
+            valueSize = valueSize
+        )
+        "qualityOfLife" -> MapRandoInfoItem(
+            label = "QUALITY OF LIFE",
+            value = settings.qualityOfLife,
+            valueColor = if (settings.qualityOfLife != "OFF") TrackerColors.Warning else TrackerColors.OnSurfaceVariant,
+            labelSize = labelSize,
+            valueSize = valueSize
+        )
+        "mapLayout" -> MapRandoInfoItem(
+            label = "MAP LAYOUT",
+            value = settings.mapLayout,
+            valueColor = if (settings.mapLayout != "OFF") TrackerColors.Primary else TrackerColors.OnSurfaceVariant,
+            labelSize = labelSize,
+            valueSize = valueSize
+        )
+        "deaths" -> MapRandoInfoItem(
+            label = "DEATHS",
+            value = settings.deathCount.toString(),
+            valueColor = if (settings.deathCount > 0) TrackerColors.Error else TrackerColors.OnSurfaceVariant,
+            labelSize = labelSize,
+            valueSize = valueSize
+        )
+        "resets" -> MapRandoInfoItem(
+            label = "RESETS",
+            value = settings.resetCount.toString(),
+            valueColor = if (settings.resetCount > 0) TrackerColors.Warning else TrackerColors.OnSurfaceVariant,
+            labelSize = labelSize,
+            valueSize = valueSize
+        )
     }
 }
 
