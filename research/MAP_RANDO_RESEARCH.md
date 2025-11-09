@@ -4,6 +4,30 @@ Research into Map Randomizer memory locations and data structures for integratio
 
 **Source Repository:** `/Users/kenny/code/MapRandomizer/`
 
+---
+
+## 🔑 CRITICAL FINDING: Seed Settings Are NOT in RAM
+
+**TL;DR:** Objectives, Difficulty, Item Progression, QoL presets, and Map Layout settings ARE displayed in-game (pause menu and credits), BUT they are **baked into ROM** at seed generation time, not stored in RAM at runtime.
+
+### What This Means for the Tracker:
+
+1. ✅ **We CAN read:** Seed name from `$dffef0` (RAM)
+2. ✅ **We CAN fetch:** Full seed metadata from `maprando.com/api/seed/{seed_name}`
+3. ❌ **We CANNOT read:** Preset names, objectives type, map layout, etc. from RAM (they're in ROM only)
+
+### Why The Confusion?
+
+The user correctly observed these settings displayed in-game:
+- **Pause Menu:** Shows "BOSSES:", "MINIBOSSES:", etc. (reads from ROM at `$B6F200`)
+- **Credits (end game):** Shows "Basic", "Normal", "Max", etc. (reads from ROM at `$ceb240+`)
+
+SNI/memory read interfaces typically only access **RAM/SRAM**, not ROM, so we need the **API approach**.
+
+See [Pause Menu & Credits Display](#pause-menu--credits-display---user-insight-) section below for full details.
+
+---
+
 ## Memory Addresses
 
 ### Seed Identification
@@ -257,6 +281,53 @@ fun readMapRandoDisplaySeed(): UInt? {
 }
 ```
 
+## PAUSE MENU & CREDITS DISPLAY - User Insight 🎯
+
+**User observed:** "Objectives preset (e.g., 'Bosses', 'Minibosses') shows up in the pause menu!"
+
+This is a KEY finding! Let me explain what's happening:
+
+### Pause Menu Objectives
+
+From `MapRandomizer/patches/src/pause_menu_objectives.asm`:
+
+- **Objectives text** is stored in ROM at `$B6F200` (18 lines x 30 chars each)
+- This text is generated at ROM patch time by `write_objective_data()` in `patch.rs`
+- The pause menu reads this ROM data and displays headings like:
+  - "BOSSES:" (for Kraid, Phantoon, Draygon, Ridley)
+  - "MINIBOSSES:" (for Spore Spawn, Crocomire, Botwoon, Golden Torizo)
+  - "CHOZOS:" (for Bomb Torizo, Bowling, Acid Statue, etc.)
+  - "PIRATES:" (for Pit Room, Baby Kraid, Plasma, Metal Pirates)
+  - "METROIDS:" (for Metroid Rooms 1-4)
+- **Objective completion** is tracked at runtime in SRAM bits:
+  - `$D822` - Metroids (bits 1, 2, 4, 8 for rooms 1-4)
+  - `$D823` - Pirates (bits 1, 2, 4, 0x10 for Bowling, Pit, Baby Kraid, Plasma, Metal)
+  - `$D828` - Bosses (bits 1, 2, 4 for Kraid, Phantoon, Bomb Torizo)
+  - `$D82A` - More Bosses (bits 1, 2 for Ridley, Crocomire, GT)
+  - `$D82C` - Even More Bosses (bit 2 for Botwoon, Draygon, Acid)
+
+**For Tracker:** The objectives text itself lives in ROM (not accessible via SNI memory reads), but you can infer the objective type by parsing patterns or fetching from the seed API.
+
+### Credits Display (End Game)
+
+From `MapRandomizer/patches/src/credits.asm` and `patch.rs:apply_credits()`:
+
+At the end of the game, the credits show:
+- **Skill Assumption preset** (row 224, ROM: `$ceb240 + (224-128)*0x40`)
+- **Item Progression preset** (row 226, ROM: `$ceb240 + (226-128)*0x40`)
+- **Quality of Life preset** (row 228, ROM: `$ceb240 + (228-128)*0x40`)
+
+These preset names (e.g., "Basic", "Normal", "Max") are written to ROM at patch time, so they're also not accessible at runtime via memory reads.
+
+### Why This Matters
+
+The user correctly observed that these settings ARE displayed in-game (pause menu for objectives, credits for presets). However, they're **baked into the ROM** when the seed is generated, not stored in RAM at runtime.
+
+**For a tracker to access this information:**
+1. ✅ **Seed Name** → Read from `$dffef0` (RAM)
+2. ✅ **Seed Name** → Call `maprando.com/api/seed/{seed_name}` to fetch full metadata
+3. ❌ **ROM Access** → Not typically available via SNI/memory read interfaces
+
 ## References
 
 - **Constants:** `MapRandomizer/patches/src/constants.asm`
@@ -265,6 +336,8 @@ fun readMapRandoDisplaySeed(): UInt? {
 - **Patch Logic:** `MapRandomizer/rust/maprando/src/patch.rs`
 - **Settings:** `MapRandomizer/rust/maprando/src/settings.rs`
 - **Randomization:** `MapRandomizer/rust/maprando/src/randomize.rs`
+- **Pause Menu:** `MapRandomizer/patches/src/pause_menu_objectives.asm`
+- **Credits:** `MapRandomizer/patches/src/credits.asm`
 
 ## Notes
 
