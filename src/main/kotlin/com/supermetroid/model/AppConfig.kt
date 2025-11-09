@@ -83,6 +83,7 @@ data class AppConfig(
     val showTimer: Boolean = true,
     val showSettings: Boolean = false,
     val showGameGenie: Boolean = false,
+    val showMapRandoInfo: Boolean = false,
     // Sound effects settings
     val soundEnabled: Boolean = false,
     val volume: Float = 1.0f,

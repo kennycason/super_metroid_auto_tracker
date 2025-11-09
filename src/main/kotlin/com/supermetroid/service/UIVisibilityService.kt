@@ -27,6 +27,9 @@ class UIVisibilityService(private val fileStorageService: FileStorageService) : 
     private val _showGameGenie = MutableStateFlow(false)
     val showGameGenie: StateFlow<Boolean> = _showGameGenie.asStateFlow()
 
+    private val _showMapRandoInfo = MutableStateFlow(false)
+    val showMapRandoInfo: StateFlow<Boolean> = _showMapRandoInfo.asStateFlow()
+
     suspend fun initialize() {
         try {
             val config = fileStorageService.loadAppConfig()
@@ -35,7 +38,8 @@ class UIVisibilityService(private val fileStorageService: FileStorageService) : 
             _showTimer.value = config.showTimer
             _showSettings.value = config.showSettings
             _showGameGenie.value = config.showGameGenie
-            logger.info { "📋 Loaded UI visibility state: splits=${_showSplits.value}, icons=${_showIcons.value}, timer=${_showTimer.value}, settings=${_showSettings.value}, gameGenie=${_showGameGenie.value}" }
+            _showMapRandoInfo.value = config.showMapRandoInfo
+            logger.info { "📋 Loaded UI visibility state: splits=${_showSplits.value}, icons=${_showIcons.value}, timer=${_showTimer.value}, settings=${_showSettings.value}, gameGenie=${_showGameGenie.value}, mapRandoInfo=${_showMapRandoInfo.value}" }
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to load UI visibility state" }
         }
@@ -71,6 +75,12 @@ class UIVisibilityService(private val fileStorageService: FileStorageService) : 
         logger.info { "💾 Saved showGameGenie: $show" }
     }
 
+    suspend fun setShowMapRandoInfo(show: Boolean) {
+        _showMapRandoInfo.value = show
+        saveToConfig()
+        logger.info { "💾 Saved showMapRandoInfo: $show" }
+    }
+
     private suspend fun saveToConfig() {
         try {
             val cfg = fileStorageService.loadAppConfig()
@@ -79,7 +89,8 @@ class UIVisibilityService(private val fileStorageService: FileStorageService) : 
                 showIcons = _showIcons.value,
                 showTimer = _showTimer.value,
                 showSettings = _showSettings.value,
-                showGameGenie = _showGameGenie.value
+                showGameGenie = _showGameGenie.value,
+                showMapRandoInfo = _showMapRandoInfo.value
             ))
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to save UI visibility state" }

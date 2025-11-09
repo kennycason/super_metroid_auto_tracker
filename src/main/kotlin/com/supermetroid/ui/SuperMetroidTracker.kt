@@ -331,7 +331,8 @@ fun SuperMetroidTrackerApp() {
                         uiVisibilityService = uiVisibilityService,
                         themeService = themeService,
                         iconConfigService = iconConfigService,
-                        roomNameService = roomNameService
+                        roomNameService = roomNameService,
+                        iconViewModeService = iconViewModeService
                     )
                 }
             }
@@ -353,9 +354,15 @@ fun SuperMetroidTrackerLayout(
     uiVisibilityService: com.supermetroid.service.UIVisibilityService,
     themeService: com.supermetroid.service.ThemeService,
     iconConfigService: com.supermetroid.service.IconConfigService,
-    roomNameService: com.supermetroid.service.RoomNameService
+    roomNameService: com.supermetroid.service.RoomNameService,
+    iconViewModeService: com.supermetroid.service.IconViewModeService
 ) {
     val scope = rememberCoroutineScope()
+    val iconViewMode by iconViewModeService.iconViewMode.collectAsState()
+    val showMapRandoInfo by uiVisibilityService.showMapRandoInfo.collectAsState()
+    
+    // Determine if Map Rando info panel should be visible
+    val showMapRandoPanel = showMapRandoInfo && showIcons && iconViewMode == com.supermetroid.model.IconViewMode.MAP_RANDO
 
     Column(
         modifier = Modifier
@@ -401,15 +408,27 @@ fun SuperMetroidTrackerLayout(
         Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
 
         // TALL LAYOUT: Status Grid at top, Timer below, then Splits at bottom
-        // Status Grid (Icons) - Fixed height, non-stretchable
+        // Status Grid (Icons) with optional Map Rando info panel on the right - Fixed height, non-stretchable
         if (showIcons) {
-            SimpleStatusGrid(
-                gameState = trackerState.gameState,
-                iconConfigService = iconConfigService,
-                iconSizeService = iconSizeService,
-                iconViewModeService = iconViewModeService,
-                modifier = Modifier.fillMaxWidth()
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                SimpleStatusGrid(
+                    gameState = trackerState.gameState,
+                    iconConfigService = iconConfigService,
+                    iconSizeService = iconSizeService,
+                    iconViewModeService = iconViewModeService,
+                    modifier = Modifier.weight(1f)
+                )
+                
+                // Map Rando Info Panel on the right side of icons
+                if (showMapRandoPanel) {
+                    MapRandoInfoPanel(
+                        modifier = Modifier.wrapContentHeight()
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
         }
 
@@ -514,6 +533,27 @@ fun SuperMetroidTrackerLayout(
                         text = "icons",
                         style = MaterialTheme.typography.labelSmall
                     )
+                }
+
+                // Map Rando Info toggle (only show if icon view mode is MAP_RANDO and icons are visible)
+                if (showIcons && iconViewMode == com.supermetroid.model.IconViewMode.MAP_RANDO) {
+                    TextButton(
+                        onClick = { 
+                            CoroutineScope(Dispatchers.Swing).launch {
+                                uiVisibilityService.setShowMapRandoInfo(!showMapRandoInfo)
+                            }
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = if (showMapRandoInfo) TrackerColors.Success else TrackerColors.OnSurfaceVariant
+                        ),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                        modifier = Modifier.height(20.dp)
+                    ) {
+                        Text(
+                            text = "info",
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
                 }
 
                 // Splits toggle
