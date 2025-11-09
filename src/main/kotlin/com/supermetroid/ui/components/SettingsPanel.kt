@@ -18,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +46,7 @@ fun SettingsPanel(
     gameGenieService: com.supermetroid.service.GameGenieService,
     uiVisibilityService: com.supermetroid.service.UIVisibilityService,
     mapRandoInfoFontSizeService: com.supermetroid.service.MapRandoInfoFontSizeService,
+    mapRandoInfoConfigService: com.supermetroid.service.MapRandoInfoConfigService,
 
     modifier: Modifier = Modifier
 ) {
@@ -118,6 +120,7 @@ fun SettingsPanel(
                     iconViewModeService = iconViewModeService,
                     uiVisibilityService = uiVisibilityService,
                     mapRandoInfoFontSizeService = mapRandoInfoFontSizeService,
+                    mapRandoInfoConfigService = mapRandoInfoConfigService,
                     modifier = Modifier.fillMaxSize()
                 )
 
@@ -222,6 +225,7 @@ private fun IconsSettingsTab(
     iconViewModeService: com.supermetroid.service.IconViewModeService,
     uiVisibilityService: com.supermetroid.service.UIVisibilityService,
     mapRandoInfoFontSizeService: com.supermetroid.service.MapRandoInfoFontSizeService,
+    mapRandoInfoConfigService: com.supermetroid.service.MapRandoInfoConfigService,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -246,6 +250,7 @@ private fun IconsSettingsTab(
             MapRandoInfoSettingsSection(
                 uiVisibilityService = uiVisibilityService,
                 mapRandoInfoFontSizeService = mapRandoInfoFontSizeService,
+                mapRandoInfoConfigService = mapRandoInfoConfigService,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -1532,6 +1537,7 @@ private fun SFXSettingsTab(
 private fun MapRandoInfoSettingsSection(
     uiVisibilityService: com.supermetroid.service.UIVisibilityService,
     mapRandoInfoFontSizeService: com.supermetroid.service.MapRandoInfoFontSizeService,
+    mapRandoInfoConfigService: com.supermetroid.service.MapRandoInfoConfigService,
     modifier: Modifier = Modifier
 ) {
     val showMapRandoInfo by uiVisibilityService.showMapRandoInfo.collectAsState()
@@ -1626,6 +1632,160 @@ private fun MapRandoInfoSettingsSection(
                         )
                     }
                 }
+            }
+        }
+        
+        // Info Item Management Section
+        Divider(
+            modifier = Modifier.padding(vertical = 12.dp),
+            color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.2f)
+        )
+        
+        MapRandoInfoManagementSection(
+            mapRandoInfoConfigService = mapRandoInfoConfigService,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+private fun MapRandoInfoManagementSection(
+    mapRandoInfoConfigService: com.supermetroid.service.MapRandoInfoConfigService,
+    modifier: Modifier = Modifier
+) {
+    val config by mapRandoInfoConfigService.config.collectAsState()
+    val allItems = config.items.sortedBy { it.order }
+    
+    Column(
+        modifier = modifier.fillMaxWidth(0.9f),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Info Items",
+            style = MaterialTheme.typography.titleSmall.copy(
+                color = TrackerColors.OnSurface,
+                fontWeight = FontWeight.Bold
+            )
+        )
+        
+        // Scrollable list of info items
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = TrackerColors.SurfaceOverlayLight
+            ),
+            shape = RoundedCornerShape(6.dp)
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                itemsIndexed(allItems) { index, item ->
+                    MapRandoInfoItemRow(
+                        item = item,
+                        index = index,
+                        totalItems = allItems.size,
+                        onToggleVisible = { mapRandoInfoConfigService.setItemVisible(item.id, !item.visible) },
+                        onMoveUp = { if (index > 0) mapRandoInfoConfigService.moveItem(index, index - 1) },
+                        onMoveDown = { if (index < allItems.size - 1) mapRandoInfoConfigService.moveItem(index, index + 1) }
+                    )
+                }
+            }
+        }
+        
+        // Reset button
+        TextButton(
+            onClick = { mapRandoInfoConfigService.resetToDefaults() },
+            colors = ButtonDefaults.textButtonColors(
+                contentColor = TrackerColors.OnSurfaceVariant
+            )
+        ) {
+            Text("Reset to Default", style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+@Composable
+private fun MapRandoInfoItemRow(
+    item: com.supermetroid.model.MapRandoInfoItem,
+    index: Int,
+    totalItems: Int,
+    onToggleVisible: () -> Unit,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = if (item.visible) TrackerColors.Surface else TrackerColors.SurfaceVariant.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(4.dp)
+            )
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Item name
+        Text(
+            text = item.displayName,
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = if (item.visible) TrackerColors.OnSurface else TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
+                fontWeight = FontWeight.Medium
+            ),
+            modifier = Modifier.weight(1f)
+        )
+        
+        // Controls
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Move up button
+            IconButton(
+                onClick = onMoveUp,
+                enabled = index > 0,
+                modifier = Modifier.size(24.dp)
+            ) {
+                Text(
+                    "▲",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = if (index > 0) TrackerColors.OnSurface else TrackerColors.OnSurfaceVariant.copy(alpha = 0.3f)
+                    )
+                )
+            }
+            
+            // Move down button
+            IconButton(
+                onClick = onMoveDown,
+                enabled = index < totalItems - 1,
+                modifier = Modifier.size(24.dp)
+            ) {
+                Text(
+                    "▼",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = if (index < totalItems - 1) TrackerColors.OnSurface else TrackerColors.OnSurfaceVariant.copy(alpha = 0.3f)
+                    )
+                )
+            }
+            
+            // Toggle visibility
+            Box(
+                modifier = Modifier.scale(0.7f)
+            ) {
+                Switch(
+                    checked = item.visible,
+                    onCheckedChange = { onToggleVisible() },
+                    colors = SwitchDefaults.colors(
+                    checkedThumbColor = TrackerColors.Primary,
+                    checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.3f),
+                    uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
+                    uncheckedTrackColor = TrackerColors.SurfaceVariant
+                    )
+                )
             }
         }
     }

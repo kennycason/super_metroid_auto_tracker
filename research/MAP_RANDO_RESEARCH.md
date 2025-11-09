@@ -45,10 +45,10 @@ See [Pause Menu & Credits Display](#pause-menu--credits-display---user-insight-)
 |---------|------|-------------|
 | `$701E10` | 4 bytes | Total timer (frames) |
 | `$701E14` | 2 bytes | Save count |
-| `$701E16` | 2 bytes | Death count |
-| `$701E18` | 2 bytes | Reload count |
-| `$701E1A` | 2 bytes | Loadback count |
-| `$701E1C` | 2 bytes | Reset count |
+| `$701E16` | 2 bytes | **Death count** - Increments on death or escape timer timeout |
+| `$701E18` | 2 bytes | **Quick Reload count** - L+R+Select+Start when you've moved since last save |
+| `$701E1A` | 2 bytes | **Quick Loadback count** - L+R+Select+Start when facing forward (undoes last save) |
+| `$701E1C` | 2 bytes | **Reset count** - ONLY on console reset/emulator restart (NOT in-game reloads!) |
 | `$701E1E` | 4 bytes | Final time |
 | `$701E22` | 4 bytes | Pause time |
 | `$701E26` | 4 bytes | Area 0 time (Crateria) |
@@ -58,6 +58,11 @@ See [Pause Menu & Credits Display](#pause-menu--credits-display---user-insight-)
 | `$701E36` | 4 bytes | Area 4 time (Maridia) |
 | `$701E3A` | 4 bytes | Area 5 time (Tourian) |
 | `$701E3E` | 4 bytes | Area 6 time (Ceres/Debug) |
+
+**Note on Quick Reload/Loadback Button Combo (L+R+Select+Start):**
+- Same button combo (`$3030`) triggers different actions based on Samus state:
+  - **Quick Reload** (`$701E18`): If you've moved/turned → loads current save (MOST COMMON)
+  - **Quick Loadback** (`$701E1A`): If still facing forward → loads PREVIOUS save (rare undo feature)
 
 ### Stats & Timers (RAM - Local)
 

@@ -423,6 +423,7 @@ object SuperMetroidAddresses {
     
     // Map Rando Stats (SRAM - requires bank 0x70)
     const val DEATH_COUNT = 0x701E16  // 2 bytes, little-endian
+    const val RELOAD_COUNT = 0x701E18  // 2 bytes, little-endian (Quick Reload: L+R+Select+Start)
     const val RESET_COUNT = 0x701E1C  // 2 bytes, little-endian
 
     // Palette data (for visual effects)

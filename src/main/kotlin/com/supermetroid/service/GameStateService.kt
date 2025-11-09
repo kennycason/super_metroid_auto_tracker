@@ -398,6 +398,7 @@ class GameStateService(
             "escapeTimer4" to (SuperMetroidAddresses.ESCAPE_TIMER_4 to 2),
             // Map Rando stats (SRAM)
             "deathCount" to (SuperMetroidAddresses.DEATH_COUNT to 2),
+            "reloadCount" to (SuperMetroidAddresses.RELOAD_COUNT to 2),
             "resetCount" to (SuperMetroidAddresses.RESET_COUNT to 2)
         )
 

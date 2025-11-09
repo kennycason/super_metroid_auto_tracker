@@ -43,6 +43,7 @@ class GameStateParser : Logging {
             tourianBosses = memoryData["tourianBosses"]?.readInt16LE() ?: 0,
             shipAi = memoryData["shipAi"]?.readInt16LE() ?: 0,
             deathCount = parseDeathCount(memoryData["deathCount"]),
+            reloadCount = parseReloadCount(memoryData["reloadCount"]),
             resetCount = parseResetCount(memoryData["resetCount"]),
             items = parseItems(memoryData["collectedItems"]),
             beams = parseBeams(memoryData["collectedBeams"]),
@@ -72,6 +73,11 @@ class GameStateParser : Logging {
     }
     
     private fun parseDeathCount(data: ByteArray?): Int {
+        val count = data?.readInt16LE() ?: 0
+        return count
+    }
+    
+    private fun parseReloadCount(data: ByteArray?): Int {
         val count = data?.readInt16LE() ?: 0
         return count
     }

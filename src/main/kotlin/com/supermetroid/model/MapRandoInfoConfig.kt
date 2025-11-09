@@ -33,7 +33,8 @@ object DefaultMapRandoInfoConfig {
             MapRandoInfoItem("qualityOfLife", "Quality of Life", true, 4),
             MapRandoInfoItem("mapLayout", "Map Layout", true, 5),
             MapRandoInfoItem("deaths", "Deaths", true, 6),
-            MapRandoInfoItem("resets", "Resets", true, 7)
+            MapRandoInfoItem("reloads", "Reloads", true, 7),
+            MapRandoInfoItem("resets", "Resets", true, 8)
         )
         
         return MapRandoInfoConfig(items = defaultItems)

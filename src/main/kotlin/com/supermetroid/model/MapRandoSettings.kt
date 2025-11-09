@@ -18,7 +18,8 @@ data class MapRandoSettings(
     val startLocation: String = "OFF", // "Ship", "Random", specific room name
     val saveAnimals: String = "OFF", // "Yes", "No", "Random"
     val deathCount: Int = 0, // Read from SRAM $701E16
-    val resetCount: Int = 0, // Read from SRAM $701E1C
+    val reloadCount: Int = 0, // Read from SRAM $701E18 (Quick Reload: L+R+Select+Start)
+    val resetCount: Int = 0, // Read from SRAM $701E1C (Emulator restart only)
     val version: String = "" // Map Rando version (e.g., "119")
 )
 

@@ -109,10 +109,17 @@ private fun RenderMapRandoInfoItem(
             labelSize = labelSize,
             valueSize = valueSize
         )
+        "reloads" -> MapRandoInfoItem(
+            label = "RELOADS",
+            value = settings.reloadCount.toString(),
+            valueColor = if (settings.reloadCount > 0) TrackerColors.Warning else TrackerColors.OnSurfaceVariant,
+            labelSize = labelSize,
+            valueSize = valueSize
+        )
         "resets" -> MapRandoInfoItem(
             label = "RESETS",
             value = settings.resetCount.toString(),
-            valueColor = if (settings.resetCount > 0) TrackerColors.Warning else TrackerColors.OnSurfaceVariant,
+            valueColor = if (settings.resetCount > 0) TrackerColors.OnSurfaceVariant else TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
             labelSize = labelSize,
             valueSize = valueSize
         )

@@ -76,25 +76,25 @@ class MapRandoDataService {
                     activeFetchJob = serviceScope.launch {
                         try {
                             val apiSettings = fetchSeedDataFromApi(seedName)
-                            cachedSettings = apiSettings.copy(deathCount = deathCount, resetCount = gameState.resetCount)
+                            cachedSettings = apiSettings.copy(deathCount = deathCount, reloadCount = gameState.reloadCount, resetCount = gameState.resetCount)
                             _settings.value = cachedSettings ?: MapRandoSettings()
                         } catch (e: CancellationException) {
                             logger.debug { "🚫 Seed fetch cancelled (expected during shutdown)" }
                         } catch (e: Exception) {
                             logger.error(e) { "❌ Failed to fetch seed data" }
-                            cachedSettings = MapRandoSettings(seedName = seedName, deathCount = deathCount, resetCount = gameState.resetCount)
+                            cachedSettings = MapRandoSettings(seedName = seedName, deathCount = deathCount, reloadCount = gameState.reloadCount, resetCount = gameState.resetCount)
                             _settings.value = cachedSettings ?: MapRandoSettings()
                         }
                     }
                 } else {
                     logger.debug { "📭 No Map Rando seed detected" }
-                    cachedSettings = MapRandoSettings(deathCount = deathCount, resetCount = gameState.resetCount)
+                    cachedSettings = MapRandoSettings(deathCount = deathCount, reloadCount = gameState.reloadCount, resetCount = gameState.resetCount)
                     _settings.value = cachedSettings ?: MapRandoSettings()
                 }
             } else {
-                // Update death and reset counts if seed hasn't changed
+                // Update death, reload, and reset counts if seed hasn't changed
                 cachedSettings?.let {
-                    _settings.value = it.copy(deathCount = deathCount, resetCount = gameState.resetCount)
+                    _settings.value = it.copy(deathCount = deathCount, reloadCount = gameState.reloadCount, resetCount = gameState.resetCount)
                 }
             }
         } catch (e: Exception) {

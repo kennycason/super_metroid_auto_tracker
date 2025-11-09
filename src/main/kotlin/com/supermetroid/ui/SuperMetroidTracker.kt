@@ -488,6 +488,7 @@ fun SuperMetroidTrackerLayout(
                 gameGenieService = gameGenieService,
                 uiVisibilityService = uiVisibilityService,
                 mapRandoInfoFontSizeService = mapRandoInfoFontSizeService,
+                mapRandoInfoConfigService = mapRandoInfoConfigService,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f) // Takes all remaining vertical space
