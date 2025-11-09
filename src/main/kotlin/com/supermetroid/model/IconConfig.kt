@@ -59,15 +59,16 @@ object DefaultIconConfig {
             IconItem("bomb_torizo", "Bomb Torizo", "boss", true, 22),
             IconItem("spore_spawn", "Spore Spawn", "boss", true, 23),
             IconItem("kraid", "Kraid", "boss", true, 24),
-            IconItem("phantoon", "Phantoon", "boss", true, 25),
-            IconItem("botwoon", "Botwoon", "boss", true, 26),
-            IconItem("draygon", "Draygon", "boss", true, 27),
-            IconItem("gold_torizo", "Gold Torizo", "boss", true, 28),
-            IconItem("ridley", "Ridley", "boss", true, 29),
-            IconItem("golden_four", "G4", "boss", true, 30),
-            IconItem("mother_brain_1", "Mother Brain 1", "boss", true, 31),
-            IconItem("mother_brain_2", "Mother Brain 2", "boss", true, 32),
-            IconItem("ship", "Ship", "boss", true, 33)
+            IconItem("crocomire", "Crocomire", "boss", true, 25),
+            IconItem("phantoon", "Phantoon", "boss", true, 26),
+            IconItem("botwoon", "Botwoon", "boss", true, 27),
+            IconItem("draygon", "Draygon", "boss", true, 28),
+            IconItem("gold_torizo", "Gold Torizo", "boss", true, 29),
+            IconItem("ridley", "Ridley", "boss", true, 30),
+            IconItem("golden_four", "G4", "boss", true, 31),
+            IconItem("mother_brain_1", "Mother Brain 1", "boss", true, 32),
+            IconItem("mother_brain_2", "Mother Brain 2", "boss", true, 33),
+            IconItem("ship", "Ship", "boss", true, 34)
         )
         
         return IconConfig(icons = defaultIcons)

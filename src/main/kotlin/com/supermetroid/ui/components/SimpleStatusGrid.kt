@@ -452,6 +452,7 @@ private fun getAllItemsAndBosses(gameState: GameState): List<ItemStatus> = listO
     ItemStatus("bomb_torizo", "Bomb Torizo", gameState.bosses.bombTorizo),
     ItemStatus("spore_spawn", "Spore Spawn", gameState.bosses.sporeSpawn),
     ItemStatus("kraid", "Kraid", gameState.bosses.kraid),
+    ItemStatus("crocomire", "Crocomire", gameState.bosses.crocomire),
     ItemStatus("phantoon", "Phantoon", gameState.bosses.phantoon),
     ItemStatus("botwoon", "Botwoon", gameState.bosses.botwoon),
     ItemStatus("draygon", "Draygon", gameState.bosses.draygon),
