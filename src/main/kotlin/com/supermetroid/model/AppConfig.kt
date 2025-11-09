@@ -91,5 +91,8 @@ data class AppConfig(
     // Splits display settings
     val showSegmentDeltas: Boolean = false,
     val showBobColumn: Boolean = true,  // Show Best of Best (theoretical best) column
-    val showBestColumn: Boolean = true  // Show Personal Best run column
+    val showBestColumn: Boolean = true,  // Show Personal Best run column
+    // Timer persistence
+    val savedTimerMs: Long? = null,  // Saved timer value in milliseconds (null = no saved timer)
+    val savedTimerProfileId: String? = null  // Profile ID for the saved timer
 )

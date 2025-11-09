@@ -39,6 +39,26 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     val splitsState: StateFlow<SplitsState> = _splitsState.asStateFlow()
 
     /**
+     * Initialize engine and restore saved timer state if present
+     */
+    suspend fun initialize() {
+        try {
+            fileStorageService?.let { storage ->
+                val config = storage.loadAppConfig()
+                val savedTimerMs = config.savedTimerMs
+                val savedProfileId = config.savedTimerProfileId
+                
+                if (savedTimerMs != null && savedTimerMs > 0 && savedProfileId != null) {
+                    logger.info { "⏱️ Restoring saved timer: ${formatTime(savedTimerMs)} for profile $savedProfileId" }
+                    setTimer(savedTimerMs, savedProfileId)
+                }
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to restore saved timer state" }
+        }
+    }
+
+    /**
      * Load a split profile
      */
     fun loadProfile(profile: SplitProfile) {
@@ -52,11 +72,30 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     fun loadSavedState(savedState: SplitsState) {
         logger.info { "📄 Loading saved state - PersonalBests: ${savedState.personalBests.size}, RunHistory: ${savedState.runHistory.size}" }
 
+        // Preserve manually-set timer if there's no saved run to restore
+        val existingTimerRun = _splitsState.value.currentRun
+        val hasTimerOnlyRun = existingTimerRun != null && 
+                              existingTimerRun.completedSplits.isEmpty() && 
+                              existingTimerRun.isPaused
+        
         // First, update personal bests from run history
         val updatedState = updatePersonalBestsFromRunHistory(savedState)
-        _splitsState.value = updatedState
+        
+        // If there's no saved run but we have a timer-only run, preserve it
+        val finalState = if (updatedState.currentRun == null && hasTimerOnlyRun && existingTimerRun != null) {
+            logger.info { "⏱️ Preserving manually-set timer: ${formatTime(existingTimerRun.totalTime)}" }
+            // Also preserve the pause start time for the timer run
+            if (pauseStartTime == null && existingTimerRun.isPaused) {
+                pauseStartTime = Clock.System.now()
+            }
+            updatedState.copy(currentRun = existingTimerRun)
+        } else {
+            updatedState
+        }
+        
+        _splitsState.value = finalState
 
-        val currentRun = updatedState.currentRun
+        val currentRun = finalState.currentRun
         if (currentRun != null) {
             val profile = currentProfile ?: KpdrAnyProfile.profile
             currentSplitIndex = currentRun.completedSplits.size
@@ -389,6 +428,9 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         )
 
         logger.info { "▶️ Run ${currentRun.id} resumed successfully" }
+        
+        // Clear saved timer from config since run is now active
+        clearSavedTimer()
     }
 
     /**
@@ -483,6 +525,9 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         autoStartEnabled = true
 
         logger.info { "🔄 Run reset complete - timer state cleared, auto-start re-enabled" }
+        
+        // Clear saved timer from config
+        clearSavedTimer()
 
         // Add a small delay before allowing new toggleRunState calls
         // This helps prevent accidental immediate restart after reset
@@ -569,6 +614,22 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             _splitsState.value = currentState.copy(currentRun = updatedRun)
 
             logger.info { "⏱️ Updated existing run timer to ${formatTime(timeMs)} (${if (wasPaused) "paused" else "running"})" }
+        }
+        
+        // Save timer value to config for persistence
+        fileStorageService?.let { storage ->
+            scope.launch(Dispatchers.IO) {
+                try {
+                    val config = storage.loadAppConfig()
+                    storage.saveAppConfig(config.copy(
+                        savedTimerMs = timeMs,
+                        savedTimerProfileId = profileId
+                    ))
+                    logger.debug { "💾 Saved timer value to config: ${formatTime(timeMs)}" }
+                } catch (e: Exception) {
+                    logger.error(e) { "❌ Failed to save timer value to config" }
+                }
+            }
         }
     }
 
@@ -1352,6 +1413,26 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
      */
     private fun generateRunId(): String =
         "run_${Clock.System.now().toEpochMilliseconds()}"
+
+    /**
+     * Clear saved timer from config
+     */
+    private fun clearSavedTimer() {
+        fileStorageService?.let { storage ->
+            scope.launch(Dispatchers.IO) {
+                try {
+                    val config = storage.loadAppConfig()
+                    storage.saveAppConfig(config.copy(
+                        savedTimerMs = null,
+                        savedTimerProfileId = null
+                    ))
+                    logger.debug { "🗑️ Cleared saved timer from config" }
+                } catch (e: Exception) {
+                    logger.error(e) { "❌ Failed to clear saved timer from config" }
+                }
+            }
+        }
+    }
 
     /**
      * Format time in HH:MM:SS.ss format

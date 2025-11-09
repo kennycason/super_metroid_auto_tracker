@@ -69,6 +69,9 @@ fun main(args: Array<String>) {
     soundService = com.supermetroid.service.SoundService(fileStorageService)
     gameGenieService = com.supermetroid.service.GameGenieService(fileStorageService)
     
+    // Initialize autoSplitsEngine to restore saved timer
+    runBlocking { autoSplitsEngine.initialize() }
+    
     application {
         // Load saved window dimensions
         val config = runBlocking { fileStorageService.loadAppConfig() }
