@@ -29,6 +29,7 @@ class MapRandoInfoConfigService : Logging {
     private val json = Json {
         prettyPrint = true
         ignoreUnknownKeys = true
+        encodeDefaults = true  // Include default values (like visible = true)
     }
 
     suspend fun initialize() {
