@@ -43,6 +43,8 @@ fun SettingsPanel(
     iconViewModeService: com.supermetroid.service.IconViewModeService,
     soundService: com.supermetroid.service.SoundService,
     gameGenieService: com.supermetroid.service.GameGenieService,
+    uiVisibilityService: com.supermetroid.service.UIVisibilityService,
+    mapRandoInfoFontSizeService: com.supermetroid.service.MapRandoInfoFontSizeService,
 
     modifier: Modifier = Modifier
 ) {
@@ -114,6 +116,8 @@ fun SettingsPanel(
                     iconSizeService = iconSizeService,
                     iconConfigService = iconConfigService,
                     iconViewModeService = iconViewModeService,
+                    uiVisibilityService = uiVisibilityService,
+                    mapRandoInfoFontSizeService = mapRandoInfoFontSizeService,
                     modifier = Modifier.fillMaxSize()
                 )
 
@@ -216,6 +220,8 @@ private fun IconsSettingsTab(
     iconSizeService: com.supermetroid.service.IconSizeService,
     iconConfigService: com.supermetroid.service.IconConfigService,
     iconViewModeService: com.supermetroid.service.IconViewModeService,
+    uiVisibilityService: com.supermetroid.service.UIVisibilityService,
+    mapRandoInfoFontSizeService: com.supermetroid.service.MapRandoInfoFontSizeService,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -233,6 +239,16 @@ private fun IconsSettingsTab(
             iconViewModeService = iconViewModeService,
             modifier = Modifier.fillMaxWidth()
         )
+
+        // Map Rando Info Settings - only show when Map Rando mode is selected
+        val iconViewMode by iconViewModeService.iconViewMode.collectAsState()
+        if (iconViewMode == com.supermetroid.model.IconViewMode.MAP_RANDO) {
+            MapRandoInfoSettingsSection(
+                uiVisibilityService = uiVisibilityService,
+                mapRandoInfoFontSizeService = mapRandoInfoFontSizeService,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
         IconAmmoDisplayModeSection(
             iconViewModeService = iconViewModeService,
@@ -1509,5 +1525,108 @@ private fun SFXSettingsTab(
             }
         }
 
+    }
+}
+
+@Composable
+private fun MapRandoInfoSettingsSection(
+    uiVisibilityService: com.supermetroid.service.UIVisibilityService,
+    mapRandoInfoFontSizeService: com.supermetroid.service.MapRandoInfoFontSizeService,
+    modifier: Modifier = Modifier
+) {
+    val showMapRandoInfo by uiVisibilityService.showMapRandoInfo.collectAsState()
+    val fontSize by mapRandoInfoFontSizeService.fontSize.collectAsState()
+    var fontSizeExpanded by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = modifier.fillMaxWidth(0.9f),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Show Map Rando Info Panel toggle
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Show Info Panel",
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = TrackerColors.OnSurface,
+                    fontWeight = FontWeight.Medium
+                )
+            )
+            
+            Switch(
+                checked = showMapRandoInfo,
+                onCheckedChange = { enabled ->
+                    kotlinx.coroutines.GlobalScope.launch {
+                        uiVisibilityService.setShowMapRandoInfo(enabled)
+                    }
+                },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = TrackerColors.Primary,
+                    checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.3f),
+                    uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
+                    uncheckedTrackColor = TrackerColors.SurfaceVariant
+                )
+            )
+        }
+
+        // Font Size selector
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Info Panel Font Size",
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = TrackerColors.OnSurface,
+                    fontWeight = FontWeight.Medium
+                )
+            )
+
+            Box {
+                Button(
+                    onClick = { fontSizeExpanded = !fontSizeExpanded },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = TrackerColors.SurfaceOverlayLight,
+                        contentColor = TrackerColors.OnSurface
+                    ),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = fontSize.displayName, style = MaterialTheme.typography.bodySmall)
+                        Text(text = if (fontSizeExpanded) "▲" else "▼", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                DropdownMenu(
+                    expanded = fontSizeExpanded,
+                    onDismissRequest = { fontSizeExpanded = false },
+                    modifier = Modifier.background(TrackerColors.Surface)
+                ) {
+                    com.supermetroid.model.MapRandoInfoFontSize.values().forEach { size ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    size.displayName,
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = if (size == fontSize) TrackerColors.Primary else TrackerColors.OnSurface
+                                    )
+                                )
+                            },
+                            onClick = {
+                                kotlinx.coroutines.GlobalScope.launch { mapRandoInfoFontSizeService.setFontSize(size) }
+                                fontSizeExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
     }
 }

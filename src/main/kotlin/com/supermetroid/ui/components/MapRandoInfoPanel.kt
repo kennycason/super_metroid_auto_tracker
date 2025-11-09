@@ -18,10 +18,15 @@ import com.supermetroid.ui.theme.TrackerColors
  */
 @Composable
 fun MapRandoInfoPanel(
+    fontSizeService: com.supermetroid.service.MapRandoInfoFontSizeService,
+    mapRandoDataService: com.supermetroid.service.MapRandoDataService,
     modifier: Modifier = Modifier
 ) {
+    val fontSize by fontSizeService.fontSize.collectAsState()
+    val settings by mapRandoDataService.settings.collectAsState()
+    
     Card(
-        modifier = modifier.width(130.dp),
+        modifier = modifier.width(fontSize.panelWidth.dp), // Dynamic width based on font size
         colors = CardDefaults.cardColors(
             containerColor = TrackerColors.Surface
         ),
@@ -33,38 +38,55 @@ fun MapRandoInfoPanel(
                 .padding(4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            // TODO: Read seed name from memory ($dffef0)
-            // TODO: Fetch full metadata from maprando.com API
-            // For now, show placeholders
+            // Display real data from Map Rando API
+            // Shows "OFF" when no seed detected or API fails
             
             MapRandoInfoItem(
                 label = "OBJECTIVES",
-                value = "BOSSES",
-                valueColor = TrackerColors.OnSurface
+                value = settings.objectives,
+                valueColor = if (settings.objectives != "OFF") TrackerColors.Primary else TrackerColors.OnSurfaceVariant,
+                labelSize = fontSize.labelSize,
+                valueSize = fontSize.valueSize
             )
             
             MapRandoInfoItem(
                 label = "DIFFICULTY",
-                value = "BASIC",
-                valueColor = TrackerColors.Primary
+                value = settings.difficulty,
+                valueColor = if (settings.difficulty != "OFF") TrackerColors.Success else TrackerColors.OnSurfaceVariant,
+                labelSize = fontSize.labelSize,
+                valueSize = fontSize.valueSize
             )
             
             MapRandoInfoItem(
                 label = "ITEM PROGRESSION",
-                value = "NORMAL",
-                valueColor = TrackerColors.Primary
+                value = settings.itemProgression,
+                valueColor = if (settings.itemProgression != "OFF") TrackerColors.Primary else TrackerColors.OnSurfaceVariant,
+                labelSize = fontSize.labelSize,
+                valueSize = fontSize.valueSize
             )
             
             MapRandoInfoItem(
                 label = "QUALITY OF LIFE",
-                value = "OFF",
-                valueColor = TrackerColors.OnSurfaceVariant
+                value = settings.qualityOfLife,
+                valueColor = if (settings.qualityOfLife != "OFF") TrackerColors.Warning else TrackerColors.OnSurfaceVariant,
+                labelSize = fontSize.labelSize,
+                valueSize = fontSize.valueSize
             )
             
             MapRandoInfoItem(
                 label = "MAP LAYOUT",
-                value = "VANILLA",
-                valueColor = TrackerColors.OnSurface
+                value = settings.mapLayout,
+                valueColor = if (settings.mapLayout != "OFF") TrackerColors.Primary else TrackerColors.OnSurfaceVariant,
+                labelSize = fontSize.labelSize,
+                valueSize = fontSize.valueSize
+            )
+            
+            MapRandoInfoItem(
+                label = "DEATHS",
+                value = settings.deathCount.toString(),
+                valueColor = if (settings.deathCount > 0) TrackerColors.Error else TrackerColors.OnSurfaceVariant,
+                labelSize = fontSize.labelSize,
+                valueSize = fontSize.valueSize
             )
         }
     }
@@ -75,6 +97,8 @@ private fun MapRandoInfoItem(
     label: String,
     value: String,
     valueColor: androidx.compose.ui.graphics.Color,
+    labelSize: Int,
+    valueSize: Int,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -87,7 +111,7 @@ private fun MapRandoInfoItem(
             text = label,
             style = MaterialTheme.typography.labelSmall.copy(
                 color = TrackerColors.OnSurfaceVariant,
-                fontSize = 10.sp,
+                fontSize = labelSize.sp, // Dynamic font size
                 fontWeight = FontWeight.Normal,
                 letterSpacing = 0.5.sp
             )
@@ -98,7 +122,7 @@ private fun MapRandoInfoItem(
             text = value,
             style = MaterialTheme.typography.titleMedium.copy(
                 color = valueColor,
-                fontSize = 18.sp,
+                fontSize = valueSize.sp, // Dynamic font size
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
             )

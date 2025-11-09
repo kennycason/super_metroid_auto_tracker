@@ -45,6 +45,8 @@ lateinit var iconViewModeService: com.supermetroid.service.IconViewModeService
 lateinit var uiVisibilityService: com.supermetroid.service.UIVisibilityService
 lateinit var soundService: com.supermetroid.service.SoundService
 lateinit var gameGenieService: com.supermetroid.service.GameGenieService
+lateinit var mapRandoInfoFontSizeService: com.supermetroid.service.MapRandoInfoFontSizeService
+lateinit var mapRandoDataService: com.supermetroid.service.MapRandoDataService
 
 fun main(args: Array<String>) {
     // Parse command-line arguments
@@ -68,6 +70,8 @@ fun main(args: Array<String>) {
     uiVisibilityService = com.supermetroid.service.UIVisibilityService(fileStorageService)
     soundService = com.supermetroid.service.SoundService(fileStorageService)
     gameGenieService = com.supermetroid.service.GameGenieService(fileStorageService)
+    mapRandoInfoFontSizeService = com.supermetroid.service.MapRandoInfoFontSizeService(fileStorageService, kotlinx.coroutines.GlobalScope)
+    mapRandoDataService = com.supermetroid.service.MapRandoDataService()
     
     // Initialize autoSplitsEngine to restore saved timer
     runBlocking { autoSplitsEngine.initialize() }
@@ -236,6 +240,9 @@ fun SuperMetroidTrackerApp() {
         // Initialize Game Genie service
         gameGenieService.initialize()
         
+        // Initialize Map Rando info font size service
+        mapRandoInfoFontSizeService.initialize()
+        
         // Mark services as initialized
         servicesInitialized = true
         
@@ -270,6 +277,10 @@ fun SuperMetroidTrackerApp() {
         // Process sound effects for item collection and boss defeats
         soundService.processGameStateChange(trackerState.gameState)
     }
+    
+    // Update Map Rando data from game state (uses its own stable coroutine scope)
+    // This runs outside LaunchedEffect to avoid cancellation during recomposition
+    mapRandoDataService.updateFromGameState(trackerState.gameState)
 
     // Note: Splits are now saved automatically to runs/ directory by AutoSplitsEngine
     // No need to save to legacy splits-data.json format anymore
@@ -425,6 +436,8 @@ fun SuperMetroidTrackerLayout(
                 // Map Rando Info Panel on the right side of icons
                 if (showMapRandoPanel) {
                     MapRandoInfoPanel(
+                        fontSizeService = mapRandoInfoFontSizeService,
+                        mapRandoDataService = mapRandoDataService,
                         modifier = Modifier.wrapContentHeight()
                     )
                 }
@@ -467,6 +480,8 @@ fun SuperMetroidTrackerLayout(
                 iconViewModeService = iconViewModeService,
                 soundService = soundService,
                 gameGenieService = gameGenieService,
+                uiVisibilityService = uiVisibilityService,
+                mapRandoInfoFontSizeService = mapRandoInfoFontSizeService,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f) // Takes all remaining vertical space
@@ -533,27 +548,6 @@ fun SuperMetroidTrackerLayout(
                         text = "icons",
                         style = MaterialTheme.typography.labelSmall
                     )
-                }
-
-                // Map Rando Info toggle (only show if icon view mode is MAP_RANDO and icons are visible)
-                if (showIcons && iconViewMode == com.supermetroid.model.IconViewMode.MAP_RANDO) {
-                    TextButton(
-                        onClick = { 
-                            CoroutineScope(Dispatchers.Swing).launch {
-                                uiVisibilityService.setShowMapRandoInfo(!showMapRandoInfo)
-                            }
-                        },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = if (showMapRandoInfo) TrackerColors.Success else TrackerColors.OnSurfaceVariant
-                        ),
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 2.dp),
-                        modifier = Modifier.height(20.dp)
-                    ) {
-                        Text(
-                            text = "info",
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
                 }
 
                 // Splits toggle
