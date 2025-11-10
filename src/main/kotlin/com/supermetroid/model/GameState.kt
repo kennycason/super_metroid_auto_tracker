@@ -30,6 +30,7 @@ data class GameState(
     val deathCount: Int = 0,     // Map Rando death counter from SRAM ($701E16)
     val reloadCount: Int = 0,    // Map Rando reload counter from SRAM ($701E18)
     val resetCount: Int = 0,     // Map Rando reset counter from SRAM ($701E1C)
+    val mapRandoSeedName: String = "",  // Map Rando seed name from $dffef0 (16 bytes)
     val items: Items = Items(),
     val beams: Beams = Beams(),
     val bosses: Bosses = Bosses()
@@ -75,7 +76,12 @@ data class Bosses(
     val motherBrain1: Boolean = false,
     val motherBrain2: Boolean = false,
     val motherBrain: Boolean = false,  // Final defeat flag
-    val samusShip: Boolean = false     // End-game completion
+    val samusShip: Boolean = false,     // End-game completion
+    // Tourian Metroid rooms
+    val metroid1: Boolean = false,      // Metroid Room 1
+    val metroid2: Boolean = false,      // Metroid Room 2
+    val metroid3: Boolean = false,      // Metroid Room 3
+    val metroid4: Boolean = false       // Metroid Room 4
 )
 
 @Serializable

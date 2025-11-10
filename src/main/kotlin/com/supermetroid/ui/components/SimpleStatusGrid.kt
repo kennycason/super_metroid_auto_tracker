@@ -76,6 +76,30 @@ private fun MapRandoGrid(
             }
         }
 
+        // Column 2: Metroid Rooms (4 tall, same size as bosses)
+        Column(
+            verticalArrangement = Arrangement.spacedBy(spacing),
+            modifier = Modifier.width(bossTileDim),
+        ) {
+            listOf("metroid1", "metroid2", "metroid3", "metroid4").forEach { id ->
+                val sprite = getSpriteInfo(id)
+                if (sprite != null) {
+                    SpriteImageSized(
+                        spriteFile = sprite.spriteFile,
+                        spriteX = sprite.x,
+                        spriteY = sprite.y,
+                        spriteWidth = sprite.width,
+                        spriteHeight = sprite.height,
+                        displayWidth = bossTileDim,
+                        displayHeight = bossTileDim,
+                        isObtained = getMetroidObtained(gameState, id)
+                    )
+                } else {
+                    Box(modifier = Modifier.size(bossTileDim, bossTileDim))
+                }
+            }
+        }
+
         // Helper to render a vertical list of ids
         @Composable
         fun ColumnOf(ids: List<String>) {
@@ -147,6 +171,14 @@ private fun getBossObtained(gameState: GameState, id: String): Boolean = when (i
     "phantoon" -> gameState.bosses.phantoon
     "draygon" -> gameState.bosses.draygon
     "ridley" -> gameState.bosses.ridley
+    else -> false
+}
+
+private fun getMetroidObtained(gameState: GameState, id: String): Boolean = when (id) {
+    "metroid1" -> gameState.bosses.metroid1
+    "metroid2" -> gameState.bosses.metroid2
+    "metroid3" -> gameState.bosses.metroid3
+    "metroid4" -> gameState.bosses.metroid4
     else -> false
 }
 
@@ -459,6 +491,10 @@ private fun getAllItemsAndBosses(gameState: GameState): List<ItemStatus> = listO
     ItemStatus("gold_torizo", "Gold Torizo", gameState.bosses.goldenTorizo),
     ItemStatus("ridley", "Ridley", gameState.bosses.ridley),
     ItemStatus("golden_four", "G4", gameState.bosses.kraid && gameState.bosses.phantoon && gameState.bosses.draygon && gameState.bosses.ridley),
+    ItemStatus("metroid1", "Metroid 1", gameState.bosses.metroid1),
+    ItemStatus("metroid2", "Metroid 2", gameState.bosses.metroid2),
+    ItemStatus("metroid3", "Metroid 3", gameState.bosses.metroid3),
+    ItemStatus("metroid4", "Metroid 4", gameState.bosses.metroid4),
     ItemStatus("mother_brain_1", "Mother Brain 1", gameState.bosses.motherBrain1),
     ItemStatus("mother_brain_2", "Mother Brain 2", gameState.bosses.motherBrain2),
     // ItemStatus("mother_brain_3", "Mother Brain 3", gameState.bosses.motherBrain),

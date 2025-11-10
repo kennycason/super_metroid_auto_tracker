@@ -66,9 +66,13 @@ object DefaultIconConfig {
             IconItem("gold_torizo", "Gold Torizo", "boss", true, 29),
             IconItem("ridley", "Ridley", "boss", true, 30),
             IconItem("golden_four", "G4", "boss", true, 31),
-            IconItem("mother_brain_1", "Mother Brain 1", "boss", true, 32),
-            IconItem("mother_brain_2", "Mother Brain 2", "boss", true, 33),
-            IconItem("ship", "Ship", "boss", true, 34)
+            IconItem("metroid1", "Metroid 1", "boss", true, 32),
+            IconItem("metroid2", "Metroid 2", "boss", true, 33),
+            IconItem("metroid3", "Metroid 3", "boss", true, 34),
+            IconItem("metroid4", "Metroid 4", "boss", true, 35),
+            IconItem("mother_brain_1", "Mother Brain 1", "boss", true, 36),
+            IconItem("mother_brain_2", "Mother Brain 2", "boss", true, 37),
+            IconItem("ship", "Ship", "boss", true, 38)
         )
         
         return IconConfig(icons = defaultIcons)

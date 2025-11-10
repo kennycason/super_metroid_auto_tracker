@@ -77,7 +77,7 @@ Stores visibility and order of Map Rando info items:
     {
       "id": "resets",
       "displayName": "Resets",
-      "visible": true,
+      "visible": false,
       "order": 8
     }
   ]
@@ -146,4 +146,40 @@ cat ~/.smtracker/maprando-info-config.json | jq '.items[] | {id, visible, order}
 3. Merge function ensures new items (like "reloads") are automatically added to existing configs
 
 **Status:** ✅ All settings now persist correctly with full field serialization
+
+---
+
+## UI Layout Optimizations (Nov 9, 2025)
+
+### Space-Saving Layout for Counters
+
+**Deaths and Reloads:** Displayed side-by-side in a single row to save vertical space
+- Both counters have short labels/values (e.g., "DEATHS: 3", "RELOADS: 7")
+- Rendered in a `Row` with equal weights when both are visible
+- If only one is visible, it renders normally (full width)
+
+**Resets:** Disabled by default
+- Most users don't need this counter (only increments on emulator/console restart)
+- Can be enabled in Settings → Icons → Map Rando Info Management
+- When enabled, renders on its own row
+
+### Visual Hierarchy
+
+```
+┌─────────────────────────────┐
+│ OBJECTIVES    Bosses        │
+│ DIFFICULTY    Basic          │
+│ ITEM PROG     Normal         │
+│ QUALITY       Max            │
+│ MAP LAYOUT    Small          │
+│ DEATHS: 3     RELOADS: 7    │  ← Side-by-side!
+│ (RESETS: 0 if enabled)      │
+└─────────────────────────────┘
+```
+
+**Benefits:**
+- More compact info panel
+- Better use of horizontal space
+- Deaths and Reloads are naturally grouped (both are "failure" counters)
+- Panel height reduced by one row when both are visible
 

@@ -277,6 +277,10 @@ fun getSpriteInfo(itemId: String): SpriteInfo? {
         "samus_ship", "ship" -> SpriteInfo("boss_sprites.png", 704, 0, 64, 64)
         "ceres_station" -> SpriteInfo("boss_sprites.png", 768, 0, 64, 64)
         "golden_four", "g4" -> SpriteInfo("boss_sprites.png", 832, 0, 64, 64)
+        "metroid1" -> SpriteInfo("boss_sprites.png", 896, 0, 64, 64) // Tourian Metroid Rooms
+        "metroid2" -> SpriteInfo("boss_sprites.png", 960, 0, 64, 64)
+        "metroid3" -> SpriteInfo("boss_sprites.png", 1024, 0, 64, 64)
+        "metroid4" -> SpriteInfo("boss_sprites.png", 1088, 0, 64, 64)
 
         else -> {
             SpriteIconLog.logger.warn { "No sprite mapping found for itemId: '$itemId'" }

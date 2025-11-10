@@ -410,6 +410,7 @@ object SuperMetroidAddresses {
     const val TOURIAN_BOSSES = 0x7ED82D
     const val CERES_BOSSES = 0x7ED82E
     const val EVENT_FLAGS = 0x7ED821
+    const val METROID_ROOMS = 0x7ED822  // Bit values 1, 2, 4, 8 (0x01, 0x02, 0x04, 0x08) for Metroid rooms 1-4
 
     // Special
     const val MOTHER_BRAIN_HP = 0x7E0FCC
@@ -425,6 +426,9 @@ object SuperMetroidAddresses {
     const val DEATH_COUNT = 0x701E16  // 2 bytes, little-endian
     const val RELOAD_COUNT = 0x701E18  // 2 bytes, little-endian (Quick Reload: L+R+Select+Start)
     const val RESET_COUNT = 0x701E1C  // 2 bytes, little-endian
+    
+    // Map Rando Seed Info (ROM - bank 0xDF)
+    const val SEED_NAME = 0xDFFEF0  // 16 bytes, null-terminated ASCII string
 
     // Palette data (for visual effects)
     const val SAMUS_PALETTE_START = 0x7EC000

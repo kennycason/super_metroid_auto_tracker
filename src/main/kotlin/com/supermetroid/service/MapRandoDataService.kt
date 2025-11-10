@@ -104,15 +104,10 @@ class MapRandoDataService {
 
     /**
      * Read seed name from memory at $dffef0 (16 bytes, null-terminated)
+     * Now reads directly from GameState which is populated by SNI/RetroArch
      */
     private fun readSeedNameFromMemory(gameState: GameState): String {
-        // TODO: Implement actual memory read via SNI
-        // TEMPORARY TEST MODE: Hardcode a seed for testing
-        // Remove this and uncomment the return "" when SNI integration is ready
-        return "pFSJBxm7R" // TEST SEED - User's example seed
-        
-        // For now, return empty string (will be implemented when SNI integration is added)
-        // return ""
+        return gameState.mapRandoSeedName
     }
 
     /**

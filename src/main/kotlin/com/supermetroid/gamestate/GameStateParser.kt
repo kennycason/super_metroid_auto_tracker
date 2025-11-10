@@ -45,6 +45,7 @@ class GameStateParser : Logging {
             deathCount = parseDeathCount(memoryData["deathCount"]),
             reloadCount = parseReloadCount(memoryData["reloadCount"]),
             resetCount = parseResetCount(memoryData["resetCount"]),
+            mapRandoSeedName = parseSeedName(memoryData["seedName"]),
             items = parseItems(memoryData["collectedItems"]),
             beams = parseBeams(memoryData["collectedBeams"]),
             bosses = parseBosses(memoryData, parseAreaId(memoryData["areaId"]))
@@ -85,6 +86,22 @@ class GameStateParser : Logging {
     private fun parseResetCount(data: ByteArray?): Int {
         val count = data?.readInt16LE() ?: 0
         return count
+    }
+    
+    /**
+     * Parse Map Rando seed name from memory at $dffef0 (16 bytes, null-terminated ASCII)
+     */
+    private fun parseSeedName(data: ByteArray?): String {
+        if (data == null || data.isEmpty()) return ""
+        
+        // Find null terminator (0x00)
+        val endIndex = data.indexOf(0x00.toByte())
+        val actualLength = if (endIndex >= 0) endIndex else data.size
+        
+        // Convert to ASCII string
+        val seedName = String(data, 0, actualLength, Charsets.US_ASCII).trim()
+        
+        return seedName
     }
 
     /**
@@ -151,12 +168,14 @@ class GameStateParser : Logging {
         val ceresBosses = memoryData["ceresBosses"]?.readInt16LE() ?: 0
         val eventFlags = memoryData["eventFlags"]?.readInt16LE() ?: 0
         val shipAi = memoryData["shipAi"]?.readInt16LE() ?: 0
+        val metroidRooms = memoryData["metroidRooms"]?.readInt16LE() ?: 0
 
         // Reduce debug noise - only log every 50 polls or when data changes significantly
         val currentDataHash = (bossFlags1 + bossFlags2 + bossFlags3 + tourianBosses + eventFlags).toString(16)
         if (currentDataHash.hashCode() % 20 == 0) {
             logger.debug { "🏆 Boss flags - 1:0x${bossFlags1.toString(16)}, 2:0x${bossFlags2.toString(16)}, 3:0x${bossFlags3.toString(16)}, 4:0x${bossFlags4.toString(16)}, 5:0x${bossFlags5.toString(16)}" }
             logger.debug { "🧠 Tourian bosses: 0x${tourianBosses.toString(16)}, Ceres bosses: 0x${ceresBosses.toString(16)}, Event flags: 0x${eventFlags.toString(16)}" }
+            logger.debug { "👾 Metroid rooms: 0x${metroidRooms.toString(16)}" }
         }
 
         return Bosses(
@@ -170,10 +189,14 @@ class GameStateParser : Logging {
             draygon = parseDraygon(bossFlags5),
             ridley = parseRidley(bossFlags3),
             goldenTorizo = parseGoldenTorizo(bossFlags1, bossFlags2, bossFlags3, bossFlags4),
+            metroid1 = parseMetroid1(metroidRooms),  // Tourian Metroid rooms
+            metroid2 = parseMetroid2(metroidRooms),
+            metroid3 = parseMetroid3(metroidRooms),
+            metroid4 = parseMetroid4(metroidRooms),
             motherBrain1 = parseMotherBrain1(memoryData),
             motherBrain2 = parseMotherBrain2(memoryData),
             motherBrain = parseMotherBrainFinal(tourianBosses),
-            samusShip = parseSamusShip(shipAi, eventFlags, tourianBosses)
+            samusShip = parseSamusShip(shipAi, eventFlags, tourianBosses),
         )
     }
 
@@ -336,6 +359,38 @@ class GameStateParser : Logging {
 
         logger.debug { "🚢 Ship: zebesAblaze=$zebesAblaze, shipAI=0x${shipAi.toString(16)}, mbDefeated=$motherBrainDefeated, result=$detected" }
         return detected
+    }
+
+    /**
+     * Parse Metroid Room 1 cleared
+     * Memory: $D822 bit value 1 (0x0001)
+     */
+    private fun parseMetroid1(metroidRooms: Int): Boolean {
+        return (metroidRooms and 0x0001) != 0
+    }
+
+    /**
+     * Parse Metroid Room 2 cleared
+     * Memory: $D822 bit value 2 (0x0002)
+     */
+    private fun parseMetroid2(metroidRooms: Int): Boolean {
+        return (metroidRooms and 0x0002) != 0
+    }
+
+    /**
+     * Parse Metroid Room 3 cleared
+     * Memory: $D822 bit value 4 (0x0004)
+     */
+    private fun parseMetroid3(metroidRooms: Int): Boolean {
+        return (metroidRooms and 0x0004) != 0
+    }
+
+    /**
+     * Parse Metroid Room 4 cleared
+     * Memory: $D822 bit value 8 (0x0008)
+     */
+    private fun parseMetroid4(metroidRooms: Int): Boolean {
+        return (metroidRooms and 0x0008) != 0
     }
 }
 

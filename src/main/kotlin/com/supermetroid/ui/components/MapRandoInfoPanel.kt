@@ -44,13 +44,58 @@ fun MapRandoInfoPanel(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             // Display only visible items in configured order
+            // Special handling for deaths/reloads to render side-by-side
+            val processedIds = mutableSetOf<String>()
+            
             visibleItems.forEach { item ->
-                RenderMapRandoInfoItem(
-                    itemId = item.id,
-                    settings = settings,
-                    labelSize = fontSize.labelSize,
-                    valueSize = fontSize.valueSize
-                )
+                if (item.id in processedIds) return@forEach
+                
+                // Check if this is "deaths" or "reloads" and if we should pair them
+                val deathsItem = visibleItems.find { it.id == "deaths" }
+                val reloadsItem = visibleItems.find { it.id == "reloads" }
+                val shouldPairCounters = deathsItem != null && reloadsItem != null
+                
+                when {
+                    // Pair deaths and reloads together
+                    shouldPairCounters && (item.id == "deaths" || item.id == "reloads") -> {
+                        // Render both in a Row (only once)
+                        if (item.id == "deaths" || (item.id == "reloads" && "deaths" !in processedIds)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Box(modifier = Modifier.weight(1f)) {
+                                    RenderMapRandoInfoItem(
+                                        itemId = "deaths",
+                                        settings = settings,
+                                        labelSize = fontSize.labelSize,
+                                        valueSize = fontSize.valueSize
+                                    )
+                                }
+                                Box(modifier = Modifier.weight(1f)) {
+                                    RenderMapRandoInfoItem(
+                                        itemId = "reloads",
+                                        settings = settings,
+                                        labelSize = fontSize.labelSize,
+                                        valueSize = fontSize.valueSize
+                                    )
+                                }
+                            }
+                            processedIds.add("deaths")
+                            processedIds.add("reloads")
+                        }
+                    }
+                    // Render all other items normally
+                    else -> {
+                        RenderMapRandoInfoItem(
+                            itemId = item.id,
+                            settings = settings,
+                            labelSize = fontSize.labelSize,
+                            valueSize = fontSize.valueSize
+                        )
+                        processedIds.add(item.id)
+                    }
+                }
             }
         }
     }

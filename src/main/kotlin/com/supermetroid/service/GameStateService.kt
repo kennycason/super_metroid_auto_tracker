@@ -388,6 +388,7 @@ class GameStateService(
             "tourianBosses" to (SuperMetroidAddresses.TOURIAN_BOSSES to 2),
             "ceresBosses" to (SuperMetroidAddresses.CERES_BOSSES to 2),
             "eventFlags" to (SuperMetroidAddresses.EVENT_FLAGS to 2),
+            "metroidRooms" to (SuperMetroidAddresses.METROID_ROOMS to 2),
             // Special addresses
             "motherBrainHp" to (SuperMetroidAddresses.MOTHER_BRAIN_HP to 2),
             "shipAi" to (SuperMetroidAddresses.SHIP_AI to 2),
@@ -399,7 +400,8 @@ class GameStateService(
             // Map Rando stats (SRAM)
             "deathCount" to (SuperMetroidAddresses.DEATH_COUNT to 2),
             "reloadCount" to (SuperMetroidAddresses.RELOAD_COUNT to 2),
-            "resetCount" to (SuperMetroidAddresses.RESET_COUNT to 2)
+            "resetCount" to (SuperMetroidAddresses.RESET_COUNT to 2),
+            "seedName" to (SuperMetroidAddresses.SEED_NAME to 16)  // 16-byte ASCII string
         )
 
         return try {

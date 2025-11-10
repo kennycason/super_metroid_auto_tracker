@@ -34,7 +34,7 @@ object DefaultMapRandoInfoConfig {
             MapRandoInfoItem("mapLayout", "Map Layout", true, 5),
             MapRandoInfoItem("deaths", "Deaths", true, 6),
             MapRandoInfoItem("reloads", "Reloads", true, 7),
-            MapRandoInfoItem("resets", "Resets", true, 8)
+            MapRandoInfoItem("resets", "Resets", false, 8)  // Disabled by default
         )
         
         return MapRandoInfoConfig(items = defaultItems)
