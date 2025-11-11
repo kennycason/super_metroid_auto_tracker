@@ -25,8 +25,11 @@ class SplitDisplayModeService(private val fileStorageService: FileStorageService
     private val _showSegmentDeltas = MutableStateFlow(false)
     val showSegmentDeltas: StateFlow<Boolean> = _showSegmentDeltas.asStateFlow()
 
-    private val _showBobColumn = MutableStateFlow(true)
-    val showBobColumn: StateFlow<Boolean> = _showBobColumn.asStateFlow()
+    private val _showBestPossibleColumn = MutableStateFlow(true)
+    val showBestPossibleColumn: StateFlow<Boolean> = _showBestPossibleColumn.asStateFlow()
+
+    private val _showBestPossibleDelta = MutableStateFlow(true)
+    val showBestPossibleDelta: StateFlow<Boolean> = _showBestPossibleDelta.asStateFlow()
 
     private val _showBestColumn = MutableStateFlow(true)
     val showBestColumn: StateFlow<Boolean> = _showBestColumn.asStateFlow()
@@ -40,7 +43,8 @@ class SplitDisplayModeService(private val fileStorageService: FileStorageService
             _showSplitIcons.value = config.showSplitIcons
             _showSplitNames.value = config.showSplitNames
             _showSegmentDeltas.value = config.showSegmentDeltas
-            _showBobColumn.value = config.showBobColumn
+            _showBestPossibleColumn.value = config.showBestPossibleColumn
+            _showBestPossibleDelta.value = config.showBestPossibleDelta
             _showBestColumn.value = config.showBestColumn
             _currentDisplayMode.value = SplitDisplayMode.fromBooleans(config.showSplitIcons, config.showSplitNames)
             logger.info { "📋 Loaded split display mode: ${_currentDisplayMode.value.displayName}" }
@@ -89,19 +93,36 @@ class SplitDisplayModeService(private val fileStorageService: FileStorageService
     }
 
     /**
-     * Set whether to show BoB (Best of Best) column and save to config
+     * Set whether to show Best Possible column and save to config
      */
-    suspend fun setShowBobColumn(show: Boolean) {
-        _showBobColumn.value = show
+    suspend fun setShowBestPossibleColumn(show: Boolean) {
+        _showBestPossibleColumn.value = show
 
         // Save to config
         try {
             val currentConfig = fileStorageService.loadAppConfig()
-            val updatedConfig = currentConfig.copy(showBobColumn = show)
+            val updatedConfig = currentConfig.copy(showBestPossibleColumn = show)
             fileStorageService.saveAppConfig(updatedConfig)
-            logger.info { "💾 Saved show BoB column: $show" }
+            logger.info { "💾 Saved show Best Possible column: $show" }
         } catch (e: Exception) {
-            logger.error(e) { "❌ Failed to save show BoB column setting" }
+            logger.error(e) { "❌ Failed to save show Best Possible column setting" }
+        }
+    }
+
+    /**
+     * Set whether to show Best Possible Delta column and save to config
+     */
+    suspend fun setShowBestPossibleDelta(show: Boolean) {
+        _showBestPossibleDelta.value = show
+
+        // Save to config
+        try {
+            val currentConfig = fileStorageService.loadAppConfig()
+            val updatedConfig = currentConfig.copy(showBestPossibleDelta = show)
+            fileStorageService.saveAppConfig(updatedConfig)
+            logger.info { "💾 Saved show Best Possible Delta column: $show" }
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to save show Best Possible Delta column setting" }
         }
     }
 

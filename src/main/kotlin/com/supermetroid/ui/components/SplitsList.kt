@@ -40,7 +40,8 @@ fun SplitsList(
     val showSplitIcons by splitDisplayModeService.showSplitIcons.collectAsState()
     val showSplitNames by splitDisplayModeService.showSplitNames.collectAsState()
     val showSegmentDeltas by splitDisplayModeService.showSegmentDeltas.collectAsState()
-    val showBobColumn by splitDisplayModeService.showBobColumn.collectAsState()
+    val showBestPossibleColumn by splitDisplayModeService.showBestPossibleColumn.collectAsState()
+    val showBestPossibleDelta by splitDisplayModeService.showBestPossibleDelta.collectAsState()
     val showBestColumn by splitDisplayModeService.showBestColumn.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -75,7 +76,8 @@ fun SplitsList(
             SplitsHeader(
                 splitsState = splitsState,
                 autoSplitsEngine = autoSplitsEngine,
-                showBobColumn = showBobColumn,
+                showBestPossibleColumn = showBestPossibleColumn,
+                showBestPossibleDelta = showBestPossibleDelta,
                 showBestColumn = showBestColumn
             )
 
@@ -99,7 +101,8 @@ fun SplitsList(
                         showIcon = showSplitIcons,
                         showName = showSplitNames,
                         showSegmentDeltas = showSegmentDeltas,
-                        showBobColumn = showBobColumn,
+                        showBestPossibleColumn = showBestPossibleColumn,
+                        showBestPossibleDelta = showBestPossibleDelta,
                         showBestColumn = showBestColumn
                     )
                 }
@@ -111,7 +114,8 @@ fun SplitsList(
 private fun SplitsHeader(
     splitsState: SplitsState,
     autoSplitsEngine: AutoSplitsEngine,
-    showBobColumn: Boolean,
+    showBestPossibleColumn: Boolean,
+    showBestPossibleDelta: Boolean,
     showBestColumn: Boolean
 ) {
     @Suppress("UNUSED_PARAMETER") // splitsState might be used in future
@@ -134,20 +138,33 @@ private fun SplitsHeader(
             )
         }
 
-        // Column headers (BoB | BEST | TIME)
+        // Column headers (Best Possible | BP Delta | BEST | TIME)
         Row(
             horizontalArrangement = Arrangement.End,
             modifier = Modifier.fillMaxWidth()
         ) {
-            if (showBobColumn) {
+            if (showBestPossibleColumn) {
                 Text(
-                    text = "BOB",
+                    text = "Best Possible",
                     style = MaterialTheme.typography.labelSmall.copy(
                         color = TrackerColors.OnSurfaceVariant,
                         fontWeight = FontWeight.Bold,
                         fontSize = 10.sp
                     ),
-                    modifier = Modifier.width(85.dp), // Width for BoB column with milliseconds
+                    modifier = Modifier.width(85.dp), // Width for Best Possible column with milliseconds
+                    textAlign = TextAlign.End
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+            }
+            if (showBestPossibleDelta) {
+                Text(
+                    text = "BP Δ",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = TrackerColors.OnSurfaceVariant,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 10.sp
+                    ),
+                    modifier = Modifier.width(65.dp), // Width for Best Possible Delta column
                     textAlign = TextAlign.End
                 )
                 Spacer(modifier = Modifier.width(2.dp))
@@ -189,7 +206,8 @@ private fun SplitRow(
     showIcon: Boolean,
     showName: Boolean,
     showSegmentDeltas: Boolean,
-    showBobColumn: Boolean,
+    showBestPossibleColumn: Boolean,
+    showBestPossibleDelta: Boolean,
     showBestColumn: Boolean
 ) {
     val currentRun = splitsState.currentRun
@@ -201,15 +219,15 @@ private fun SplitRow(
     val profileId = currentRun?.profileId ?: "kpdr-any"
     val personalBest = splitsState.personalBests[profileId]
     
-    // Get the best segment time for this split (BoB - Best of Best)
+    // Get the best segment time for this split (Best Possible - from completed runs only)
     val bestSegmentTime = personalBest?.splitTimes?.get(split.id)
     
     // Get the PB run's segment time for this split (BEST - from Personal Best run)
     val pbRunSegmentTime = getPbRunSegmentTime(splitsState, profileId, split.id)
 
-    // Calculate sum of best segments up to this point for BoB column
+    // Calculate sum of best segments up to this point for Best Possible column
     val profileSplitTimes = personalBest?.splitTimes
-    val sumOfBestUpToHere = if (profileSplitTimes != null) {
+    val sumOfBestPossibleUpToHere = if (profileSplitTimes != null) {
         KpdrAnyProfile.profile.splits.take(splitIndex + 1).sumOf { s ->
             profileSplitTimes[s.id]?.segmentTime ?: 0L
         }
@@ -220,8 +238,13 @@ private fun SplitRow(
     // Calculate sum of PB run's segment times up to this point for BEST column
     val sumOfPbRunUpToHere = calculatePbRunTimeUpTo(splitsState, profileId, splitIndex)
 
-    // Only show BoB if THIS split has a best segment time
-    val showBob = (bestSegmentTime?.segmentTime ?: 0L) > 0
+    // Only show Best Possible if THIS split has a best segment time
+    val showBestPossible = (bestSegmentTime?.segmentTime ?: 0L) > 0
+    
+    // Calculate Best Possible Delta (current run time vs Best Possible time)
+    val bestPossibleDelta = if (isCompleted && sumOfBestPossibleUpToHere > 0) {
+        completedSplit!!.time.totalTime - sumOfBestPossibleUpToHere
+    } else null
 
     // Determine row colors and styling
     val backgroundColor = when {
@@ -289,21 +312,21 @@ private fun SplitRow(
                 }
             }
 
-            // Times section (BoB | BEST | TIME, right-aligned)
+            // Times section (Best Possible | BP Delta | BEST | TIME, right-aligned)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(2.dp), // Match header spacing
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // BoB Column (Best of Best - theoretical best from all segments)
-                if (showBobColumn) {
+                // Best Possible Column (theoretical best from COMPLETED runs only)
+                if (showBestPossibleColumn) {
                     Column(
                         modifier = Modifier.width(85.dp), // Match header width
                         horizontalAlignment = Alignment.End
                     ) {
                         // Sum of best segments up to this point (main line)
                         Text(
-                            text = if (showBob && sumOfBestUpToHere > 0) {
-                                formatTimeWithMillis(sumOfBestUpToHere)
+                            text = if (showBestPossible && sumOfBestPossibleUpToHere > 0) {
+                                formatTimeWithMillis(sumOfBestPossibleUpToHere)
                             } else {
                                 "--:--:--.--"
                             },
@@ -323,6 +346,47 @@ private fun SplitRow(
                                     color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.7f),
                                     fontFamily = FontFamily.Monospace,
                                     fontSize = 9.sp
+                                ),
+                                textAlign = TextAlign.End
+                            )
+                        }
+                    }
+                }
+
+                // Best Possible Delta Column (current run vs best possible)
+                if (showBestPossibleDelta) {
+                    Column(
+                        modifier = Modifier.width(65.dp), // Match header width
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        if (bestPossibleDelta != null) {
+                            val deltaColor = when {
+                                bestPossibleDelta < 0 -> Color(0xFF00FF00) // Green for ahead
+                                bestPossibleDelta > 0 -> Color(0xFFFF4444) // Red for behind
+                                else -> Color(0xFFFFD700) // Gold for exactly on pace
+                            }
+                            val deltaText = when {
+                                bestPossibleDelta < 0 -> "-${formatTime(-bestPossibleDelta)}"
+                                bestPossibleDelta > 0 -> "+${formatTime(bestPossibleDelta)}"
+                                else -> "±0:00"
+                            }
+                            Text(
+                                text = deltaText,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = deltaColor,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                textAlign = TextAlign.End
+                            )
+                        } else {
+                            Text(
+                                text = "--:--",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 10.sp
                                 ),
                                 textAlign = TextAlign.End
                             )

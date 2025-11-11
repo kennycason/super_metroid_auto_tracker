@@ -91,7 +91,8 @@ data class AppConfig(
     val gameGenieEnabled: Boolean = false,
     // Splits display settings
     val showSegmentDeltas: Boolean = false,
-    val showBobColumn: Boolean = true,  // Show Best of Best (theoretical best) column
+    val showBestPossibleColumn: Boolean = true,  // Show Best Possible (theoretical best from completed runs) column
+    val showBestPossibleDelta: Boolean = true,   // Show Best Possible Delta (+/- vs theoretical best) column
     val showBestColumn: Boolean = true,  // Show Personal Best run column
     // Timer persistence
     val savedTimerMs: Long? = null,  // Saved timer value in milliseconds (null = no saved timer)

@@ -437,7 +437,12 @@ private fun SplitsSettingsTab(
             modifier = Modifier.fillMaxWidth()
         )
 
-        BobColumnToggleSection(
+        BestPossibleColumnToggleSection(
+            splitDisplayModeService = splitDisplayModeService,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        BestPossibleDeltaToggleSection(
             splitDisplayModeService = splitDisplayModeService,
             modifier = Modifier.fillMaxWidth()
         )
@@ -895,11 +900,11 @@ private fun SegmentDeltasToggleSection(
 }
 
 @Composable
-private fun BobColumnToggleSection(
+private fun BestPossibleColumnToggleSection(
     splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
     modifier: Modifier = Modifier
 ) {
-    val showBobColumn by splitDisplayModeService.showBobColumn.collectAsState()
+    val showBestPossibleColumn by splitDisplayModeService.showBestPossibleColumn.collectAsState()
     val scope = rememberCoroutineScope()
 
     Row(
@@ -908,7 +913,7 @@ private fun BobColumnToggleSection(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "Show BoB Column",
+            text = "Show Best Possible Column",
             style = MaterialTheme.typography.bodySmall.copy(
                 color = TrackerColors.OnSurface,
                 fontWeight = FontWeight.Medium
@@ -916,10 +921,48 @@ private fun BobColumnToggleSection(
         )
 
         Switch(
-            checked = showBobColumn,
+            checked = showBestPossibleColumn,
             onCheckedChange = { enabled ->
                 scope.launch {
-                    splitDisplayModeService.setShowBobColumn(enabled)
+                    splitDisplayModeService.setShowBestPossibleColumn(enabled)
+                }
+            },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = TrackerColors.Primary,
+                checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.5f),
+                uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
+                uncheckedTrackColor = TrackerColors.SurfaceVariant
+            )
+        )
+    }
+}
+
+@Composable
+private fun BestPossibleDeltaToggleSection(
+    splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
+    modifier: Modifier = Modifier
+) {
+    val showBestPossibleDelta by splitDisplayModeService.showBestPossibleDelta.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    Row(
+        modifier = modifier.fillMaxWidth(0.9f),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Show Best Possible Δ Column",
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = TrackerColors.OnSurface,
+                fontWeight = FontWeight.Medium
+            )
+        )
+
+        Switch(
+            checked = showBestPossibleDelta,
+            onCheckedChange = { enabled ->
+                scope.launch {
+                    splitDisplayModeService.setShowBestPossibleDelta(enabled)
                 }
             },
             colors = SwitchDefaults.colors(

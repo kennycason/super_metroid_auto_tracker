@@ -125,11 +125,12 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         val updatedPersonalBests = state.personalBests.toMutableMap()
 
         // Process each run in history
+        // ONLY include completed runs (endTime != null) for Best Possible calculation
         for (run in state.runHistory) {
             val profileId = run.profileId
 
-            // Skip runs with no completed splits
-            if (run.completedSplits.isEmpty()) {
+            // Skip incomplete runs - only count segments from finished runs
+            if (run.endTime == null || run.completedSplits.isEmpty()) {
                 continue
             }
 
@@ -178,55 +179,9 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             }
         }
 
-        // Also check current run if it exists
-        val currentRun = state.currentRun
-        if (currentRun != null && currentRun.completedSplits.isNotEmpty()) {
-            val profileId = currentRun.profileId
-
-            // Get or create personal best for this profile
-            val currentPB = updatedPersonalBests[profileId] ?: PersonalBest(
-                profileId = profileId,
-                runSessionId = currentRun.id,
-                totalTime = currentRun.totalTime,
-                splitTimes = emptyMap()
-            )
-
-            // Create a map of updated split times
-            val updatedSplitTimes = currentPB.splitTimes.toMutableMap()
-
-            // Check each split in the current run
-            for (split in currentRun.completedSplits) {
-                val splitId = split.splitId
-                val segmentTime = split.time.segmentTime
-
-                // Get current best for this split
-                val currentBestSplit = currentPB.splitTimes[splitId]
-
-                // Update if this segment is faster or there's no existing best
-                if (currentBestSplit == null || segmentTime < currentBestSplit.segmentTime) {
-                    logger.info { "🎯 Found better segment in current run for $splitId: ${formatTime(segmentTime)} (was ${currentBestSplit?.let { formatTime(it.segmentTime) } ?: "N/A"})" }
-
-                    // Calculate delta if there was a previous best
-                    val delta = currentBestSplit?.let { segmentTime - it.segmentTime }
-
-                    // Create new split time with this segment as best
-                    val newSplitTime = SplitTime(
-                        totalTime = split.time.totalTime,
-                        segmentTime = segmentTime,
-                        delta = 0, // Delta is 0 for a PB
-                        originalDelta = delta // Preserve original delta
-                    )
-
-                    updatedSplitTimes[splitId] = newSplitTime
-                }
-            }
-
-            // Update personal best with new split times
-            if (updatedSplitTimes != currentPB.splitTimes) {
-                val updatedPB = currentPB.copy(splitTimes = updatedSplitTimes)
-                updatedPersonalBests[profileId] = updatedPB
-            }
-        }
+        // DO NOT include current active run in Best Possible calculation
+        // Best Possible should only be calculated from COMPLETED runs
+        // The current run will be checked when it completes (via updatePersonalBest call after ship split)
 
         // Return updated state
         return state.copy(personalBests = updatedPersonalBests)
@@ -798,7 +753,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                 }
 
                 _splitsState.value = currentState.copy(
-                    currentRun = if (isComplete) null else finalRun,
+                    currentRun = finalRun,  // Keep the run visible so user can see final times (timer still stops due to isPaused = true)
                     runHistory = newRunHistory,
                     personalBests = finalPersonalBests
                 )
@@ -1149,7 +1104,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         }
 
         _splitsState.value = currentState.copy(
-            currentRun = if (isComplete || split.id == "ship") null else finalRun,
+            currentRun = finalRun,  // Keep the run visible so user can see final times (timer still stops due to isPaused = true)
             runHistory = newRunHistory,
             personalBests = finalPersonalBests
         )
