@@ -241,9 +241,11 @@ private fun SplitRow(
     // Only show Best Possible if THIS split has a best segment time
     val showBestPossible = (bestSegmentTime?.segmentTime ?: 0L) > 0
     
-    // Calculate Best Possible Delta (current run time vs Best Possible time)
-    val bestPossibleDelta = if (isCompleted && sumOfBestPossibleUpToHere > 0) {
-        completedSplit!!.time.totalTime - sumOfBestPossibleUpToHere
+    // Calculate Best Possible Delta (segment-by-segment comparison)
+    // Shows how much time was gained/lost on THIS segment vs the best segment time
+    // Negative (green) = faster than best, Positive (red) = slower than best
+    val bestPossibleDelta = if (isCompleted && bestSegmentTime != null) {
+        completedSplit!!.time.segmentTime - bestSegmentTime.segmentTime
     } else null
 
     // Determine row colors and styling
@@ -353,7 +355,7 @@ private fun SplitRow(
                     }
                 }
 
-                // Best Possible Delta Column (current run vs best possible)
+                // Best Possible Delta Column (segment vs best segment)
                 if (showBestPossibleDelta) {
                     Column(
                         modifier = Modifier.width(65.dp), // Match header width

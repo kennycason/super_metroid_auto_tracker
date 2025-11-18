@@ -49,12 +49,20 @@ lateinit var mapRandoInfoFontSizeService: com.supermetroid.service.MapRandoInfoF
 lateinit var mapRandoDataService: com.supermetroid.service.MapRandoDataService
 lateinit var mapRandoInfoConfigService: com.supermetroid.service.MapRandoInfoConfigService
 
+// Flag to indicate if we're in replay mode (don't load saved state)
+var isReplayMode = false
+
 fun main(args: Array<String>) {
     // Parse command-line arguments
-    val customDataDir = parseDataDirArg(args)
+    val (customDataDir, currentRunFile) = parseCommandLineArgs(args)
     
     if (customDataDir != null) {
         logger.info { "🗂️  Using custom data directory: $customDataDir" }
+    }
+    
+    if (currentRunFile != null) {
+        isReplayMode = true
+        logger.info { "🎬 Replay mode: Loading run from $currentRunFile" }
     }
     
     // Initialize services with optional custom data directory
@@ -75,8 +83,14 @@ fun main(args: Array<String>) {
     mapRandoDataService = com.supermetroid.service.MapRandoDataService()
     mapRandoInfoConfigService = com.supermetroid.service.MapRandoInfoConfigService()
     
-    // Initialize autoSplitsEngine to restore saved timer
-    runBlocking { autoSplitsEngine.initialize() }
+    // Initialize autoSplitsEngine to restore saved timer OR load replay run
+    runBlocking {
+        if (currentRunFile != null) {
+            autoSplitsEngine.loadReplayRun(currentRunFile)
+        } else {
+            autoSplitsEngine.initialize()
+        }
+    }
     
     application {
         // Load saved window dimensions
@@ -143,14 +157,20 @@ fun main(args: Array<String>) {
 }
 
 /**
- * Parse command-line arguments for custom data directory
- * Usage: --data-dir=/path/to/directory
+ * Parse command-line arguments
+ * Returns: Pair(customDataDir, currentRunFile)
  */
-private fun parseDataDirArg(args: Array<String>): String? {
+private fun parseCommandLineArgs(args: Array<String>): Pair<String?, String?> {
+    var customDataDir: String? = null
+    var currentRunFile: String? = null
+    
     for (arg in args) {
         when {
             arg.startsWith("--data-dir=") -> {
-                return arg.substring("--data-dir=".length)
+                customDataDir = arg.substring("--data-dir=".length)
+            }
+            arg.startsWith("--current-run=") -> {
+                currentRunFile = arg.substring("--current-run=".length)
             }
             arg == "--help" || arg == "-h" -> {
                 printHelp()
@@ -158,7 +178,8 @@ private fun parseDataDirArg(args: Array<String>): String? {
             }
         }
     }
-    return null
+    
+    return Pair(customDataDir, currentRunFile)
 }
 
 private fun printHelp() {
@@ -168,10 +189,14 @@ private fun printHelp() {
         Usage: SuperMetroidTracker [options]
         
         Options:
-          --data-dir=<path>    Use a custom data directory instead of ~/.smtracker/
-                               NOTE: Specify the PARENT directory that CONTAINS runs/
-                               NOT the runs/ directory itself!
-          --help, -h           Show this help message
+          --data-dir=<path>        Use a custom data directory instead of ~/.smtracker/
+                                   NOTE: Specify the PARENT directory that CONTAINS runs/
+                                   NOT the runs/ directory itself!
+          --current-run=<file>     Replay mode: Load a specific run file and display its stats
+                                   Example: --current-run=2025-11-16_04-50-35_kpdr-any_1763297435790.json
+                                   This loads all previous runs for BP calculation, then displays
+                                   the specified run as if you just finished it.
+          --help, -h               Show this help message
         
         Directory Structure:
           <data-dir>/
@@ -254,9 +279,11 @@ fun SuperMetroidTrackerApp() {
         // Load split profile
         autoSplitsEngine.loadProfile(KpdrAnyProfile.profile)
 
-        // Load saved splits state and resume from current position
-        val savedSplitsState = fileStorageService.loadSplitsState()
-        autoSplitsEngine.loadSavedState(savedSplitsState)
+        // Load saved splits state and resume from current position (unless in replay mode)
+        if (!isReplayMode) {
+            val savedSplitsState = fileStorageService.loadSplitsState()
+            autoSplitsEngine.loadSavedState(savedSplitsState)
+        }
 
         try {
             gameStateService.start()

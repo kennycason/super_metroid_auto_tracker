@@ -59,6 +59,65 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     }
 
     /**
+     * Load a specific run in replay mode for reviewing stats
+     * This loads all runs that came before the target run to calculate accurate Best Possible times,
+     * then displays the target run as if it just finished
+     */
+    suspend fun loadReplayRun(runFileName: String) {
+        logger.info { "🎬 Loading replay run: $runFileName" }
+        
+        try {
+            fileStorageService?.let { storage ->
+                // Load all runs
+                val allRuns = storage.loadAllRuns()
+                
+                // Find the target run by filename
+                val targetRun = storage.loadRunByFileName(runFileName)
+                if (targetRun == null) {
+                    logger.error { "❌ Could not find run file: $runFileName" }
+                    return
+                }
+                
+                logger.info { "✓ Found target run: ${targetRun.id}" }
+                logger.info { "  Profile: ${targetRun.profileId}" }
+                logger.info { "  Start time: ${targetRun.startTime}" }
+                logger.info { "  Total time: ${formatTime(targetRun.totalTime)}" }
+                logger.info { "  Splits: ${targetRun.completedSplits.size}" }
+                
+                // Get target run's start time to filter previous runs
+                val targetStartTime = targetRun.startTime
+                
+                // Filter runs that came before this run (by start time)
+                val previousRuns = allRuns.filter { it.startTime < targetStartTime && it.endTime != null }
+                logger.info { "📊 Found ${previousRuns.size} completed runs before target run" }
+                
+                // Calculate best segments from previous runs only
+                val updatedState = SplitsState(
+                    currentRun = targetRun, // Set as current run (paused)
+                    personalBests = emptyMap(),
+                    runHistory = previousRuns // Include previous runs for BP calculation
+                )
+                
+                // Update personal bests from previous runs
+                val finalState = updatePersonalBestsFromRunHistory(updatedState)
+                
+                // Set the state
+                _splitsState.value = finalState
+                
+                // Load the profile
+                currentProfile = KpdrAnyProfile.profile
+                currentSplitIndex = targetRun.completedSplits.size
+                
+                logger.info { "✅ Replay mode loaded successfully" }
+                logger.info { "  Displaying run with ${targetRun.completedSplits.size} splits" }
+                logger.info { "  Best Possible calculated from ${previousRuns.size} previous runs" }
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to load replay run" }
+        }
+    }
+
+    /**
      * Load a split profile
      */
     fun loadProfile(profile: SplitProfile) {

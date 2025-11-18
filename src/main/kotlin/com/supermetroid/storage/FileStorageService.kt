@@ -240,6 +240,32 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
     }
 
     /**
+     * Load a specific run by its filename
+     */
+    suspend fun loadRunByFileName(fileName: String): RunSession? = withContext(Dispatchers.IO) {
+        try {
+            if (!runsDir.exists()) {
+                logger.info { "📁 Runs directory doesn't exist" }
+                return@withContext null
+            }
+
+            val file = File(runsDir, fileName)
+            if (!file.exists() || !file.isFile) {
+                logger.warn { "⚠️ Run file not found: $fileName" }
+                return@withContext null
+            }
+
+            val jsonString = file.readText()
+            val run = json.decodeFromString<RunSession>(jsonString)
+            logger.info { "📄 Loaded run from file: $fileName" }
+            run
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to load run from file: $fileName" }
+            null
+        }
+    }
+
+    /**
      * Derive best splits from all completed runs
      */
     suspend fun deriveBestSplits(profileId: String): ProfileSummary = withContext(Dispatchers.IO) {
