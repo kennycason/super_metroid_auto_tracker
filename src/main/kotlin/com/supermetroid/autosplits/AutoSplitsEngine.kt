@@ -1159,9 +1159,10 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         // When the run completes, we DON'T update personalBests so the display stays frozen
         // showing BP Δ against the pre-run Best Possible. This lets users review their
         // performance before starting a new run. Best Possible will be recalculated on next run start.
-        val finalPersonalBests = if ((isComplete || split.id == "ship") && finalRun.isPersonalBest) {
-            // Run complete - freeze the display, don't update personalBests yet
-            updatedPersonalBests
+        val finalPersonalBests = if (isComplete || split.id == "ship") {
+            // Run complete - freeze the display, use the ORIGINAL personalBests (pre-run)
+            // This prevents BP Δ from immediately showing ±0:00 after completing the run
+            currentState.personalBests
         } else {
             // Run still in progress - update personalBests for real-time BP Δ
             updatedPersonalBests
