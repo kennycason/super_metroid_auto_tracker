@@ -11,7 +11,7 @@ A real-time item, boss, and location tracker for Super Metroid with automatic sp
 
 <!-- Splits Views -->
 <div align="left">
-  <img src="screenshots/screenshot.png" width="30%"/>
+  <img src="screenshots/screenshot_splits_run_pb.png" width="30%"/>
   <img src="screenshots/screenshot_splits_only_finished_run.png" width="30%"/>
   <img src="screenshots/screenshot_splits_only_no_icons.png" width="30%"/>
 </div>
@@ -82,6 +82,37 @@ A real-time item, boss, and location tracker for Super Metroid with automatic sp
 ### Keyboard Shortcuts
 - **Spacebar**: Start/pause the run timer
 - **R**: Reset the current run (requires confirmation)
+
+### Command-Line Arguments
+
+#### Custom Data Directory
+Store tracker data in a custom location instead of `~/.smtracker/`:
+```bash
+./gradlew run --args="--data-dir=/path/to/custom/directory"
+```
+
+#### Replay Mode (Review Past Runs)
+Load a specific historical run to review its splits and statistics:
+```bash
+./gradlew run --args="--current-run=<run_file_name>"
+```
+
+Example:
+```bash
+./gradlew run --args="--current-run=2025-11-16_04-50-35_kpdr-any_1763297435790.json"
+```
+
+**Replay mode features:**
+- ✅ Displays the run as if you just completed it (timer paused)
+- ✅ Shows all split times, deltas, and Best Possible comparisons
+- ✅ Best Possible calculated from runs completed **before** the target run
+- ✅ Perfect for reviewing performance, debugging, or creating screenshots
+- ✅ Run files are located in `~/.smtracker/runs/`
+
+**To find available runs:**
+```bash
+ls -lt ~/.smtracker/runs/ | head -10  # Show 10 most recent runs
+```
 
 ### UI Controls
 - **Bottom Navigation**: Toggle between different views

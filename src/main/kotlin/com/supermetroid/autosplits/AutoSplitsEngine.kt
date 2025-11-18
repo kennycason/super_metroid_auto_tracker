@@ -371,7 +371,12 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         // Update the state with the new run
         val currentState = _splitsState.value
-        _splitsState.value = currentState.copy(currentRun = newRun)
+        
+        // Recalculate Best Possible from all completed runs before starting the new run
+        // This ensures BP Δ compares against the latest Best Possible
+        val updatedState = updatePersonalBestsFromRunHistory(currentState)
+        
+        _splitsState.value = updatedState.copy(currentRun = newRun)
 
         // Add stack trace to see where this is being called from
         val stackTrace = Thread.currentThread().stackTrace
@@ -530,7 +535,12 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         pauseStartTime = null  // Ensure pauseStartTime is reset
 
         val currentState = _splitsState.value
-        _splitsState.value = currentState.copy(currentRun = null)
+        
+        // Recalculate Best Possible from all completed runs (including the one we just finished)
+        // This ensures BP Δ on the next run compares against the updated Best Possible
+        val updatedState = updatePersonalBestsFromRunHistory(currentState)
+        
+        _splitsState.value = updatedState.copy(currentRun = null)
 
         // Reset the debounce timer to prevent issues with immediate start after reset
         lastToggleTime = 0
@@ -1145,20 +1155,15 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         }
 
         // Update overall personal bests if this run set a new record
+        // NOTE: We update personalBests ONLY if not complete yet (during the run)
+        // When the run completes, we DON'T update personalBests so the display stays frozen
+        // showing BP Δ against the pre-run Best Possible. This lets users review their
+        // performance before starting a new run. Best Possible will be recalculated on next run start.
         val finalPersonalBests = if ((isComplete || split.id == "ship") && finalRun.isPersonalBest) {
-            val splitTimesMap = finalRun.completedSplits.associate { completedSplit ->
-                completedSplit.splitId to completedSplit.time
-            }
-
-            val newPB = PersonalBest(
-                profileId = finalRun.profileId,
-                runSessionId = finalRun.id,
-                totalTime = finalRun.totalTime,
-                splitTimes = splitTimesMap
-            )
-
-            updatedPersonalBests + (finalRun.profileId to newPB)
+            // Run complete - freeze the display, don't update personalBests yet
+            updatedPersonalBests
         } else {
+            // Run still in progress - update personalBests for real-time BP Δ
             updatedPersonalBests
         }
 
