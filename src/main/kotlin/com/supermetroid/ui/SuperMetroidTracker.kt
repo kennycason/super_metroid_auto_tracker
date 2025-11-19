@@ -505,6 +505,7 @@ fun SuperMetroidTrackerLayout(
             SettingsPanel(
                 themeService = themeService,
                 iconSizeService = iconSizeService,
+                fileStorageService = fileStorageService,
                 splitIconSizeService = splitIconSizeService,
                 splitDisplayModeService = splitDisplayModeService,
                 iconConfigService = iconConfigService,

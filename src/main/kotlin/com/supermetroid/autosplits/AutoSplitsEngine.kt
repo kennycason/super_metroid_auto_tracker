@@ -92,8 +92,11 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                 logger.info { "📊 Found ${previousRuns.size} completed runs before target run" }
                 
                 // Calculate best segments from previous runs only
+                // IMPORTANT: Always mark replay runs as paused to prevent timer from advancing
+                val replayRun = targetRun.copy(isPaused = true)
+                
                 val updatedState = SplitsState(
-                    currentRun = targetRun, // Set as current run (paused)
+                    currentRun = replayRun, // Set as current run (paused)
                     personalBests = emptyMap(),
                     runHistory = previousRuns // Include previous runs for BP calculation
                 )

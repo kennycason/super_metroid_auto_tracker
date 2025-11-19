@@ -240,6 +240,67 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
     }
 
     /**
+     * Metadata for a run file (for listing in UI)
+     */
+    data class RunFileMetadata(
+        val fileName: String,
+        val displayName: String,
+        val isComplete: Boolean,
+        val startTime: kotlinx.datetime.Instant,
+        val totalTime: Long,
+        val profileId: String
+    )
+
+    /**
+     * List all run files with metadata, sorted by start time (most recent first)
+     */
+    suspend fun listRunFiles(): List<RunFileMetadata> = withContext(Dispatchers.IO) {
+        try {
+            if (!runsDir.exists()) {
+                return@withContext emptyList()
+            }
+
+            val runFiles = runsDir.listFiles { file ->
+                file.isFile && file.extension == "json" && !file.name.contains("corrupted")
+            } ?: emptyArray()
+
+            val metadata = runFiles.mapNotNull { file ->
+                try {
+                    val jsonString = file.readText()
+                    val run = json.decodeFromString<RunSession>(jsonString)
+                    
+                    // Format display name
+                    val dateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                    val dateStr = dateFormatter.format(Date(run.startTime.toEpochMilliseconds()))
+                    val profileName = run.profileId.uppercase().replace("-", " ")
+                    val timeStr = formatTime(run.totalTime)
+                    val completeIcon = if (run.endTime != null) "✅" else "❌"
+                    
+                    val displayName = "$completeIcon $dateStr - $profileName ($timeStr)"
+                    
+                    RunFileMetadata(
+                        fileName = file.name,
+                        displayName = displayName,
+                        isComplete = run.endTime != null,
+                        startTime = run.startTime,
+                        totalTime = run.totalTime,
+                        profileId = run.profileId
+                    )
+                } catch (e: Exception) {
+                    logger.error(e) { "❌ Failed to load metadata from ${file.name}" }
+                    null
+                }
+            }
+            
+            // Sort by start time descending (most recent first)
+            metadata.sortedByDescending { it.startTime }
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to list run files" }
+            emptyList()
+        }
+    }
+
+    /**
      * Load a specific run by its filename
      */
     suspend fun loadRunByFileName(fileName: String): RunSession? = withContext(Dispatchers.IO) {

@@ -35,7 +35,7 @@ import com.supermetroid.ui.theme.TrackerColors
 fun SettingsPanel(
     themeService: com.supermetroid.service.ThemeService,
     iconSizeService: com.supermetroid.service.IconSizeService,
-
+    fileStorageService: com.supermetroid.storage.FileStorageService,
     splitIconSizeService: com.supermetroid.service.SplitIconSizeService,
     splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
     iconConfigService: com.supermetroid.service.IconConfigService,
@@ -110,6 +110,7 @@ fun SettingsPanel(
                     themeService = themeService,
                     roomNameService = roomNameService,
                     autoSplitsEngine = autoSplitsEngine,
+                    fileStorageService = fileStorageService,
                     gameGenieService = gameGenieService,
                     modifier = Modifier.fillMaxSize()
                 )
@@ -148,6 +149,7 @@ private fun GeneralSettingsTab(
     themeService: com.supermetroid.service.ThemeService,
     roomNameService: com.supermetroid.service.RoomNameService,
     autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
+    fileStorageService: com.supermetroid.storage.FileStorageService,
     gameGenieService: com.supermetroid.service.GameGenieService,
     modifier: Modifier = Modifier
 ) {
@@ -156,6 +158,13 @@ private fun GeneralSettingsTab(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        // Load Run Section (for reviewing historical runs)
+        LoadRunSection(
+            fileStorageService = fileStorageService,
+            autoSplitsEngine = autoSplitsEngine,
+            modifier = Modifier.fillMaxWidth()
+        )
+
         // Theme Selection Section
         ThemeSelectionSection(
             themeService = themeService,
@@ -1829,6 +1838,164 @@ private fun MapRandoInfoItemRow(
                     uncheckedTrackColor = TrackerColors.SurfaceVariant
                     )
                 )
+            }
+        }
+    }
+}
+
+/**
+ * Load Run Section - Allows loading historical runs for review
+ */
+@Composable
+private fun LoadRunSection(
+    fileStorageService: com.supermetroid.storage.FileStorageService,
+    autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var runFiles by remember { mutableStateOf<List<com.supermetroid.storage.FileStorageService.RunFileMetadata>>(emptyList()) }
+    var selectedRun by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    // Load run files when dropdown is opened
+    LaunchedEffect(expanded) {
+        if (expanded && runFiles.isEmpty()) {
+            isLoading = true
+            runFiles = fileStorageService.listRunFiles()
+            isLoading = false
+        }
+    }
+
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = TrackerColors.SurfaceVariant
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Text(
+                text = "Load Historical Run",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = TrackerColors.OnSurface,
+                    fontWeight = FontWeight.Bold
+                ),
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Text(
+                text = "Review past runs with all splits and statistics",
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = TrackerColors.OnSurfaceVariant
+                ),
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            // Dropdown button
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedButton(
+                    onClick = { expanded = !expanded },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(4.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = TrackerColors.OnSurface
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = selectedRun ?: "Select a run...",
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Icon(
+                            imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = if (expanded) "Collapse" else "Expand"
+                        )
+                    }
+                }
+
+                // Dropdown menu
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .heightIn(max = 400.dp)
+                ) {
+                    if (isLoading) {
+                        DropdownMenuItem(
+                            text = { Text("Loading runs...") },
+                            onClick = { }
+                        )
+                    } else if (runFiles.isEmpty()) {
+                        DropdownMenuItem(
+                            text = { Text("No runs found") },
+                            onClick = { }
+                        )
+                    } else {
+                        runFiles.forEach { runFile ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = runFile.displayName,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                },
+                                onClick = {
+                                    selectedRun = runFile.displayName
+                                    expanded = false
+                                    
+                                    // Load the run
+                                    scope.launch {
+                                        try {
+                                            autoSplitsEngine.loadReplayRun(runFile.fileName)
+                                        } catch (e: Exception) {
+                                            // Log error (handled in engine)
+                                        }
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Refresh button
+            if (runFiles.isNotEmpty()) {
+                TextButton(
+                    onClick = {
+                        scope.launch {
+                            isLoading = true
+                            runFiles = fileStorageService.listRunFiles()
+                            isLoading = false
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .padding(top = 4.dp)
+                ) {
+                    Text(
+                        text = "↻ Refresh",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = TrackerColors.Primary
+                        )
+                    )
+                }
             }
         }
     }
