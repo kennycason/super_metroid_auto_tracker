@@ -139,7 +139,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         val hasTimerOnlyRun = existingTimerRun != null && 
                               existingTimerRun.completedSplits.isEmpty() && 
                               existingTimerRun.isPaused
-        
+
         // First, update personal bests from run history
         val updatedState = updatePersonalBestsFromRunHistory(savedState)
         
@@ -242,8 +242,8 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         }
 
         // DO NOT include current active run in Best Possible calculation
-        // Best Possible should only be calculated from COMPLETED runs
-        // The current run will be checked when it completes (via updatePersonalBest call after ship split)
+        // Best Possible should only be calculated from COMPLETED runs that are saved to disk
+        // When a run completes, it's saved to disk and will be included in the next BP calculation
 
         // Return updated state
         return state.copy(personalBests = updatedPersonalBests)
@@ -547,7 +547,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         // Reset the debounce timer to prevent issues with immediate start after reset
         lastToggleTime = 0
-        
+
         // Re-enable auto-start when run is reset
         autoStartEnabled = true
 
@@ -698,9 +698,10 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         // CRITICAL: Prevent false splits during intro/cutscenes
         // Now that auto-start has been checked, filter out invalid states for split processing
+        // NOTE: We do NOT update previousGameState here - we want to preserve the last VALID state
+        // for proper transition detection (e.g., state 8 → 6 (invalid) → 32 should still detect 8→32)
         if (!isValidGameplayState(gameState)) {
             logger.debug { "🚫 Ignoring game state - not in valid gameplay (state: ${gameState.gameState})" }
-            previousGameState = gameState
             return
         }
 
@@ -857,10 +858,11 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                     }
                 }
 
-                // Update personal best tracking if run is complete
+                // Run complete via auto-skip
                 if (isComplete) {
                     logger.info { "🏁 Run completed via auto-skip in ${formatTime(estimatedTime)}" }
-                    updatePersonalBest(finalRun)
+                    // DON'T update personalBests here - keep the display frozen
+                    // The run is already saved to disk and will be included in BP calculation on next run start
                 }
             } else {
                 break
@@ -1190,15 +1192,15 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
                     // Update run summaries to track segment PBs from this run so far
                     try {
-                        val summaries = storage.loadRunSummaries()
-                        val updatedProfile = storage.deriveBestSplits(finalRun.profileId)
-                        val updatedSummaries = summaries.copy(
-                            lastUpdated = Clock.System.now(),
-                            profiles = summaries.profiles + (finalRun.profileId to updatedProfile)
-                        )
-                        storage.saveRunSummaries(updatedSummaries)
+                    val summaries = storage.loadRunSummaries()
+                    val updatedProfile = storage.deriveBestSplits(finalRun.profileId)
+                    val updatedSummaries = summaries.copy(
+                        lastUpdated = Clock.System.now(),
+                        profiles = summaries.profiles + (finalRun.profileId to updatedProfile)
+                    )
+                    storage.saveRunSummaries(updatedSummaries)
                         logger.info { "✅ Updated run summaries with current segments" }
-                    } catch (e: Exception) {
+                } catch (e: Exception) {
                         logger.error(e) { "⚠️  Failed to update run summaries, but run data was saved" }
                     }
                 } catch (e: Exception) {
@@ -1216,7 +1218,9 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         if (isComplete || split.id == "ship") {
             logger.info { "🏁 Run completed in ${formatTime(totalTimeMs)}" }
-            updatePersonalBest(finalRun)
+            // DON'T update personalBests here - keep the display frozen showing BP Δ against pre-run Best Possible
+            // The run is already saved to disk (line ~1189) and will be included in BP calculation on next run start
+            // This lets users review their performance before starting a new run
         }
     }
 
@@ -1260,33 +1264,11 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     // Split condition checks - exact logic from TypeScript version
 
     private fun checkCeresStation(prev: GameState, curr: GameState): Boolean {
-        // PRIMARY: ASL-accurate detection - room/gamestate transition
-        // According to SuperMetroid.asl line 952: Room: ceresElevator (0xDF45), GameState: normalGameplay (0x8) -> startOfCeresCutscene (0x20)
-        val inCeresElevator = curr.roomId == RoomIds.CERES_ELEVATOR
-        val gameStateTransition = prev.gameState == GameStateConstants.NORMAL_GAMEPLAY && curr.gameState == GameStateConstants.START_OF_CERES_CUTSCENE
-        val primaryDetection = inCeresElevator && gameStateTransition
-
-        // FALLBACK: Memory flag detection (for cases where transition is missed)
-        // If Ceres flag just became true AND we're not in Ceres area anymore
-        val ceresCompleted = !prev.bosses.ceresStation && curr.bosses.ceresStation
-        val leftCeresArea = prev.areaId == 6 && curr.areaId != 6
-        val fallbackDetection = ceresCompleted && leftCeresArea
-
-        // Always log for debugging when in or leaving Ceres Station area
-        if (curr.areaName == "Ceres Station" || prev.areaName == "Ceres Station" || curr.areaId == 6 || prev.areaId == 6) {
-            logger.info { "🚨 CERES DEBUG - room:0x${curr.roomId.toString(16)}, prevState:${prev.gameState}, currState:${curr.gameState}, area:${curr.areaName}" }
-            logger.info { "🚨 CERES CONDITIONS - inElevator:$inCeresElevator, gameStateTransition:$gameStateTransition, primary:$primaryDetection" }
-            logger.info { "🚨 CERES FALLBACK - ceresCompleted:$ceresCompleted, leftCeresArea:$leftCeresArea, fallback:$fallbackDetection" }
-        }
-
-        val shouldSplit = primaryDetection || fallbackDetection
-
-        if (shouldSplit) {
-            val method = if (primaryDetection) "PRIMARY (ASL)" else "FALLBACK (Memory)"
-            logger.info { "🎯 CERES SPLIT TRIGGERED via $method - Leaving Ceres Station!" }
-        }
-
-        return shouldSplit
+        // EXACT ASL LOGIC from supermetroid.asl line 952
+        // ceresEscape = roomID.Current == ceresElevator && gameState.Old == normalGameplay && gameState.Current == startOfCeresCutscene
+        return curr.roomId == RoomIds.CERES_ELEVATOR && 
+               prev.gameState == GameStateConstants.NORMAL_GAMEPLAY && 
+               curr.gameState == GameStateConstants.START_OF_CERES_CUTSCENE
     }
 
     private fun checkFirstMissile(prev: GameState, curr: GameState): Boolean =

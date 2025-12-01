@@ -68,7 +68,7 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
         try {
             // Always use new format - load from runs/ directory
             logger.info { "📊 Loading splits state from runs directory: ${runsDir.absolutePath}" }
-            return@withContext loadSplitsStateFromNewFormat()
+                return@withContext loadSplitsStateFromNewFormat()
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to load splits state, returning empty state" }
             SplitsState()
