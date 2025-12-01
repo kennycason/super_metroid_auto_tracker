@@ -83,7 +83,11 @@ class GameStateService(
             updateConnectionState(connected = connected, gameLoaded = false)
 
             pollingJob = CoroutineScope(Dispatchers.IO).launch {
-                pollGameState()
+                try {
+                    pollGameState()
+                } catch (e: Exception) {
+                    logger.error(e) { "💥 Polling loop crashed" }
+                }
             }
 
             logger.info { "✅ Game state service started successfully" }
@@ -257,6 +261,8 @@ class GameStateService(
                 }
                 // Reset backoff on successful poll
                 currentDelayMs = pollIntervalMs
+                
+                delay(currentDelayMs)
 
             } catch (e: Exception) {
                 errorCount++

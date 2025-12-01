@@ -107,7 +107,16 @@ class MapRandoDataService {
      * Now reads directly from GameState which is populated by SNI/RetroArch
      */
     private fun readSeedNameFromMemory(gameState: GameState): String {
-        return gameState.mapRandoSeedName
+        val rawSeedName = gameState.mapRandoSeedName
+        
+        // Validate that seed name contains only alphanumeric characters
+        // Map rando seeds are format like "pFSJBxm7R" (base62 encoding)
+        // If we see garbage characters, it's not a map rando game
+        if (rawSeedName.isEmpty() || !rawSeedName.all { it.isLetterOrDigit() }) {
+            return ""
+        }
+        
+        return rawSeedName
     }
 
     /**

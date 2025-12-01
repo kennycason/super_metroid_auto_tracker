@@ -293,6 +293,15 @@ fun SuperMetroidTrackerApp() {
     }
 
 
+    // Auto-disable splits when switching to Map Rando mode (item tracking only, no speedrun splits)
+    val iconViewMode by iconViewModeService.iconViewMode.collectAsState()
+    LaunchedEffect(iconViewMode) {
+        if (iconViewMode == com.supermetroid.model.IconViewMode.MAP_RANDO && showSplits) {
+            logger.info { "📊 Map Rando mode detected - automatically hiding splits (use icon tracker only)" }
+            uiVisibilityService.setShowSplits(false)
+        }
+    }
+    
     // Process game state for autosplits ONLY when splits are visible
     // This prevents auto-splitting when user is playing other games (like map rando)
     LaunchedEffect(trackerState.gameState, showSplits) {
@@ -301,12 +310,8 @@ fun SuperMetroidTrackerApp() {
         }
     }
     
-    // Process autosplits on every game state to ensure reliable auto-start and phase detection
+    // Process sound effects for item collection and boss defeats
     LaunchedEffect(trackerState.gameState) {
-        logger.debug { "🎮 Auto-splits processing: area=${trackerState.gameState.areaId}, room=${trackerState.gameState.roomId}, gameState=${trackerState.gameState.gameState}" }
-        autoSplitsEngine.processGameState(trackerState.gameState)
-        
-        // Process sound effects for item collection and boss defeats
         soundService.processGameStateChange(trackerState.gameState)
     }
     
