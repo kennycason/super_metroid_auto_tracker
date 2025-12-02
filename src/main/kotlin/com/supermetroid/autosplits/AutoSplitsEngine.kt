@@ -1366,8 +1366,10 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         val result = hpTransition || mb1AlreadyDefeated || zebesEscaping || mbFinalDefeated
 
-        // ALWAYS log for debugging
-        logger.info { "🧠1 MB1: HP(${prev.motherBrainHp}->${curr.motherBrainHp}), room=$inMbRoom, gameplay=$normalGameplay, transition=$hpTransition, retroactive=$mb1AlreadyDefeated, escaping=$zebesEscaping, final=$mbFinalDefeated, result=$result" }
+        // Log only on successful detection to reduce noise
+        if (result) {
+            logger.info { "🧠 MB1 detected: HP(${prev.motherBrainHp}->${curr.motherBrainHp})" }
+        }
 
         return result
     }
@@ -1392,8 +1394,10 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         val result = hpTransition || mb2AlreadyDefeated || zebesEscaping || mbFinalDefeated
 
-        // ALWAYS log for debugging
-        logger.info { "🧠2 MB2: HP(${prev.motherBrainHp}->${curr.motherBrainHp}), room=$inMbRoom, gameplay=$normalGameplay, transition=$hpTransition, retroactive=$mb2AlreadyDefeated, escaping=$zebesEscaping, final=$mbFinalDefeated, result=$result" }
+        // Log only on successful detection to reduce noise
+        if (result) {
+            logger.info { "🧠 MB2 detected: HP(${prev.motherBrainHp}->${curr.motherBrainHp})" }
+        }
 
         return result
     }
@@ -1407,8 +1411,10 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         val result = zebesAblaze && motherBrainDefeated && shipAiTransition
 
-        // Always log for debugging ship detection issues
-        logger.info { "🚢 Ship transition check: zebesAblaze=$zebesAblaze, mbDefeated=$motherBrainDefeated, shipAI(${prev.shipAi.toString(16)}->${curr.shipAi.toString(16)}), transition=$shipAiTransition, result=$result" }
+        // Log only on successful detection to reduce noise
+        if (result) {
+            logger.info { "🚢 Ship escape detected" }
+        }
 
         return result
     }

@@ -196,10 +196,9 @@ class GameStateService(
                 gameState.beams != lastState.beams ||
                 gameState.bosses != lastState.bosses
 
-            if (hasActualChanges) {
-                logger.info { "✅ SIGNIFICANT CHANGE - Health: ${lastState.health}->${gameState.health}, MaxHealth: ${lastState.maxHealth}->${gameState.maxHealth}, Missiles: ${lastState.missiles}/${lastState.maxMissiles}->${gameState.missiles}/${gameState.maxMissiles}, Room: ${lastState.roomId}->${gameState.roomId}" }
-            } else {
-                logger.debug { "✅ Accepting change - Health: ${lastState.health}->${gameState.health}, MaxHealth: ${lastState.maxHealth}->${gameState.maxHealth}, Room: ${lastState.roomId}->${gameState.roomId}" }
+            // Only log room changes at debug level for cleaner logs
+            if (gameState.roomId != lastState.roomId) {
+                logger.debug { "🚪 Room change: ${lastState.roomId} -> ${gameState.roomId}" }
             }
         }
 

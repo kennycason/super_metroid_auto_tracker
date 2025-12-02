@@ -26,6 +26,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.supermetroid.model.IconItem
 import com.supermetroid.model.IconSize
+import com.supermetroid.ui.components.common.ToggleRow
+import com.supermetroid.ui.components.common.PrimaryToggleRow
+import com.supermetroid.ui.components.common.SelectionRow
 import com.supermetroid.ui.theme.TrackerColors
 
 /**
@@ -200,31 +203,12 @@ private fun GameGenieToggleSection(
 ) {
     val gameGenieEnabled by gameGenieService.gameGenieEnabled.collectAsState()
 
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Enable Game Genie",
-            style = MaterialTheme.typography.titleSmall.copy(color = TrackerColors.Primary, fontWeight = FontWeight.Bold)
-        )
-
-        Switch(
-            checked = gameGenieEnabled,
-            onCheckedChange = { enabled ->
-                kotlinx.coroutines.GlobalScope.launch {
-                    gameGenieService.setGameGenieEnabled(enabled)
-                }
-            },
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = TrackerColors.Primary,
-                checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.3f),
-                uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
-                uncheckedTrackColor = TrackerColors.SurfaceVariant
-            )
-        )
-    }
+    PrimaryToggleRow(
+        label = "Enable Game Genie",
+        checked = gameGenieEnabled,
+        onCheckedChange = { kotlinx.coroutines.GlobalScope.launch { gameGenieService.setGameGenieEnabled(it) } },
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -272,7 +256,6 @@ private fun IconsSettingsTab(
         // Icon Management Section - takes remaining space
         IconManagementSection(
             iconConfigService = iconConfigService,
-            iconSizeService = iconSizeService,
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
@@ -286,64 +269,14 @@ private fun IconLayoutModeSection(
     modifier: Modifier = Modifier
 ) {
     val currentMode by iconViewModeService.iconViewMode.collectAsState()
-    var layoutExpanded by remember { mutableStateOf(false) }
-
-    // Icon Layout row
-    Row(
-        modifier = modifier.fillMaxWidth(0.9f),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Icon Layout",
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = TrackerColors.OnSurface,
-                fontWeight = FontWeight.Medium
-            )
-        )
-
-        Box {
-            Button(
-                onClick = { layoutExpanded = !layoutExpanded },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = TrackerColors.SurfaceOverlayLight,
-                    contentColor = TrackerColors.OnSurface
-                ),
-                shape = RoundedCornerShape(6.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = currentMode.displayName, style = MaterialTheme.typography.bodySmall)
-                    Text(text = if (layoutExpanded) "▲" else "▼", style = MaterialTheme.typography.bodySmall)
-                }
-            }
-            DropdownMenu(
-                expanded = layoutExpanded,
-                onDismissRequest = { layoutExpanded = false },
-                modifier = Modifier.background(TrackerColors.Surface)
-            ) {
-                com.supermetroid.model.IconViewMode.values().forEach { mode ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                mode.displayName,
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = if (mode == currentMode) TrackerColors.Primary else TrackerColors.OnSurface
-                                )
-                            )
-                        },
-                        onClick = {
-                            kotlinx.coroutines.GlobalScope.launch { iconViewModeService.setIconViewMode(mode) }
-                            layoutExpanded = false
-                        }
-                    )
-                }
-            }
-        }
-    }
+    
+    SelectionRow(
+        label = "Icon Layout",
+        selectedValue = currentMode.displayName,
+        options = com.supermetroid.model.IconViewMode.values().map { it to it.displayName },
+        onOptionSelected = { kotlinx.coroutines.GlobalScope.launch { iconViewModeService.setIconViewMode(it) } },
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -352,64 +285,14 @@ private fun IconAmmoDisplayModeSection(
     modifier: Modifier = Modifier
 ) {
     val ammoMode by iconViewModeService.ammoNumberMode.collectAsState()
-    var ammoExpanded by remember { mutableStateOf(false) }
 
-    // Ammo Numbers row
-    Row(
-        modifier = modifier.fillMaxWidth(0.9f),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Ammo Numbers",
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = TrackerColors.OnSurface,
-                fontWeight = FontWeight.Medium
-            )
-        )
-
-        Box {
-            Button(
-                onClick = { ammoExpanded = !ammoExpanded },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = TrackerColors.SurfaceOverlayLight,
-                    contentColor = TrackerColors.OnSurface
-                ),
-                shape = RoundedCornerShape(6.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = ammoMode.displayName, style = MaterialTheme.typography.bodySmall)
-                    Text(text = if (ammoExpanded) "▲" else "▼", style = MaterialTheme.typography.bodySmall)
-                }
-            }
-            DropdownMenu(
-                expanded = ammoExpanded,
-                onDismissRequest = { ammoExpanded = false },
-                modifier = Modifier.background(TrackerColors.Surface)
-            ) {
-                com.supermetroid.model.AmmoNumberMode.values().forEach { mode ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                mode.displayName,
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = if (mode == ammoMode) TrackerColors.Primary else TrackerColors.OnSurface
-                                )
-                            )
-                        },
-                        onClick = {
-                            kotlinx.coroutines.GlobalScope.launch { iconViewModeService.setAmmoNumberMode(mode) }
-                            ammoExpanded = false
-                        }
-                    )
-                }
-            }
-        }
-    }
+    SelectionRow(
+        label = "Ammo Numbers",
+        selectedValue = ammoMode.displayName,
+        options = com.supermetroid.model.AmmoNumberMode.values().map { it to it.displayName },
+        onOptionSelected = { kotlinx.coroutines.GlobalScope.launch { iconViewModeService.setAmmoNumberMode(it) } },
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -843,31 +726,13 @@ private fun RoomNameToggleSection(
     modifier: Modifier = Modifier
 ) {
     val showRoomName by roomNameService.showRoomName.collectAsState()
-
-    // Toggle switch
-    Row(
-        modifier = modifier.fillMaxWidth(0.9f),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Show room names in status display",
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = TrackerColors.OnSurface
-            )
-        )
-
-        Switch(
-            checked = showRoomName,
-            onCheckedChange = { roomNameService.setShowRoomName(it) },
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = TrackerColors.Primary,
-                checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.5f),
-                uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
-                uncheckedTrackColor = TrackerColors.SurfaceVariant
-            )
-        )
-    }
+    
+    ToggleRow(
+        label = "Show room names in status display",
+        checked = showRoomName,
+        onCheckedChange = { roomNameService.setShowRoomName(it) },
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -878,34 +743,12 @@ private fun SegmentDeltasToggleSection(
     val showSegmentDeltas by splitDisplayModeService.showSegmentDeltas.collectAsState()
     val scope = rememberCoroutineScope()
 
-    Row(
-        modifier = modifier.fillMaxWidth(0.9f),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Show Segment Deltas",
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = TrackerColors.OnSurface,
-                fontWeight = FontWeight.Medium
-            )
-        )
-
-        Switch(
-            checked = showSegmentDeltas,
-            onCheckedChange = { enabled ->
-                scope.launch {
-                    splitDisplayModeService.setShowSegmentDeltas(enabled)
-                }
-            },
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = TrackerColors.Primary,
-                checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.5f),
-                uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
-                uncheckedTrackColor = TrackerColors.SurfaceVariant
-            )
-        )
-    }
+    ToggleRow(
+        label = "Show Segment Deltas",
+        checked = showSegmentDeltas,
+        onCheckedChange = { scope.launch { splitDisplayModeService.setShowSegmentDeltas(it) } },
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -916,34 +759,12 @@ private fun BestPossibleColumnToggleSection(
     val showBestPossibleColumn by splitDisplayModeService.showBestPossibleColumn.collectAsState()
     val scope = rememberCoroutineScope()
 
-    Row(
-        modifier = modifier.fillMaxWidth(0.9f),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Show Best Possible Column",
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = TrackerColors.OnSurface,
-                fontWeight = FontWeight.Medium
-            )
-        )
-
-        Switch(
-            checked = showBestPossibleColumn,
-            onCheckedChange = { enabled ->
-                scope.launch {
-                    splitDisplayModeService.setShowBestPossibleColumn(enabled)
-                }
-            },
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = TrackerColors.Primary,
-                checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.5f),
-                uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
-                uncheckedTrackColor = TrackerColors.SurfaceVariant
-            )
-        )
-    }
+    ToggleRow(
+        label = "Show Best Possible Column",
+        checked = showBestPossibleColumn,
+        onCheckedChange = { scope.launch { splitDisplayModeService.setShowBestPossibleColumn(it) } },
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -954,34 +775,12 @@ private fun BestPossibleDeltaToggleSection(
     val showBestPossibleDelta by splitDisplayModeService.showBestPossibleDelta.collectAsState()
     val scope = rememberCoroutineScope()
 
-    Row(
-        modifier = modifier.fillMaxWidth(0.9f),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Show Best Possible Δ Column",
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = TrackerColors.OnSurface,
-                fontWeight = FontWeight.Medium
-            )
-        )
-
-        Switch(
-            checked = showBestPossibleDelta,
-            onCheckedChange = { enabled ->
-                scope.launch {
-                    splitDisplayModeService.setShowBestPossibleDelta(enabled)
-                }
-            },
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = TrackerColors.Primary,
-                checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.5f),
-                uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
-                uncheckedTrackColor = TrackerColors.SurfaceVariant
-            )
-        )
-    }
+    ToggleRow(
+        label = "Show Best Possible Δ Column",
+        checked = showBestPossibleDelta,
+        onCheckedChange = { scope.launch { splitDisplayModeService.setShowBestPossibleDelta(it) } },
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -992,34 +791,12 @@ private fun BestColumnToggleSection(
     val showBestColumn by splitDisplayModeService.showBestColumn.collectAsState()
     val scope = rememberCoroutineScope()
 
-    Row(
-        modifier = modifier.fillMaxWidth(0.9f),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Show BEST Column",
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = TrackerColors.OnSurface,
-                fontWeight = FontWeight.Medium
-            )
-        )
-
-        Switch(
-            checked = showBestColumn,
-            onCheckedChange = { enabled ->
-                scope.launch {
-                    splitDisplayModeService.setShowBestColumn(enabled)
-                }
-            },
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = TrackerColors.Primary,
-                checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.5f),
-                uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
-                uncheckedTrackColor = TrackerColors.SurfaceVariant
-            )
-        )
-    }
+    ToggleRow(
+        label = "Show BEST Column",
+        checked = showBestColumn,
+        onCheckedChange = { scope.launch { splitDisplayModeService.setShowBestColumn(it) } },
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -1308,7 +1085,6 @@ private fun TimerSetSection(
 @Composable
 private fun IconManagementSection(
     iconConfigService: com.supermetroid.service.IconConfigService,
-    iconSizeService: com.supermetroid.service.IconSizeService,
     modifier: Modifier = Modifier
 ) {
     val iconConfig by iconConfigService.iconConfig.collectAsState()
@@ -1356,7 +1132,6 @@ private fun IconManagementSection(
                         icon = icon,
                         index = index,
                         totalItems = allIcons.size,
-                        iconSizeService = iconSizeService,
                         onToggleEnabled = { iconConfigService.setIconEnabled(icon.id, !icon.enabled) },
                         onMoveUp = { if (index > 0) iconConfigService.moveIcon(index, index - 1) },
                         onMoveDown = { if (index < allIcons.size - 1) iconConfigService.moveIcon(index, index + 1) }
@@ -1387,7 +1162,6 @@ private fun IconManagementItem(
     icon: IconItem,
     index: Int,
     totalItems: Int,
-    iconSizeService: com.supermetroid.service.IconSizeService,
     onToggleEnabled: () -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit
