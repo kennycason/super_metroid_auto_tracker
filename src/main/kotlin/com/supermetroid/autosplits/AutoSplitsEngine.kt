@@ -33,6 +33,10 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     // Auto-start control - can be disabled if user is manually managing timer
     var autoStartEnabled: Boolean = true
         private set
+    
+    // Stores the personalBests at the START of the current run
+    // Used to freeze the display after run completion so BP Δ doesn't immediately go to ±0:00
+    private var preRunPersonalBests: Map<String, PersonalBest> = emptyMap()
 
     // State flows for reactive UI
     private val _splitsState = MutableStateFlow(SplitsState())
@@ -407,6 +411,11 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         // Recalculate Best Possible from all completed runs before starting the new run
         // This ensures BP Δ compares against the latest Best Possible
         val updatedState = updatePersonalBestsFromRunHistory(currentState)
+        
+        // IMPORTANT: Capture the personalBests at run start
+        // This is used to freeze the display after run completion
+        // so BP Δ doesn't immediately show ±0:00 for all segments
+        preRunPersonalBests = updatedState.personalBests
         
         _splitsState.value = updatedState.copy(currentRun = newRun)
 
@@ -842,20 +851,11 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                     currentState.runHistory
                 }
 
-                // Update personal bests if this run set a new record
-                val finalPersonalBests = if (isComplete && finalRun.isPersonalBest) {
-                    val splitTimesMap = finalRun.completedSplits.associate { completedSplit ->
-                        completedSplit.splitId to completedSplit.time
-                    }
-                    
-                    val newPB = PersonalBest(
-                        profileId = finalRun.profileId,
-                        runSessionId = finalRun.id,
-                        totalTime = finalRun.totalTime,
-                        splitTimes = splitTimesMap
-                    )
-                    
-                    currentState.personalBests + (finalRun.profileId to newPB)
+                // When run completes via auto-skip, freeze the display using pre-run personalBests
+                // This prevents BP Δ from immediately showing ±0:00 for all segments
+                // The run is saved to disk and will be included in BP calculation on next run start
+                val finalPersonalBests = if (isComplete) {
+                    preRunPersonalBests  // Use the personalBests from when the run STARTED
                 } else {
                     currentState.personalBests
                 }
@@ -1200,9 +1200,9 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         // showing BP Δ against the pre-run Best Possible. This lets users review their
         // performance before starting a new run. Best Possible will be recalculated on next run start.
         val finalPersonalBests = if (isComplete || split.id == "ship") {
-            // Run complete - freeze the display, use the ORIGINAL personalBests (pre-run)
+            // Run complete - freeze the display, use the personalBests from RUN START
             // This prevents BP Δ from immediately showing ±0:00 after completing the run
-            currentState.personalBests
+            preRunPersonalBests
         } else {
             // Run still in progress - update personalBests for real-time BP Δ
             updatedPersonalBests
