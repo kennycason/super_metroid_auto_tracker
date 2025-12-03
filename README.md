@@ -329,13 +329,49 @@ The tracker stores all data in `~/.smtracker/`:
 - `runs/` - Individual run files for detailed history
 - `run-summaries.json` - Best splits and statistics (derived from runs)
 
+## Print a Run's Times
+
+```bash
+python python print_run_times.py ~/.smtracker/runs/2025-12-03_01-58-15_kpdr-any_1764755895966.json
+```
+
+```
+Split Name        Segment Time  Total Time
+==============================================
+Ceres Station        01:33.999     01:33.999
+Morph Ball           01:42.007     03:16.006
+First Missiles       00:23.080     03:39.086
+Bomb                 02:02.848     05:41.934
+First Super          02:20.877     08:02.811
+Charge Beam          01:00.919     09:03.730
+Spazer               01:19.901     10:23.631
+Kraid                02:02.034     12:25.665
+Varia Suit           00:05.979     12:31.644
+Hi-Jump Boots        02:01.837     14:33.481
+Speed Booster        01:57.913     16:31.394
+Wave Beam            01:09.974     17:41.368
+Ice Beam             01:49.055     19:30.423
+First Power Bomb     02:32.882     22:03.305
+Phantoon             04:00.388     26:03.693
+Gravity Suit         02:41.891     28:45.584
+Draygon              06:46.522     35:32.106
+Space Jump           00:13.050     35:45.156
+Plasma Beam          01:57.786     37:42.942
+Ridley               07:17.467     45:00.409
+Golden Four (G4)     05:26.562     50:26.971
+Mother Brain 1       04:18.496     54:45.467
+Mother Brain 2       01:36.426     56:21.893
+Ship                 02:52.594     59:14.487
+==============================================
+Final Time                         59:14.487
+```
+
 ## 📚 Research and References
 
 The memory addresses and logic used in this project are based on:
 - [Super Metroid RAM Map](https://jathys.zophar.net/supermetroid/kejardon/RAMMap.txt)
 - [Super Metroid AutoSplitter](https://github.com/UNHchabo/AutoSplitters)
 - [SNI (SNES Network Access)](https://github.com/alttpo/sni) - gRPC-based SNES memory access
-
 
 
 ## 📝 License

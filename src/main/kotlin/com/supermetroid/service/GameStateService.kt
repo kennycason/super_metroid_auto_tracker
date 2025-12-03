@@ -24,9 +24,21 @@ import kotlin.time.Duration.Companion.milliseconds
 class GameStateService(
     private val host: String = "localhost",
     private val port: Int = 55355,
-    private val pollIntervalMs: Long = 500 // Much slower polling to prevent chaotic data jumping
+    private val pollIntervalMs: Long = 200 // Fast polling for responsive split detection
 ) : Logging {
     private var lastStableGameState: GameState? = null
+    
+    // Callback for direct game state processing (called on every poll, not via Compose)
+    // This ensures split detection happens reliably regardless of UI state
+    private var onGameStateUpdate: ((GameState) -> Unit)? = null
+    
+    /**
+     * Set a callback to be invoked on every game state poll.
+     * Use this for time-critical processing like split detection.
+     */
+    fun setGameStateCallback(callback: (GameState) -> Unit) {
+        onGameStateUpdate = callback
+    }
 
     // Dual adapter for SNI/RetroArch support
     private val dualAdapter = DualMemoryAdapter(
@@ -196,10 +208,9 @@ class GameStateService(
                 gameState.beams != lastState.beams ||
                 gameState.bosses != lastState.bosses
 
-            if (hasActualChanges) {
-                logger.info { "✅ SIGNIFICANT CHANGE - Health: ${lastState.health}->${gameState.health}, MaxHealth: ${lastState.maxHealth}->${gameState.maxHealth}, Missiles: ${lastState.missiles}/${lastState.maxMissiles}->${gameState.missiles}/${gameState.maxMissiles}, Room: ${lastState.roomId}->${gameState.roomId}" }
-            } else {
-                logger.debug { "✅ Accepting change - Health: ${lastState.health}->${gameState.health}, MaxHealth: ${lastState.maxHealth}->${gameState.maxHealth}, Room: ${lastState.roomId}->${gameState.roomId}" }
+            // Only log room changes at debug level for cleaner logs
+            if (gameState.roomId != lastState.roomId) {
+                logger.debug { "🚪 Room change: ${lastState.roomId} -> ${gameState.roomId}" }
             }
         }
 
@@ -247,6 +258,10 @@ class GameStateService(
                 )
 
                 _trackerState.value = trackerState
+                
+                // Call the game state callback for direct processing (split detection)
+                // This is called on EVERY poll, not dependent on Compose recomposition
+                onGameStateUpdate?.invoke(stableGameState)
 
                 // Log significant changes and periodic status
                 val previousState = _trackerState.value.gameState

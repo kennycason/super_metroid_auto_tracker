@@ -33,6 +33,10 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     // Auto-start control - can be disabled if user is manually managing timer
     var autoStartEnabled: Boolean = true
         private set
+    
+    // Stores the personalBests at the START of the current run
+    // Used to freeze the display after run completion so BP Δ doesn't immediately go to ±0:00
+    private var preRunPersonalBests: Map<String, PersonalBest> = emptyMap()
 
     // State flows for reactive UI
     private val _splitsState = MutableStateFlow(SplitsState())
@@ -117,6 +121,35 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             }
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to load replay run" }
+        }
+    }
+
+    /**
+     * Reset to current state - reload all runs and show true personal bests
+     * Use this to exit replay mode and return to normal tracking
+     */
+    suspend fun resetToCurrentState() {
+        logger.info { "🔄 Resetting to current state (exiting replay mode)" }
+        
+        try {
+            fileStorageService?.let { storage ->
+                // Reload the full splits state from disk (all runs, true PB)
+                val savedState = storage.loadSplitsState()
+                
+                // Clear current run (start fresh, not mid-run)
+                val resetState = savedState.copy(currentRun = null)
+                
+                // Load the saved state
+                loadSavedState(resetState)
+                
+                // Reset the split index
+                currentSplitIndex = 0
+                
+                val pbTime = savedState.personalBests.values.firstOrNull()?.totalTime ?: 0
+                logger.info { "✅ Reset to current state - PB: ${formatTime(pbTime)} from ${savedState.runHistory.size} total runs" }
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to reset to current state" }
         }
     }
 
@@ -379,6 +412,11 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         // This ensures BP Δ compares against the latest Best Possible
         val updatedState = updatePersonalBestsFromRunHistory(currentState)
         
+        // IMPORTANT: Capture the personalBests at run start
+        // This is used to freeze the display after run completion
+        // so BP Δ doesn't immediately show ±0:00 for all segments
+        preRunPersonalBests = updatedState.personalBests
+        
         _splitsState.value = updatedState.copy(currentRun = newRun)
 
         // Add stack trace to see where this is being called from
@@ -490,7 +528,13 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         // Save the run before resetting (if it has any completed splits)
         // This preserves segment PB data from partial runs
-        if (currentRun != null && currentRun.completedSplits.isNotEmpty()) {
+        // IMPORTANT: Don't save if this is a completed run being viewed in replay mode!
+        // A completed run has endTime set, meaning it was already saved properly.
+        val isCompletedRunInReplay = currentRun?.endTime != null
+        
+        if (isCompletedRunInReplay) {
+            logger.info { "🎬 Viewing completed run in replay mode - not saving (run already exists on disk)" }
+        } else if (currentRun != null && currentRun.completedSplits.isNotEmpty()) {
             logger.info { "💾 Saving partial run with ${currentRun.completedSplits.size} completed splits before reset" }
 
             // Calculate current time for the saved run
@@ -807,20 +851,11 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                     currentState.runHistory
                 }
 
-                // Update personal bests if this run set a new record
-                val finalPersonalBests = if (isComplete && finalRun.isPersonalBest) {
-                    val splitTimesMap = finalRun.completedSplits.associate { completedSplit ->
-                        completedSplit.splitId to completedSplit.time
-                    }
-                    
-                    val newPB = PersonalBest(
-                        profileId = finalRun.profileId,
-                        runSessionId = finalRun.id,
-                        totalTime = finalRun.totalTime,
-                        splitTimes = splitTimesMap
-                    )
-                    
-                    currentState.personalBests + (finalRun.profileId to newPB)
+                // When run completes via auto-skip, freeze the display using pre-run personalBests
+                // This prevents BP Δ from immediately showing ±0:00 for all segments
+                // The run is saved to disk and will be included in BP calculation on next run start
+                val finalPersonalBests = if (isComplete) {
+                    preRunPersonalBests  // Use the personalBests from when the run STARTED
                 } else {
                     currentState.personalBests
                 }
@@ -1165,9 +1200,9 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         // showing BP Δ against the pre-run Best Possible. This lets users review their
         // performance before starting a new run. Best Possible will be recalculated on next run start.
         val finalPersonalBests = if (isComplete || split.id == "ship") {
-            // Run complete - freeze the display, use the ORIGINAL personalBests (pre-run)
+            // Run complete - freeze the display, use the personalBests from RUN START
             // This prevents BP Δ from immediately showing ±0:00 after completing the run
-            currentState.personalBests
+            preRunPersonalBests
         } else {
             // Run still in progress - update personalBests for real-time BP Δ
             updatedPersonalBests
@@ -1264,11 +1299,22 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     // Split condition checks - exact logic from TypeScript version
 
     private fun checkCeresStation(prev: GameState, curr: GameState): Boolean {
-        // EXACT ASL LOGIC from supermetroid.asl line 952
+        // ASL LOGIC from supermetroid.asl line 952:
         // ceresEscape = roomID.Current == ceresElevator && gameState.Old == normalGameplay && gameState.Current == startOfCeresCutscene
-        return curr.roomId == RoomIds.CERES_ELEVATOR && 
-               prev.gameState == GameStateConstants.NORMAL_GAMEPLAY && 
-               curr.gameState == GameStateConstants.START_OF_CERES_CUTSCENE
+        // 
+        // Our polling (~1.6s) may miss the exact frame, so we're slightly more lenient on prevState.
+        // The ASL runs frame-by-frame, we poll. The cutscene state (32) is reliable, the prev state may vary.
+        val inCeresElevator = curr.roomId == RoomIds.CERES_ELEVATOR
+        val cutsceneStarted = curr.gameState == GameStateConstants.START_OF_CERES_CUTSCENE
+        val prevWasGameplay = prev.gameState == GameStateConstants.NORMAL_GAMEPLAY ||
+                              prev.gameState == GameStateConstants.DOOR_TRANSITION ||
+                              prev.gameState == GameStateConstants.ELEVATOR
+        
+        val result = inCeresElevator && cutsceneStarted && prevWasGameplay
+        if (result) {
+            logger.info { "🚀 CERES ESCAPE DETECTED! gameState=${prev.gameState}->${curr.gameState}" }
+        }
+        return result
     }
 
     private fun checkFirstMissile(prev: GameState, curr: GameState): Boolean =
@@ -1366,8 +1412,10 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         val result = hpTransition || mb1AlreadyDefeated || zebesEscaping || mbFinalDefeated
 
-        // ALWAYS log for debugging
-        logger.info { "🧠1 MB1: HP(${prev.motherBrainHp}->${curr.motherBrainHp}), room=$inMbRoom, gameplay=$normalGameplay, transition=$hpTransition, retroactive=$mb1AlreadyDefeated, escaping=$zebesEscaping, final=$mbFinalDefeated, result=$result" }
+        // Log only on successful detection to reduce noise
+        if (result) {
+            logger.info { "🧠 MB1 detected: HP(${prev.motherBrainHp}->${curr.motherBrainHp})" }
+        }
 
         return result
     }
@@ -1392,8 +1440,10 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         val result = hpTransition || mb2AlreadyDefeated || zebesEscaping || mbFinalDefeated
 
-        // ALWAYS log for debugging
-        logger.info { "🧠2 MB2: HP(${prev.motherBrainHp}->${curr.motherBrainHp}), room=$inMbRoom, gameplay=$normalGameplay, transition=$hpTransition, retroactive=$mb2AlreadyDefeated, escaping=$zebesEscaping, final=$mbFinalDefeated, result=$result" }
+        // Log only on successful detection to reduce noise
+        if (result) {
+            logger.info { "🧠 MB2 detected: HP(${prev.motherBrainHp}->${curr.motherBrainHp})" }
+        }
 
         return result
     }
@@ -1407,8 +1457,10 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         val result = zebesAblaze && motherBrainDefeated && shipAiTransition
 
-        // Always log for debugging ship detection issues
-        logger.info { "🚢 Ship transition check: zebesAblaze=$zebesAblaze, mbDefeated=$motherBrainDefeated, shipAI(${prev.shipAi.toString(16)}->${curr.shipAi.toString(16)}), transition=$shipAiTransition, result=$result" }
+        // Log only on successful detection to reduce noise
+        if (result) {
+            logger.info { "🚢 Ship escape detected" }
+        }
 
         return result
     }

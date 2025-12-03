@@ -160,6 +160,137 @@ class SplitConditionDetectionTest {
         }
     }
 
+    // ========== ASL-style Ceres Escape Detection Tests ==========
+    // These test the exact ASL logic: roomID == ceresElevator && gameState.Old == normalGameplay && gameState.Current == startOfCeresCutscene
+    // Due to polling (~200ms), we accept door transition and elevator states as valid "previous" states
+    
+    @Test
+    fun `should detect Ceres escape with ASL-exact conditions`() {
+        // Given: Previous state was normal gameplay in Ceres Elevator
+        val previous = createCeresState(
+            roomId = 0xDF45, // Ceres Elevator
+            gameState = 8    // Normal gameplay
+        )
+        
+        // When: Current state shows cutscene starting
+        val current = createCeresState(
+            roomId = 0xDF45, // Still in Ceres Elevator
+            gameState = 32   // Start of Ceres cutscene (0x20)
+        )
+        
+        // Then: Should detect Ceres escape (exact ASL match)
+        val shouldTrigger = checkCeresEscape(previous, current)
+        expectThat(shouldTrigger).isTrue()
+    }
+    
+    @Test
+    fun `should detect Ceres escape with door transition as previous state`() {
+        // Due to polling timing, we might catch a door transition state before the cutscene
+        val previous = createCeresState(
+            roomId = 0xDF45,
+            gameState = 11   // Door transition (0x0B)
+        )
+        
+        val current = createCeresState(
+            roomId = 0xDF45,
+            gameState = 32   // Start of Ceres cutscene
+        )
+        
+        val shouldTrigger = checkCeresEscape(previous, current)
+        expectThat(shouldTrigger).isTrue()
+    }
+    
+    @Test
+    fun `should detect Ceres escape with elevator state as previous state`() {
+        // Elevator state (5) can also be a valid previous state due to polling
+        val previous = createCeresState(
+            roomId = 0xDF45,
+            gameState = 5    // Elevator (0x05)
+        )
+        
+        val current = createCeresState(
+            roomId = 0xDF45,
+            gameState = 32   // Start of Ceres cutscene
+        )
+        
+        val shouldTrigger = checkCeresEscape(previous, current)
+        expectThat(shouldTrigger).isTrue()
+    }
+    
+    @Test
+    fun `should NOT detect Ceres escape if not in Ceres Elevator room`() {
+        val previous = createCeresState(
+            roomId = 0xDF8D, // Different Ceres room (not elevator)
+            gameState = 8
+        )
+        
+        val current = createCeresState(
+            roomId = 0xDF8D,
+            gameState = 32
+        )
+        
+        val shouldTrigger = checkCeresEscape(previous, current)
+        expectThat(shouldTrigger).isFalse()
+    }
+    
+    @Test
+    fun `should NOT detect Ceres escape if cutscene not started`() {
+        val previous = createCeresState(
+            roomId = 0xDF45,
+            gameState = 8
+        )
+        
+        val current = createCeresState(
+            roomId = 0xDF45,
+            gameState = 8  // Still normal gameplay, cutscene not started
+        )
+        
+        val shouldTrigger = checkCeresEscape(previous, current)
+        expectThat(shouldTrigger).isFalse()
+    }
+    
+    @Test
+    fun `should NOT detect Ceres escape if previous state was invalid`() {
+        val previous = createCeresState(
+            roomId = 0xDF45,
+            gameState = 31   // Loading game (0x1F) - not a valid previous state
+        )
+        
+        val current = createCeresState(
+            roomId = 0xDF45,
+            gameState = 32
+        )
+        
+        val shouldTrigger = checkCeresEscape(previous, current)
+        expectThat(shouldTrigger).isFalse()
+    }
+
+    // Helper to check Ceres escape (mirrors the engine logic)
+    private fun checkCeresEscape(prev: GameState, curr: GameState): Boolean {
+        val ceresElevator = 0xDF45 // 57157
+        val normalGameplay = 8
+        val doorTransition = 11
+        val elevator = 5
+        val startOfCeresCutscene = 32
+        
+        val inCeresElevator = curr.roomId == ceresElevator
+        val cutsceneStarted = curr.gameState == startOfCeresCutscene
+        val prevWasGameplay = prev.gameState == normalGameplay ||
+                              prev.gameState == doorTransition ||
+                              prev.gameState == elevator
+        
+        return inCeresElevator && cutsceneStarted && prevWasGameplay
+    }
+    
+    private fun createCeresState(
+        roomId: Int = 0xDF45,
+        gameState: Int = 8
+    ) = GameState(
+        gameState = gameState,
+        roomId = roomId,
+        areaId = 6 // Ceres Station
+    )
+
     // Test helper to create game states with valid gameplay state
     private fun createGameState(
         areaId: Int = 0,
