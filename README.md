@@ -332,38 +332,38 @@ The tracker stores all data in `~/.smtracker/`:
 ## Print a Run's Times
 
 ```bash
-python print_run_times.py ~/.smtracker/runs/2025-12-03_00-22-40_kpdr-any_1764750160695.json 
+python python print_run_times.py ~/.smtracker/runs/2025-12-03_01-58-15_kpdr-any_1764755895966.json
 ```
 
 ```
 Split Name        Segment Time  Total Time
 ==============================================
-Ceres Station        01:33.901     01:33.901
-Morph Ball           01:46.916     03:20.817
-First Missiles       00:22.988     03:43.805
-Bomb                 01:57.633     05:41.438
-First Super          02:20.760     08:02.198
-Charge Beam          01:01.824     09:04.022
-Spazer               01:23.987     10:28.009
-Kraid                02:23.616     12:51.625
-Varia Suit           00:06.014     12:57.639
-Hi-Jump Boots        02:13.724     15:11.363
-Speed Booster        02:21.231     17:32.594
-Wave Beam            01:08.849     18:41.443
-Ice Beam             01:58.855     20:40.298
-First Power Bomb     02:42.658     23:22.956
-Phantoon             04:39.920     28:02.876
-Gravity Suit         02:53.792     30:56.668
-Draygon              07:01.761     37:58.429
-Space Jump           00:07.025     38:05.454
-Plasma Beam          01:49.797     39:55.251
-Ridley               07:29.544     47:24.795
-Golden Four (G4)     06:05.576     53:30.371
-Mother Brain 1       04:25.872     57:56.243
-Mother Brain 2       01:33.962     59:30.205
-Ship                 03:00.187  01:02:30.392
+Ceres Station        01:33.999     01:33.999
+Morph Ball           01:42.007     03:16.006
+First Missiles       00:23.080     03:39.086
+Bomb                 02:02.848     05:41.934
+First Super          02:20.877     08:02.811
+Charge Beam          01:00.919     09:03.730
+Spazer               01:19.901     10:23.631
+Kraid                02:02.034     12:25.665
+Varia Suit           00:05.979     12:31.644
+Hi-Jump Boots        02:01.837     14:33.481
+Speed Booster        01:57.913     16:31.394
+Wave Beam            01:09.974     17:41.368
+Ice Beam             01:49.055     19:30.423
+First Power Bomb     02:32.882     22:03.305
+Phantoon             04:00.388     26:03.693
+Gravity Suit         02:41.891     28:45.584
+Draygon              06:46.522     35:32.106
+Space Jump           00:13.050     35:45.156
+Plasma Beam          01:57.786     37:42.942
+Ridley               07:17.467     45:00.409
+Golden Four (G4)     05:26.562     50:26.971
+Mother Brain 1       04:18.496     54:45.467
+Mother Brain 2       01:36.426     56:21.893
+Ship                 02:52.594     59:14.487
 ==============================================
-Final Time                      01:02:30.392
+Final Time                         59:14.487
 ```
 
 ## 📚 Research and References
