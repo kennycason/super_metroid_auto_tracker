@@ -282,20 +282,29 @@ fun SuperMetroidTrackerApp() {
     }
 
 
-    // Auto-disable splits when switching to Map Rando mode (item tracking only, no speedrun splits)
+    // Auto-disable/enable splits when switching between Map Rando and other modes
     val iconViewMode by iconViewModeService.iconViewMode.collectAsState()
     LaunchedEffect(iconViewMode) {
         if (iconViewMode == com.supermetroid.model.IconViewMode.MAP_RANDO && showSplits) {
-            logger.info { "📊 Map Rando mode detected - automatically hiding splits (use icon tracker only)" }
+            logger.info { "📊 Map Rando mode detected - automatically hiding splits (item tracking only)" }
             uiVisibilityService.setShowSplits(false)
+        } else if (iconViewMode != com.supermetroid.model.IconViewMode.MAP_RANDO && !showSplits) {
+            // Auto-enable splits when switching back to Default/Bosses mode for KPDR runs
+            logger.info { "📊 Switched to ${iconViewMode.displayName} mode - automatically showing splits for speedrun tracking" }
+            uiVisibilityService.setShowSplits(true)
         }
     }
     
-    // Process game state for autosplits ONLY when splits are visible
-    // This prevents auto-splitting when user is playing other games (like map rando)
-    LaunchedEffect(trackerState.gameState, showSplits) {
-        if (showSplits) {
-            autoSplitsEngine.processGameState(trackerState.gameState)
+    // Set up direct game state callback for split detection
+    // This is called directly from the polling loop, NOT via Compose recomposition
+    // This ensures reliable split detection regardless of UI state
+    LaunchedEffect(Unit) {
+        gameStateService.setGameStateCallback { gameState ->
+            // Only process splits when not in Map Rando mode
+            val currentMode = iconViewModeService.iconViewMode.value
+            if (currentMode != com.supermetroid.model.IconViewMode.MAP_RANDO) {
+                autoSplitsEngine.processGameState(gameState)
+            }
         }
     }
     

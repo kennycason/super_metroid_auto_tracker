@@ -1299,11 +1299,22 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     // Split condition checks - exact logic from TypeScript version
 
     private fun checkCeresStation(prev: GameState, curr: GameState): Boolean {
-        // EXACT ASL LOGIC from supermetroid.asl line 952
+        // ASL LOGIC from supermetroid.asl line 952:
         // ceresEscape = roomID.Current == ceresElevator && gameState.Old == normalGameplay && gameState.Current == startOfCeresCutscene
-        return curr.roomId == RoomIds.CERES_ELEVATOR && 
-               prev.gameState == GameStateConstants.NORMAL_GAMEPLAY && 
-               curr.gameState == GameStateConstants.START_OF_CERES_CUTSCENE
+        // 
+        // Our polling (~1.6s) may miss the exact frame, so we're slightly more lenient on prevState.
+        // The ASL runs frame-by-frame, we poll. The cutscene state (32) is reliable, the prev state may vary.
+        val inCeresElevator = curr.roomId == RoomIds.CERES_ELEVATOR
+        val cutsceneStarted = curr.gameState == GameStateConstants.START_OF_CERES_CUTSCENE
+        val prevWasGameplay = prev.gameState == GameStateConstants.NORMAL_GAMEPLAY ||
+                              prev.gameState == GameStateConstants.DOOR_TRANSITION ||
+                              prev.gameState == GameStateConstants.ELEVATOR
+        
+        val result = inCeresElevator && cutsceneStarted && prevWasGameplay
+        if (result) {
+            logger.info { "🚀 CERES ESCAPE DETECTED! gameState=${prev.gameState}->${curr.gameState}" }
+        }
+        return result
     }
 
     private fun checkFirstMissile(prev: GameState, curr: GameState): Boolean =
