@@ -121,6 +121,35 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     }
 
     /**
+     * Reset to current state - reload all runs and show true personal bests
+     * Use this to exit replay mode and return to normal tracking
+     */
+    suspend fun resetToCurrentState() {
+        logger.info { "🔄 Resetting to current state (exiting replay mode)" }
+        
+        try {
+            fileStorageService?.let { storage ->
+                // Reload the full splits state from disk (all runs, true PB)
+                val savedState = storage.loadSplitsState()
+                
+                // Clear current run (start fresh, not mid-run)
+                val resetState = savedState.copy(currentRun = null)
+                
+                // Load the saved state
+                loadSavedState(resetState)
+                
+                // Reset the split index
+                currentSplitIndex = 0
+                
+                val pbTime = savedState.personalBests.values.firstOrNull()?.totalTime ?: 0
+                logger.info { "✅ Reset to current state - PB: ${formatTime(pbTime)} from ${savedState.runHistory.size} total runs" }
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to reset to current state" }
+        }
+    }
+
+    /**
      * Load a split profile
      */
     fun loadProfile(profile: SplitProfile) {
@@ -490,7 +519,13 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         // Save the run before resetting (if it has any completed splits)
         // This preserves segment PB data from partial runs
-        if (currentRun != null && currentRun.completedSplits.isNotEmpty()) {
+        // IMPORTANT: Don't save if this is a completed run being viewed in replay mode!
+        // A completed run has endTime set, meaning it was already saved properly.
+        val isCompletedRunInReplay = currentRun?.endTime != null
+        
+        if (isCompletedRunInReplay) {
+            logger.info { "🎬 Viewing completed run in replay mode - not saving (run already exists on disk)" }
+        } else if (currentRun != null && currentRun.completedSplits.isNotEmpty()) {
             logger.info { "💾 Saving partial run with ${currentRun.completedSplits.size} completed splits before reset" }
 
             // Calculate current time for the saved run

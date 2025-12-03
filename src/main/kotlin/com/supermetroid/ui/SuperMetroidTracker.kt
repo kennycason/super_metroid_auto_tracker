@@ -14,6 +14,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import androidx.compose.ui.res.painterResource
+import com.supermetroid.AppDependencies
 import com.supermetroid.autosplits.AutoSplitsEngine
 import com.supermetroid.autosplits.KpdrAnyProfile
 import com.supermetroid.service.GameStateService
@@ -31,23 +32,26 @@ import kotlinx.coroutines.swing.Swing
 
 private val logger = KotlinLogging.logger {}
 
-// Global services - initialized in main()
-lateinit var fileStorageService: FileStorageService
-lateinit var gameStateService: GameStateService
-lateinit var autoSplitsEngine: AutoSplitsEngine
-lateinit var themeService: com.supermetroid.service.ThemeService
-lateinit var iconSizeService: com.supermetroid.service.IconSizeService
-lateinit var splitIconSizeService: com.supermetroid.service.SplitIconSizeService
-lateinit var splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService
-lateinit var iconConfigService: com.supermetroid.service.IconConfigService
-lateinit var roomNameService: com.supermetroid.service.RoomNameService
-lateinit var iconViewModeService: com.supermetroid.service.IconViewModeService
-lateinit var uiVisibilityService: com.supermetroid.service.UIVisibilityService
-lateinit var soundService: com.supermetroid.service.SoundService
-lateinit var gameGenieService: com.supermetroid.service.GameGenieService
-lateinit var mapRandoInfoFontSizeService: com.supermetroid.service.MapRandoInfoFontSizeService
-lateinit var mapRandoDataService: com.supermetroid.service.MapRandoDataService
-lateinit var mapRandoInfoConfigService: com.supermetroid.service.MapRandoInfoConfigService
+// Central dependency container - initialized in main()
+lateinit var appDependencies: AppDependencies
+
+// Convenience accessors for backward compatibility (will be removed in future refactor)
+val fileStorageService: FileStorageService get() = appDependencies.fileStorageService
+val gameStateService: GameStateService get() = appDependencies.gameStateService
+val autoSplitsEngine: AutoSplitsEngine get() = appDependencies.autoSplitsEngine
+val themeService: com.supermetroid.service.ThemeService get() = appDependencies.themeService
+val iconSizeService: com.supermetroid.service.IconSizeService get() = appDependencies.iconSizeService
+val splitIconSizeService: com.supermetroid.service.SplitIconSizeService get() = appDependencies.splitIconSizeService
+val splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService get() = appDependencies.splitDisplayModeService
+val iconConfigService: com.supermetroid.service.IconConfigService get() = appDependencies.iconConfigService
+val roomNameService: com.supermetroid.service.RoomNameService get() = appDependencies.roomNameService
+val iconViewModeService: com.supermetroid.service.IconViewModeService get() = appDependencies.iconViewModeService
+val uiVisibilityService: com.supermetroid.service.UIVisibilityService get() = appDependencies.uiVisibilityService
+val soundService: com.supermetroid.service.SoundService get() = appDependencies.soundService
+val gameGenieService: com.supermetroid.service.GameGenieService get() = appDependencies.gameGenieService
+val mapRandoInfoFontSizeService: com.supermetroid.service.MapRandoInfoFontSizeService get() = appDependencies.mapRandoInfoFontSizeService
+val mapRandoDataService: com.supermetroid.service.MapRandoDataService get() = appDependencies.mapRandoDataService
+val mapRandoInfoConfigService: com.supermetroid.service.MapRandoInfoConfigService get() = appDependencies.mapRandoInfoConfigService
 
 // Flag to indicate if we're in replay mode (don't load saved state)
 var isReplayMode = false
@@ -65,23 +69,8 @@ fun main(args: Array<String>) {
         logger.info { "🎬 Replay mode: Loading run from $currentRunFile" }
     }
     
-    // Initialize services with optional custom data directory
-    fileStorageService = FileStorageService(customDataDir)
-    gameStateService = GameStateService()
-    autoSplitsEngine = AutoSplitsEngine(fileStorageService)
-    themeService = com.supermetroid.service.ThemeService(fileStorageService)
-    iconSizeService = com.supermetroid.service.IconSizeService(fileStorageService)
-    splitIconSizeService = com.supermetroid.service.SplitIconSizeService(fileStorageService)
-    splitDisplayModeService = com.supermetroid.service.SplitDisplayModeService(fileStorageService)
-    iconConfigService = com.supermetroid.service.IconConfigService(fileStorageService)
-    roomNameService = com.supermetroid.service.RoomNameService(fileStorageService)
-    iconViewModeService = com.supermetroid.service.IconViewModeService(fileStorageService)
-    uiVisibilityService = com.supermetroid.service.UIVisibilityService(fileStorageService)
-    soundService = com.supermetroid.service.SoundService(fileStorageService)
-    gameGenieService = com.supermetroid.service.GameGenieService(fileStorageService)
-    mapRandoInfoFontSizeService = com.supermetroid.service.MapRandoInfoFontSizeService(fileStorageService, kotlinx.coroutines.GlobalScope)
-    mapRandoDataService = com.supermetroid.service.MapRandoDataService()
-    mapRandoInfoConfigService = com.supermetroid.service.MapRandoInfoConfigService()
+    // Initialize all services via AppDependencies
+    appDependencies = AppDependencies.create(customDataDir)
     
     // Initialize autoSplitsEngine to restore saved timer OR load replay run
     runBlocking {

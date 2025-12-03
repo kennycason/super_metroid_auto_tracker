@@ -486,78 +486,15 @@ private fun IconSizeSelectionSection(
     modifier: Modifier = Modifier
 ) {
     val currentIconSize by iconSizeService.currentIconSize.collectAsState()
-    var expanded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    Row(
-        modifier = modifier.fillMaxWidth(0.9f),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Label on left
-        Text(
-            text = "Icon Size",
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = TrackerColors.OnSurface,
-                fontWeight = FontWeight.Medium
-            )
-        )
-
-        // Icon Size Dropdown on right
-        Box {
-            Button(
-                onClick = { expanded = !expanded },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = TrackerColors.SurfaceOverlayLight,
-                    contentColor = TrackerColors.OnSurface
-                ),
-                shape = RoundedCornerShape(6.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = currentIconSize.displayName,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    Text(
-                        text = if (expanded) "▲" else "▼",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
-
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.background(TrackerColors.Surface)
-            ) {
-                IconSize.values().forEach { iconSize ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = iconSize.displayName,
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = if (iconSize == currentIconSize) TrackerColors.Primary else TrackerColors.OnSurface
-                                )
-                            )
-                        },
-                        onClick = {
-                            scope.launch {
-                                iconSizeService.setIconSize(iconSize)
-                            }
-                            expanded = false
-                        },
-                        colors = MenuDefaults.itemColors(
-                            textColor = TrackerColors.OnSurface
-                        )
-                    )
-                }
-            }
-        }
-    }
+    SelectionRow(
+        label = "Icon Size",
+        selectedValue = currentIconSize.displayName,
+        options = IconSize.values().map { it to it.displayName },
+        onOptionSelected = { scope.launch { iconSizeService.setIconSize(it) } },
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -566,78 +503,15 @@ private fun SplitIconSizeSelectionSection(
     modifier: Modifier = Modifier
 ) {
     val currentSplitIconSize by splitIconSizeService.currentSplitIconSize.collectAsState()
-    var expanded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    Row(
-        modifier = modifier.fillMaxWidth(0.9f),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Label on left
-        Text(
-            text = "Split Icon Size",
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = TrackerColors.OnSurface,
-                fontWeight = FontWeight.Medium
-            )
-        )
-
-        // Split Icon Size Dropdown on right
-        Box {
-            Button(
-                onClick = { expanded = !expanded },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = TrackerColors.SurfaceOverlayLight,
-                    contentColor = TrackerColors.OnSurface
-                ),
-                shape = RoundedCornerShape(6.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = currentSplitIconSize.displayName,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    Text(
-                        text = if (expanded) "▲" else "▼",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
-
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.background(TrackerColors.Surface)
-            ) {
-                IconSize.values().forEach { iconSize ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = iconSize.displayName,
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = if (iconSize == currentSplitIconSize) TrackerColors.Primary else TrackerColors.OnSurface
-                                )
-                            )
-                        },
-                        onClick = {
-                            scope.launch {
-                                splitIconSizeService.setSplitIconSize(iconSize)
-                            }
-                            expanded = false
-                        },
-                        colors = MenuDefaults.itemColors(
-                            textColor = TrackerColors.OnSurface
-                        )
-                    )
-                }
-            }
-        }
-    }
+    SelectionRow(
+        label = "Split Icon Size",
+        selectedValue = currentSplitIconSize.displayName,
+        options = IconSize.values().map { it to it.displayName },
+        onOptionSelected = { scope.launch { splitIconSizeService.setSplitIconSize(it) } },
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -646,78 +520,15 @@ private fun SplitDisplayModeSection(
     modifier: Modifier = Modifier
 ) {
     val currentDisplayMode by splitDisplayModeService.currentDisplayMode.collectAsState()
-    var expanded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    Row(
-        modifier = modifier.fillMaxWidth(0.9f),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Label on left
-        Text(
-            text = "Split Display Mode",
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = TrackerColors.OnSurface,
-                fontWeight = FontWeight.Medium
-            )
-        )
-
-        // Split Display Mode Dropdown on right
-        Box {
-            Button(
-                onClick = { expanded = !expanded },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = TrackerColors.SurfaceOverlayLight,
-                    contentColor = TrackerColors.OnSurface
-                ),
-                shape = RoundedCornerShape(6.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = currentDisplayMode.displayName,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    Text(
-                        text = if (expanded) "▲" else "▼",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
-
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.background(TrackerColors.Surface)
-            ) {
-                com.supermetroid.model.SplitDisplayMode.values().forEach { mode ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = mode.displayName,
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = if (mode == currentDisplayMode) TrackerColors.Primary else TrackerColors.OnSurface
-                                )
-                            )
-                        },
-                        onClick = {
-                            scope.launch {
-                                splitDisplayModeService.setDisplayMode(mode)
-                            }
-                            expanded = false
-                        },
-                        colors = MenuDefaults.itemColors(
-                            textColor = TrackerColors.OnSurface
-                        )
-                    )
-                }
-            }
-        }
-    }
+    SelectionRow(
+        label = "Split Display Mode",
+        selectedValue = currentDisplayMode.displayName,
+        options = com.supermetroid.model.SplitDisplayMode.values().map { it to it.displayName },
+        onOptionSelected = { scope.launch { splitDisplayModeService.setDisplayMode(it) } },
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -1368,100 +1179,26 @@ private fun MapRandoInfoSettingsSection(
 ) {
     val showMapRandoInfo by uiVisibilityService.showMapRandoInfo.collectAsState()
     val fontSize by mapRandoInfoFontSizeService.fontSize.collectAsState()
-    var fontSizeExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier.fillMaxWidth(0.9f),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Show Map Rando Info Panel toggle
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Show Info Panel",
-                style = MaterialTheme.typography.bodySmall.copy(
-                    color = TrackerColors.OnSurface,
-                    fontWeight = FontWeight.Medium
-                )
-            )
-            
-            Switch(
-                checked = showMapRandoInfo,
-                onCheckedChange = { enabled ->
-                    kotlinx.coroutines.GlobalScope.launch {
-                        uiVisibilityService.setShowMapRandoInfo(enabled)
-                    }
-                },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = TrackerColors.Primary,
-                    checkedTrackColor = TrackerColors.Primary.copy(alpha = 0.3f),
-                    uncheckedThumbColor = TrackerColors.OnSurfaceVariant,
-                    uncheckedTrackColor = TrackerColors.SurfaceVariant
-                )
-            )
-        }
+        ToggleRow(
+            label = "Show Info Panel",
+            checked = showMapRandoInfo,
+            onCheckedChange = { kotlinx.coroutines.GlobalScope.launch { uiVisibilityService.setShowMapRandoInfo(it) } },
+            modifier = Modifier.fillMaxWidth()
+        )
 
-        // Font Size selector
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Info Panel Font Size",
-                style = MaterialTheme.typography.bodySmall.copy(
-                    color = TrackerColors.OnSurface,
-                    fontWeight = FontWeight.Medium
-                )
-            )
-
-            Box {
-                Button(
-                    onClick = { fontSizeExpanded = !fontSizeExpanded },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = TrackerColors.SurfaceOverlayLight,
-                        contentColor = TrackerColors.OnSurface
-                    ),
-                    shape = RoundedCornerShape(6.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = fontSize.displayName, style = MaterialTheme.typography.bodySmall)
-                        Text(text = if (fontSizeExpanded) "▲" else "▼", style = MaterialTheme.typography.bodySmall)
-                    }
-                }
-                DropdownMenu(
-                    expanded = fontSizeExpanded,
-                    onDismissRequest = { fontSizeExpanded = false },
-                    modifier = Modifier.background(TrackerColors.Surface)
-                ) {
-                    com.supermetroid.model.MapRandoInfoFontSize.values().forEach { size ->
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    size.displayName,
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        color = if (size == fontSize) TrackerColors.Primary else TrackerColors.OnSurface
-                                    )
-                                )
-                            },
-                            onClick = {
-                                kotlinx.coroutines.GlobalScope.launch { mapRandoInfoFontSizeService.setFontSize(size) }
-                                fontSizeExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
-        }
+        SelectionRow(
+            label = "Info Panel Font Size",
+            selectedValue = fontSize.displayName,
+            options = com.supermetroid.model.MapRandoInfoFontSize.values().map { it to it.displayName },
+            onOptionSelected = { kotlinx.coroutines.GlobalScope.launch { mapRandoInfoFontSizeService.setFontSize(it) } },
+            modifier = Modifier.fillMaxWidth()
+        )
         
-        // Info Item Management Section
         Divider(
             modifier = Modifier.padding(vertical = 12.dp),
             color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.2f)
@@ -1720,6 +1457,29 @@ private fun LoadRunSection(
                             onClick = { }
                         )
                     } else {
+                        // "Reset to Current" option - always at top
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = "🔄 Reset to Current (Show True PB)",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = TrackerColors.Primary,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            },
+                            onClick = {
+                                selectedRun = null
+                                expanded = false
+                                scope.launch {
+                                    autoSplitsEngine.resetToCurrentState()
+                                }
+                            }
+                        )
+                        
+                        Divider(color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.3f))
+                        
+                        // Historical runs
                         runFiles.forEach { runFile ->
                             DropdownMenuItem(
                                 text = {
