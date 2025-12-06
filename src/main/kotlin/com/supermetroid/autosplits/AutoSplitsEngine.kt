@@ -283,6 +283,36 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     }
 
     /**
+     * Calculate average segment times from all completed runs
+     * Returns a map of splitId to average segment time in milliseconds
+     */
+    fun getAverageSegmentTimes(profileId: String = "kpdr-any"): Map<String, Long> {
+        val state = _splitsState.value
+        val completedRuns = state.runHistory.filter { 
+            it.profileId == profileId && it.endTime != null && it.completedSplits.isNotEmpty()
+        }
+        
+        if (completedRuns.isEmpty()) {
+            return emptyMap()
+        }
+        
+        // Collect all segment times for each split
+        val segmentTimesBySplit = mutableMapOf<String, MutableList<Long>>()
+        
+        for (run in completedRuns) {
+            for (split in run.completedSplits) {
+                val times = segmentTimesBySplit.getOrPut(split.splitId) { mutableListOf() }
+                times.add(split.time.segmentTime)
+            }
+        }
+        
+        // Calculate average for each split
+        return segmentTimesBySplit.mapValues { (_, times) ->
+            times.sum() / times.size
+        }
+    }
+
+    /**
      * Start a new run or toggle pause/resume
      * Includes debounce logic to prevent rapid consecutive calls
      */

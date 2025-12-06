@@ -344,6 +344,16 @@ private fun SplitsSettingsTab(
             modifier = Modifier.fillMaxWidth()
         )
 
+        AverageColumnToggleSection(
+            splitDisplayModeService = splitDisplayModeService,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        AverageDeltaToggleSection(
+            splitDisplayModeService = splitDisplayModeService,
+            modifier = Modifier.fillMaxWidth()
+        )
+
         Spacer(modifier = Modifier.weight(1f))
     }
 }
@@ -606,6 +616,38 @@ private fun BestColumnToggleSection(
         label = "Show BEST Column",
         checked = showBestColumn,
         onCheckedChange = { scope.launch { splitDisplayModeService.setShowBestColumn(it) } },
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun AverageColumnToggleSection(
+    splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
+    modifier: Modifier = Modifier
+) {
+    val showAverageColumn by splitDisplayModeService.showAverageColumn.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    ToggleRow(
+        label = "Show Average Column",
+        checked = showAverageColumn,
+        onCheckedChange = { scope.launch { splitDisplayModeService.setShowAverageColumn(it) } },
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun AverageDeltaToggleSection(
+    splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
+    modifier: Modifier = Modifier
+) {
+    val showAverageDelta by splitDisplayModeService.showAverageDelta.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    ToggleRow(
+        label = "Show Average Δ Column",
+        checked = showAverageDelta,
+        onCheckedChange = { scope.launch { splitDisplayModeService.setShowAverageDelta(it) } },
         modifier = modifier
     )
 }
