@@ -100,5 +100,7 @@ data class AppConfig(
     val savedTimerMs: Long? = null,  // Saved timer value in milliseconds (null = no saved timer)
     val savedTimerProfileId: String? = null,  // Profile ID for the saved timer
     // Map Rando info panel settings
-    val mapRandoInfoFontSize: String? = null  // Font size for Map Rando info panel (null = default)
+    val mapRandoInfoFontSize: String? = null,  // Font size for Map Rando info panel (null = default)
+    // Split profile selection
+    val selectedProfileId: String = "kpdr-any"  // Currently selected split profile
 )

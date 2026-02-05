@@ -112,7 +112,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                 _splitsState.value = finalState
                 
                 // Load the profile
-                currentProfile = KpdrAnyProfile.profile
+                currentProfile = SplitProfiles.getProfileById(targetRun.profileId)
                 currentSplitIndex = targetRun.completedSplits.size
                 
                 logger.info { "✅ Replay mode loaded successfully" }
@@ -192,7 +192,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         val currentRun = finalState.currentRun
         if (currentRun != null) {
-            val profile = currentProfile ?: KpdrAnyProfile.profile
+            val profile = currentProfile ?: SplitProfiles.getProfileById(currentRun.profileId)
             currentSplitIndex = currentRun.completedSplits.size
 
             logger.info { "🔄 Resumed run ${currentRun.id} at split ${currentSplitIndex}/${profile.splits.size}" }
@@ -286,7 +286,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
      * Calculate average segment times from all completed runs
      * Returns a map of splitId to average segment time in milliseconds
      */
-    fun getAverageSegmentTimes(profileId: String = "kpdr-any"): Map<String, Long> {
+    fun getAverageSegmentTimes(profileId: String = SplitProfiles.DEFAULT.id): Map<String, Long> {
         val state = _splitsState.value
         val completedRuns = state.runHistory.filter { 
             it.profileId == profileId && it.endTime != null && it.completedSplits.isNotEmpty()
@@ -316,7 +316,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
      * Start a new run or toggle pause/resume
      * Includes debounce logic to prevent rapid consecutive calls
      */
-    fun toggleRunState(profileId: String = "kpdr-any") {
+    fun toggleRunState(profileId: String = SplitProfiles.DEFAULT.id) {
         val currentTime = System.currentTimeMillis()
         val timeSinceLastToggle = currentTime - lastToggleTime
 
@@ -401,7 +401,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     /**
      * Start a completely new run
      */
-    internal fun startNewRun(profileId: String = "kpdr-any") {
+    internal fun startNewRun(profileId: String = SplitProfiles.DEFAULT.id) {
         // Re-enable auto-start when starting a new run (unless user manually set time)
         autoStartEnabled = true
         
@@ -644,9 +644,9 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
      * If a run exists, adjusts the start time to reflect the desired time
      *
      * @param timeMs The desired timer value in milliseconds
-     * @param profileId The profile ID for the run (default: "kpdr-any")
+     * @param profileId The profile ID for the run (default: SplitProfiles.DEFAULT.id)
      */
-    fun setTimer(timeMs: Long, profileId: String = "kpdr-any") {
+    fun setTimer(timeMs: Long, profileId: String = SplitProfiles.DEFAULT.id) {
         val currentRun = _splitsState.value.currentRun
         val now = Clock.System.now()
 
@@ -751,7 +751,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             if (shouldAutoStart) {
                 logger.info { "🚀 Auto-starting new game run!" }
                 logger.info { "STARTING NEW RUN - Auto-start triggered!" }
-                startNewRun()
+                startNewRun(currentProfile?.id ?: SplitProfiles.DEFAULT.id)
             }
             previousGameState = gameState
             return
@@ -764,7 +764,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                 logger.info { "🔄 Auto-resetting paused run to start new game!" }
                 logger.info { "AUTO-RESET: Clearing paused run to start new game!" }
                 resetRun() // Reset the current run
-                startNewRun() // Start fresh run
+                startNewRun(currentProfile?.id ?: SplitProfiles.DEFAULT.id) // Start fresh run with current profile
                 previousGameState = gameState
                 return
             }
@@ -788,7 +788,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             return
         }
 
-        val profile = currentProfile ?: KpdrAnyProfile.profile
+        val profile = currentProfile ?: SplitProfiles.DEFAULT
 
         // Auto-skip completed splits for mid-run starts OR if current split is already completed
         if ((currentRun.completedSplits.isEmpty() && currentSplitIndex == 0) ||
@@ -1540,37 +1540,10 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 }
 
 /**
- * KPDR Any% split profile - matches the TypeScript version exactly
+ * KPDR Any% split profile - legacy reference for backwards compatibility
+ * @deprecated Use SplitProfiles.KPDR_ANY instead
  */
+@Deprecated("Use SplitProfiles.KPDR_ANY instead", ReplaceWith("SplitProfiles.KPDR_ANY"))
 object KpdrAnyProfile {
-    val profile = SplitProfile(
-        id = "kpdr-any",
-        name = "KPDR Any%",
-        splits = listOf(
-            Split("ceres_station", "Ceres Station", "boss", "Escape from Ceres Station"),
-            Split("morph_ball", "Morph Ball", "item", "Morph Ball acquired"),
-            Split("first_missile", "First Missiles", "item", "First missile pack collected"),
-            Split("bomb", "Bomb", "item", "Bomb acquired"),
-            Split("first_super", "First Super", "item", "First super missile pack collected"),
-            Split("charge_beam", "Charge Beam", "beam", "Charge Beam acquired"),
-            Split("spazer", "Spazer", "item", "Spazer acquired"),
-            Split("kraid", "Kraid", "boss", "Kraid defeated"),
-            Split("varia_suit", "Varia Suit", "item", "Varia Suit acquired"),
-            Split("hi_jump", "Hi-Jump Boots", "item", "Hi-Jump Boots acquired"),
-            Split("speed_booster", "Speed Booster", "item", "Speed Booster acquired"),
-            Split("wave_beam", "Wave Beam", "beam", "Wave Beam acquired"),
-            Split("ice_beam", "Ice Beam", "beam", "Ice Beam acquired"),
-            Split("first_power_bomb", "First Power Bomb", "item", "First power bomb pack collected"),
-            Split("phantoon", "Phantoon", "boss", "Phantoon defeated"),
-            Split("gravity_suit", "Gravity Suit", "item", "Gravity Suit acquired"),
-            Split("draygon", "Draygon", "boss", "Draygon defeated"),
-            Split("space_jump", "Space Jump", "item", "Space Jump acquired"),
-            Split("plasma_beam", "Plasma Beam", "beam", "Plasma Beam acquired"),
-            Split("ridley", "Ridley", "boss", "Ridley defeated"),
-            Split("golden_four", "G4", "event", "Entered Tourian (all 4 bosses defeated)"),
-            Split("mother_brain_1", "Mother Brain 1", "boss", "Mother Brain phase 1 completed"),
-            Split("mother_brain_2", "Mother Brain 2", "boss", "Mother Brain phase 2 completed"),
-            Split("ship", "Ship", "event", "Escaped to ship (game complete)")
-        )
-    )
+    val profile = SplitProfiles.KPDR_ANY
 }

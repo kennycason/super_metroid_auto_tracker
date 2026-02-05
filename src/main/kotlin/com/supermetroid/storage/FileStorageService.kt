@@ -1,6 +1,5 @@
 package com.supermetroid.storage
 
-import com.supermetroid.autosplits.KpdrAnyProfile
 import com.supermetroid.model.*
 import com.supermetroid.util.Logging
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -160,7 +159,8 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
             val dateStr = dateFormat.format(Date(run.startTime.toEpochMilliseconds()))
             // Extract timestamp from run ID (format: run_<timestamp>) to ensure uniqueness
             val runTimestamp = run.id.substringAfter("run_", "")
-            val filename = "${dateStr}_${run.profileId}_${runTimestamp}.json"
+            // Profile ID prefix for natural sorting/grouping by category
+            val filename = "${run.profileId}_${dateStr}_${runTimestamp}.json"
             val runFile = File(runsDir, filename)
 
             val jsonString = json.encodeToString(run)

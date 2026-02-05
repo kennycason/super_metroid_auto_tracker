@@ -41,6 +41,7 @@ fun SettingsPanel(
     fileStorageService: com.supermetroid.storage.FileStorageService,
     splitIconSizeService: com.supermetroid.service.SplitIconSizeService,
     splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
+    splitProfileService: com.supermetroid.service.SplitProfileService,
     iconConfigService: com.supermetroid.service.IconConfigService,
     roomNameService: com.supermetroid.service.RoomNameService,
     autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
@@ -129,6 +130,7 @@ fun SettingsPanel(
                 )
 
                 2 -> SplitsSettingsTab(
+                    splitProfileService = splitProfileService,
                     splitIconSizeService = splitIconSizeService,
                     splitDisplayModeService = splitDisplayModeService,
                     modifier = Modifier.fillMaxSize()
@@ -297,6 +299,7 @@ private fun IconAmmoDisplayModeSection(
 
 @Composable
 private fun SplitsSettingsTab(
+    splitProfileService: com.supermetroid.service.SplitProfileService,
     splitIconSizeService: com.supermetroid.service.SplitIconSizeService,
     splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
     modifier: Modifier = Modifier
@@ -306,8 +309,9 @@ private fun SplitsSettingsTab(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Split Profile Section (placeholder for now)
+        // Split Profile Section
         SplitProfileSection(
+            splitProfileService = splitProfileService,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -360,8 +364,13 @@ private fun SplitsSettingsTab(
 
 @Composable
 private fun SplitProfileSection(
+    splitProfileService: com.supermetroid.service.SplitProfileService,
     modifier: Modifier = Modifier
 ) {
+    val currentProfile by splitProfileService.currentProfile.collectAsState()
+    var expanded by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    
     Row(
         modifier = modifier.fillMaxWidth(0.9f),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -376,20 +385,57 @@ private fun SplitProfileSection(
             )
         )
 
-        // Profile Display (not a dropdown for now since only one profile exists)
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = TrackerColors.SurfaceOverlayLight
-            ),
-            shape = RoundedCornerShape(6.dp)
-        ) {
-            Text(
-                text = "KPDR Any% (24 splits)",
-                style = MaterialTheme.typography.bodySmall.copy(
-                    color = TrackerColors.OnSurface
+        // Profile Dropdown
+        Box {
+            Button(
+                onClick = { expanded = !expanded },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = TrackerColors.SurfaceOverlayLight,
+                    contentColor = TrackerColors.OnSurface
                 ),
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-            )
+                shape = RoundedCornerShape(6.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${currentProfile.name} (${currentProfile.splits.size} splits)",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        text = if (expanded) "▲" else "▼",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(TrackerColors.Surface)
+            ) {
+                com.supermetroid.autosplits.SplitProfiles.ALL_PROFILES.forEach { profile ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = "${profile.name} (${profile.splits.size} splits)",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = if (profile.id == currentProfile.id) TrackerColors.Primary else TrackerColors.OnSurface
+                                )
+                            )
+                        },
+                        onClick = {
+                            scope.launch { splitProfileService.setProfile(profile) }
+                            expanded = false
+                        },
+                        colors = MenuDefaults.itemColors(
+                            textColor = TrackerColors.OnSurface
+                        )
+                    )
+                }
+            }
         }
     }
 }

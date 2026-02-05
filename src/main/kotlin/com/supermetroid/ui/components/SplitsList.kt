@@ -21,10 +21,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import com.supermetroid.autosplits.AutoSplitsEngine
-import com.supermetroid.autosplits.KpdrAnyProfile
 import com.supermetroid.model.Split
+import com.supermetroid.model.SplitProfile
 import com.supermetroid.model.SplitTime
 import com.supermetroid.model.SplitsState
+import com.supermetroid.service.SplitProfileService
 import com.supermetroid.ui.theme.TrackerColors
 
 @Composable
@@ -33,9 +34,12 @@ fun SplitsList(
     autoSplitsEngine: AutoSplitsEngine,
     splitIconSizeService: com.supermetroid.service.SplitIconSizeService,
     splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
+    splitProfileService: SplitProfileService,
     modifier: Modifier = Modifier,
     maxHeight: Int = 400
 ) {
+    // Get current profile from service
+    val currentProfile by splitProfileService.currentProfile.collectAsState()
     val currentSplitIconSize by splitIconSizeService.currentSplitIconSize.collectAsState()
     val showSplitIcons by splitDisplayModeService.showSplitIcons.collectAsState()
     val showSplitNames by splitDisplayModeService.showSplitNames.collectAsState()
@@ -47,15 +51,15 @@ fun SplitsList(
     val showAverageDelta by splitDisplayModeService.showAverageDelta.collectAsState()
     val listState = rememberLazyListState()
     
-    // Calculate average segment times (memoized to avoid recalculating on every recomposition)
-    val averageSegmentTimes = remember(splitsState.runHistory) {
-        autoSplitsEngine.getAverageSegmentTimes()
+    // Calculate average segment times for the CURRENT PROFILE (memoized to avoid recalculating on every recomposition)
+    val averageSegmentTimes = remember(splitsState.runHistory, currentProfile.id) {
+        autoSplitsEngine.getAverageSegmentTimes(currentProfile.id)
     }
     val coroutineScope = rememberCoroutineScope()
 
     // Get current split index for auto-scrolling
     val currentSplit = autoSplitsEngine.getCurrentSplit()
-    val currentSplitIndex = KpdrAnyProfile.profile.splits.indexOfFirst { it.id == currentSplit?.id }
+    val currentSplitIndex = currentProfile.splits.indexOfFirst { it.id == currentSplit?.id }
 
     // Auto-scroll to keep the current split near the top (around 3rd position)
     LaunchedEffect(currentSplitIndex) {
@@ -83,6 +87,7 @@ fun SplitsList(
             SplitsHeader(
                 splitsState = splitsState,
                 autoSplitsEngine = autoSplitsEngine,
+                profile = currentProfile,
                 showBestPossibleColumn = showBestPossibleColumn,
                 showBestPossibleDelta = showBestPossibleDelta,
                 showBestColumn = showBestColumn,
@@ -100,12 +105,13 @@ fun SplitsList(
                     .height(maxHeight.dp),
                 verticalArrangement = Arrangement.spacedBy(1.dp) // 1.dp spacing between rows
             ) {
-                itemsIndexed(KpdrAnyProfile.profile.splits) { index, split ->
+                itemsIndexed(currentProfile.splits) { index, split ->
                     SplitRow(
                         split = split,
                         splitIndex = index,
                         splitsState = splitsState,
                         autoSplitsEngine = autoSplitsEngine,
+                        profile = currentProfile,
                         splitIconSize = currentSplitIconSize.size,
                         showIcon = showSplitIcons,
                         showName = showSplitNames,
@@ -126,6 +132,7 @@ fun SplitsList(
 private fun SplitsHeader(
     splitsState: SplitsState,
     autoSplitsEngine: AutoSplitsEngine,
+    profile: SplitProfile,
     showBestPossibleColumn: Boolean,
     showBestPossibleDelta: Boolean,
     showBestColumn: Boolean,
@@ -142,7 +149,7 @@ private fun SplitsHeader(
     ) {
         Column {
             Text(
-                text = "KPDR ANY%",
+                text = profile.name.uppercase(),
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
@@ -242,6 +249,7 @@ private fun SplitRow(
     splitIndex: Int,
     splitsState: SplitsState,
     autoSplitsEngine: AutoSplitsEngine,
+    profile: SplitProfile,
     splitIconSize: Int,
     showIcon: Boolean,
     showName: Boolean,
@@ -258,14 +266,14 @@ private fun SplitRow(
     val isCompleted = completedSplit != null
     val isActive = autoSplitsEngine.getCurrentSplit()?.id == split.id
 
-    // Use a default profileId ("kpdr-any") when currentRun is null to ensure columns are always shown
-    val profileId = currentRun?.profileId ?: "kpdr-any"
+    // Use the current profile's ID when currentRun is null to ensure columns are always shown for the selected profile
+    val profileId = currentRun?.profileId ?: profile.id
     
     // Get average segment time for this split
     val averageSegmentTime = averageSegmentTimes[split.id]
     
     // Calculate sum of average segments up to this point
-    val sumOfAveragesUpToHere = KpdrAnyProfile.profile.splits.take(splitIndex + 1).sumOf { s ->
+    val sumOfAveragesUpToHere = profile.splits.take(splitIndex + 1).sumOf { s ->
         averageSegmentTimes[s.id] ?: 0L
     }
     
@@ -279,12 +287,12 @@ private fun SplitRow(
     val bestSegmentTime = personalBest?.splitTimes?.get(split.id)
     
     // Get the PB run's segment time for this split (BEST - from Personal Best run)
-    val pbRunSegmentTime = getPbRunSegmentTime(splitsState, profileId, split.id)
+    val pbRunSegmentTime = getPbRunSegmentTime(splitsState, profileId, profile, split.id)
 
     // Calculate sum of best segments up to this point for Best Possible column
     val profileSplitTimes = personalBest?.splitTimes
     val sumOfBestPossibleUpToHere = if (profileSplitTimes != null) {
-        KpdrAnyProfile.profile.splits.take(splitIndex + 1).sumOf { s ->
+        profile.splits.take(splitIndex + 1).sumOf { s ->
             profileSplitTimes[s.id]?.segmentTime ?: 0L
         }
     } else {
@@ -292,7 +300,7 @@ private fun SplitRow(
     }
     
     // Calculate sum of PB run's segment times up to this point for BEST column
-    val sumOfPbRunUpToHere = calculatePbRunTimeUpTo(splitsState, profileId, splitIndex)
+    val sumOfPbRunUpToHere = calculatePbRunTimeUpTo(splitsState, profileId, profile, splitIndex)
 
     // Only show Best Possible if THIS split has a best segment time
     val showBestPossible = (bestSegmentTime?.segmentTime ?: 0L) > 0
@@ -635,9 +643,11 @@ private fun SplitRow(
 @Composable
 fun PersonalBestSummary(
     splitsState: SplitsState,
+    profileId: String,
     modifier: Modifier = Modifier
 ) {
-    val currentProfilePB = splitsState.personalBests.values.firstOrNull()
+    // Get the PB for the CURRENT profile only, not just any profile
+    val currentProfilePB = splitsState.personalBests[profileId]
 
     if (currentProfilePB != null) {
         Row(
@@ -730,12 +740,12 @@ private fun getSplitItemId(split: Split): String {
  * Find the actual Personal Best run - the fastest complete run in history
  * This is more reliable than using personalBest.runSessionId which may be stale
  */
-private fun findActualPbRun(splitsState: SplitsState, profileId: String): com.supermetroid.model.RunSession? {
+private fun findActualPbRun(splitsState: SplitsState, profileId: String, profile: SplitProfile): com.supermetroid.model.RunSession? {
     // Find all complete runs for this profile
     val completeRuns = splitsState.runHistory.filter { run ->
         run.profileId == profileId && 
         run.endTime != null && 
-        run.completedSplits.size == KpdrAnyProfile.profile.splits.size
+        run.completedSplits.size == profile.splits.size
     }
     
     // Return the fastest one
@@ -745,9 +755,9 @@ private fun findActualPbRun(splitsState: SplitsState, profileId: String): com.su
 /**
  * Get the Personal Best run's segment time for a specific split
  */
-private fun getPbRunSegmentTime(splitsState: SplitsState, profileId: String, splitId: String): SplitTime? {
+private fun getPbRunSegmentTime(splitsState: SplitsState, profileId: String, profile: SplitProfile, splitId: String): SplitTime? {
     // Find the actual PB run (fastest complete run)
-    val pbRun = findActualPbRun(splitsState, profileId) ?: return null
+    val pbRun = findActualPbRun(splitsState, profileId, profile) ?: return null
     
     // Find the completed split for this splitId
     val completedSplit = pbRun.completedSplits.find { it.splitId == splitId } ?: return null
@@ -758,14 +768,14 @@ private fun getPbRunSegmentTime(splitsState: SplitsState, profileId: String, spl
 /**
  * Calculate the sum of PB run's segment times up to (and including) the given split index
  */
-private fun calculatePbRunTimeUpTo(splitsState: SplitsState, profileId: String, splitIndex: Int): Long {
+private fun calculatePbRunTimeUpTo(splitsState: SplitsState, profileId: String, profile: SplitProfile, splitIndex: Int): Long {
     // Find the actual PB run (fastest complete run)
-    val pbRun = findActualPbRun(splitsState, profileId) ?: return 0L
+    val pbRun = findActualPbRun(splitsState, profileId, profile) ?: return 0L
     
     // Sum up the segment times for all splits up to splitIndex
     var totalTime = 0L
     for (i in 0..splitIndex) {
-        val split = KpdrAnyProfile.profile.splits.getOrNull(i) ?: continue
+        val split = profile.splits.getOrNull(i) ?: continue
         val completedSplit = pbRun.completedSplits.find { it.splitId == split.id }
         if (completedSplit != null) {
             // Use the total time from the completed split (cumulative time up to this split)

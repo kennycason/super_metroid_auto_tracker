@@ -24,6 +24,7 @@ data class AppDependencies(
     val iconSizeService: IconSizeService,
     val splitIconSizeService: SplitIconSizeService,
     val splitDisplayModeService: SplitDisplayModeService,
+    val splitProfileService: SplitProfileService,
     val iconConfigService: IconConfigService,
     val roomNameService: RoomNameService,
     val iconViewModeService: IconViewModeService,
@@ -47,15 +48,17 @@ data class AppDependencies(
             scope: CoroutineScope = GlobalScope
         ): AppDependencies {
             val fileStorage = FileStorageService(customDataDir)
+            val autoSplitsEngine = AutoSplitsEngine(fileStorage)
             
             return AppDependencies(
                 fileStorageService = fileStorage,
                 gameStateService = GameStateService(),
-                autoSplitsEngine = AutoSplitsEngine(fileStorage),
+                autoSplitsEngine = autoSplitsEngine,
                 themeService = ThemeService(fileStorage),
                 iconSizeService = IconSizeService(fileStorage),
                 splitIconSizeService = SplitIconSizeService(fileStorage),
                 splitDisplayModeService = SplitDisplayModeService(fileStorage),
+                splitProfileService = SplitProfileService(fileStorage, autoSplitsEngine),
                 iconConfigService = IconConfigService(fileStorage),
                 roomNameService = RoomNameService(fileStorage),
                 iconViewModeService = IconViewModeService(fileStorage),

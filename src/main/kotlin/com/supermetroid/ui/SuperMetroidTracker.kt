@@ -16,7 +16,6 @@ import androidx.compose.ui.window.rememberWindowState
 import androidx.compose.ui.res.painterResource
 import com.supermetroid.AppDependencies
 import com.supermetroid.autosplits.AutoSplitsEngine
-import com.supermetroid.autosplits.KpdrAnyProfile
 import com.supermetroid.service.GameStateService
 import com.supermetroid.storage.FileStorageService
 import com.supermetroid.ui.components.*
@@ -43,6 +42,7 @@ val themeService: com.supermetroid.service.ThemeService get() = appDependencies.
 val iconSizeService: com.supermetroid.service.IconSizeService get() = appDependencies.iconSizeService
 val splitIconSizeService: com.supermetroid.service.SplitIconSizeService get() = appDependencies.splitIconSizeService
 val splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService get() = appDependencies.splitDisplayModeService
+val splitProfileService: com.supermetroid.service.SplitProfileService get() = appDependencies.splitProfileService
 val iconConfigService: com.supermetroid.service.IconConfigService get() = appDependencies.iconConfigService
 val roomNameService: com.supermetroid.service.RoomNameService get() = appDependencies.roomNameService
 val iconViewModeService: com.supermetroid.service.IconViewModeService get() = appDependencies.iconViewModeService
@@ -265,8 +265,8 @@ fun SuperMetroidTrackerApp() {
         // Mark services as initialized
         servicesInitialized = true
         
-        // Load split profile
-        autoSplitsEngine.loadProfile(KpdrAnyProfile.profile)
+        // Initialize split profile from saved config (notifies AutoSplitsEngine)
+        splitProfileService.initialize()
 
         // Load saved splits state and resume from current position (unless in replay mode)
         if (!isReplayMode) {
@@ -488,14 +488,18 @@ fun SuperMetroidTrackerLayout(
                 autoSplitsEngine = autoSplitsEngine,
                 splitIconSizeService = splitIconSizeService,
                 splitDisplayModeService = splitDisplayModeService,
+                splitProfileService = splitProfileService,
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 maxHeight = 900 // Maximum list height for tall windows
             )
             
             // Personal Best section - appears below splits when splits are showing
-            if (splitsState.personalBests.isNotEmpty()) {
+            val currentProfile by splitProfileService.currentProfile.collectAsState()
+            val currentProfilePB = splitsState.personalBests[currentProfile.id]
+            if (currentProfilePB != null) {
                 PersonalBestSummary(
                     splitsState = splitsState,
+                    profileId = currentProfile.id,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -511,6 +515,7 @@ fun SuperMetroidTrackerLayout(
                 fileStorageService = fileStorageService,
                 splitIconSizeService = splitIconSizeService,
                 splitDisplayModeService = splitDisplayModeService,
+                splitProfileService = splitProfileService,
                 iconConfigService = iconConfigService,
                 roomNameService = roomNameService,
                 autoSplitsEngine = autoSplitsEngine,
