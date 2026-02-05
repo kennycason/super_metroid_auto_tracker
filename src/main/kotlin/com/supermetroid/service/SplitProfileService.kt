@@ -22,6 +22,13 @@ class SplitProfileService(
     private val _currentProfile = MutableStateFlow(SplitProfiles.DEFAULT)
     val currentProfile: StateFlow<SplitProfile> = _currentProfile.asStateFlow()
     
+    init {
+        // Register callback for when AutoSplitsEngine changes the profile (e.g., loading a replay run)
+        autoSplitsEngine.setOnProfileChangedCallback { profile ->
+            updateProfileFromEngine(profile)
+        }
+    }
+    
     /**
      * Initialize the service by loading the saved profile selection
      * Also notifies the AutoSplitsEngine to use the loaded profile
@@ -41,6 +48,24 @@ class SplitProfileService(
             logger.error(e) { "❌ Failed to load split profile, using default" }
             _currentProfile.value = SplitProfiles.DEFAULT
             autoSplitsEngine.loadProfile(SplitProfiles.DEFAULT)
+        }
+    }
+    
+    /**
+     * Called when AutoSplitsEngine changes the profile (e.g., loading a replay run)
+     * Updates our state and persists, but does NOT call back to engine (already set there)
+     */
+    private suspend fun updateProfileFromEngine(profile: SplitProfile) {
+        try {
+            _currentProfile.value = profile
+            
+            // Persist to config
+            val config = fileStorageService.loadAppConfig()
+            fileStorageService.saveAppConfig(config.copy(selectedProfileId = profile.id))
+            
+            logger.info { "📋 Profile synced from engine: ${profile.name}" }
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to sync profile from engine" }
         }
     }
     

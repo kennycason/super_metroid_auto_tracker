@@ -37,6 +37,18 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     // Stores the personalBests at the START of the current run
     // Used to freeze the display after run completion so BP Δ doesn't immediately go to ±0:00
     private var preRunPersonalBests: Map<String, PersonalBest> = emptyMap()
+    
+    // Callback for notifying SplitProfileService when profile changes from within engine
+    // This avoids circular dependency while enabling bidirectional sync
+    private var onProfileChangedFromEngine: (suspend (SplitProfile) -> Unit)? = null
+    
+    /**
+     * Set callback for profile changes originating from the engine (e.g., loading a replay run)
+     * Used by SplitProfileService to sync state without circular constructor dependencies
+     */
+    fun setOnProfileChangedCallback(callback: suspend (SplitProfile) -> Unit) {
+        onProfileChangedFromEngine = callback
+    }
 
     // State flows for reactive UI
     private val _splitsState = MutableStateFlow(SplitsState())
@@ -111,9 +123,13 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                 // Set the state
                 _splitsState.value = finalState
                 
-                // Load the profile
-                currentProfile = SplitProfiles.getProfileById(targetRun.profileId)
+                // Load the profile and sync to SplitProfileService
+                val newProfile = SplitProfiles.getProfileById(targetRun.profileId)
+                currentProfile = newProfile
                 currentSplitIndex = targetRun.completedSplits.size
+                
+                // Notify SplitProfileService of the profile change
+                onProfileChangedFromEngine?.invoke(newProfile)
                 
                 logger.info { "✅ Replay mode loaded successfully" }
                 logger.info { "  Displaying run with ${targetRun.completedSplits.size} splits" }
@@ -155,8 +171,18 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
     /**
      * Load a split profile
+     * If there's a current run from a different profile, clear it to avoid showing mismatched data
      */
     fun loadProfile(profile: SplitProfile) {
+        val currentRun = _splitsState.value.currentRun
+        
+        // If there's a current run from a different profile, clear it
+        if (currentRun != null && currentRun.profileId != profile.id) {
+            logger.info { "📋 Profile changed from ${currentRun.profileId} to ${profile.id}, clearing mismatched run" }
+            _splitsState.value = _splitsState.value.copy(currentRun = null)
+            currentSplitIndex = 0
+        }
+        
         currentProfile = profile
         logger.info { "📋 Loaded split profile: ${profile.name} with ${profile.splits.size} splits" }
     }
@@ -267,10 +293,19 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                 }
             }
 
-            // Update personal best with new split times
-            if (updatedSplitTimes != currentPB.splitTimes) {
-                val updatedPB = currentPB.copy(splitTimes = updatedSplitTimes)
+            // Update personal best with new split times AND check for faster total time
+            val isFasterRun = run.totalTime < currentPB.totalTime
+            if (updatedSplitTimes != currentPB.splitTimes || isFasterRun) {
+                val updatedPB = currentPB.copy(
+                    splitTimes = updatedSplitTimes,
+                    totalTime = if (isFasterRun) run.totalTime else currentPB.totalTime,
+                    runSessionId = if (isFasterRun) run.id else currentPB.runSessionId
+                )
                 updatedPersonalBests[profileId] = updatedPB
+                
+                if (isFasterRun) {
+                    logger.info { "🏆 Found faster PB for $profileId: ${formatTime(run.totalTime)} (was ${formatTime(currentPB.totalTime)})" }
+                }
             }
         }
 
