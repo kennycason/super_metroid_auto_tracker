@@ -113,10 +113,12 @@ private fun MapRandoGrid(
                                 AmmoNumberMode.COUNT -> countFromMax(id, max)
                                 else -> "$cur/$max"
                             }
+                            // Font size proportional to icon size (~1/4 of icon)
+                            val baseFontSize = (currentIconSize.size / 4).coerceIn(8, 32)
                             val fontSize = when (ammoMode) {
-                                AmmoNumberMode.COUNT -> 16.sp
-                                else -> if (cur < 100 && max < 100) 14.sp
-                                else 8.sp
+                                AmmoNumberMode.COUNT -> baseFontSize.sp
+                                else -> if (cur < 100 && max < 100) (baseFontSize * 0.85).toInt().sp
+                                else (baseFontSize * 0.6).toInt().sp
                             }
                             val sprite = getSpriteInfo(id)
                             if (sprite != null) {
@@ -131,16 +133,27 @@ private fun MapRandoGrid(
                                 )
                             }
                             if (cur > 0) {
-                                Text(
-                                    text = label,
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = fontSize,
-                                        fontFamily = FontFamily.Monospace
-                                    ),
-                                    modifier = Modifier.align(Alignment.BottomEnd).padding(1.dp)
-                                )
+                                // Black background for visibility
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .padding(1.dp)
+                                        .background(
+                                            color = Color.Black.copy(alpha = 0.75f),
+                                            shape = RoundedCornerShape(2.dp)
+                                        )
+                                        .padding(horizontal = 3.dp, vertical = 1.dp)
+                                ) {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = fontSize,
+                                            fontFamily = FontFamily.Monospace
+                                        )
+                                    )
+                                }
                             }
                         } else {
                             SpriteIcon(
@@ -391,19 +404,35 @@ fun FlowRowLayout(
                                                 }
                                             }
                                         }
-                                        // Number in bottom right
-                                        Text(
-                                            text = label,
-                                            style = MaterialTheme.typography.labelSmall.copy(
-                                                color = Color.White,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 8.sp,
-                                                fontFamily = FontFamily.Monospace
-                                            ),
+                                        // Font size proportional to icon size
+                                        val iconSize by iconSizeService.currentIconSize.collectAsState()
+                                        val baseFontSize = (iconSize.size / 4).coerceIn(8, 32)
+                                        val fontSize = when (ammoMode) {
+                                            AmmoNumberMode.COUNT -> baseFontSize.sp
+                                            else -> if (item.current < 100 && item.max < 100) (baseFontSize * 0.85).toInt().sp
+                                            else (baseFontSize * 0.6).toInt().sp
+                                        }
+                                        // Number in bottom right with black background
+                                        Box(
                                             modifier = Modifier
                                                 .align(Alignment.BottomEnd)
                                                 .padding(1.dp)
-                                        )
+                                                .background(
+                                                    color = Color.Black.copy(alpha = 0.75f),
+                                                    shape = RoundedCornerShape(2.dp)
+                                                )
+                                                .padding(horizontal = 3.dp, vertical = 1.dp)
+                                        ) {
+                                            Text(
+                                                text = label,
+                                                style = MaterialTheme.typography.labelSmall.copy(
+                                                    color = Color.White,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = fontSize,
+                                                    fontFamily = FontFamily.Monospace
+                                                )
+                                            )
+                                        }
                                     }
                                 } else {
                                     val currentIconSize by iconSizeService.currentIconSize.collectAsState()
