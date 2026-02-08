@@ -274,6 +274,16 @@ fun SuperMetroidTrackerApp() {
             autoSplitsEngine.loadSavedState(savedSplitsState)
         }
 
+        // CRITICAL: Set up game state callback BEFORE starting the service
+        // This ensures we don't miss any auto-start transitions
+        gameStateService.setGameStateCallback { gameState ->
+            // Only process splits when not in Map Rando mode
+            val currentMode = iconViewModeService.iconViewMode.value
+            if (currentMode != com.supermetroid.model.IconViewMode.MAP_RANDO) {
+                autoSplitsEngine.processGameState(gameState)
+            }
+        }
+
         try {
             gameStateService.start()
         } catch (e: Exception) {
@@ -292,19 +302,6 @@ fun SuperMetroidTrackerApp() {
             // Auto-enable splits when switching back to Default/Bosses mode for KPDR runs
             logger.info { "📊 Switched to ${iconViewMode.displayName} mode - automatically showing splits for speedrun tracking" }
             uiVisibilityService.setShowSplits(true)
-        }
-    }
-    
-    // Set up direct game state callback for split detection
-    // This is called directly from the polling loop, NOT via Compose recomposition
-    // This ensures reliable split detection regardless of UI state
-    LaunchedEffect(Unit) {
-        gameStateService.setGameStateCallback { gameState ->
-            // Only process splits when not in Map Rando mode
-            val currentMode = iconViewModeService.iconViewMode.value
-            if (currentMode != com.supermetroid.model.IconViewMode.MAP_RANDO) {
-                autoSplitsEngine.processGameState(gameState)
-            }
         }
     }
     
