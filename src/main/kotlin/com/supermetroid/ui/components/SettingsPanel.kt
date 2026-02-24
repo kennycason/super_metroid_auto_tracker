@@ -42,6 +42,7 @@ fun SettingsPanel(
     splitIconSizeService: com.supermetroid.service.SplitIconSizeService,
     splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
     splitProfileService: com.supermetroid.service.SplitProfileService,
+    splitFormatService: com.supermetroid.service.SplitFormatService,
     iconConfigService: com.supermetroid.service.IconConfigService,
     roomNameService: com.supermetroid.service.RoomNameService,
     autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
@@ -131,6 +132,7 @@ fun SettingsPanel(
 
                 2 -> SplitsSettingsTab(
                     splitProfileService = splitProfileService,
+                    splitFormatService = splitFormatService,
                     splitIconSizeService = splitIconSizeService,
                     splitDisplayModeService = splitDisplayModeService,
                     modifier = Modifier.fillMaxSize()
@@ -300,6 +302,7 @@ private fun IconAmmoDisplayModeSection(
 @Composable
 private fun SplitsSettingsTab(
     splitProfileService: com.supermetroid.service.SplitProfileService,
+    splitFormatService: com.supermetroid.service.SplitFormatService,
     splitIconSizeService: com.supermetroid.service.SplitIconSizeService,
     splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
     modifier: Modifier = Modifier
@@ -312,6 +315,12 @@ private fun SplitsSettingsTab(
         // Split Profile Section
         SplitProfileSection(
             splitProfileService = splitProfileService,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // Split Format Section (Read/Write format + LSS file picker)
+        SplitFormatSection(
+            splitFormatService = splitFormatService,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -437,6 +446,226 @@ private fun SplitProfileSection(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SplitFormatSection(
+    splitFormatService: com.supermetroid.service.SplitFormatService,
+    modifier: Modifier = Modifier
+) {
+    val readFormat by splitFormatService.readFormat.collectAsState()
+    val writeJson by splitFormatService.writeJson.collectAsState()
+    val writeLiveSplit by splitFormatService.writeLiveSplit.collectAsState()
+    val lssFilePath by splitFormatService.liveSplitFilePath.collectAsState()
+    val lssDoc by splitFormatService.liveSplitDocument.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    Card(
+        modifier = modifier.fillMaxWidth(0.95f),
+        colors = CardDefaults.cardColors(
+            containerColor = TrackerColors.SurfaceVariant
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = "Split Format",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = TrackerColors.Primary,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+
+            // Read Format toggle
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Read Format",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = TrackerColors.OnSurface,
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    com.supermetroid.service.SplitFormatService.ReadFormat.values().forEach { format ->
+                        val isSelected = readFormat == format
+                        Button(
+                            onClick = {
+                                scope.launch { splitFormatService.setReadFormat(format) }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isSelected) TrackerColors.Primary else TrackerColors.SurfaceOverlayLight,
+                                contentColor = if (isSelected) TrackerColors.OnPrimary else TrackerColors.OnSurface
+                            ),
+                            shape = RoundedCornerShape(4.dp),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                            modifier = Modifier.height(30.dp)
+                        ) {
+                            Text(
+                                text = format.displayName,
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Write Format checkboxes
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Write Format",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = TrackerColors.OnSurface,
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        Checkbox(
+                            checked = writeJson,
+                            onCheckedChange = { scope.launch { splitFormatService.setWriteJson(it) } },
+                            modifier = Modifier.size(20.dp),
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = TrackerColors.Primary,
+                                uncheckedColor = TrackerColors.OnSurfaceVariant
+                            )
+                        )
+                        Text("JSON", style = MaterialTheme.typography.labelSmall.copy(color = TrackerColors.OnSurface))
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        Checkbox(
+                            checked = writeLiveSplit,
+                            onCheckedChange = { scope.launch { splitFormatService.setWriteLiveSplit(it) } },
+                            modifier = Modifier.size(20.dp),
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = TrackerColors.Primary,
+                                uncheckedColor = TrackerColors.OnSurfaceVariant
+                            )
+                        )
+                        Text("LiveSplit", style = MaterialTheme.typography.labelSmall.copy(color = TrackerColors.OnSurface))
+                    }
+                }
+            }
+
+            // LiveSplit file picker
+            if (readFormat == com.supermetroid.service.SplitFormatService.ReadFormat.LIVESPLIT || writeLiveSplit) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "LiveSplit File (.lss)",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = TrackerColors.OnSurface,
+                            fontWeight = FontWeight.Medium
+                        )
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // File path display
+                        OutlinedButton(
+                            onClick = {
+                                scope.launch {
+                                    val path = showFilePickerDialog()
+                                    if (path != null) {
+                                        splitFormatService.setLiveSplitFilePath(path)
+                                    }
+                                }
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(4.dp),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = TrackerColors.OnSurface
+                            )
+                        ) {
+                            Text(
+                                text = lssFilePath?.let { java.io.File(it).name } ?: "Select .lss file...",
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+
+                        // Reload button (only if file is loaded)
+                        if (lssFilePath != null) {
+                            TextButton(
+                                onClick = { splitFormatService.reloadLiveSplitFile() },
+                                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    "↻",
+                                    style = MaterialTheme.typography.bodySmall.copy(color = TrackerColors.Primary)
+                                )
+                            }
+                        }
+                    }
+
+                    // LSS file info (when loaded)
+                    if (lssDoc != null) {
+                        val doc = lssDoc!!
+                        val completedAttempts = doc.attemptHistory.count { it.realTime != null }
+                        Text(
+                            text = "${doc.gameName} - ${doc.categoryName} | ${doc.segments.size} splits | $completedAttempts/${doc.attemptHistory.size} attempts",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = TrackerColors.OnSurfaceVariant
+                            ),
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Opens a native file picker dialog for .lss files.
+ * Uses AWT FileDialog for cross-platform support in Compose Desktop.
+ */
+private fun showFilePickerDialog(): String? {
+    val dialog = java.awt.FileDialog(null as java.awt.Frame?, "Select LiveSplit File", java.awt.FileDialog.LOAD)
+    dialog.setFilenameFilter { _, name -> name.endsWith(".lss", ignoreCase = true) }
+    dialog.isVisible = true
+
+    val dir = dialog.directory
+    val file = dialog.file
+    return if (dir != null && file != null) {
+        java.io.File(dir, file).absolutePath
+    } else {
+        null
     }
 }
 

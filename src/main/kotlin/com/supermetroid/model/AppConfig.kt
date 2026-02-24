@@ -102,5 +102,10 @@ data class AppConfig(
     // Map Rando info panel settings
     val mapRandoInfoFontSize: String? = null,  // Font size for Map Rando info panel (null = default)
     // Split profile selection
-    val selectedProfileId: String = "kpdr-any"  // Currently selected split profile
+    val selectedProfileId: String = "kpdr-any",  // Currently selected split profile
+    // Split format settings
+    val splitReadFormat: String = "json",         // "json" or "livesplit"
+    val splitWriteJson: Boolean = true,           // Write runs in JSON format
+    val splitWriteLiveSplit: Boolean = false,      // Write runs in LiveSplit (.lss) format
+    val liveSplitFilePath: String? = null          // Path to the .lss file for read/write
 )

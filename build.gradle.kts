@@ -65,6 +65,13 @@ tasks.test {
     useJUnitPlatform()
 }
 
+tasks.register<JavaExec>("exportToLiveSplit") {
+    description = "Export JSON runs to LiveSplit (.lss) files"
+    group = "tools"
+    mainClass.set("com.supermetroid.livesplit.ExportRunsToLiveSplitKt")
+    classpath = sourceSets["main"].runtimeClasspath
+}
+
 // Fat JAR task - creates a single executable JAR with all dependencies
 tasks.register<Jar>("fatJar") {
     archiveBaseName.set("SuperMetroidAutoTracker")
