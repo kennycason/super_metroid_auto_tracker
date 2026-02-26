@@ -42,12 +42,23 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     // This avoids circular dependency while enabling bidirectional sync
     private var onProfileChangedFromEngine: (suspend (SplitProfile) -> Unit)? = null
     
+    // Callback fired after a run is saved to disk (used by SplitFormatService to also write LSS)
+    private var onRunSaved: ((RunSession) -> Unit)? = null
+    
     /**
      * Set callback for profile changes originating from the engine (e.g., loading a replay run)
      * Used by SplitProfileService to sync state without circular constructor dependencies
      */
     fun setOnProfileChangedCallback(callback: suspend (SplitProfile) -> Unit) {
         onProfileChangedFromEngine = callback
+    }
+    
+    /**
+     * Set callback fired after a run is saved to JSON.
+     * Used by SplitFormatService to also write to LiveSplit (.lss) when enabled.
+     */
+    fun setOnRunSavedCallback(callback: (RunSession) -> Unit) {
+        onRunSaved = callback
     }
 
     // State flows for reactive UI
@@ -621,6 +632,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                 scope.launch {
                     try {
                         storage.saveRun(runToSave)
+                        onRunSaved?.invoke(runToSave)
                         logger.info { "💾 Saved partial run to runs/ directory (${currentRun.completedSplits.size} splits, ${formatTime(finalTime)})" }
 
                         // Update run summaries to include segment PBs from this partial run
@@ -937,6 +949,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                         try {
                             logger.info { "💾 Saving run progress after auto-skip: ${split.name} (${finalRun.completedSplits.size} splits)" }
                             storage.saveRun(finalRun)
+                            onRunSaved?.invoke(finalRun)
                             logger.info { "✅ Successfully saved auto-skipped run progress for split: ${split.name}" }
 
                             // Update run summaries
@@ -1288,6 +1301,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                 try {
                     logger.info { "💾 Saving run progress for split: ${split.name} (${finalRun.completedSplits.size} splits)" }
                     storage.saveRun(finalRun)
+                    onRunSaved?.invoke(finalRun)
                     logger.info { "✅ Successfully saved run progress to disk for split: ${split.name}" }
 
                     // Update run summaries to track segment PBs from this run so far

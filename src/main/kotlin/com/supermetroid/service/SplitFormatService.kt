@@ -25,7 +25,8 @@ import java.io.File
  * - Re-loading data when the read format is toggled
  */
 class SplitFormatService(
-    private val fileStorageService: FileStorageService
+    private val fileStorageService: FileStorageService,
+    private val splitProfileService: SplitProfileService
 ) : Logging {
 
     enum class ReadFormat(val displayName: String) {
@@ -186,6 +187,28 @@ class SplitFormatService(
         }
         if (_writeLiveSplit.value) {
             saveRunToLiveSplit(run, profile)
+        }
+    }
+
+    /**
+     * Handle a run saved by AutoSplitsEngine. If LiveSplit writing is enabled
+     * and a file path is configured, appends the run to the LSS file.
+     * Called from the engine's onRunSaved callback.
+     */
+    fun handleRunSaved(run: RunSession) {
+        if (!_writeLiveSplit.value) return
+        if (_liveSplitFilePath.value == null) return
+        
+        val profile = splitProfileService.currentProfile.value
+        if (profile.id != run.profileId) {
+            logger.debug { "Skipping LSS write: run profile '${run.profileId}' doesn't match current profile '${profile.id}'" }
+            return
+        }
+        
+        try {
+            saveRunToLiveSplit(run, profile)
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to write run to LiveSplit after save" }
         }
     }
 
