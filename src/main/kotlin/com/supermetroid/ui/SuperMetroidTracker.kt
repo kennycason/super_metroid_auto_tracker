@@ -281,10 +281,10 @@ fun SuperMetroidTrackerApp() {
             }
             autoSplitsEngine.loadSavedState(state)
             
-            // If LiveSplit loaded a profile, switch to it
-            val lssProfile = splitFormatService.liveSplitProfile.value
-            if (splitFormatService.isLiveSplitActive() && lssProfile != null) {
-                splitProfileService.setProfile(lssProfile)
+            // If LiveSplit loaded a profile, switch to it (use resolved canonical so id matches state)
+            val resolvedProfile = splitFormatService.getResolvedLiveSplitProfile()
+            if (splitFormatService.isLiveSplitActive() && resolvedProfile != null) {
+                splitProfileService.setProfile(resolvedProfile)
             }
         }
 

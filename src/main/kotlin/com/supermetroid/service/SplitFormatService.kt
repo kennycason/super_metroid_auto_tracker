@@ -1,14 +1,18 @@
 package com.supermetroid.service
 
+import com.supermetroid.autosplits.SplitProfiles
 import com.supermetroid.livesplit.LiveSplitConverter
 import com.supermetroid.livesplit.LiveSplitDocument
 import com.supermetroid.livesplit.LiveSplitParser
 import com.supermetroid.livesplit.LiveSplitWriter
+import com.supermetroid.model.CompletedSplit
 import com.supermetroid.model.PersonalBest
 import com.supermetroid.model.RunSession
 import com.supermetroid.model.SplitProfile
+import com.supermetroid.model.SplitTime
 import com.supermetroid.model.SplitsState
 import com.supermetroid.storage.FileStorageService
+import kotlinx.datetime.Instant
 import com.supermetroid.util.Logging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -220,18 +224,73 @@ class SplitFormatService(
     }
 
     /**
+     * If the loaded LSS matches a built-in profile (same split ids in order),
+     * return the canonical profile. Use this when switching to LiveSplit so the UI
+     * uses the same profile id as JSON mode (e.g. "kpdr-any").
+     */
+    fun getResolvedLiveSplitProfile(): SplitProfile? {
+        val lssProfile = _liveSplitProfile.value ?: return null
+        return resolveCanonicalProfile(lssProfile)
+    }
+
+    /**
+     * If the LSS-derived profile matches a built-in profile (same split ids in order),
+     * return the canonical profile so the UI and state use a consistent id (e.g. "kpdr-any").
+     */
+    private fun resolveCanonicalProfile(lssProfile: SplitProfile): SplitProfile {
+        val lssIds = lssProfile.splits.map { it.id }
+        for (builtIn in SplitProfiles.ALL_PROFILES) {
+            if (builtIn.splits.map { it.id } == lssIds) {
+                return builtIn
+            }
+        }
+        return lssProfile
+    }
+
+    /**
+     * Build a synthetic RunSession from PB data so runHistory can feed the BEST column
+     * (findActualPbRun) and any other logic that expects the PB run in history.
+     */
+    private fun syntheticPbRun(profile: SplitProfile, pb: PersonalBest): RunSession {
+        val baseTime = Instant.fromEpochMilliseconds(0L)
+        val completedSplits = profile.splits.map { split ->
+            val st = pb.splitTimes[split.id] ?: return@map null
+            CompletedSplit(
+                splitId = split.id,
+                time = st,
+                timestamp = baseTime
+            )
+        }.filterNotNull()
+        return RunSession(
+            id = "livesplit-pb",
+            profileId = profile.id,
+            startTime = baseTime,
+            endTime = Instant.fromEpochMilliseconds(pb.totalTime),
+            completedSplits = completedSplits,
+            totalTime = pb.totalTime,
+            isPersonalBest = true
+        )
+    }
+
+    /**
      * Build a [SplitsState] from the currently loaded LiveSplit file.
-     * Used during initialization to feed PB data into AutoSplitsEngine.
+     * Uses canonical profile id when the LSS matches a built-in profile so the UI
+     * finds personalBests[profileId]. Includes a synthetic PB run in runHistory so
+     * the BEST column and BP delta have the data they need (same as JSON load).
      */
     fun toLiveSplitSplitsState(): SplitsState? {
         _liveSplitDocument.value ?: return null
-        val profile = _liveSplitProfile.value ?: return null
+        val lssProfile = _liveSplitProfile.value ?: return null
         val pb = _liveSplitPersonalBest.value ?: return null
+
+        val profile = resolveCanonicalProfile(lssProfile)
+        val pbWithCanonicalId = pb.copy(profileId = profile.id)
+        val syntheticRun = syntheticPbRun(profile, pbWithCanonicalId)
 
         return SplitsState(
             currentRun = null,
-            personalBests = mapOf(profile.id to pb),
-            runHistory = emptyList()
+            personalBests = mapOf(profile.id to pbWithCanonicalId),
+            runHistory = listOf(syntheticRun)
         )
     }
 

@@ -216,6 +216,37 @@ class LiveSplitWriteIntegrationTest {
     }
 
     @Test
+    fun `toLiveSplitSplitsState includes runHistory with synthetic PB run so BEST and BP columns work`() = runBlocking {
+        // Simulate: load an LSS (e.g. from export), then build state. State must have runHistory
+        // so findActualPbRun finds the PB and BEST column and BP delta show (same as JSON load).
+        val stream = javaClass.getResourceAsStream("/livesplit/100_percent.lss")
+            ?: error("Test resource not found")
+        val parser = LiveSplitParser()
+        val doc = parser.parse(stream)
+        val converter = LiveSplitConverter()
+        val profile = converter.toSplitProfile(doc, "hundred-percent")
+        converter.toPersonalBest(doc, profile.id)
+
+        fileStorage.saveAppConfig(
+            com.supermetroid.model.AppConfig(
+                splitReadFormat = "livesplit",
+                splitWriteLiveSplit = true,
+                liveSplitFilePath = lssFile.absolutePath
+            )
+        )
+        LiveSplitWriter().writeToFile(doc, lssFile)
+        splitFormatService.initialize()
+
+        val state = splitFormatService.toLiveSplitSplitsState()
+        assertNotNull(state)
+        assertEquals(1, state!!.runHistory.size, "LiveSplit state should include synthetic PB run in runHistory")
+        assertTrue(state.personalBests.isNotEmpty())
+        val resolvedProfile = splitFormatService.getResolvedLiveSplitProfile()
+        assertNotNull(resolvedProfile)
+        assertEquals("hundred-percent", resolvedProfile!!.id, "100% LSS keeps its id when no built-in match")
+    }
+
+    @Test
     fun `incomplete run (no endTime) still appends to LSS as DNF`() = runBlocking {
         splitFormatService.setWriteLiveSplit(true)
         splitFormatService.setLiveSplitFilePath(lssFile.absolutePath)
