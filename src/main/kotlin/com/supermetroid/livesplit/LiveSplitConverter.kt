@@ -239,7 +239,7 @@ class LiveSplitConverter : Logging {
             }
         }
 
-        val segments = profile.splits.mapIndexed { index, split ->
+        val segments = profile.splits.map { split ->
             val bestSegMs = bestSegmentTimes[split.id]
             val bestSegTime = bestSegMs?.let { LiveSplitTimeSpan(realTime = it, gameTime = null) }
 
@@ -303,9 +303,9 @@ class LiveSplitConverter : Logging {
         profile: SplitProfile,
         existingDoc: LiveSplitDocument? = null
     ): LiveSplitDocument {
-        val segments = profile.splits.mapIndexed { index, split ->
+        val segments = profile.splits.mapIndexed { segIdx, split ->
             val completedSplit = run.completedSplits.find { it.splitId == split.id }
-            val existingSegment = existingDoc?.segments?.getOrNull(index)
+            val existingSegment = existingDoc?.segments?.getOrNull(segIdx)
 
             val bestSegment = existingSegment?.bestSegmentTime
                 ?: completedSplit?.let {
