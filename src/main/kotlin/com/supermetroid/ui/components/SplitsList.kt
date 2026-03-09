@@ -695,45 +695,122 @@ fun PersonalBestSummary(
 }
 
 /**
- * Map split names to sprite item IDs
+ * Maps a split's ID to the sprite item ID used by [SpriteIcon].
+ * Split IDs are already normalized by [LiveSplitConverter.deriveSplitId] for imported
+ * splits, and match our built-in profile IDs for native profiles.
+ */
+private val splitIdToSpriteId: Map<String, String> = mapOf(
+    "ceres_station" to "ceres_station",
+    "morph_ball" to "morph_ball",
+    "first_missile" to "missile",
+    "first_super" to "super_missile",
+    "first_power_bomb" to "power_bomb",
+    "bomb" to "bomb",
+    "charge_beam" to "charge",
+    "spazer" to "spazer",
+    "varia_suit" to "varia",
+    "hi_jump" to "hijump",
+    "speed_booster" to "speed_booster",
+    "wave_beam" to "wave",
+    "ice_beam" to "ice",
+    "gravity_suit" to "gravity",
+    "space_jump" to "space",
+    "plasma_beam" to "plasma",
+    "screw_attack" to "screw",
+    "grapple_beam" to "grapple",
+    "spring_ball" to "spring",
+    "xray_scope" to "xray",
+    "reserve_tank" to "reserve_tank",
+    "kraid" to "kraid",
+    "phantoon" to "phantoon",
+    "draygon" to "draygon",
+    "ridley" to "ridley",
+    "golden_four" to "golden_four",
+    "mother_brain_1" to "mother_brain_1",
+    "mother_brain_2" to "mother_brain_2",
+    "ship" to "samus_ship",
+    "spore_spawn" to "spore_spawn",
+    "botwoon" to "botwoon",
+    "crocomire" to "crocomire",
+    "bomb_torizo" to "bomb_torizo",
+    "golden_torizo" to "golden_torizo",
+    "metroid1" to "metroid1",
+    "metroid2" to "metroid2",
+    "metroid3" to "metroid3",
+    "metroid4" to "metroid4"
+)
+
+/**
+ * Contains-based name patterns, checked in priority order.
+ * More specific patterns come before general ones (e.g. "super missile" before "missile").
+ */
+private val nameContainsPatterns: List<Pair<String, String>> = listOf(
+    "ceres" to "ceres_station",
+    "morph" to "morph_ball",
+    "bomb torizo" to "bomb_torizo",
+    "golden torizo" to "golden_torizo",
+    "power bomb" to "power_bomb",
+    "bomb" to "bomb",
+    "super missile" to "super_missile",
+    "super" to "super_missile",
+    "charge" to "charge",
+    "spazer" to "spazer",
+    "varia" to "varia",
+    "hi-jump" to "hijump",
+    "hi jump" to "hijump",
+    "speed" to "speed_booster",
+    "wave" to "wave",
+    "ice" to "ice",
+    "gravity" to "gravity",
+    "space jump" to "space",
+    "plasma" to "plasma",
+    "screw" to "screw",
+    "grapple" to "grapple",
+    "spring" to "spring",
+    "x-ray" to "xray",
+    "xray" to "xray",
+    "reserve" to "reserve_tank",
+    "missile" to "missile",
+    "mother brain 2" to "mother_brain_2",
+    "mother brain 1" to "mother_brain_1",
+    "mother brain" to "mother_brain_1",
+    "mb2" to "mother_brain_2",
+    "mb1" to "mother_brain_1",
+    "kraid" to "kraid",
+    "phantoon" to "phantoon",
+    "phaaan" to "phantoon",
+    "draygon" to "draygon",
+    "ridley" to "ridley",
+    "spore spawn" to "spore_spawn",
+    "botwoon" to "botwoon",
+    "crocomire" to "crocomire",
+    "metroid 4" to "metroid4",
+    "metroid 3" to "metroid3",
+    "metroid 2" to "metroid2",
+    "metroid 1" to "metroid1",
+    "golden four" to "golden_four",
+    "tourian" to "golden_four",
+    "g4" to "golden_four",
+    "ship" to "samus_ship",
+    "escape" to "samus_ship",
+    "done" to "samus_ship"
+)
+
+/**
+ * Resolve the sprite item ID for a split. Tries in order:
+ * 1. Direct split.id lookup (works for built-in profiles and well-mapped LSS imports)
+ * 2. Contains-based name matching (handles arbitrary LiveSplit segment names)
+ * 3. Falls back to "missile" placeholder
  */
 private fun getSplitItemId(split: Split): String {
-    return when (split.name.lowercase()) {
-        "ceres station" -> "ceres_station"
-        "first missiles" -> "missile"
-        "first super" -> "super_missile"
-        "first power bomb" -> "power_bomb"
-        "morph ball" -> "morph_ball"
-        "bomb" -> "bomb"
-        "charge beam" -> "charge"
-        "spazer" -> "spazer"
-        "varia suit" -> "varia"
-        "hi-jump boots" -> "hijump"
-        "speed booster" -> "speed_booster"
-        "wave beam" -> "wave"
-        "ice beam" -> "ice"
-        "gravity suit" -> "gravity"
-        "space jump" -> "space"
-        "plasma beam" -> "plasma"
-        "kraid" -> "kraid"
-        "phantoon" -> "phantoon"
-        "draygon" -> "draygon"
-        "ridley" -> "ridley"
-        "g4" -> "golden_four"
-        "metroid 1", "metroid1" -> "metroid1"
-        "metroid 2", "metroid2" -> "metroid2"
-        "metroid 3", "metroid3" -> "metroid3"
-        "metroid 4", "metroid4" -> "metroid4"
-        "mother brain 1", "mb1" -> "mother_brain_1"
-        "mother brain 2", "mb2" -> "mother_brain_2"
-        "ship" -> "samus_ship"
-        "spore spawn" -> "spore_spawn"
-        "botwoon" -> "botwoon"
-        "crocomire" -> "crocomire"
-        "bomb torizo" -> "bomb_torizo"
-        "golden torizo" -> "golden_torizo"
-        else -> "missile" // Default fallback
+    splitIdToSpriteId[split.id]?.let { return it }
+
+    val name = split.name.lowercase()
+    for ((pattern, spriteId) in nameContainsPatterns) {
+        if (name.contains(pattern)) return spriteId
     }
+
+    return "missile"
 }
 
 /**

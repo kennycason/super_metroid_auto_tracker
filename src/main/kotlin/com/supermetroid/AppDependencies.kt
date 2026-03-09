@@ -33,7 +33,8 @@ data class AppDependencies(
     val gameGenieService: GameGenieService,
     val mapRandoInfoFontSizeService: MapRandoInfoFontSizeService,
     val mapRandoDataService: MapRandoDataService,
-    val mapRandoInfoConfigService: MapRandoInfoConfigService
+    val mapRandoInfoConfigService: MapRandoInfoConfigService,
+    val splitFormatService: SplitFormatService
 ) {
     companion object {
         /**
@@ -49,6 +50,13 @@ data class AppDependencies(
         ): AppDependencies {
             val fileStorage = FileStorageService(customDataDir)
             val autoSplitsEngine = AutoSplitsEngine(fileStorage)
+            val splitProfileService = SplitProfileService(fileStorage, autoSplitsEngine)
+            val splitFormatService = SplitFormatService(fileStorage, splitProfileService)
+            
+            // Wire up: when engine saves a run, also write to LiveSplit if enabled
+            autoSplitsEngine.setOnRunSavedCallback { run ->
+                splitFormatService.handleRunSaved(run)
+            }
             
             return AppDependencies(
                 fileStorageService = fileStorage,
@@ -58,7 +66,7 @@ data class AppDependencies(
                 iconSizeService = IconSizeService(fileStorage),
                 splitIconSizeService = SplitIconSizeService(fileStorage),
                 splitDisplayModeService = SplitDisplayModeService(fileStorage),
-                splitProfileService = SplitProfileService(fileStorage, autoSplitsEngine),
+                splitProfileService = splitProfileService,
                 iconConfigService = IconConfigService(fileStorage),
                 roomNameService = RoomNameService(fileStorage),
                 iconViewModeService = IconViewModeService(fileStorage),
@@ -67,7 +75,8 @@ data class AppDependencies(
                 gameGenieService = GameGenieService(fileStorage),
                 mapRandoInfoFontSizeService = MapRandoInfoFontSizeService(fileStorage, scope),
                 mapRandoDataService = MapRandoDataService(),
-                mapRandoInfoConfigService = MapRandoInfoConfigService()
+                mapRandoInfoConfigService = MapRandoInfoConfigService(),
+                splitFormatService = splitFormatService
             )
         }
     }

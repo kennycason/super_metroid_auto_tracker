@@ -112,12 +112,37 @@ object SplitProfiles {
     )
     
     /**
+     * 100% - Full item collection route
+     * All major items acquired, typically ~1:20-1:30
+     * Splits derived from standard LiveSplit 100% layout (12 milestones)
+     */
+    val HUNDRED_PERCENT = SplitProfile(
+        id = "hundred-percent",
+        name = "100%",
+        splits = listOf(
+            Split("bomb", "Bomb", "item", "Bombs acquired"),
+            Split("varia_suit", "Varia", "item", "Varia Suit acquired"),
+            Split("grapple_beam", "Grapple", "item", "Grapple Beam acquired"),
+            Split("phantoon", "Phantoon", "boss", "Phantoon defeated"),
+            Split("gravity_suit", "Gravity", "item", "Gravity Suit acquired"),
+            Split("draygon", "Draygon", "boss", "Draygon defeated (Water section)"),
+            Split("space_jump", "Space Jump", "item", "Space Jump acquired"),
+            Split("plasma_beam", "Plasma", "beam", "Plasma Beam acquired"),
+            Split("screw_attack", "Screw Attack", "item", "Screw Attack acquired"),
+            Split("reserve_tank", "Reserve", "item", "All Reserve Tanks collected"),
+            Split("golden_four", "G4", "event", "Entered Tourian (all 4 bosses defeated)"),
+            Split("ship", "Done", "event", "Escaped to ship (game complete)")
+        )
+    )
+
+    /**
      * All available profiles
      */
     val ALL_PROFILES = listOf(
         KPDR_ANY,
         KPDR_LATE_ICE,
-        LOW_PERCENT_ICE
+        LOW_PERCENT_ICE,
+        HUNDRED_PERCENT
     )
     
     /**

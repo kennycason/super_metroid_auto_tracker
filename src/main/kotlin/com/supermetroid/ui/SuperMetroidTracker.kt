@@ -52,6 +52,7 @@ val gameGenieService: com.supermetroid.service.GameGenieService get() = appDepen
 val mapRandoInfoFontSizeService: com.supermetroid.service.MapRandoInfoFontSizeService get() = appDependencies.mapRandoInfoFontSizeService
 val mapRandoDataService: com.supermetroid.service.MapRandoDataService get() = appDependencies.mapRandoDataService
 val mapRandoInfoConfigService: com.supermetroid.service.MapRandoInfoConfigService get() = appDependencies.mapRandoInfoConfigService
+val splitFormatService: com.supermetroid.service.SplitFormatService get() = appDependencies.splitFormatService
 
 // Flag to indicate if we're in replay mode (don't load saved state)
 var isReplayMode = false
@@ -267,10 +268,33 @@ fun SuperMetroidTrackerApp() {
         
         // Initialize split profile from saved config (notifies AutoSplitsEngine)
         splitProfileService.initialize()
+        
+        // Initialize split format settings (JSON vs LiveSplit)
+        splitFormatService.initialize()
+        
+        // When the format or LSS file changes, reload PB data into the engine
+        splitFormatService.setOnFormatChangedCallback {
+            val state = if (splitFormatService.isLiveSplitActive()) {
+                splitFormatService.toLiveSplitSplitsState() ?: fileStorageService.loadSplitsState()
+            } else {
+                fileStorageService.loadSplitsState()
+            }
+            autoSplitsEngine.loadSavedState(state)
+            
+            // If LiveSplit loaded a profile, switch to it (use resolved canonical so id matches state)
+            val resolvedProfile = splitFormatService.getResolvedLiveSplitProfile()
+            if (splitFormatService.isLiveSplitActive() && resolvedProfile != null) {
+                splitProfileService.setProfile(resolvedProfile)
+            }
+        }
 
         // Load saved splits state and resume from current position (unless in replay mode)
         if (!isReplayMode) {
-            val savedSplitsState = fileStorageService.loadSplitsState()
+            val savedSplitsState = if (splitFormatService.isLiveSplitActive()) {
+                splitFormatService.toLiveSplitSplitsState() ?: fileStorageService.loadSplitsState()
+            } else {
+                fileStorageService.loadSplitsState()
+            }
             autoSplitsEngine.loadSavedState(savedSplitsState)
         }
 
@@ -513,6 +537,7 @@ fun SuperMetroidTrackerLayout(
                 splitIconSizeService = splitIconSizeService,
                 splitDisplayModeService = splitDisplayModeService,
                 splitProfileService = splitProfileService,
+                splitFormatService = splitFormatService,
                 iconConfigService = iconConfigService,
                 roomNameService = roomNameService,
                 autoSplitsEngine = autoSplitsEngine,
