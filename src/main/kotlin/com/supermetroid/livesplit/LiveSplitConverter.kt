@@ -5,6 +5,8 @@ import com.supermetroid.util.Logging
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 /**
  * Converts between LiveSplit (.lss) data and our internal model.
@@ -275,11 +277,10 @@ class LiveSplitConverter : Logging {
         }
 
         val attemptHistory = sortedRuns.mapIndexed { index, run ->
-            val dateFormat = java.text.SimpleDateFormat("MM/dd/yyyy HH:mm:ss")
             LiveSplitAttempt(
                 id = index + 1,
-                started = dateFormat.format(java.util.Date(run.startTime.toEpochMilliseconds())),
-                ended = run.endTime?.let { dateFormat.format(java.util.Date(it.toEpochMilliseconds())) },
+                started = formatInstantForLiveSplit(run.startTime),
+                ended = run.endTime?.let { formatInstantForLiveSplit(it) },
                 realTime = if (run.endTime != null) run.totalTime else null,
                 gameTime = null
             )
@@ -335,8 +336,8 @@ class LiveSplitConverter : Logging {
 
         val newAttempt = LiveSplitAttempt(
             id = (existingDoc?.attemptHistory?.maxOfOrNull { it.id } ?: 0) + 1,
-            started = run.startTime.toString(),
-            ended = run.endTime?.toString(),
+            started = formatInstantForLiveSplit(run.startTime),
+            ended = run.endTime?.let { formatInstantForLiveSplit(it) },
             realTime = if (run.endTime != null) run.totalTime else null,
             gameTime = null
         )
@@ -352,5 +353,18 @@ class LiveSplitConverter : Logging {
             attemptHistory = attemptHistory,
             autoSplitterSettings = existingDoc?.autoSplitterSettings
         )
+    }
+
+    companion object {
+        /** Thread-safe date formatter for LiveSplit attempt timestamps */
+        private val liveSplitDateFormat: DateTimeFormatter =
+            DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss")
+                .withZone(ZoneId.systemDefault())
+
+        /** Format a kotlinx Instant consistently for LiveSplit attempt history */
+        fun formatInstantForLiveSplit(instant: Instant): String {
+            val javaInstant = java.time.Instant.ofEpochMilli(instant.toEpochMilliseconds())
+            return liveSplitDateFormat.format(javaInstant)
+        }
     }
 }

@@ -251,12 +251,16 @@ class SoundService(private val fileStorageService: FileStorageService) : Logging
         val clip = AudioSystem.getClip()
         clip.open(audioInputStream)
 
-        // Set volume
-        val gainControl = clip.getControl(FloatControl.Type.MASTER_GAIN) as? FloatControl
-        if (gainControl != null) {
-            val volume = _volume.value * eventVolume
-            val gain = 20f * kotlin.math.log10(volume.toDouble()).toFloat()
-            gainControl.value = gain.coerceIn(gainControl.minimum, gainControl.maximum)
+        // Set volume — getControl() can throw IllegalArgumentException if unsupported
+        try {
+            val gainControl = clip.getControl(FloatControl.Type.MASTER_GAIN) as? FloatControl
+            if (gainControl != null) {
+                val volume = _volume.value * eventVolume
+                val gain = 20f * kotlin.math.log10(volume.toDouble()).toFloat()
+                gainControl.value = gain.coerceIn(gainControl.minimum, gainControl.maximum)
+            }
+        } catch (e: IllegalArgumentException) {
+            logger.debug { "Audio gain control not supported for ${soundFile.name}, playing at system volume" }
         }
 
         // Play once (don't loop)

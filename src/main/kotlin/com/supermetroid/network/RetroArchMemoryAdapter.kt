@@ -139,9 +139,13 @@ class RetroArchMemoryAdapter(
 
     override suspend fun writeMemory(address: Int, data: ByteArray): Boolean = withContext(Dispatchers.IO) {
         return@withContext try {
-            udpClient.writeMemory(address, data)
-            logger.debug { "✅ Wrote ${data.size} bytes to 0x${address.toString(16)} via RetroArch NWA" }
-            true
+            val success = udpClient.writeMemory(address, data)
+            if (success) {
+                logger.debug { "✅ Wrote ${data.size} bytes to 0x${address.toString(16)} via RetroArch NWA" }
+            } else {
+                logger.warn { "⚠️ Write to 0x${address.toString(16)} returned unsuccessful response" }
+            }
+            success
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to write memory at 0x${address.toString(16)} via RetroArch NWA" }
             isConnectedFlag = false

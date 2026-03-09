@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlin.time.Duration.Companion.milliseconds
+// kotlin.time.Duration.Companion.milliseconds removed — delay(Long) used directly
 
 /**
  * Core service for managing game state polling from SNI or RetroArch
@@ -276,8 +276,6 @@ class GameStateService(
                 }
                 // Reset backoff on successful poll
                 currentDelayMs = pollIntervalMs
-                
-                delay(currentDelayMs)
 
             } catch (e: Exception) {
                 errorCount++
@@ -294,13 +292,14 @@ class GameStateService(
                 if (errorCount % 5 == 0) {
                     logger.warn { "⚠️ High error count ($errorCount), slowing down polling" }
                     updateConnectionState(connected = false, gameLoaded = false)
-                    delay(1000) // Wait longer after errors
+                    currentDelayMs = 1000L // Longer delay after repeated errors
                 }
                 // Exponential backoff on errors (max 5000ms)
                 currentDelayMs = (currentDelayMs * 2).coerceAtMost(5000)
             }
 
-            delay(currentDelayMs.milliseconds)
+            // Single delay per iteration — previously there was a second delay here causing double-wait
+            delay(currentDelayMs)
         }
     }
 

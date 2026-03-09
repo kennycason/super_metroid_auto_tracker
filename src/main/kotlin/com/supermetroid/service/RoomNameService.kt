@@ -16,7 +16,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
  * Service for managing room name visibility configuration
  */
 class RoomNameService(private val fileStorageService: FileStorageService) : Logging {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _showRoomName = MutableStateFlow(true)
     val showRoomName: StateFlow<Boolean> = _showRoomName.asStateFlow()

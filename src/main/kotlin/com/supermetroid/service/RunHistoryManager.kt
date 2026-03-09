@@ -22,6 +22,7 @@ class RunHistoryManager(
         prettyPrint = true
         ignoreUnknownKeys = true // For backward compatibility
     }
+    private val runHistoryService = RunHistoryService()
 
     /**
      * Load run history from disk
@@ -100,7 +101,7 @@ class RunHistoryManager(
             completionReason = RunCompletionReason.FINISHED
         )
 
-        val updatedHistory = RunHistoryService().addRunToHistory(currentHistory, storedRun)
+        val updatedHistory = runHistoryService.addRunToHistory(currentHistory, storedRun)
         saveRunHistory(updatedHistory)
 
         logger.info { "Stored completed run ${run.id} for profile ${run.profileId} with total time ${run.totalTime}ms" }
@@ -122,7 +123,7 @@ class RunHistoryManager(
             completionReason = completionReason
         )
 
-        val updatedHistory = RunHistoryService().addRunToHistory(currentHistory, storedRun)
+        val updatedHistory = runHistoryService.addRunToHistory(currentHistory, storedRun)
         saveRunHistory(updatedHistory)
 
         logger.info { "Stored incomplete run ${run.id} for profile ${run.profileId} with ${run.completedSplits.size} splits (reason: $completionReason)" }
@@ -134,7 +135,7 @@ class RunHistoryManager(
      */
     fun derivePersonalBestsFromHistory(): Map<String, PersonalBest> {
         val runHistory = loadRunHistory()
-        val derivedPBs = RunHistoryService().derivePersonalBestsFromHistory(runHistory)
+        val derivedPBs = runHistoryService.derivePersonalBestsFromHistory(runHistory)
 
         // Update the stored derived PBs
         val updatedHistory = runHistory.copy(
@@ -152,7 +153,7 @@ class RunHistoryManager(
      */
     fun getStatistics(profileId: String): RunStatistics {
         val runHistory = loadRunHistory()
-        return RunHistoryService().generateStatistics(profileId, runHistory)
+        return runHistoryService.generateStatistics(profileId, runHistory)
     }
 
     /**

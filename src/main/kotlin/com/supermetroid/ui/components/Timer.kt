@@ -16,7 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -182,11 +182,44 @@ fun Timer(
                     .padding(8.dp) // Minimal padding for compact design
                     .hoverable(interactionSource = interactionSource)
             ) {
+                // Compute timer color: compare current time against PB run's cumulative time
+                // at the last completed split point
+                val timerColor = run {
+                    val profileId = currentRun?.profileId
+                    val completedSplits = currentRun?.completedSplits
+                    val pb = if (profileId != null) splitsState.personalBests[profileId] else null
+
+                    if (currentTime <= 0L || completedSplits.isNullOrEmpty() || pb == null) {
+                        TrackerColors.Primary // Timer not started, no splits yet, or no PB
+                    } else {
+                        // Find the PB run to get its cumulative time at the last split
+                        val pbRun = splitsState.runHistory.find { it.id == pb.runSessionId }
+                            ?: splitsState.runHistory
+                                .filter { it.profileId == profileId && it.endTime != null }
+                                .minByOrNull { it.totalTime }
+
+                        if (pbRun == null) {
+                            TrackerColors.Primary
+                        } else {
+                            // Look up the PB run's cumulative time at the same split
+                            val lastSplitId = completedSplits.last().splitId
+                            val pbSplitTime = pbRun.completedSplits.find { it.splitId == lastSplitId }
+                            if (pbSplitTime == null) {
+                                TrackerColors.Primary // Split not found in PB run
+                            } else {
+                                // delta = our cumulative - PB cumulative (negative = ahead)
+                                val delta = completedSplits.last().time.totalTime - pbSplitTime.time.totalTime
+                                timerGradientColor(delta)
+                            }
+                        }
+                    }
+                }
+
                 // Main timer text (centered)
                 Text(
                     text = formatTime(currentTime),
                     style = MaterialTheme.typography.headlineLarge.copy(
-                        color = TrackerColors.Primary,
+                        color = timerColor,
                         fontWeight = FontWeight.Bold,
                         fontSize = 28.sp, // Slightly smaller font for more compact layout
                         fontFamily = FontFamily.Monospace
@@ -245,6 +278,21 @@ fun Timer(
             }
         }
     }
+}
+
+private val TimerGold = Color(0xFFFFD700)
+private val TimerGreen = Color(0xFF00DD00)
+private val TimerRed = Color(0xFFFF4444)
+
+/**
+ * Timer color gradient vs PB run cumulative time.
+ * Ahead (negative delta) → gold. Behind → white..red gradient (saturates at 5 min).
+ * 5 minutes gives a gentle gradient for hour-long runs — 7s behind is barely pink.
+ */
+private fun timerGradientColor(deltaMs: Long, maxDeltaMs: Long = 300_000): Color {
+    if (deltaMs <= 0L) return TimerGold // Ahead of or matching PB
+    val fraction = kotlin.math.min(deltaMs.toFloat() / maxDeltaMs, 1f)
+    return lerpColor(Color.White, TimerRed, fraction)
 }
 
 private fun formatTime(milliseconds: Long): String {

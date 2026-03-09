@@ -48,48 +48,61 @@ class DualMemoryAdapter(
 
     override suspend fun connect(): Boolean = withContext(Dispatchers.IO) {
         return@withContext connectionMutex.withLock {
-            logger.info { "🔗 Connecting dual memory adapter..." }
+            connectInternal()
+        }
+    }
 
-            // If we already have a connected adapter, return success
-            activeAdapter?.let { adapter ->
-                if (adapter.getConnectionState() == MemoryAdapter.ConnectionState.CONNECTED) {
-                    logger.info { "✅ Already connected via ${adapter.getAdapterName()}" }
-                    return@withLock true
-                }
+    /**
+     * Inner connect logic that does NOT acquire the mutex.
+     * Must only be called from code that already holds connectionMutex.
+     */
+    private suspend fun connectInternal(): Boolean {
+        logger.info { "🔗 Connecting dual memory adapter..." }
+
+        // If we already have a connected adapter, return success
+        activeAdapter?.let { adapter ->
+            if (adapter.getConnectionState() == MemoryAdapter.ConnectionState.CONNECTED) {
+                logger.info { "✅ Already connected via ${adapter.getAdapterName()}" }
+                return true
             }
+        }
 
-            // Try to get the best available adapter
-            try {
-                val adapter = detectionService.getBestAvailableAdapter(detectionPreferences)
-                if (adapter != null) {
-                    activeAdapter = adapter
-                    lastDetectionTime = System.currentTimeMillis()
-                    logger.info { "✅ Connected dual adapter via ${adapter.getAdapterName()}" }
-                    return@withLock true
-                }
-            } catch (e: Exception) {
+        // Try to get the best available adapter
+        try {
+            val adapter = detectionService.getBestAvailableAdapter(detectionPreferences)
+            if (adapter != null) {
+                activeAdapter = adapter
+                lastDetectionTime = System.currentTimeMillis()
+                logger.info { "✅ Connected dual adapter via ${adapter.getAdapterName()}" }
+                return true
+            }
+        } catch (e: Exception) {
+            // JobCancellationException is benign (app shutting down or service stopping)
+            if (e is kotlinx.coroutines.CancellationException) {
+                logger.debug { "Connection cancelled (service stopping)" }
+            } else {
                 logger.error(e) { "❌ Failed to connect via detection service" }
             }
-
-            // If detection service failed, try fallback adapters manually
-            logger.info { "🔄 Trying fallback connection methods..." }
-            for (adapterFactory in fallbackAdapters) {
-                try {
-                    val adapter = adapterFactory()
-                    if (adapter.connect()) {
-                        activeAdapter = adapter
-                        lastDetectionTime = System.currentTimeMillis()
-                        logger.info { "✅ Connected dual adapter via fallback ${adapter.getAdapterName()}" }
-                        return@withLock true
-                    }
-                } catch (e: Exception) {
-                    logger.debug(e) { "Failed to connect fallback adapter" }
-                }
-            }
-
-            logger.error { "❌ Failed to connect any memory adapter" }
-            return@withLock false
         }
+
+        // If detection service failed, try fallback adapters manually
+        logger.info { "🔄 Trying fallback connection methods..." }
+        for (adapterFactory in fallbackAdapters) {
+            try {
+                val adapter = adapterFactory()
+                if (adapter.connect()) {
+                    activeAdapter = adapter
+                    lastDetectionTime = System.currentTimeMillis()
+                    logger.info { "✅ Connected dual adapter via fallback ${adapter.getAdapterName()}" }
+                    return true
+                }
+            } catch (e: Exception) {
+                logger.debug(e) { "Failed to connect fallback adapter" }
+            }
+        }
+
+        logger.debug { "No memory adapter available (emulator not running?)" }
+        return false
     }
 
     override fun disconnect() {
@@ -159,8 +172,8 @@ class DualMemoryAdapter(
                 // Removed: (timeSinceLastDetection > redetectionIntervalMs) - don't force re-detection if working
 
             if (needsRedetection) {
-                logger.info { "🔄 Re-detecting adapters for operation: $operationName (hasAdapter=$hasActiveAdapter, connected=$isConnected, timeSinceDetection=${timeSinceLastDetection}ms)" }
-                if (!connect()) {
+                logger.debug { "🔄 Re-detecting adapters for operation: $operationName (hasAdapter=$hasActiveAdapter, connected=$isConnected, timeSinceDetection=${timeSinceLastDetection}ms)" }
+                if (!connectInternal()) {
                     throw IllegalStateException("No memory adapter available for $operationName")
                 }
             }
@@ -193,8 +206,9 @@ class DualMemoryAdapter(
                 logger.info { "🔄 Attempting failover to different adapter" }
                 activeAdapter = null
                 lastDetectionTime = 0  // Force re-detection
-                if (connect()) {
-                    val newAdapter = activeAdapter!!
+                if (connectInternal()) {
+                    val newAdapter = activeAdapter
+                        ?: throw IllegalStateException("Connect succeeded but no active adapter for $operationName")
                     logger.info { "✅ Switched to ${newAdapter.getAdapterName()} for $operationName" }
                     val result = operation(newAdapter)
                     lastSuccessfulOperation = now
@@ -237,7 +251,7 @@ class DualMemoryAdapter(
             activeAdapter?.disconnect()
             activeAdapter = null
             lastDetectionTime = 0
-            connect()
+            connectInternal()
         }
     }
 }

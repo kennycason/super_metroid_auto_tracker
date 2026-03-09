@@ -301,8 +301,8 @@ class RetroArchUdpClient(
         val socket = this@RetroArchUdpClient.socket
             ?: throw IllegalStateException("Not connected to RetroArch")
 
-        // Convert data to hex string
-        val hexData = data.joinToString("") { "%02x".format(it) }
+        // Convert data to hex string (mask with 0xFF to avoid sign-extension of negative bytes)
+        val hexData = data.joinToString("") { "%02x".format(it.toInt() and 0xFF) }
 
         val command = "WRITE_CORE_MEMORY 0x${address.toString(16).uppercase()} $hexData"
 

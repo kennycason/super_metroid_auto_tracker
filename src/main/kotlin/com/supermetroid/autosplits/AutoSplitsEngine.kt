@@ -669,10 +669,11 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         // Reset the debounce timer to prevent issues with immediate start after reset
         lastToggleTime = 0
 
-        // Re-enable auto-start when run is reset
-        autoStartEnabled = true
+        // Disable auto-start after reset to prevent phantom runs from save file loads.
+        // User must explicitly press play/space to start a new run.
+        autoStartEnabled = false
 
-        logger.info { "🔄 Run reset complete - timer state cleared, auto-start re-enabled" }
+        logger.info { "🔄 Run reset complete - timer state cleared, auto-start disabled (press play to start)" }
         
         // Clear saved timer from config
         clearSavedTimer()
@@ -1016,22 +1017,22 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             // This prevents auto-triggering G4 immediately after defeating the last boss
             "golden_four" -> gameState.roomId == RoomIds.STATUES && gameState.bosses.kraid && gameState.bosses.phantoon && gameState.bosses.draygon && gameState.bosses.ridley
             "mother_brain_1" -> {
-                // Use the same comprehensive detection logic as in checkMotherBrain1
+                // Uses shared constants from GameStateConstants to stay in sync with GameStateParser
                 val inMbRoom = gameState.roomId == RoomIds.MOTHER_BRAIN_ROOM
                 val normalGameplay = gameState.gameState == GameStateConstants.NORMAL_GAMEPLAY
-                val mb1AlreadyDefeated = inMbRoom && normalGameplay && gameState.motherBrainHp >= 18000
-                val zebesEscaping = (gameState.eventFlags and 0x0040) != 0
-                val mbFinalDefeated = (gameState.tourianBosses and 0x0002) != 0
+                val mb1AlreadyDefeated = inMbRoom && normalGameplay && gameState.motherBrainHp >= GameStateConstants.MB1_HP_THRESHOLD
+                val zebesEscaping = (gameState.eventFlags and GameStateConstants.ZEBES_ABLAZE_FLAG) != 0
+                val mbFinalDefeated = (gameState.tourianBosses and GameStateConstants.MB_FINAL_DEFEATED_FLAG) != 0
 
                 gameState.bosses.motherBrain1 || mb1AlreadyDefeated || zebesEscaping || mbFinalDefeated
             }
             "mother_brain_2" -> {
-                // Use the same comprehensive detection logic as in checkMotherBrain2
+                // Uses shared constants from GameStateConstants to stay in sync with GameStateParser
                 val inMbRoom = gameState.roomId == RoomIds.MOTHER_BRAIN_ROOM
                 val normalGameplay = gameState.gameState == GameStateConstants.NORMAL_GAMEPLAY
-                val mb2AlreadyDefeated = inMbRoom && normalGameplay && gameState.motherBrainHp >= 36000
-                val zebesEscaping = (gameState.eventFlags and 0x0040) != 0
-                val mbFinalDefeated = (gameState.tourianBosses and 0x0002) != 0
+                val mb2AlreadyDefeated = inMbRoom && normalGameplay && gameState.motherBrainHp >= GameStateConstants.MB2_HP_THRESHOLD
+                val zebesEscaping = (gameState.eventFlags and GameStateConstants.ZEBES_ABLAZE_FLAG) != 0
+                val mbFinalDefeated = (gameState.tourianBosses and GameStateConstants.MB_FINAL_DEFEATED_FLAG) != 0
 
                 gameState.bosses.motherBrain2 || mb2AlreadyDefeated || zebesEscaping || mbFinalDefeated
             }
@@ -1085,8 +1086,12 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         
         // SECONDARY: Zebes start for categories that skip Ceres (e.g., Spore Spawn RTA)
         // This matches SuperMetroid.asl line 782: vars.watchers["gameState"].Old == 5 && vars.watchers["gameState"].Current == 6
-        val zebesStart = previousState?.gameState == GameStateConstants.ELEVATOR && 
+        // Guard: only trigger if game looks like early-game (no items collected beyond starting gear).
+        // Loading a mid-game save also transitions 5→6 but would have items/health above starting values.
+        val zebesTransition = previousState?.gameState == GameStateConstants.ELEVATOR &&
                         currentState.gameState == GameStateConstants.ZEBES_TRANSITION_END
+        val isEarlyGame = currentState.maxHealth <= 99 && currentState.maxMissiles <= 5
+        val zebesStart = zebesTransition && isEarlyGame
         
         // FALLBACK: Original Ceres start (backup for mid-run detection)
         // Keep this as a backup in case title screen transition is missed
@@ -1479,15 +1484,15 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         val inMbRoom = curr.roomId == RoomIds.MOTHER_BRAIN_ROOM
         val normalGameplay = curr.gameState == GameStateConstants.NORMAL_GAMEPLAY
 
-        // EXACT ASL LOGIC: HP transition 0 -> 18000
-        val hpTransition = prev.motherBrainHp == 0 && curr.motherBrainHp == 18000
+        // EXACT ASL LOGIC: HP transition 0 -> threshold
+        val hpTransition = prev.motherBrainHp == 0 && curr.motherBrainHp == GameStateConstants.MB1_HP_THRESHOLD
 
-        // RETROACTIVE LOGIC: If HP >= 18000 in MB room, MB1 already defeated
-        val mb1AlreadyDefeated = inMbRoom && normalGameplay && curr.motherBrainHp >= 18000
+        // RETROACTIVE LOGIC: If HP >= threshold in MB room, MB1 already defeated
+        val mb1AlreadyDefeated = inMbRoom && normalGameplay && curr.motherBrainHp >= GameStateConstants.MB1_HP_THRESHOLD
 
         // Also check escape scenarios
-        val zebesEscaping = (curr.eventFlags and 0x0040) != 0
-        val mbFinalDefeated = (curr.tourianBosses and 0x0002) != 0
+        val zebesEscaping = (curr.eventFlags and GameStateConstants.ZEBES_ABLAZE_FLAG) != 0
+        val mbFinalDefeated = (curr.tourianBosses and GameStateConstants.MB_FINAL_DEFEATED_FLAG) != 0
 
         val result = hpTransition || mb1AlreadyDefeated || zebesEscaping || mbFinalDefeated
 
@@ -1508,14 +1513,14 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         val normalGameplay = curr.gameState == GameStateConstants.NORMAL_GAMEPLAY
 
         // EXACT ASL LOGIC: HP transition 0 -> 36000 (0x8CA0)
-        val hpTransition = prev.motherBrainHp == 0 && curr.motherBrainHp == 36000
+        val hpTransition = prev.motherBrainHp == 0 && curr.motherBrainHp == GameStateConstants.MB2_HP_THRESHOLD
 
         // RETROACTIVE LOGIC: If HP >= 36000 in MB room, MB2 already defeated
-        val mb2AlreadyDefeated = inMbRoom && normalGameplay && curr.motherBrainHp >= 36000
+        val mb2AlreadyDefeated = inMbRoom && normalGameplay && curr.motherBrainHp >= GameStateConstants.MB2_HP_THRESHOLD
 
         // Also check escape/final scenarios
-        val zebesEscaping = (curr.eventFlags and 0x0040) != 0
-        val mbFinalDefeated = (curr.tourianBosses and 0x0002) != 0
+        val zebesEscaping = (curr.eventFlags and GameStateConstants.ZEBES_ABLAZE_FLAG) != 0
+        val mbFinalDefeated = (curr.tourianBosses and GameStateConstants.MB_FINAL_DEFEATED_FLAG) != 0
 
         val result = hpTransition || mb2AlreadyDefeated || zebesEscaping || mbFinalDefeated
 
@@ -1530,8 +1535,8 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     private fun checkShip(prev: GameState, curr: GameState): Boolean {
         // Implement ASL RTA finish logic exactly:
         // escape = zebesAblaze && shipAI.old != 0xaa4f && shipAI.current == 0xaa4f
-        val zebesAblaze = (curr.eventFlags and 0x0040) != 0  // bit 6
-        val motherBrainDefeated = (curr.tourianBosses and 0x0002) != 0  // Bit 1 (0x2) for Mother Brain, matching ASL and parseMotherBrainFinal
+        val zebesAblaze = (curr.eventFlags and GameStateConstants.ZEBES_ABLAZE_FLAG) != 0  // bit 6
+        val motherBrainDefeated = (curr.tourianBosses and GameStateConstants.MB_FINAL_DEFEATED_FLAG) != 0  // Bit 1 (0x2) for Mother Brain, matching ASL and parseMotherBrainFinal
         val shipAiTransition = prev.shipAi != 0xAA4F && curr.shipAi == 0xAA4F
 
         val result = zebesAblaze && motherBrainDefeated && shipAiTransition

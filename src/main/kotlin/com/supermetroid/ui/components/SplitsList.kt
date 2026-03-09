@@ -27,6 +27,40 @@ import com.supermetroid.model.SplitTime
 import com.supermetroid.model.SplitsState
 import com.supermetroid.service.SplitProfileService
 import com.supermetroid.ui.theme.TrackerColors
+import kotlin.math.absoluteValue
+import kotlin.math.min
+
+/** Gold color for PB / best segment / ahead of best run */
+private val Gold = Color(0xFFFFD700)
+private val FullGreen = Color(0xFF00DD00)
+private val FullRed = Color(0xFFFF4444)
+
+/**
+ * Compute a gradient delta color:
+ *   - negative delta (ahead) → white..green, saturating at [maxDeltaMs]
+ *   - positive delta (behind) → white..red, saturating at [maxDeltaMs]
+ *   - exactly zero → gold
+ *   - beating best segment → gold
+ *
+ * [maxDeltaMs] controls how quickly the color saturates (default 30s).
+ */
+fun deltaGradientColor(deltaMs: Long, isBestSegment: Boolean = false, maxDeltaMs: Long = 30_000): Color {
+    if (isBestSegment) return Gold
+    if (deltaMs == 0L) return Gold
+    val fraction = min(deltaMs.absoluteValue.toFloat() / maxDeltaMs, 1f)
+    val target = if (deltaMs < 0) FullGreen else FullRed
+    return lerpColor(Color.White, target, fraction)
+}
+
+/** Simple RGB lerp between two colors. */
+fun lerpColor(a: Color, b: Color, t: Float): Color {
+    return Color(
+        red = a.red + (b.red - a.red) * t,
+        green = a.green + (b.green - a.green) * t,
+        blue = a.blue + (b.blue - a.blue) * t,
+        alpha = 1f
+    )
+}
 
 @Composable
 fun SplitsList(
@@ -426,11 +460,7 @@ private fun SplitRow(
                         horizontalAlignment = Alignment.End
                     ) {
                         if (bestPossibleDelta != null) {
-                            val deltaColor = when {
-                                bestPossibleDelta < 0 -> Color(0xFF00FF00) // Green for ahead
-                                bestPossibleDelta > 0 -> Color(0xFFFF4444) // Red for behind
-                                else -> Color(0xFFFFD700) // Gold for exactly on pace
-                            }
+                            val deltaColor = deltaGradientColor(bestPossibleDelta)
                             val deltaText = when {
                                 bestPossibleDelta < 0 -> "-${formatTime(-bestPossibleDelta)}"
                                 bestPossibleDelta > 0 -> "+${formatTime(bestPossibleDelta)}"
@@ -503,11 +533,7 @@ private fun SplitRow(
                         horizontalAlignment = Alignment.End
                     ) {
                         if (averageDelta != null) {
-                            val deltaColor = when {
-                                averageDelta < 0 -> Color(0xFF00FF00) // Green for ahead of average
-                                averageDelta > 0 -> Color(0xFFFF4444) // Red for behind average
-                                else -> Color(0xFFFFD700) // Gold for exactly on average
-                            }
+                            val deltaColor = deltaGradientColor(averageDelta)
                             val deltaText = when {
                                 averageDelta < 0 -> "-${formatTime(-averageDelta)}"
                                 averageDelta > 0 -> "+${formatTime(averageDelta)}"
@@ -590,12 +616,9 @@ private fun SplitRow(
                         completedSplit.time.segmentTime - bestSegmentTime.segmentTime
                     } else 0L
 
-                    // Determine color: gold for good times (PB or ahead), red for bad times (behind)
+                    // Determine color: gold for beating best, gradient for delta
                     val timeColor = if (isCompleted && bestSegmentTime != null) {
-                        when {
-                            delta <= 0 -> Color(0xFFFFD700) // Gold for PB or ahead
-                            else -> Color(0xFFFF4444) // Red for behind
-                        }
+                        deltaGradientColor(delta, isBestSegment = delta <= 0)
                     } else if (isCompleted) {
                         TrackerColors.SplitCompleted
                     } else {
@@ -617,12 +640,12 @@ private fun SplitRow(
                     if (showSegmentDeltas && isCompleted && completedSplit != null) {
                         val segmentTime = completedSplit.time.segmentTime
 
-                        // Color based on whether this segment beat the best segment
-                        val segmentColor = when {
-                            bestSegmentTime != null && segmentTime <= bestSegmentTime.segmentTime -> 
-                                Color(0xFFFFD700) // Gold for PB or improvements
-                            bestSegmentTime != null -> Color(0xFFFF4444) // Red for slower
-                            else -> TrackerColors.OnSurfaceVariant.copy(alpha = 0.7f)
+                        // Color based on how this segment compares to best segment
+                        val segmentColor = if (bestSegmentTime != null) {
+                            val segDelta = segmentTime - bestSegmentTime.segmentTime
+                            deltaGradientColor(segDelta, isBestSegment = segDelta <= 0)
+                        } else {
+                            TrackerColors.OnSurfaceVariant.copy(alpha = 0.7f)
                         }
 
                         Text(
@@ -814,53 +837,58 @@ private fun getSplitItemId(split: Split): String {
 }
 
 /**
- * Find the actual Personal Best run - the fastest complete run in history
- * This is more reliable than using personalBest.runSessionId which may be stale
+ * Find the actual Personal Best run from run history.
+ * First tries matching by personalBest.runSessionId, then falls back to fastest complete run.
  */
 private fun findActualPbRun(splitsState: SplitsState, profileId: String, profile: SplitProfile): com.supermetroid.model.RunSession? {
-    // Find all complete runs for this profile
+    val pb = splitsState.personalBests[profileId]
+
+    // First: try to find by the stored PB run session ID
+    if (pb != null && pb.runSessionId.isNotBlank()) {
+        val byId = splitsState.runHistory.find { it.id == pb.runSessionId }
+        if (byId != null) return byId
+    }
+
+    // Fallback: fastest complete run for this profile
     val completeRuns = splitsState.runHistory.filter { run ->
-        run.profileId == profileId && 
-        run.endTime != null && 
+        run.profileId == profileId &&
+        run.endTime != null &&
         run.completedSplits.size == profile.splits.size
     }
-    
-    // Return the fastest one
     return completeRuns.minByOrNull { it.totalTime }
 }
 
 /**
- * Get the Personal Best run's segment time for a specific split
+ * Get the Personal Best run's segment time for a specific split.
+ * Looks up by splitId in the PB run's completed splits (order-independent).
  */
 private fun getPbRunSegmentTime(splitsState: SplitsState, profileId: String, profile: SplitProfile, splitId: String): SplitTime? {
-    // Find the actual PB run (fastest complete run)
     val pbRun = findActualPbRun(splitsState, profileId, profile) ?: return null
-    
-    // Find the completed split for this splitId
     val completedSplit = pbRun.completedSplits.find { it.splitId == splitId } ?: return null
-    
     return completedSplit.time
 }
 
 /**
- * Calculate the sum of PB run's segment times up to (and including) the given split index
+ * Calculate the PB run's cumulative time up to (and including) the given split index.
+ * Sums PB run segment times in the PROFILE's split order (not the run's order),
+ * so the cumulative total is correct even if the run's splits were in a different order.
  */
 private fun calculatePbRunTimeUpTo(splitsState: SplitsState, profileId: String, profile: SplitProfile, splitIndex: Int): Long {
-    // Find the actual PB run (fastest complete run)
     val pbRun = findActualPbRun(splitsState, profileId, profile) ?: return 0L
-    
-    // Sum up the segment times for all splits up to splitIndex
-    var totalTime = 0L
+
+    // Build a map of splitId -> segmentTime from the PB run for fast lookup
+    val segmentTimeMap = pbRun.completedSplits.associate { it.splitId to it.time.segmentTime }
+
+    // Sum segment times in profile order up to splitIndex
+    var cumulative = 0L
     for (i in 0..splitIndex) {
         val split = profile.splits.getOrNull(i) ?: continue
-        val completedSplit = pbRun.completedSplits.find { it.splitId == split.id }
-        if (completedSplit != null) {
-            // Use the total time from the completed split (cumulative time up to this split)
-            totalTime = completedSplit.time.totalTime
+        val segTime = segmentTimeMap[split.id]
+        if (segTime != null) {
+            cumulative += segTime
         }
     }
-    
-    return totalTime
+    return cumulative
 }
 
 /**

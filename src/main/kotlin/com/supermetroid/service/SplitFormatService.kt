@@ -54,6 +54,9 @@ class SplitFormatService(
     private val _liveSplitFilePath = MutableStateFlow<String?>(null)
     val liveSplitFilePath: StateFlow<String?> = _liveSplitFilePath.asStateFlow()
 
+    // Track which run we last backed up LSS for, to avoid redundant backups per auto-skip
+    private var lastBackedUpRunId: String? = null
+
     private val _liveSplitDocument = MutableStateFlow<LiveSplitDocument?>(null)
     val liveSplitDocument: StateFlow<LiveSplitDocument?> = _liveSplitDocument.asStateFlow()
 
@@ -167,10 +170,20 @@ class SplitFormatService(
     fun saveRunToLiveSplit(run: RunSession, profile: SplitProfile): Boolean {
         val path = _liveSplitFilePath.value ?: return false
         return try {
+            // Backup LSS file once per run (first write), not per auto-skip save
+            val file = File(path)
+            if (file.exists() && lastBackedUpRunId != run.id) {
+                try {
+                    fileStorageService.backupFileSync(file)
+                    lastBackedUpRunId = run.id
+                } catch (e: Exception) {
+                    logger.warn(e) { "Failed to backup LSS before write, proceeding anyway" }
+                }
+            }
+
             val existingDoc = _liveSplitDocument.value
             val updatedDoc = converter.fromRunSession(run, profile, existingDoc)
 
-            val file = File(path)
             writer.writeToFile(updatedDoc, file)
             _liveSplitDocument.value = updatedDoc
 

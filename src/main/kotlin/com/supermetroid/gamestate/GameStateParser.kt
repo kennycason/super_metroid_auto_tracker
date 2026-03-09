@@ -300,12 +300,12 @@ class GameStateParser : Logging {
         val inMbRoom = roomId == RoomIds.MOTHER_BRAIN_ROOM
         val normalGameplay = gameState == GameStateConstants.NORMAL_GAMEPLAY
 
-        // RETROACTIVE LOGIC: If HP >= 18000 in MB room, MB1 already defeated
-        val mb1AlreadyDefeated = inMbRoom && normalGameplay && motherBrainHp >= 18000
+        // RETROACTIVE LOGIC: If HP >= threshold in MB room, MB1 already defeated
+        val mb1AlreadyDefeated = inMbRoom && normalGameplay && motherBrainHp >= GameStateConstants.MB1_HP_THRESHOLD
 
         // Also check escape scenarios
-        val zebesEscaping = (eventFlags and 0x0040) != 0
-        val mbFinalDefeated = (tourianBosses and 0x0002) != 0  // Bit 1 for final defeat - match parseMotherBrainFinal
+        val zebesEscaping = (eventFlags and GameStateConstants.ZEBES_ABLAZE_FLAG) != 0
+        val mbFinalDefeated = (tourianBosses and GameStateConstants.MB_FINAL_DEFEATED_FLAG) != 0
 
         val result = mb1AlreadyDefeated || zebesEscaping || mbFinalDefeated
 
@@ -330,12 +330,12 @@ class GameStateParser : Logging {
         val inMbRoom = roomId == RoomIds.MOTHER_BRAIN_ROOM
         val normalGameplay = gameState == GameStateConstants.NORMAL_GAMEPLAY
 
-        // RETROACTIVE LOGIC: If HP >= 36000 in MB room, MB2 already defeated
-        val mb2AlreadyDefeated = inMbRoom && normalGameplay && motherBrainHp >= 36000
+        // RETROACTIVE LOGIC: If HP >= threshold in MB room, MB2 already defeated
+        val mb2AlreadyDefeated = inMbRoom && normalGameplay && motherBrainHp >= GameStateConstants.MB2_HP_THRESHOLD
 
         // Also check escape/final scenarios
-        val zebesEscaping = (eventFlags and 0x0040) != 0
-        val mbFinalDefeated = (tourianBosses and 0x0002) != 0  // Bit 1 for final defeat - match parseMotherBrainFinal
+        val zebesEscaping = (eventFlags and GameStateConstants.ZEBES_ABLAZE_FLAG) != 0
+        val mbFinalDefeated = (tourianBosses and GameStateConstants.MB_FINAL_DEFEATED_FLAG) != 0
 
         val result = mb2AlreadyDefeated || zebesEscaping || mbFinalDefeated
 
@@ -409,6 +409,14 @@ object GameStateConstants {
     const val PRE_END_CUTSCENE = 38  // 0x26
     const val END_CUTSCENE = 39  // 0x27
     const val ZEBES_TRANSITION_END = 6      // For categories that start from Zebes (ASL zebesStart)
+
+    // Mother Brain HP thresholds — shared between GameStateParser and AutoSplitsEngine
+    const val MB1_HP_THRESHOLD = 18000
+    const val MB2_HP_THRESHOLD = 36000
+
+    // Event flag masks
+    const val ZEBES_ABLAZE_FLAG = 0x0040
+    const val MB_FINAL_DEFEATED_FLAG = 0x0002  // tourianBosses bit 1
 }
 
 /**

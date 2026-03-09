@@ -1684,6 +1684,8 @@ private fun LoadRunSection(
     var runFiles by remember { mutableStateOf<List<com.supermetroid.storage.FileStorageService.RunFileMetadata>>(emptyList()) }
     var selectedRun by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+    var confirmDeleteFileName by remember { mutableStateOf<String?>(null) }
+    var statusMessage by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
 
     // Load run files when dropdown is opened
@@ -1708,7 +1710,7 @@ private fun LoadRunSection(
                 .padding(12.dp)
         ) {
             Text(
-                text = "Load Historical Run",
+                text = "Run History",
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = TrackerColors.OnSurface,
                     fontWeight = FontWeight.Bold
@@ -1717,12 +1719,23 @@ private fun LoadRunSection(
             )
 
             Text(
-                text = "Review past runs with all splits and statistics",
+                text = "Review or delete past runs",
                 style = MaterialTheme.typography.bodySmall.copy(
                     color = TrackerColors.OnSurfaceVariant
                 ),
                 modifier = Modifier.padding(bottom = 12.dp)
             )
+
+            // Status message
+            if (statusMessage.isNotBlank()) {
+                Text(
+                    statusMessage,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = if (statusMessage.startsWith("Deleted")) TrackerColors.Success else TrackerColors.OnSurfaceVariant
+                    ),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
 
             // Dropdown button
             Box(
@@ -1778,7 +1791,7 @@ private fun LoadRunSection(
                         DropdownMenuItem(
                             text = {
                                 Text(
-                                    text = "🔄 Reset to Current (Show True PB)",
+                                    text = "Reset to Current (Show True PB)",
                                     style = MaterialTheme.typography.bodySmall.copy(
                                         color = TrackerColors.Primary,
                                         fontWeight = FontWeight.Bold
@@ -1793,24 +1806,46 @@ private fun LoadRunSection(
                                 }
                             }
                         )
-                        
+
                         Divider(color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.3f))
-                        
+
                         // Historical runs
                         runFiles.forEach { runFile ->
                             DropdownMenuItem(
                                 text = {
-                                    Text(
-                                        text = runFile.displayName,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = runFile.displayName,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        // Delete button
+                                        IconButton(
+                                            onClick = {
+                                                confirmDeleteFileName = runFile.fileName
+                                            },
+                                            modifier = Modifier.size(24.dp)
+                                        ) {
+                                            Text(
+                                                "X",
+                                                style = MaterialTheme.typography.labelSmall.copy(
+                                                    color = TrackerColors.Error,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            )
+                                        }
+                                    }
                                 },
                                 onClick = {
                                     selectedRun = runFile.displayName
                                     expanded = false
-                                    
+
                                     // Load the run
                                     scope.launch {
                                         try {
@@ -1841,7 +1876,7 @@ private fun LoadRunSection(
                         .padding(top = 4.dp)
                 ) {
                     Text(
-                        text = "↻ Refresh",
+                        text = "Refresh",
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = TrackerColors.Primary
                         )
@@ -1849,5 +1884,55 @@ private fun LoadRunSection(
                 }
             }
         }
+    }
+
+    // Delete confirmation dialog
+    if (confirmDeleteFileName != null) {
+        val fileName = confirmDeleteFileName!!
+        val runMeta = runFiles.find { it.fileName == fileName }
+        AlertDialog(
+            onDismissRequest = { confirmDeleteFileName = null },
+            title = {
+                Text(
+                    "Delete Run?",
+                    style = MaterialTheme.typography.titleSmall.copy(color = TrackerColors.OnSurface)
+                )
+            },
+            text = {
+                Text(
+                    "Delete ${runMeta?.displayName ?: fileName}?\n\nA backup will be saved to ~/.smtracker/backups/",
+                    style = MaterialTheme.typography.bodySmall.copy(color = TrackerColors.OnSurfaceVariant)
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmDeleteFileName = null
+                        scope.launch {
+                            val success = fileStorageService.deleteRun(fileName)
+                            if (success) {
+                                statusMessage = "Deleted (backup saved)"
+                                // Refresh the list
+                                runFiles = fileStorageService.listRunFiles()
+                                if (selectedRun == runMeta?.displayName) {
+                                    selectedRun = null
+                                    autoSplitsEngine.resetToCurrentState()
+                                }
+                            } else {
+                                statusMessage = "Failed to delete"
+                            }
+                        }
+                    }
+                ) {
+                    Text("Delete", color = TrackerColors.Error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDeleteFileName = null }) {
+                    Text("Cancel", color = TrackerColors.OnSurfaceVariant)
+                }
+            },
+            containerColor = TrackerColors.Surface
+        )
     }
 }

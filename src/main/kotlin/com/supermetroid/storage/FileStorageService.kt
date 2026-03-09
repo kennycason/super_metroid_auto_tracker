@@ -4,6 +4,8 @@ import com.supermetroid.model.*
 import com.supermetroid.util.Logging
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
@@ -28,7 +30,11 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
     private val splitsFile = File(trackerDir, "splits-data.json")
     private val configFile = File(trackerDir, "smtracker.json")
     private val runsDir = File(trackerDir, "runs")
+    private val backupsDir = File(trackerDir, "backups")
     private val runSummariesFile = File(trackerDir, "run-summaries.json")
+
+    // Serialize all run file writes to prevent concurrent saves from corrupting files
+    private val saveMutex = Mutex()
 
     private val json = Json {
         prettyPrint = true
@@ -45,6 +51,10 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
         if (!runsDir.exists()) {
             runsDir.mkdirs()
             logger.info { "📁 Created runs directory: ${runsDir.absolutePath}" }
+        }
+        if (!backupsDir.exists()) {
+            backupsDir.mkdirs()
+            logger.info { "📁 Created backups directory: ${backupsDir.absolutePath}" }
         }
     }
 
@@ -154,23 +164,91 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
      * Uses run ID to ensure uniqueness when multiple runs have the same start time
      */
     suspend fun saveRun(run: RunSession) = withContext(Dispatchers.IO) {
-        try {
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
-            val dateStr = dateFormat.format(Date(run.startTime.toEpochMilliseconds()))
-            // Extract timestamp from run ID (format: run_<timestamp>) to ensure uniqueness
-            val runTimestamp = run.id.substringAfter("run_", "")
-            // Profile ID prefix for natural sorting/grouping by category
-            val filename = "${run.profileId}_${dateStr}_${runTimestamp}.json"
-            val runFile = File(runsDir, filename)
+        saveMutex.withLock {
+            try {
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
+                val dateStr = dateFormat.format(Date(run.startTime.toEpochMilliseconds()))
+                // Extract timestamp from run ID (format: run_<timestamp>) to ensure uniqueness
+                val runTimestamp = run.id.substringAfter("run_", "")
+                // Profile ID prefix for natural sorting/grouping by category
+                val filename = "${run.profileId}_${dateStr}_${runTimestamp}.json"
+                val runFile = File(runsDir, filename)
 
-            val jsonString = json.encodeToString(run)
-            runFile.writeText(jsonString)
-            logger.info { "💾 Saved run to ${runFile.name}" }
-        } catch (e: Exception) {
-            logger.error(e) { "❌ Failed to save run ${run.id}" }
-            throw e
+                val jsonString = json.encodeToString(run)
+                // Atomic write: write to uniquely-named temp file then rename.
+                // Unique suffix prevents concurrent saves from clobbering each other's temp file.
+                val tmpFile = File.createTempFile("run_", ".tmp", runsDir)
+                tmpFile.writeText(jsonString)
+                if (!tmpFile.renameTo(runFile)) {
+                    // renameTo can fail on some platforms; fall back to copy + delete
+                    tmpFile.copyTo(runFile, overwrite = true)
+                    tmpFile.delete()
+                }
+                logger.info { "💾 Saved run to ${runFile.name}" }
+            } catch (e: Exception) {
+                logger.error(e) { "❌ Failed to save run ${run.id}" }
+                throw e
+            }
         }
     }
+
+    /**
+     * Backup a file to the backups directory with a timestamp suffix (suspend version).
+     * Used before deleting runs.
+     */
+    suspend fun backupFile(sourceFile: File): Boolean = withContext(Dispatchers.IO) {
+        backupFileSync(sourceFile)
+    }
+
+    /**
+     * Backup a file to the backups directory with a timestamp suffix (blocking version).
+     * Used by non-suspend callers like SplitFormatService.saveRunToLiveSplit.
+     */
+    fun backupFileSync(sourceFile: File): Boolean {
+        return try {
+            if (!sourceFile.exists()) return false
+            val timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH-mm-ss").format(Date())
+            val backupName = "${sourceFile.nameWithoutExtension}_$timestamp.${sourceFile.extension}"
+            val backupFile = File(backupsDir, backupName)
+            sourceFile.copyTo(backupFile, overwrite = true)
+            logger.info { "📦 Backed up ${sourceFile.name} → backups/${backupFile.name}" }
+            true
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to backup ${sourceFile.name}" }
+            false
+        }
+    }
+
+    /**
+     * Delete a run file by filename, backing it up first.
+     * Returns true if deletion succeeded.
+     */
+    suspend fun deleteRun(fileName: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val runFile = File(runsDir, fileName)
+            if (!runFile.exists()) {
+                logger.warn { "⚠️ Run file not found for deletion: $fileName" }
+                return@withContext false
+            }
+            // Always backup before deleting
+            backupFile(runFile)
+            val deleted = runFile.delete()
+            if (deleted) {
+                logger.info { "🗑️ Deleted run: $fileName" }
+            } else {
+                logger.error { "❌ Failed to delete run file: $fileName" }
+            }
+            deleted
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to delete run: $fileName" }
+            false
+        }
+    }
+
+    /**
+     * Get the runs directory path for external backup (e.g., LSS files).
+     */
+    fun getBackupsDir(): File = backupsDir
 
     /**
      * Load all runs from the runs directory
@@ -370,7 +448,13 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
     suspend fun saveRunSummaries(summaries: RunSummaries) = withContext(Dispatchers.IO) {
         try {
             val jsonString = json.encodeToString(summaries)
-            runSummariesFile.writeText(jsonString)
+            // Atomic write with unique temp file to prevent corruption
+            val tmpFile = File.createTempFile("summaries_", ".tmp", runSummariesFile.parentFile)
+            tmpFile.writeText(jsonString)
+            if (!tmpFile.renameTo(runSummariesFile)) {
+                tmpFile.copyTo(runSummariesFile, overwrite = true)
+                tmpFile.delete()
+            }
             logger.debug { "💾 Saved run summaries to ${runSummariesFile.absolutePath}" }
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to save run summaries" }

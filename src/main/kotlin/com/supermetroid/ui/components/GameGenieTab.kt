@@ -1,434 +1,398 @@
 package com.supermetroid.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.supermetroid.model.GameState
+import com.supermetroid.service.ItemWriteService
+import com.supermetroid.ui.gameStateService
 import com.supermetroid.ui.theme.TrackerColors
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import com.supermetroid.service.GameGenieDecoder
 
 /**
- * Game Genie tab for entering SNES Game Genie codes and applying preset cheats
+ * Item/equipment management tab for toggling items, beams, and ammo via live SRAM writes.
+ *
+ * Reads from the existing GameStateService.trackerState flow (already polled every 200ms)
+ * so NO duplicate memory reads are performed. Only writes go through ItemWriteService.
  */
 @Composable
 fun GameGenieTab(
     modifier: Modifier = Modifier
 ) {
-    var gameGenieEnabled by remember { mutableStateOf(false) }
-    var customCode by remember { mutableStateOf("") }
-    var selectedPreset by remember { mutableStateOf("") }
-    var presetExpanded by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val itemWriteService = remember {
+        ItemWriteService(gameStateService.getDualAdapter())
+    }
+    // Subscribe to existing tracker state — no extra memory reads
+    val trackerState by gameStateService.trackerState.collectAsState()
+    val gameState = trackerState.gameState
+    val connected = trackerState.connection.connected
+
+    var statusMessage by remember { mutableStateOf("") }
     var isApplying by remember { mutableStateOf(false) }
 
-    // Load Game Genie enabled state
-    LaunchedEffect(Unit) {
-        try {
-            val config = com.supermetroid.storage.FileStorageService().loadAppConfig()
-            gameGenieEnabled = config.gameGenieEnabled
-        } catch (e: Exception) {
-            // Use default value
+    fun doAction(action: suspend () -> Boolean, successMsg: String) {
+        if (isApplying) return
+        isApplying = true
+        scope.launch {
+            try {
+                val success = action()
+                statusMessage = if (success) successMsg else "Write failed — check connection"
+            } catch (e: Exception) {
+                statusMessage = "Error: ${e.message}"
+            } finally {
+                isApplying = false
+            }
         }
     }
 
     Column(
-        modifier = modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = modifier
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text(
-            text = "Game Genie",
+            text = "Items & Equipment",
             style = MaterialTheme.typography.headlineSmall.copy(
                 color = TrackerColors.Primary,
                 fontWeight = FontWeight.Bold
             )
         )
 
-        if (!gameGenieEnabled) {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = TrackerColors.SurfaceOverlayLight
+        // WIP banner
+        Card(
+            colors = CardDefaults.cardColors(containerColor = Color(0x40FF4444)),
+            shape = RoundedCornerShape(6.dp)
+        ) {
+            Text(
+                text = "WIP — Writes are unreliable via SNI. Use at your own risk.",
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = Color(0xFFFF6666),
+                    fontWeight = FontWeight.Bold
                 ),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "Game Genie Disabled",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            color = TrackerColors.Primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                    Text(
-                        text = "Enable Game Genie in General Settings to use cheat codes and presets.",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = TrackerColors.OnSurfaceVariant
-                        )
-                    )
-                }
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+            )
+        }
+
+        if (!connected) {
+            Text(
+                "Waiting for emulator connection...",
+                style = MaterialTheme.typography.bodyMedium.copy(color = TrackerColors.OnSurfaceVariant)
+            )
+        }
+
+        // Status message
+        if (statusMessage.isNotBlank()) {
+            Text(
+                statusMessage,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = if (statusMessage.startsWith("Error") || statusMessage.contains("failed"))
+                        TrackerColors.Error else TrackerColors.Success
+                )
+            )
+        }
+
+        // Quick actions row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            ActionButton("Refill All", Modifier.weight(1f)) {
+                doAction({ itemWriteService.refillAll(gameState) }, "Refilled all ammo & energy")
             }
-        } else {
-            // Custom Game Genie Code Section
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = TrackerColors.SurfaceOverlayLight
-                ),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+            ActionButton("Give All Items", Modifier.weight(1f)) {
+                doAction({ itemWriteService.giveAllItems() }, "All items equipped")
+            }
+        }
+
+        // Items section — reads from existing GameState flow
+        SectionCard("Items") {
+            val itemStates = remember(gameState) { getItemStates(gameState) }
+            itemStates.chunked(2).forEach { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Text(
-                        text = "Custom Game Genie Code",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            color = TrackerColors.Primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-
-                    OutlinedTextField(
-                        value = customCode,
-                        onValueChange = { 
-                            // Auto-format the input as user types
-                            customCode = formatGameGenieCode(it.uppercase())
-                        },
-                        label = { Text("Enter SNES Game Genie Code") },
-                        placeholder = { Text("e.g., DCD7-F26D or 7E0998:00FF") },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = TrackerColors.Primary,
-                            focusedLabelColor = TrackerColors.Primary
-                        ),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Button(
+                    for ((item, has) in row) {
+                        ItemToggleChip(
+                            label = item.displayName,
+                            enabled = has,
+                            modifier = Modifier.weight(1f),
                             onClick = {
-                                if (customCode.isNotBlank()) {
-                                    isApplying = true
-                                    GlobalScope.launch {
-                                        try {
-                                            applyGameGenieCode(customCode)
-                                        } catch (e: Exception) {
-                                            // Handle error
-                                        } finally {
-                                            isApplying = false
-                                        }
-                                    }
-                                }
-                            },
-                            enabled = customCode.isNotBlank() && !isApplying,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = TrackerColors.Primary,
-                                contentColor = Color.White,
-                                disabledContainerColor = TrackerColors.SurfaceVariant,
-                                disabledContentColor = TrackerColors.OnSurfaceVariant
-                            ),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = if (isApplying) "Applying..." else "Apply Code",
-                                color = Color.White
-                            )
-                        }
-
-                        Button(
-                            onClick = { customCode = "" },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = TrackerColors.SurfaceVariant,
-                                contentColor = TrackerColors.OnSurfaceVariant
-                            )
-                        ) {
-                            Text("Clear")
-                        }
-                    }
-                }
-            }
-
-            // Preset Cheats Section
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = TrackerColors.SurfaceOverlayLight
-                ),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = "Preset Cheats",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            color = TrackerColors.Primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-
-                    Box {
-                        Button(
-                            onClick = { presetExpanded = !presetExpanded },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = TrackerColors.SurfaceVariant,
-                                contentColor = TrackerColors.OnSurfaceVariant
-                            ),
-                            shape = RoundedCornerShape(6.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = selectedPreset.ifBlank { "Select a preset cheat..." },
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-
-                        DropdownMenu(
-                            expanded = presetExpanded,
-                            onDismissRequest = { presetExpanded = false },
-                            modifier = Modifier.background(TrackerColors.Surface)
-                        ) {
-                            GameGeniePreset.values().forEach { preset ->
-                                DropdownMenuItem(
-                                    text = { Text(preset.displayName, style = MaterialTheme.typography.bodyMedium) },
-                                    onClick = {
-                                        selectedPreset = preset.displayName
-                                        presetExpanded = false
-                                    }
+                                doAction(
+                                    { itemWriteService.toggleItem(item, !has, gameState) },
+                                    "${if (!has) "+" else "-"} ${item.displayName}"
                                 )
                             }
-                        }
+                        )
                     }
+                    if (row.size == 1) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+        }
 
-                    if (selectedPreset.isNotBlank()) {
-                        Button(
+        // Beams section — reads from existing GameState flow
+        SectionCard("Beams") {
+            val beamStates = remember(gameState) { getBeamStates(gameState) }
+            beamStates.chunked(2).forEach { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    for ((beam, has) in row) {
+                        ItemToggleChip(
+                            label = beam.displayName,
+                            enabled = has,
+                            modifier = Modifier.weight(1f),
                             onClick = {
-                                val preset = GameGeniePreset.values().find { it.displayName == selectedPreset }
-                                if (preset != null) {
-                                    isApplying = true
-                                    GlobalScope.launch {
-                                        try {
-                                            applyPresetCheat(preset)
-                                        } catch (e: Exception) {
-                                            // Handle error
-                                        } finally {
-                                            isApplying = false
-                                        }
-                                    }
-                                }
-                            },
-                            enabled = !isApplying,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = TrackerColors.Primary,
-                                contentColor = Color.White,
-                                disabledContainerColor = TrackerColors.SurfaceVariant,
-                                disabledContentColor = TrackerColors.OnSurfaceVariant
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = if (isApplying) "Applying..." else "Apply Preset",
-                                color = Color.White
-                            )
-                        }
+                                doAction(
+                                    { itemWriteService.toggleBeam(beam, !has, gameState) },
+                                    "${if (!has) "+" else "-"} ${beam.displayName}"
+                                )
+                            }
+                        )
+                    }
+                    if (row.size == 1) {
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }
         }
-    }
-}
 
-/**
- * Preset cheat options for Game Genie
- * Based on actual Game Genie codes from game_genie.txt
- */
-enum class GameGeniePreset(val displayName: String, val description: String, val codes: List<String>) {
-    // Direct memory writes (these should work immediately)
-    FULL_HEALTH("Full Health", "Set health to maximum", listOf("7E09C2:00FF", "7E09C4:00FF")),
-    INFINITE_MISSILES("Infinite Missiles", "Set missiles to maximum", listOf("7E09C6:00FF", "7E09C8:00FF")),
-    INFINITE_SUPERS("Infinite Super Missiles", "Set super missiles to maximum", listOf("7E09CA:00FF", "7E09CC:00FF")),
-    INFINITE_POWER_BOMBS("Infinite Power Bombs", "Set power bombs to maximum", listOf("7E09CE:00FF", "7E09D0:00FF")),
-    
-    // Game Genie codes (these need to be decoded first)
-    NO_ENERGY_LOSS("No Energy Loss", "No energy loss from enemies", listOf("C225-3005")),
-    SUPER_JUMPS("Super Jumps", "Super jumps don't drain energy", listOf("C22A-456D")),
-    ALMOST_INFINITE_MISSILES("Almost Infinite Missiles", "Almost infinite missiles", listOf("C288-C5A7")),
-    ALMOST_INFINITE_SUPERS("Almost Infinite Super Missiles", "Almost infinite super missiles", listOf("C28A-C9D7")),
-    ALMOST_INFINITE_BOMBS("Almost Infinite Power Bombs", "Almost infinite power bombs", listOf("3CA4-450D")),
-    
-    // Missile count presets from game_genie.txt
-    MISSILES_10("Missiles = 10", "Maximum missiles = 10", listOf("DCD7-F26D")),
-    MISSILES_25("Missiles = 25", "Maximum missiles = 25", listOf("FBD7-F26D")),
-    MISSILES_50("Missiles = 50", "Maximum missiles = 50", listOf("74D7-F26D")),
-    MISSILES_75("Missiles = 75", "Maximum missiles = 75", listOf("08D7-F26D")),
-    MISSILES_100("Missiles = 100", "Maximum missiles = 100", listOf("10D7-F26D")),
-    
-    // Super missile count presets
-    SUPERS_5("Super Missiles = 5", "Maximum super missiles = 5", listOf("D9D7-F36D")),
-    SUPERS_10("Super Missiles = 10", "Maximum super missiles = 10", listOf("DCD7-F36D")),
-    SUPERS_25("Super Missiles = 25", "Maximum super missiles = 25", listOf("FBD7-F36D")),
-    SUPERS_50("Super Missiles = 50", "Maximum super missiles = 50", listOf("74D7-F36D")),
-    
-    // Power bomb count presets
-    BOMBS_5("Power Bombs = 5", "Maximum power bombs = 5", listOf("D9D7-FE6D")),
-    BOMBS_10("Power Bombs = 10", "Maximum power bombs = 10", listOf("DCD7-FE6D")),
-    BOMBS_25("Power Bombs = 25", "Maximum power bombs = 25", listOf("FBD7-FE6D")),
-    BOMBS_50("Power Bombs = 50", "Maximum power bombs = 50", listOf("74D7-FE6D"));
-}
-
-/**
- * Format Game Genie code input to handle various formats
- */
-private fun formatGameGenieCode(input: String): String {
-    // Remove all non-alphanumeric characters except colons
-    val cleaned = input.replace(Regex("[^A-F0-9:]"), "")
-    
-    // If it contains a colon, it's already in ADDRESS:VALUE format
-    if (cleaned.contains(":")) {
-        return cleaned
-    }
-    
-    // If it's 8 characters, format as Game Genie code (DCD7-F26D)
-    if (cleaned.length == 8) {
-        return "${cleaned.substring(0, 4)}-${cleaned.substring(4, 8)}"
-    }
-    
-    // If it's 4 characters, add placeholder for second part
-    if (cleaned.length == 4) {
-        return "$cleaned-"
-    }
-    
-    // If it's longer than 8, truncate to 8
-    if (cleaned.length > 8) {
-        return "${cleaned.substring(0, 4)}-${cleaned.substring(4, 8)}"
-    }
-    
-    return cleaned
-}
-
-/**
- * Apply a custom Game Genie code to the emulator
- */
-private suspend fun applyGameGenieCode(code: String) {
-    val gameGenieService = com.supermetroid.service.GameGenieCodeService()
-    
-    // Check if it's a direct memory address format (7E0998:00FF)
-    if (code.contains(":")) {
-        val success = gameGenieService.applyGameGenieCode(code)
-        if (success) {
-            println("✅ Memory address code applied: $code")
-        } else {
-            println("❌ Failed to apply memory address code: $code")
-        }
-    } else {
-        // It's a Game Genie code format - convert to memory address
-        val memoryCode = convertGameGenieToMemoryAddress(code)
-        if (memoryCode != null) {
-            val success = gameGenieService.applyGameGenieCode(memoryCode)
-            if (success) {
-                println("✅ Game Genie code applied: $code -> $memoryCode")
-            } else {
-                println("❌ Failed to apply Game Genie code: $code")
-            }
-        } else {
-            println("❌ Invalid Game Genie code format: $code")
-        }
-    }
-}
-
-/**
- * Convert Game Genie code to memory address format using the full SNES decoder
- */
-private fun convertGameGenieToMemoryAddress(gameGenieCode: String): String? {
-    val decoder = com.supermetroid.service.GameGenieDecoder()
-    
-    // Clean the input code
-    val cleaned = gameGenieCode.replace(Regex("[^A-Za-z0-9]"), "").uppercase()
-    
-    // Validate the code format
-    if (!decoder.isValidGameGenieCode(cleaned)) {
-        println("❌ Invalid Game Genie code format: $gameGenieCode")
-        println("💡 Game Genie codes must be 8 characters using only: A,P,Z,L,G,I,T,O,X,U,K,S,V,Y,E,N")
-        return null
-    }
-    
-    // Decode the Game Genie code
-    val decoded = decoder.decodeGameGenieCode(cleaned)
-    
-    if (!decoded.isValid) {
-        println("❌ Failed to decode Game Genie code: $gameGenieCode")
-        println("💡 Error: ${decoded.errorMessage}")
-        return null
-    }
-    
-    // Convert to RetroArch format
-    val retroArchFormat = decoder.convertToRetroArchFormat(decoded)
-    
-    if (retroArchFormat != null) {
-        val description = decoder.describeGameGenieCode(decoded)
-        println("✅ Game Genie code decoded: $gameGenieCode")
-        println("📋 $description")
-        println("🎯 RetroArch format: $retroArchFormat")
-        return retroArchFormat
-    } else {
-        println("❌ Failed to convert to RetroArch format")
-        return null
-    }
-}
-
-/**
- * Apply a preset cheat to the emulator
- */
-private suspend fun applyPresetCheat(preset: GameGeniePreset) {
-    val gameGenieService = com.supermetroid.service.GameGenieCodeService()
-    val decoder = GameGenieDecoder()
-    
-    // Convert Game Genie codes to memory addresses
-    val memoryCodes = mutableListOf<String>()
-    
-    for (code in preset.codes) {
-        if (code.contains(":")) {
-            // Already a memory address format
-            memoryCodes.add(code)
-        } else {
-            // Game Genie code - decode it
-            val cleaned = code.replace(Regex("[^A-Za-z0-9]"), "").uppercase()
-            if (decoder.isValidGameGenieCode(cleaned)) {
-                val decoded = decoder.decodeGameGenieCode(cleaned)
-                val retroArchFormat = decoder.convertToRetroArchFormat(decoded)
-                if (retroArchFormat != null) {
-                    memoryCodes.add(retroArchFormat)
-                    println("✅ Decoded Game Genie code: $code -> $retroArchFormat")
-                } else {
-                    println("❌ Failed to decode Game Genie code: $code")
+        // Ammo section — all values from existing GameState flow, writes only
+        SectionCard("Ammo & Energy") {
+            AmmoRow("Energy", gameState.health, gameState.maxHealth,
+                onRefill = {
+                    doAction({
+                        itemWriteService.refillAmmo(ItemWriteService.CURRENT_ENERGY, gameState.maxHealth)
+                    }, "Energy refilled to ${gameState.maxHealth}")
+                },
+                onSetMax = { value ->
+                    doAction({
+                        itemWriteService.setAmmo(
+                            ItemWriteService.CURRENT_ENERGY, ItemWriteService.MAX_ENERGY,
+                            value, value
+                        )
+                    }, "Energy set to $value")
                 }
-            } else {
-                println("❌ Invalid Game Genie code format: $code")
-            }
+            )
+            AmmoRow("Missiles", gameState.missiles, gameState.maxMissiles,
+                onRefill = {
+                    doAction({
+                        itemWriteService.refillAmmo(ItemWriteService.CURRENT_MISSILES, gameState.maxMissiles)
+                    }, "Missiles refilled to ${gameState.maxMissiles}")
+                },
+                onSetMax = { value ->
+                    doAction({
+                        itemWriteService.setAmmo(
+                            ItemWriteService.CURRENT_MISSILES, ItemWriteService.MAX_MISSILES,
+                            value, value
+                        )
+                    }, "Missiles set to $value")
+                }
+            )
+            AmmoRow("Supers", gameState.supers, gameState.maxSupers,
+                onRefill = {
+                    doAction({
+                        itemWriteService.refillAmmo(ItemWriteService.CURRENT_SUPERS, gameState.maxSupers)
+                    }, "Supers refilled to ${gameState.maxSupers}")
+                },
+                onSetMax = { value ->
+                    doAction({
+                        itemWriteService.setAmmo(
+                            ItemWriteService.CURRENT_SUPERS, ItemWriteService.MAX_SUPERS,
+                            value, value
+                        )
+                    }, "Supers set to $value")
+                }
+            )
+            AmmoRow("PBs", gameState.powerBombs, gameState.maxPowerBombs,
+                onRefill = {
+                    doAction({
+                        itemWriteService.refillAmmo(ItemWriteService.CURRENT_POWER_BOMBS, gameState.maxPowerBombs)
+                    }, "PBs refilled to ${gameState.maxPowerBombs}")
+                },
+                onSetMax = { value ->
+                    doAction({
+                        itemWriteService.setAmmo(
+                            ItemWriteService.CURRENT_POWER_BOMBS, ItemWriteService.MAX_POWER_BOMBS,
+                            value, value
+                        )
+                    }, "Power Bombs set to $value")
+                }
+            )
+            AmmoRow("Reserve", gameState.reserveEnergy, gameState.maxReserveEnergy,
+                onRefill = {
+                    doAction({
+                        itemWriteService.refillAmmo(ItemWriteService.CURRENT_RESERVE, gameState.maxReserveEnergy)
+                    }, "Reserves refilled to ${gameState.maxReserveEnergy}")
+                },
+                onSetMax = { value ->
+                    doAction({
+                        itemWriteService.setAmmo(
+                            ItemWriteService.CURRENT_RESERVE, ItemWriteService.MAX_RESERVE,
+                            value, value
+                        )
+                    }, "Reserves set to $value")
+                }
+            )
         }
     }
-    
-    if (memoryCodes.isNotEmpty()) {
-        val success = gameGenieService.applyGameGenieCodes(memoryCodes)
-        if (success) {
-            println("✅ Preset cheat applied: ${preset.displayName}")
-        } else {
-            println("❌ Failed to apply preset cheat: ${preset.displayName}")
+}
+
+/** Map GameState.Items booleans to ItemWriteService.Item enums for the UI grid. */
+private fun getItemStates(gs: GameState): List<Pair<ItemWriteService.Item, Boolean>> = listOf(
+    ItemWriteService.Item.MORPH_BALL to gs.items.morph,
+    ItemWriteService.Item.BOMBS to gs.items.bombs,
+    ItemWriteService.Item.SPRING_BALL to gs.items.spring,
+    ItemWriteService.Item.SCREW_ATTACK to gs.items.screw,
+    ItemWriteService.Item.VARIA_SUIT to gs.items.varia,
+    ItemWriteService.Item.GRAVITY_SUIT to gs.items.gravity,
+    ItemWriteService.Item.HI_JUMP_BOOTS to gs.items.hiJump,
+    ItemWriteService.Item.SPACE_JUMP to gs.items.spaceJump,
+    ItemWriteService.Item.SPEED_BOOSTER to gs.items.speed,
+    ItemWriteService.Item.GRAPPLE_BEAM to gs.items.grapple,
+    ItemWriteService.Item.X_RAY_SCOPE to gs.items.xray
+)
+
+/** Map GameState.Beams booleans to ItemWriteService.Beam enums for the UI grid. */
+private fun getBeamStates(gs: GameState): List<Pair<ItemWriteService.Beam, Boolean>> = listOf(
+    ItemWriteService.Beam.CHARGE to gs.beams.charge,
+    ItemWriteService.Beam.ICE to gs.beams.ice,
+    ItemWriteService.Beam.WAVE to gs.beams.wave,
+    ItemWriteService.Beam.SPAZER to gs.beams.spazer,
+    ItemWriteService.Beam.PLASMA to gs.beams.plasma
+)
+
+@Composable
+private fun SectionCard(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = TrackerColors.SurfaceOverlayLight),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall.copy(
+                    color = TrackerColors.Primary,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+            content()
         }
-    } else {
-        println("❌ No valid codes to apply for preset: ${preset.displayName}")
+    }
+}
+
+@Composable
+private fun ItemToggleChip(
+    label: String,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.height(34.dp),
+        shape = RoundedCornerShape(6.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (enabled) TrackerColors.Primary else TrackerColors.SurfaceVariant,
+            contentColor = if (enabled) TrackerColors.OnPrimary else TrackerColors.OnSurface
+        )
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+            maxLines = 1
+        )
+    }
+}
+
+@Composable
+private fun ActionButton(
+    label: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.height(36.dp),
+        shape = RoundedCornerShape(6.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = TrackerColors.Primary,
+            contentColor = TrackerColors.OnPrimary
+        )
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+            maxLines = 1
+        )
+    }
+}
+
+@Composable
+private fun AmmoRow(
+    label: String,
+    current: Int,
+    max: Int,
+    onRefill: () -> Unit,
+    onSetMax: (Int) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text(
+            text = "$label: $current / $max",
+            style = MaterialTheme.typography.bodySmall.copy(color = TrackerColors.OnSurface),
+            modifier = Modifier.weight(1f)
+        )
+
+        SmallActionButton("Refill", onClick = onRefill)
+        SmallActionButton("+10") { onSetMax(max + 10) }
+        SmallActionButton("+50") { onSetMax(max + 50) }
+    }
+}
+
+@Composable
+private fun SmallActionButton(
+    label: String,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.height(28.dp),
+        shape = RoundedCornerShape(4.dp),
+        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = TrackerColors.SurfaceVariant,
+            contentColor = TrackerColors.OnSurface
+        )
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            maxLines = 1
+        )
     }
 }

@@ -138,7 +138,7 @@ class LiveSplitWriter : Logging {
         val transformer = TransformerFactory.newInstance().newTransformer()
         transformer.setOutputProperty(OutputKeys.INDENT, "yes")
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2")
-        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes")
+        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no")
         transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8")
 
         val writer = StringWriter()

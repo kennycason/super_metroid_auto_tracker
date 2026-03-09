@@ -17,7 +17,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
  * Service for managing split icon size configuration
  */
 class SplitIconSizeService(private val fileStorageService: FileStorageService) : Logging {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _currentSplitIconSize = MutableStateFlow(IconSize.MEDIUM)
     val currentSplitIconSize: StateFlow<IconSize> = _currentSplitIconSize.asStateFlow()

@@ -17,7 +17,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
  * Service for managing icon size configuration
  */
 class IconSizeService(private val fileStorageService: FileStorageService) : Logging {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _currentIconSize = MutableStateFlow(IconSize.MEDIUM)
     val currentIconSize: StateFlow<IconSize> = _currentIconSize.asStateFlow()
