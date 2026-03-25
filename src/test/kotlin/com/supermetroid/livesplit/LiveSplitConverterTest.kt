@@ -215,4 +215,109 @@ class LiveSplitConverterTest {
             "— they come from different runs"
         )
     }
+
+    // =============================================
+    // PB comparison vs fastest attempt cross-check
+    // =============================================
+
+    @Test
+    fun `toPersonalBest - uses fastest attempt when PB comparison is slower`() {
+        // Simulate: PB comparison shows 1:00:38 but fastest attempt is 59:14
+        val segments = listOf(
+            makeLssSegment("Split A", pbCumulative = 200000, bestSegment = 80000,
+                history = listOf(
+                    LiveSplitHistoryEntry(1, 95000, null),   // attempt 1: 95s
+                    LiveSplitHistoryEntry(2, 100000, null)   // attempt 2: 100s
+                )),
+            makeLssSegment("Split B", pbCumulative = 400000, bestSegment = 120000,
+                history = listOf(
+                    LiveSplitHistoryEntry(1, 110000, null),  // attempt 1: 110s
+                    LiveSplitHistoryEntry(2, 130000, null)   // attempt 2: 130s
+                )),
+            makeLssSegment("Split C", pbCumulative = 600000, bestSegment = 150000,
+                history = listOf(
+                    LiveSplitHistoryEntry(1, 155000, null),  // attempt 1: 155s
+                    LiveSplitHistoryEntry(2, 170000, null)   // attempt 2: 170s
+                ))
+        )
+        // PB comparison total = 600000 (from last segment)
+        // Attempt 1 total = 360000 (faster!)
+        // Attempt 2 total = 400000
+        val doc = LiveSplitDocument(
+            gameName = "Test", categoryName = "Any%", attemptCount = 2,
+            segments = segments,
+            attemptHistory = listOf(
+                LiveSplitAttempt(1, null, null, 360000, null),
+                LiveSplitAttempt(2, null, null, 400000, null)
+            )
+        )
+
+        val pb = converter.toPersonalBest(doc, "test")
+
+        // Should use attempt 1 (360s) not PB comparison (600s)
+        assertEquals(360000L, pb.totalTime,
+            "totalTime should come from fastest attempt (360s), not PB comparison (600s)")
+
+        // Cumulative times should be reconstructed from attempt 1's segment history
+        assertEquals(95000L, pb.splitTimes["split_a"]?.totalTime,
+            "Split A cumulative should be 95s from attempt 1")
+        assertEquals(205000L, pb.splitTimes["split_b"]?.totalTime,
+            "Split B cumulative should be 95+110=205s from attempt 1")
+        assertEquals(360000L, pb.splitTimes["split_c"]?.totalTime,
+            "Split C cumulative should be 95+110+155=360s from attempt 1")
+
+        // Best segments should still be from BestSegmentTime, not the attempt
+        assertEquals(80000L, pb.splitTimes["split_a"]?.segmentTime)
+        assertEquals(120000L, pb.splitTimes["split_b"]?.segmentTime)
+        assertEquals(150000L, pb.splitTimes["split_c"]?.segmentTime)
+    }
+
+    @Test
+    fun `toPersonalBest - uses PB comparison when it matches fastest attempt`() {
+        val doc = load100PercentDoc()
+        val pb = converter.toPersonalBest(doc, "hundred-percent")
+
+        // 100% LSS: PB comparison matches fastest complete attempt (4977139ms)
+        assertEquals(4977139L, pb.totalTime)
+        assertEquals("livesplit-import", pb.runSessionId,
+            "Should use comparison path when PB comparison matches fastest attempt")
+    }
+
+    @Test
+    fun `toPersonalBest - ignores incomplete fast attempts`() {
+        // Fast attempt exists but has no segment history (quick reset)
+        val segments = listOf(
+            makeLssSegment("Split A", pbCumulative = 300000, bestSegment = 80000,
+                history = listOf(LiveSplitHistoryEntry(2, 150000, null))),
+            makeLssSegment("Split B", pbCumulative = 600000, bestSegment = 120000,
+                history = listOf(LiveSplitHistoryEntry(2, 160000, null)))
+        )
+        val doc = LiveSplitDocument(
+            gameName = "Test", categoryName = "Any%", attemptCount = 2,
+            segments = segments,
+            attemptHistory = listOf(
+                LiveSplitAttempt(1, null, null, 5000, null),   // 5s quick reset, no segments
+                LiveSplitAttempt(2, null, null, 600000, null)  // matches PB comparison
+            )
+        )
+
+        val pb = converter.toPersonalBest(doc, "test")
+
+        // Should use PB comparison (600s), not the 5s quick reset
+        assertEquals(600000L, pb.totalTime)
+        assertEquals("livesplit-import", pb.runSessionId)
+    }
+
+    private fun makeLssSegment(
+        name: String,
+        pbCumulative: Long,
+        bestSegment: Long,
+        history: List<LiveSplitHistoryEntry> = emptyList()
+    ) = LiveSplitSegment(
+        name = name,
+        icon = null,
+        bestSegmentTime = LiveSplitTimeSpan(bestSegment, null),
+        splitTimes = listOf(LiveSplitComparisonSplit("Personal Best", pbCumulative, null)),
+        segmentHistory = history
+    )
 }

@@ -176,8 +176,84 @@ class LiveSplitConverter : Logging {
     /**
      * Extract [PersonalBest] data from a [LiveSplitDocument].
      * Uses the "Personal Best" comparison split times and best segment times.
+     *
+     * Cross-checks against attempt history: if the fastest complete attempt is faster
+     * than the "Personal Best" comparison, reconstructs PB cumulative times from the
+     * fastest attempt's segment history. This handles cases where the PB comparison
+     * was overwritten by a slower run (e.g., after LSS corruption or incorrect save).
      */
     fun toPersonalBest(doc: LiveSplitDocument, profileId: String): PersonalBest {
+        // Check if the fastest attempt disagrees with the PB comparison
+        val comparisonTotal = doc.segments.lastOrNull()?.splitTimes
+            ?.find { it.comparisonName == "Personal Best" }?.realTime ?: 0L
+
+        val fastestAttempt = doc.attemptHistory
+            .filter { it.realTime != null && it.realTime > 0 }
+            .minByOrNull { it.realTime!! }
+
+        val useFastestAttempt = fastestAttempt != null &&
+            fastestAttempt.realTime!! < comparisonTotal &&
+            hasCompleteSegmentHistory(doc, fastestAttempt.id)
+
+        return if (useFastestAttempt) {
+            buildPbFromAttempt(doc, fastestAttempt!!.id, fastestAttempt.realTime!!, profileId)
+        } else {
+            buildPbFromComparison(doc, profileId, comparisonTotal)
+        }
+    }
+
+    /**
+     * Check if a given attempt has segment history entries for all segments.
+     */
+    private fun hasCompleteSegmentHistory(doc: LiveSplitDocument, attemptId: Int): Boolean {
+        return doc.segments.all { segment ->
+            segment.segmentHistory.any { it.id == attemptId && it.realTime != null && it.realTime > 0 }
+        }
+    }
+
+    /**
+     * Build PB from a specific attempt's segment history.
+     * Used when the fastest attempt disagrees with the "Personal Best" comparison.
+     */
+    private fun buildPbFromAttempt(
+        doc: LiveSplitDocument,
+        attemptId: Int,
+        attemptTotal: Long,
+        profileId: String
+    ): PersonalBest {
+        val splitTimes = mutableMapOf<String, SplitTime>()
+        var cumulative = 0L
+
+        for (segment in doc.segments) {
+            val splitId = deriveSplitId(segment.name)
+            val bestSegment = segment.bestSegmentTime?.realTime ?: 0L
+            val segTime = segment.segmentHistory
+                .find { it.id == attemptId }?.realTime ?: 0L
+
+            cumulative += segTime
+
+            splitTimes[splitId] = SplitTime(
+                totalTime = cumulative,
+                segmentTime = bestSegment.takeIf { it > 0 } ?: segTime
+            )
+        }
+
+        return PersonalBest(
+            profileId = profileId,
+            runSessionId = "livesplit-attempt-$attemptId",
+            totalTime = attemptTotal,
+            splitTimes = splitTimes
+        )
+    }
+
+    /**
+     * Build PB from the "Personal Best" comparison (the normal path).
+     */
+    private fun buildPbFromComparison(
+        doc: LiveSplitDocument,
+        profileId: String,
+        comparisonTotal: Long
+    ): PersonalBest {
         val splitTimes = mutableMapOf<String, SplitTime>()
         var prevCumulativeTime = 0L
 
@@ -204,15 +280,10 @@ class LiveSplitConverter : Logging {
             }
         }
 
-        // The PB total is the last segment's cumulative "Personal Best" time,
-        // not the fastest attempt (which could be a quick reset with a timer value)
-        val totalTime = doc.segments.lastOrNull()?.splitTimes
-            ?.find { it.comparisonName == "Personal Best" }?.realTime ?: 0L
-
         return PersonalBest(
             profileId = profileId,
             runSessionId = "livesplit-import",
-            totalTime = totalTime,
+            totalTime = comparisonTotal,
             splitTimes = splitTimes
         )
     }
