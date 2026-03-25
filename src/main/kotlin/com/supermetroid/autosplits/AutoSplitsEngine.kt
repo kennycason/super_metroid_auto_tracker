@@ -655,25 +655,28 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         // Reset the state
         currentSplitIndex = 0
-        previousGameState = null
+        // Keep previousGameState so the next processGameState poll can detect
+        // a valid state transition (e.g., title screen 2 → 31) for auto-start.
+        // Clearing it would cause the first poll after reset to miss the transition.
         pauseStartTime = null  // Ensure pauseStartTime is reset
 
         val currentState = _splitsState.value
-        
+
         // Recalculate Best Possible from all completed runs (including the one we just finished)
         // This ensures BP Δ on the next run compares against the updated Best Possible
         val updatedState = updatePersonalBestsFromRunHistory(currentState)
-        
+
         _splitsState.value = updatedState.copy(currentRun = null)
 
         // Reset the debounce timer to prevent issues with immediate start after reset
         lastToggleTime = 0
 
-        // Disable auto-start after reset to prevent phantom runs from save file loads.
-        // User must explicitly press play/space to start a new run.
-        autoStartEnabled = false
+        // Re-enable auto-start so the next game start is detected automatically.
+        // The transition checks (gameState 2→31, 5→6, Ceres fallback) are specific enough
+        // to avoid phantom starts from save file loads.
+        autoStartEnabled = true
 
-        logger.info { "🔄 Run reset complete - timer state cleared, auto-start disabled (press play to start)" }
+        logger.info { "🔄 Run reset complete - timer state cleared, auto-start enabled" }
         
         // Clear saved timer from config
         clearSavedTimer()

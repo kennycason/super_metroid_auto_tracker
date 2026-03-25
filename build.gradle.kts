@@ -72,6 +72,13 @@ tasks.register<JavaExec>("exportToLiveSplit") {
     classpath = sourceSets["main"].runtimeClasspath
 }
 
+tasks.register<JavaExec>("cleanupLiveSplit") {
+    description = "Detect and repair corrupted PB times in LiveSplit (.lss) files"
+    group = "tools"
+    mainClass.set("com.supermetroid.livesplit.LiveSplitCleanupKt")
+    classpath = sourceSets["main"].runtimeClasspath
+}
+
 // Fat JAR task - creates a single executable JAR with all dependencies
 tasks.register<Jar>("fatJar") {
     archiveBaseName.set("SuperMetroidAutoTracker")

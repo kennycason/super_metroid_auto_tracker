@@ -263,6 +263,10 @@ class SplitFormatService(
     /**
      * Build a synthetic RunSession from PB data so runHistory can feed the BEST column
      * (findActualPbRun) and any other logic that expects the PB run in history.
+     *
+     * NOTE: pb.splitTimes contains *best segment* times in segmentTime (best across all
+     * attempts) and *PB cumulative* times in totalTime. The BEST column uses totalTime
+     * directly (not segment sums) so that it shows the actual PB run's cumulative pace.
      */
     private fun syntheticPbRun(profile: SplitProfile, pb: PersonalBest): RunSession {
         val baseTime = Instant.fromEpochMilliseconds(0L)

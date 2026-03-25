@@ -869,25 +869,31 @@ private fun getPbRunSegmentTime(splitsState: SplitsState, profileId: String, pro
 }
 
 /**
- * Calculate the PB run's cumulative time up to (and including) the given split index.
- * Sums PB run segment times in the PROFILE's split order (not the run's order),
- * so the cumulative total is correct even if the run's splits were in a different order.
+ * Get the PB run's cumulative time at the given split index.
+ * Uses the split's totalTime directly (the authoritative cumulative time from the PB run)
+ * rather than summing segment times, because segment times in PersonalBest represent
+ * best segments across ALL runs, not the PB run's actual segments.
+ *
+ * Returns 0 (displayed as "--") when the cumulative time is non-monotonic (i.e., less than
+ * a previous split's cumulative), which indicates corrupted or reset PB data in the LSS file.
  */
 private fun calculatePbRunTimeUpTo(splitsState: SplitsState, profileId: String, profile: SplitProfile, splitIndex: Int): Long {
     val pbRun = findActualPbRun(splitsState, profileId, profile) ?: return 0L
+    val splitTimeMap = pbRun.completedSplits.associate { it.splitId to it.time.totalTime }
 
-    // Build a map of splitId -> segmentTime from the PB run for fast lookup
-    val segmentTimeMap = pbRun.completedSplits.associate { it.splitId to it.time.segmentTime }
+    val split = profile.splits.getOrNull(splitIndex) ?: return 0L
+    val cumulative = splitTimeMap[split.id] ?: return 0L
 
-    // Sum segment times in profile order up to splitIndex
-    var cumulative = 0L
-    for (i in 0..splitIndex) {
-        val split = profile.splits.getOrNull(i) ?: continue
-        val segTime = segmentTimeMap[split.id]
-        if (segTime != null) {
-            cumulative += segTime
+    // Validate monotonicity: cumulative must be >= all previous splits' cumulative times
+    // Non-monotonic data means corrupted/reset PB splits (e.g., LiveSplit segment reordering)
+    for (i in 0 until splitIndex) {
+        val prevSplit = profile.splits.getOrNull(i) ?: continue
+        val prevCumulative = splitTimeMap[prevSplit.id] ?: continue
+        if (prevCumulative > cumulative) {
+            return 0L
         }
     }
+
     return cumulative
 }
 

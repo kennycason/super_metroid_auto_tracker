@@ -185,4 +185,34 @@ class LiveSplitConverterTest {
             "Sum of best segments ($sumOfBest ms) should be < PB total (${ pb.totalTime} ms)"
         )
     }
+
+    @Test
+    fun `toPersonalBest - totalTime stores PB cumulative and segmentTime stores best segment`() {
+        val doc = load100PercentDoc()
+        val profile = converter.toSplitProfile(doc, "hundred-percent")
+        val pb = converter.toPersonalBest(doc, "hundred-percent")
+
+        // totalTime values should be monotonically increasing (PB cumulative)
+        var prevTotalTime = 0L
+        for (split in profile.splits) {
+            val st = pb.splitTimes[split.id] ?: continue
+            if (st.totalTime > 0) {
+                assertTrue(
+                    st.totalTime >= prevTotalTime,
+                    "Split ${split.id}: totalTime ${st.totalTime} must be >= previous $prevTotalTime"
+                )
+                prevTotalTime = st.totalTime
+            }
+        }
+        // Last split's totalTime should equal PB total
+        assertEquals(pb.totalTime, prevTotalTime, "Last cumulative totalTime must equal PB total")
+
+        // segmentTime (best segment across all attempts) should sum to LESS than PB total
+        val sumOfBest = pb.splitTimes.values.sumOf { it.segmentTime }
+        assertTrue(
+            sumOfBest < pb.totalTime,
+            "Sum of best segments ($sumOfBest ms) should be < PB total (${pb.totalTime} ms) " +
+            "— they come from different runs"
+        )
+    }
 }
