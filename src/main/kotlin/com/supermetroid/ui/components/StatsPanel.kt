@@ -142,6 +142,11 @@ private fun SummaryTab(runs: List<com.supermetroid.model.RunSession>) {
         StatRow("Completed", stats.completedRuns.toString(), TrackerColors.Success)
         StatRow("Failed", stats.failedRuns.toString(),
             if (stats.failedRuns > 0) TrackerColors.Error else TrackerColors.OnSurfaceVariant)
+        if (stats.totalRuns > 0) {
+            val completionRate = stats.completedRuns.toFloat() / stats.totalRuns * 100
+            StatRow("Completion Rate", "%.2f%%".format(completionRate),
+                redToGreenGradient(completionRate / 100f))
+        }
 
         Divider(color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 4.dp))
 
@@ -153,13 +158,6 @@ private fun SummaryTab(runs: List<com.supermetroid.model.RunSession>) {
             StatRow("Fastest Run", formatDuration(stats.fastestRun), GoldColor)
             StatRow("Average", formatDuration(stats.averageCompletedTime ?: 0))
             StatRow("Median", formatDuration(stats.medianCompletedTime ?: 0))
-        }
-
-        if (stats.completedRuns > 0) {
-            Divider(color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 4.dp))
-            val completionRate = (stats.completedRuns.toFloat() / stats.totalRuns * 100).toInt()
-            StatRow("Completion Rate", "$completionRate%",
-                redToGreenGradient(completionRate / 100f))
         }
     }
 }
@@ -237,7 +235,7 @@ private fun SplitCompletionsTab(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 SpriteIcon(
-                    itemId = getSplitItemId(entry.splitId, entry.splitName),
+                    itemId = statsSplitItemId(entry.splitId, entry.splitName),
                     isObtained = entry.timesCompleted > 0,
                     size = 16
                 )
@@ -366,7 +364,7 @@ private fun DeathsTab(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 SpriteIcon(
-                    itemId = getSplitItemId(entry.splitId, entry.splitName),
+                    itemId = statsSplitItemId(entry.splitId, entry.splitName),
                     isObtained = true,
                     size = 16
                 )
@@ -748,45 +746,11 @@ private fun axisLabelStyle() = MaterialTheme.typography.bodySmall.copy(
 )
 
 /**
- * Map a split ID to a sprite item ID for the icon.
+ * Map a split ID + name to a sprite item ID for the icon.
+ * Delegates to the shared getSplitItemId in SplitsList.
  */
-private fun getSplitItemId(splitId: String, splitName: String): String {
-    // Strip _2, _3 suffixes from deduplicated IDs for icon lookup
-    val baseId = splitId.replace(Regex("_\\d+$"), "")
-    val directMap = mapOf(
-        "ceres_station" to "ceres_station", "morph_ball" to "morph_ball",
-        "first_missile" to "missile", "bomb" to "bomb",
-        "first_super" to "super_missile", "charge_beam" to "charge_beam",
-        "spazer" to "spazer", "kraid" to "kraid",
-        "varia_suit" to "varia_suit", "hi_jump_boots" to "hi_jump_boots",
-        "speed_booster" to "speed_booster", "wave_beam" to "wave_beam",
-        "ice_beam" to "ice_beam", "first_power_bomb" to "power_bomb",
-        "phantoon" to "phantoon", "gravity_suit" to "gravity_suit",
-        "draygon" to "draygon", "space_jump" to "space_jump",
-        "plasma_beam" to "plasma_beam", "ridley" to "ridley",
-        "golden_four" to "golden_four", "mother_brain_1" to "mother_brain_1",
-        "mother_brain_2" to "mother_brain_2", "ship" to "samus_ship",
-        "screw_attack" to "screw_attack", "grapple_beam" to "grapple_beam",
-        "xray_scope" to "xray_scope", "spring_ball" to "spring_ball",
-        "reserve_tank" to "reserve_tank"
-    )
-    directMap[baseId]?.let { return it }
-
-    val name = splitName.lowercase()
-    return when {
-        "missile" in name -> "missile"
-        "super" in name -> "super_missile"
-        "power bomb" in name -> "power_bomb"
-        "morph" in name -> "morph_ball"
-        "bomb" in name -> "bomb"
-        "kraid" in name -> "kraid"
-        "phantoon" in name -> "phantoon"
-        "draygon" in name -> "draygon"
-        "ridley" in name -> "ridley"
-        "mother brain" in name -> "mother_brain_1"
-        "ship" in name || "done" in name || "finish" in name -> "samus_ship"
-        else -> "missile"
-    }
+private fun statsSplitItemId(splitId: String, splitName: String): String {
+    return getSplitItemId(com.supermetroid.model.Split(splitId, splitName, ""))
 }
 
 private fun formatDuration(ms: Long): String {

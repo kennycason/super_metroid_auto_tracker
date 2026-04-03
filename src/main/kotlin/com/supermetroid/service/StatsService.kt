@@ -107,8 +107,8 @@ object StatsService {
 
     /**
      * Compute deaths per split. Deaths at split[i] = runs that reached split[i] minus
-     * runs that completed split[i]. A run reaches split[0] if it has ANY completed splits.
-     * A run reaches split[i] (i>0) if it completed split[i-1].
+     * runs that completed split[i]. ALL runs reach split[0] (every attempt starts at
+     * the first split). A run reaches split[i] (i>0) if it completed split[i-1].
      * Results are sorted by death count (descending).
      */
     fun computeSplitDeaths(runs: List<RunSession>, profile: SplitProfile): List<SplitDeathEntry> {
@@ -119,8 +119,8 @@ object StatsService {
                 run.completedSplits.any { it.splitId == split.id }
             }
             val timesReached = if (index == 0) {
-                // First split: reached by any run that has at least one completed split
-                runs.count { it.completedSplits.isNotEmpty() }
+                // First split: ALL runs reach it (every attempt starts here)
+                runs.size
             } else {
                 val prevSplit = profile.splits[index - 1]
                 runs.count { run ->

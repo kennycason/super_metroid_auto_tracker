@@ -825,7 +825,7 @@ private val nameContainsPatterns: List<Pair<String, String>> = listOf(
  * 2. Contains-based name matching (handles arbitrary LiveSplit segment names)
  * 3. Falls back to "missile" placeholder
  */
-private fun getSplitItemId(split: Split): String {
+internal fun getSplitItemId(split: Split): String {
     splitIdToSpriteId[split.id]?.let { return it }
 
     val name = split.name.lowercase()

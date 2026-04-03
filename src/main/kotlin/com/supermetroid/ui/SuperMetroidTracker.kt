@@ -297,6 +297,12 @@ fun SuperMetroidTrackerApp() {
                 fileStorageService.loadSplitsState()
             }
             autoSplitsEngine.loadSavedState(savedSplitsState)
+
+            // If LiveSplit loaded a profile, switch to it at startup too
+            val resolvedProfile = splitFormatService.getResolvedLiveSplitProfile()
+            if (splitFormatService.isLiveSplitActive() && resolvedProfile != null) {
+                splitProfileService.setProfile(resolvedProfile)
+            }
         }
 
         // CRITICAL: Set up game state callback BEFORE starting the service

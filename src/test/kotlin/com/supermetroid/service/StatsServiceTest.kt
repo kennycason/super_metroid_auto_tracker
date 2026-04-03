@@ -214,8 +214,9 @@ class StatsServiceTest {
 
     @Test
     fun `computeSplitDeaths - deaths equal reached minus completed`() {
-        // 3 runs: all reach ceres, 2 reach morph, 1 reaches bomb onward
+        // 4 runs: 1 dies before first split, 1 dies at morph, 1 dies at bomb, 1 completes
         val runs = listOf(
+            makeRun("r0", 5000, false, emptyList(), emptyList()),  // reset before first split
             makeRun("r1", 60000, false, listOf("ceres"), listOf(60000)),
             makeRun("r2", 110000, false, listOf("ceres", "morph"), listOf(60000, 50000)),
             makeRun("r3", 300000, true,
@@ -225,13 +226,13 @@ class StatsServiceTest {
         val deaths = StatsService.computeSplitDeaths(runs, profile)
 
         // Deaths sorted by count descending
-        // ceres: reached=3 (all have splits), completed=3 → deaths=0
+        // ceres: reached=4 (ALL runs), completed=3 → deaths=1
         // morph: reached=3 (completed ceres), completed=2 → deaths=1
         // bomb: reached=2 (completed morph), completed=1 → deaths=1
         // kraid: reached=1 (completed bomb), completed=1 → deaths=0
         // ship: reached=1 (completed kraid), completed=1 → deaths=0
         val deathMap = deaths.associate { it.splitId to it.deaths }
-        assertEquals(0, deathMap["ceres"])
+        assertEquals(1, deathMap["ceres"])
         assertEquals(1, deathMap["morph"])
         assertEquals(1, deathMap["bomb"])
         assertEquals(0, deathMap["kraid"])
@@ -240,8 +241,9 @@ class StatsServiceTest {
 
     @Test
     fun `computeSplitDeaths - sorted by death count descending`() {
-        // Many runs dying at morph, a few at bomb
+        // Many runs dying before or at morph, a few at bomb
         val runs = listOf(
+            makeRun("r0", 5000, false, emptyList(), emptyList(), startMs = 500),  // reset
             makeRun("r1", 60000, false, listOf("ceres"), listOf(60000), startMs = 1000),
             makeRun("r2", 60000, false, listOf("ceres"), listOf(60000), startMs = 2000),
             makeRun("r3", 60000, false, listOf("ceres"), listOf(60000), startMs = 3000),
@@ -252,14 +254,16 @@ class StatsServiceTest {
         )
         val deaths = StatsService.computeSplitDeaths(runs, profile)
 
-        // ceres: reached=5, completed=5 → deaths=0
+        // ceres: reached=6 (all), completed=5 → deaths=1
         // morph: reached=5 (completed ceres), completed=2 → deaths=3 (most deaths!)
         // bomb: reached=2, completed=1 → deaths=1
         // First entry should be the one with most deaths
         assertEquals("morph", deaths[0].splitId)
         assertEquals(3, deaths[0].deaths)
-        assertEquals("bomb", deaths[1].splitId)
-        assertEquals(1, deaths[1].deaths)
+        // ceres and bomb both have 1 death
+        val deathMap = deaths.associate { it.splitId to it.deaths }
+        assertEquals(1, deathMap["ceres"])
+        assertEquals(1, deathMap["bomb"])
     }
 
     @Test
@@ -283,6 +287,7 @@ class StatsServiceTest {
     @Test
     fun `computeSplitDeaths - tracks reached and completed counts`() {
         val runs = listOf(
+            makeRun("r0", 5000, false, emptyList(), emptyList()),  // early reset
             makeRun("r1", 60000, false, listOf("ceres"), listOf(60000)),
             makeRun("r2", 110000, false, listOf("ceres", "morph"), listOf(60000, 50000)),
             makeRun("r3", 300000, true,
@@ -290,11 +295,18 @@ class StatsServiceTest {
                 listOf(60000, 50000, 40000, 80000, 70000))
         )
         val deaths = StatsService.computeSplitDeaths(runs, profile)
+        val ceresEntry = deaths.find { it.splitId == "ceres" }!!
         val morphEntry = deaths.find { it.splitId == "morph" }!!
 
-        assertEquals(3, morphEntry.timesReached)    // 3 runs completed ceres
-        assertEquals(2, morphEntry.timesCompleted)  // 2 runs completed morph
-        assertEquals(1, morphEntry.deaths)           // 3 - 2 = 1
+        // Ceres: ALL 4 runs reach it, 3 complete it
+        assertEquals(4, ceresEntry.timesReached)
+        assertEquals(3, ceresEntry.timesCompleted)
+        assertEquals(1, ceresEntry.deaths)
+
+        // Morph: 3 runs completed ceres → reach morph, 2 complete morph
+        assertEquals(3, morphEntry.timesReached)
+        assertEquals(2, morphEntry.timesCompleted)
+        assertEquals(1, morphEntry.deaths)
     }
 
     // =============================================
