@@ -220,6 +220,7 @@ fun SuperMetroidTrackerApp() {
     val showTimer by uiVisibilityService.showTimer.collectAsState()
     val showSettings by uiVisibilityService.showSettings.collectAsState()
     val showGameGenie by uiVisibilityService.showGameGenie.collectAsState()
+    val showStats by uiVisibilityService.showStats.collectAsState()
     val gameGenieEnabled by gameGenieService.gameGenieEnabled.collectAsState()
     
     // Track if services are initialized
@@ -394,6 +395,7 @@ fun SuperMetroidTrackerApp() {
                         showTimer = showTimer,
                         showSettings = showSettings,
                         showGameGenie = showGameGenie,
+                        showStats = showStats,
                         gameGenieEnabled = gameGenieEnabled,
                         uiVisibilityService = uiVisibilityService,
                         themeService = themeService,
@@ -417,6 +419,7 @@ fun SuperMetroidTrackerLayout(
     showTimer: Boolean,
     showSettings: Boolean,
     showGameGenie: Boolean,
+    showStats: Boolean,
     gameGenieEnabled: Boolean,
     uiVisibilityService: com.supermetroid.service.UIVisibilityService,
     themeService: com.supermetroid.service.ThemeService,
@@ -511,7 +514,7 @@ fun SuperMetroidTrackerLayout(
                 splitDisplayModeService = splitDisplayModeService,
                 splitProfileService = splitProfileService,
                 modifier = Modifier.fillMaxWidth().weight(1f),
-                maxHeight = 900 // Maximum list height for tall windows
+                maxHeight = 2000 // Maximum list height for tall windows / large split profiles
             )
             
             // Personal Best section - appears below splits when splits are showing
@@ -564,8 +567,21 @@ fun SuperMetroidTrackerLayout(
             Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
         }
 
+        // Stats panel - takes remaining space when visible
+        if (showStats) {
+            val currentProfile by splitProfileService.currentProfile.collectAsState()
+            com.supermetroid.ui.components.StatsPanel(
+                splitsState = splitsState,
+                profile = currentProfile,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            )
+            Spacer(modifier = Modifier.height(3.dp))
+        }
+
         // Spacer to push footer to bottom when splits are hidden and settings/Game Genie not shown
-        if (!showSplits && !showSettings && !(showGameGenie && gameGenieEnabled)) {
+        if (!showSplits && !showSettings && !(showGameGenie && gameGenieEnabled) && !showStats) {
             Spacer(modifier = Modifier.weight(1f))
         }
 
@@ -652,6 +668,25 @@ fun SuperMetroidTrackerLayout(
                 ) {
                     Text(
                         text = "timer",
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
+
+                // Stats toggle
+                TextButton(
+                    onClick = {
+                        CoroutineScope(Dispatchers.Swing).launch {
+                            uiVisibilityService.setShowStats(!showStats)
+                        }
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = if (showStats) TrackerColors.Success else TrackerColors.OnSurfaceVariant
+                    ),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                    modifier = Modifier.height(20.dp)
+                ) {
+                    Text(
+                        text = "stats",
                         style = MaterialTheme.typography.labelSmall
                     )
                 }

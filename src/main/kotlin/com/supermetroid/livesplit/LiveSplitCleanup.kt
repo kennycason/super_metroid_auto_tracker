@@ -56,17 +56,27 @@ fun main(args: Array<String>) {
     println()
 
     // Detect corruptions
-    val corruptions = detectCorruptions(doc)
+    val monotonicCorruptions = detectCorruptions(doc)
+    val pbMismatch = detectPbMismatch(doc)
 
-    if (corruptions.isEmpty()) {
+    if (monotonicCorruptions.isEmpty() && pbMismatch == null) {
         println("No corruptions detected. File is clean.")
         return
     }
 
-    println("CORRUPTIONS DETECTED: ${corruptions.size} non-monotonic PB cumulative times")
-    for (c in corruptions) {
-        println("  ${c.segmentName}: cumulative=${formatMs(c.cumulativeMs)} but previous=${formatMs(c.previousCumulativeMs)}")
+    if (monotonicCorruptions.isNotEmpty()) {
+        println("CORRUPTIONS DETECTED: ${monotonicCorruptions.size} non-monotonic PB cumulative times")
+        for (c in monotonicCorruptions) {
+            println("  ${c.segmentName}: cumulative=${formatMs(c.cumulativeMs)} but previous=${formatMs(c.previousCumulativeMs)}")
+        }
     }
+
+    if (pbMismatch != null) {
+        println("PB MISMATCH: Comparison shows ${formatMs(pbMismatch.comparisonTotal)} but fastest complete attempt is ${formatMs(pbMismatch.fastestAttemptTotal)} (attempt #${pbMismatch.fastestAttemptId})")
+    }
+
+    @Suppress("UNUSED_VARIABLE")
+    val corruptions = monotonicCorruptions
     println()
 
     // Attempt repair
@@ -123,6 +133,41 @@ data class Corruption(
     val cumulativeMs: Long,
     val previousCumulativeMs: Long
 )
+
+data class PbMismatch(
+    val comparisonTotal: Long,
+    val fastestAttemptTotal: Long,
+    val fastestAttemptId: Int
+)
+
+/**
+ * Detect when the "Personal Best" comparison total doesn't match the fastest
+ * complete attempt in the attempt history. This happens when a slower run
+ * incorrectly overwrites the PB comparison.
+ */
+fun detectPbMismatch(doc: LiveSplitDocument): PbMismatch? {
+    val comparisonTotal = doc.segments.lastOrNull()?.splitTimes
+        ?.find { it.comparisonName == "Personal Best" }?.realTime ?: return null
+
+    // Find fastest attempt with complete segment history
+    val fastestComplete = doc.attemptHistory
+        .filter { it.realTime != null && it.realTime > 0 }
+        .filter { attempt ->
+            doc.segments.all { seg ->
+                seg.segmentHistory.any { it.id == attempt.id && it.realTime != null && it.realTime > 0 }
+            }
+        }
+        .minByOrNull { it.realTime!! }
+
+    if (fastestComplete == null) return null
+    if (fastestComplete.realTime!! >= comparisonTotal) return null
+
+    return PbMismatch(
+        comparisonTotal = comparisonTotal,
+        fastestAttemptTotal = fastestComplete.realTime,
+        fastestAttemptId = fastestComplete.id
+    )
+}
 
 /**
  * Detect non-monotonic PB cumulative times across segments.

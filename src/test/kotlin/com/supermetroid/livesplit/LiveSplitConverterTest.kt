@@ -1,5 +1,7 @@
 package com.supermetroid.livesplit
 
+import com.supermetroid.model.*
+import kotlinx.datetime.Instant
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -18,6 +20,12 @@ class LiveSplitConverterTest {
     private fun load100PercentDoc(): LiveSplitDocument {
         val stream = javaClass.getResourceAsStream("/livesplit/100_percent.lss")
             ?: error("Test resource not found")
+        return parser.parse(stream)
+    }
+
+    private fun loadKaizoDoc(): LiveSplitDocument {
+        val stream = javaClass.getResourceAsStream("/livesplit/Super Metroid Kaizo Possible Hacks 2019.lss")
+            ?: error("Kaizo test resource not found")
         return parser.parse(stream)
     }
 
@@ -306,6 +314,224 @@ class LiveSplitConverterTest {
         // Should use PB comparison (600s), not the 5s quick reset
         assertEquals(600000L, pb.totalTime)
         assertEquals("livesplit-import", pb.runSessionId)
+    }
+
+    // =============================================
+    // Kaizo Possible LSS parsing
+    // =============================================
+
+    @Test
+    fun `kaizo - parses all 55 segments`() {
+        val doc = loadKaizoDoc()
+        assertEquals(55, doc.segments.size)
+        assertEquals("Super Metroid ROM Hacks", doc.gameName)
+        assertEquals("(2019) Kaizo Possible", doc.categoryName)
+    }
+
+    @Test
+    fun `kaizo - 2025 attempts with 2065 attempt entries`() {
+        val doc = loadKaizoDoc()
+        assertEquals(2025, doc.attemptCount)
+        assertEquals(2065, doc.attemptHistory.size)
+    }
+
+    @Test
+    fun `kaizo - toSplitProfile creates profile with 55 splits`() {
+        val doc = loadKaizoDoc()
+        val profile = converter.toSplitProfile(doc)
+        assertEquals(55, profile.splits.size)
+        // First split name preserved
+        assertEquals("Morph save", profile.splits[0].name)
+        // Last split
+        assertEquals("End", profile.splits[54].name)
+    }
+
+    @Test
+    fun `kaizo - toPersonalBest extracts PB at 3h36m`() {
+        val doc = loadKaizoDoc()
+        val pb = converter.toPersonalBest(doc, "kaizo")
+
+        // PB total: 03:36:14.128 = 12974128ms
+        assertTrue(pb.totalTime in 12970000L..12980000L,
+            "PB total should be ~3:36:14 (${pb.totalTime}ms)")
+
+        // Should have all 55 split times
+        assertEquals(55, pb.splitTimes.size)
+
+        // Sum of best segments should be less than PB (gold splits from different runs)
+        val sumOfBest = pb.splitTimes.values.sumOf { it.segmentTime }
+        assertTrue(sumOfBest < pb.totalTime,
+            "Sum of best ($sumOfBest) should be < PB total (${pb.totalTime})")
+    }
+
+    @Test
+    fun `kaizo - segment history has rich data for early splits`() {
+        val doc = loadKaizoDoc()
+        // First segment has 796 history entries (lots of resets)
+        assertTrue(doc.segments[0].segmentHistory.size >= 700,
+            "Morph save should have 700+ history entries, got ${doc.segments[0].segmentHistory.size}")
+
+        // Last segment has 18 (only 18 completions)
+        assertEquals(18, doc.segments[54].segmentHistory.size)
+    }
+
+    @Test
+    fun `kaizo - toRunHistory converts all attempts to RunSessions`() {
+        val doc = loadKaizoDoc()
+        val runs = converter.toRunHistory(doc, "kaizo")
+
+        // Should have an entry for every attempt
+        assertEquals(doc.attemptHistory.size, runs.size)
+
+        // 18 completed runs (attempts with RealTime)
+        val completed = runs.filter { it.endTime != null }
+        assertEquals(18, completed.size, "Should have 18 completed runs (attempts with RealTime)")
+
+        // Failed/incomplete runs are the rest
+        val incomplete = runs.filter { it.endTime == null }
+        assertTrue(incomplete.size > 1000, "Should have 1000+ incomplete/reset runs")
+
+        // First segment should be reached by many runs (796 history entries)
+        val runsReachingFirstSplit = runs.count { run ->
+            run.completedSplits.any { it.splitId == "morph_save" }
+        }
+        assertTrue(runsReachingFirstSplit >= 700,
+            "700+ runs should reach first split, got $runsReachingFirstSplit")
+    }
+
+    @Test
+    fun `kaizo - handles duplicate segment names with unique IDs`() {
+        val doc = loadKaizoDoc()
+        val profile = converter.toSplitProfile(doc)
+
+        // File has multiple "Ship" and "Upper Norfair first save" segments
+        // Profile should have unique split IDs for all of them (55 unique IDs)
+        val ids = profile.splits.map { it.id }
+        assertEquals(55, ids.toSet().size,
+            "All split IDs should be unique, found duplicates: ${ids.groupBy { it }.filter { it.value.size > 1 }.keys}")
+
+        // First "ship" gets "ship", second gets "ship_2", etc.
+        val shipIds = ids.filter { it.startsWith("ship") }
+        assertTrue(shipIds.contains("ship"), "First Ship should be 'ship'")
+        assertTrue(shipIds.contains("ship_2"), "Second Ship should be 'ship_2'")
+    }
+
+    // =============================================
+    // fromRunSession — PB comparison protection
+    // =============================================
+
+    private val testProfile = SplitProfile(
+        id = "test",
+        name = "Test",
+        splits = listOf(
+            Split("split_a", "Split A", "item"),
+            Split("split_b", "Split B", "boss")
+        )
+    )
+
+    private fun makeExistingDoc(pbTotalA: Long, pbTotalB: Long, bestA: Long, bestB: Long): LiveSplitDocument {
+        return LiveSplitDocument(
+            gameName = "Test", categoryName = "Any%", attemptCount = 1,
+            segments = listOf(
+                LiveSplitSegment("Split A", null,
+                    LiveSplitTimeSpan(bestA, null),
+                    listOf(LiveSplitComparisonSplit("Personal Best", pbTotalA, null)),
+                    listOf(LiveSplitHistoryEntry(1, bestA, null))),
+                LiveSplitSegment("Split B", null,
+                    LiveSplitTimeSpan(bestB, null),
+                    listOf(LiveSplitComparisonSplit("Personal Best", pbTotalB, null)),
+                    listOf(LiveSplitHistoryEntry(1, bestB, null)))
+            ),
+            attemptHistory = listOf(
+                LiveSplitAttempt(1, "01/01/2024 00:00:00", "01/01/2024 01:00:00", pbTotalB, null)
+            )
+        )
+    }
+
+    private fun makeRun(id: String, totalTime: Long, splitATotalTime: Long, splitASegment: Long,
+                        splitBTotalTime: Long, splitBSegment: Long, complete: Boolean = true): RunSession {
+        val baseTime = Instant.fromEpochMilliseconds(1000000000L)
+        return RunSession(
+            id = id, profileId = "test", startTime = baseTime,
+            endTime = if (complete) Instant.fromEpochMilliseconds(1000000000L + totalTime) else null,
+            completedSplits = listOf(
+                CompletedSplit("split_a", SplitTime(splitATotalTime, splitASegment), baseTime),
+                CompletedSplit("split_b", SplitTime(splitBTotalTime, splitBSegment), baseTime)
+            ),
+            totalTime = totalTime
+        )
+    }
+
+    @Test
+    fun `fromRunSession - slower run does not overwrite PB comparison`() {
+        val existingDoc = makeExistingDoc(pbTotalA = 100000, pbTotalB = 200000, bestA = 90000, bestB = 95000)
+        val slowerRun = makeRun("slow", 300000, 150000, 150000, 300000, 150000)
+
+        val result = converter.fromRunSession(slowerRun, testProfile, existingDoc)
+
+        // PB comparison should still be from the original PB, not the slower run
+        val splitAPb = result.segments[0].splitTimes.find { it.comparisonName == "Personal Best" }
+        val splitBPb = result.segments[1].splitTimes.find { it.comparisonName == "Personal Best" }
+        assertEquals(100000L, splitAPb?.realTime, "Split A PB should remain 100s, not be overwritten to 150s")
+        assertEquals(200000L, splitBPb?.realTime, "Split B PB should remain 200s, not be overwritten to 300s")
+    }
+
+    @Test
+    fun `fromRunSession - faster run DOES overwrite PB comparison`() {
+        val existingDoc = makeExistingDoc(pbTotalA = 100000, pbTotalB = 200000, bestA = 90000, bestB = 95000)
+        val fasterRun = makeRun("fast", 150000, 70000, 70000, 150000, 80000)
+
+        val result = converter.fromRunSession(fasterRun, testProfile, existingDoc)
+
+        val splitAPb = result.segments[0].splitTimes.find { it.comparisonName == "Personal Best" }
+        val splitBPb = result.segments[1].splitTimes.find { it.comparisonName == "Personal Best" }
+        assertEquals(70000L, splitAPb?.realTime, "Split A PB should be updated to faster run's time")
+        assertEquals(150000L, splitBPb?.realTime, "Split B PB should be updated to faster run's time")
+    }
+
+    @Test
+    fun `fromRunSession - adds segment history for new run`() {
+        val existingDoc = makeExistingDoc(pbTotalA = 100000, pbTotalB = 200000, bestA = 90000, bestB = 95000)
+        val newRun = makeRun("new", 300000, 150000, 150000, 300000, 150000)
+
+        val result = converter.fromRunSession(newRun, testProfile, existingDoc)
+
+        // Should have 2 history entries: original + new run
+        assertEquals(2, result.segments[0].segmentHistory.size, "Split A should have 2 history entries")
+        assertEquals(2, result.segments[1].segmentHistory.size, "Split B should have 2 history entries")
+
+        // New entry should have the new attempt ID
+        val newEntry = result.segments[0].segmentHistory.last()
+        assertEquals(2, newEntry.id)  // existing max is 1, so new is 2
+        assertEquals(150000L, newEntry.realTime)
+    }
+
+    @Test
+    fun `fromRunSession - updates best segment when current run has faster segment`() {
+        val existingDoc = makeExistingDoc(pbTotalA = 100000, pbTotalB = 200000, bestA = 90000, bestB = 95000)
+        // Slower overall run but with one faster segment
+        val run = makeRun("mixed", 300000, 80000, 80000, 300000, 220000)
+
+        val result = converter.fromRunSession(run, testProfile, existingDoc)
+
+        // Split A best should be updated (80s < 90s existing)
+        assertEquals(80000L, result.segments[0].bestSegmentTime?.realTime,
+            "Split A best segment should be updated to 80s")
+        // Split B best should NOT be updated (220s > 95s existing)
+        assertEquals(95000L, result.segments[1].bestSegmentTime?.realTime,
+            "Split B best segment should remain 95s")
+    }
+
+    @Test
+    fun `fromRunSession - incomplete run does not overwrite PB comparison`() {
+        val existingDoc = makeExistingDoc(pbTotalA = 100000, pbTotalB = 200000, bestA = 90000, bestB = 95000)
+        // Incomplete run (even if splits look fast) should never overwrite PB
+        val incompleteRun = makeRun("incomplete", 50000, 25000, 25000, 50000, 25000, complete = false)
+
+        val result = converter.fromRunSession(incompleteRun, testProfile, existingDoc)
+
+        val splitBPb = result.segments[1].splitTimes.find { it.comparisonName == "Personal Best" }
+        assertEquals(200000L, splitBPb?.realTime, "PB should not be overwritten by incomplete run")
     }
 
     private fun makeLssSegment(

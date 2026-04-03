@@ -136,7 +136,7 @@ fun SplitsList(
                 state = listState,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(maxHeight.dp),
+                    .heightIn(max = maxHeight.dp),
                 verticalArrangement = Arrangement.spacedBy(1.dp) // 1.dp spacing between rows
             ) {
                 itemsIndexed(currentProfile.splits) { index, split ->

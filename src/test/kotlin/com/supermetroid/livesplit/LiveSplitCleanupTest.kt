@@ -128,4 +128,62 @@ class LiveSplitCleanupTest {
         )
         assertNull(repairPbCumulativeTimes(doc))
     }
+
+    // =============================================
+    // PB mismatch detection
+    // =============================================
+
+    @Test
+    fun `detectPbMismatch - no mismatch when comparison matches fastest`() {
+        val doc = makeDoc(
+            segments = listOf(
+                makeSegment("A", 200000, 80000, listOf(LiveSplitHistoryEntry(1, 95000, null))),
+                makeSegment("B", 400000, 120000, listOf(LiveSplitHistoryEntry(1, 110000, null)))
+            ),
+            attempts = listOf(LiveSplitAttempt(1, null, null, 400000, null))
+        )
+        assertNull(detectPbMismatch(doc))
+    }
+
+    @Test
+    fun `detectPbMismatch - detects when comparison is slower than fastest complete attempt`() {
+        // PB comparison shows 600s but attempt #1 completed in 360s with full segment history
+        val doc = makeDoc(
+            segments = listOf(
+                makeSegment("A", 300000, 80000, listOf(
+                    LiveSplitHistoryEntry(1, 95000, null),
+                    LiveSplitHistoryEntry(2, 150000, null)
+                )),
+                makeSegment("B", 600000, 120000, listOf(
+                    LiveSplitHistoryEntry(1, 110000, null),
+                    LiveSplitHistoryEntry(2, 150000, null)
+                ))
+            ),
+            attempts = listOf(
+                LiveSplitAttempt(1, null, null, 360000, null),  // faster
+                LiveSplitAttempt(2, null, null, 600000, null)   // matches comparison
+            )
+        )
+        val mismatch = detectPbMismatch(doc)
+        assertNotNull(mismatch)
+        assertEquals(600000L, mismatch!!.comparisonTotal)
+        assertEquals(360000L, mismatch.fastestAttemptTotal)
+        assertEquals(1, mismatch.fastestAttemptId)
+    }
+
+    @Test
+    fun `detectPbMismatch - ignores fast attempt without complete segment history`() {
+        // Attempt #1 is faster (5s) but has NO segment history (quick reset)
+        val doc = makeDoc(
+            segments = listOf(
+                makeSegment("A", 200000, 80000, listOf(LiveSplitHistoryEntry(2, 100000, null))),
+                makeSegment("B", 400000, 120000, listOf(LiveSplitHistoryEntry(2, 110000, null)))
+            ),
+            attempts = listOf(
+                LiveSplitAttempt(1, null, null, 5000, null),   // quick reset, no segments
+                LiveSplitAttempt(2, null, null, 400000, null)
+            )
+        )
+        assertNull(detectPbMismatch(doc))
+    }
 }
