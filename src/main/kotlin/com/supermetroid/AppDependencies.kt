@@ -34,7 +34,8 @@ data class AppDependencies(
     val mapRandoInfoFontSizeService: MapRandoInfoFontSizeService,
     val mapRandoDataService: MapRandoDataService,
     val mapRandoInfoConfigService: MapRandoInfoConfigService,
-    val splitFormatService: SplitFormatService
+    val splitFormatService: SplitFormatService,
+    val statsFontSizeService: StatsFontSizeService
 ) {
     companion object {
         /**
@@ -76,7 +77,8 @@ data class AppDependencies(
                 mapRandoInfoFontSizeService = MapRandoInfoFontSizeService(fileStorage, scope),
                 mapRandoDataService = MapRandoDataService(),
                 mapRandoInfoConfigService = MapRandoInfoConfigService(),
-                splitFormatService = splitFormatService
+                splitFormatService = splitFormatService,
+                statsFontSizeService = StatsFontSizeService(fileStorage, scope)
             )
         }
     }

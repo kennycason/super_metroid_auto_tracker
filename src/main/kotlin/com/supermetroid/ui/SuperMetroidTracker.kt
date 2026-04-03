@@ -53,6 +53,7 @@ val mapRandoInfoFontSizeService: com.supermetroid.service.MapRandoInfoFontSizeSe
 val mapRandoDataService: com.supermetroid.service.MapRandoDataService get() = appDependencies.mapRandoDataService
 val mapRandoInfoConfigService: com.supermetroid.service.MapRandoInfoConfigService get() = appDependencies.mapRandoInfoConfigService
 val splitFormatService: com.supermetroid.service.SplitFormatService get() = appDependencies.splitFormatService
+val statsFontSizeService: com.supermetroid.service.StatsFontSizeService get() = appDependencies.statsFontSizeService
 
 // Flag to indicate if we're in replay mode (don't load saved state)
 var isReplayMode = false
@@ -260,6 +261,9 @@ fun SuperMetroidTrackerApp() {
         
         // Initialize Map Rando info font size service
         mapRandoInfoFontSizeService.initialize()
+
+        // Initialize stats font size service
+        statsFontSizeService.initialize()
         
         // Initialize Map Rando info config service
         mapRandoInfoConfigService.initialize()
@@ -579,6 +583,7 @@ fun SuperMetroidTrackerLayout(
             com.supermetroid.ui.components.StatsPanel(
                 splitsState = splitsState,
                 profile = currentProfile,
+                statsFontSizeService = statsFontSizeService,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)

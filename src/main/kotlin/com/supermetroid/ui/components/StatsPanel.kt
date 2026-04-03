@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.supermetroid.model.SplitProfile
 import com.supermetroid.model.SplitsState
+import com.supermetroid.model.StatsFontSize
+import com.supermetroid.service.StatsFontSizeService
 import com.supermetroid.service.StatsService
 import com.supermetroid.ui.theme.TrackerColors
 
@@ -64,9 +66,11 @@ private enum class StatsTab(val label: String) {
 fun StatsPanel(
     splitsState: SplitsState,
     profile: SplitProfile,
+    statsFontSizeService: StatsFontSizeService,
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableStateOf(StatsTab.SUMMARY) }
+    val fs by statsFontSizeService.fontSize.collectAsState()
     // Filter out synthetic PB run and only include runs matching current profile
     val runs = remember(splitsState.runHistory, profile.id) {
         splitsState.runHistory.filter {
@@ -75,27 +79,56 @@ fun StatsPanel(
     }
 
     Column(modifier = modifier.padding(horizontal = 8.dp)) {
-        // Tab row
+        // Tab row with font size selector
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(2.dp)
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            StatsTab.values().forEach { tab ->
-                TextButton(
-                    onClick = { selectedTab = tab },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = if (selectedTab == tab) TrackerColors.Success else TrackerColors.OnSurfaceVariant
-                    ),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                    modifier = Modifier.height(24.dp)
-                ) {
-                    Text(
-                        text = tab.label,
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = if (selectedTab == tab) FontWeight.Bold else FontWeight.Normal
+            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                StatsTab.values().forEach { tab ->
+                    TextButton(
+                        onClick = { selectedTab = tab },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = if (selectedTab == tab) TrackerColors.Success else TrackerColors.OnSurfaceVariant
+                        ),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                        modifier = Modifier.height(24.dp)
+                    ) {
+                        Text(
+                            text = tab.label,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontFamily = FontFamily.Monospace,
+                                fontWeight = if (selectedTab == tab) FontWeight.Bold else FontWeight.Normal
+                            )
                         )
-                    )
+                    }
+                }
+            }
+
+            // Font size toggle
+            Row(horizontalArrangement = Arrangement.spacedBy(1.dp)) {
+                StatsFontSize.values().forEach { size ->
+                    val isSelected = fs == size
+                    TextButton(
+                        onClick = { statsFontSizeService.setFontSize(size) },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = if (isSelected) TrackerColors.Success else TrackerColors.OnSurfaceVariant.copy(alpha = 0.4f),
+                            containerColor = if (isSelected) TrackerColors.OnSurfaceVariant.copy(alpha = 0.15f) else Color.Transparent
+                        ),
+                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+                        modifier = Modifier.height(18.dp),
+                        shape = RoundedCornerShape(3.dp)
+                    ) {
+                        Text(
+                            text = size.displayName.first().toString(),
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 8.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -105,18 +138,18 @@ fun StatsPanel(
         // Tab content
         Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
             when (selectedTab) {
-                StatsTab.SUMMARY -> SummaryTab(runs)
-                StatsTab.SPLIT_COMPLETIONS -> SplitCompletionsTab(runs, profile)
-                StatsTab.DEATHS -> DeathsTab(runs, profile)
-                StatsTab.PROGRESS -> ProgressTab(runs)
-                StatsTab.TREND -> TrendTab(runs)
+                StatsTab.SUMMARY -> SummaryTab(runs, fs)
+                StatsTab.SPLIT_COMPLETIONS -> SplitCompletionsTab(runs, profile, fs)
+                StatsTab.DEATHS -> DeathsTab(runs, profile, fs)
+                StatsTab.PROGRESS -> ProgressTab(runs, fs)
+                StatsTab.TREND -> TrendTab(runs, fs)
             }
         }
     }
 }
 
 @Composable
-private fun SummaryTab(runs: List<com.supermetroid.model.RunSession>) {
+private fun SummaryTab(runs: List<com.supermetroid.model.RunSession>, fs: StatsFontSize) {
     val stats = remember(runs) { StatsService.computeRunStats(runs) }
 
     Column(
@@ -132,38 +165,44 @@ private fun SummaryTab(runs: List<com.supermetroid.model.RunSession>) {
                 color = TrackerColors.Success,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp
+                letterSpacing = 2.sp,
+                fontSize = fs.heading.sp
             )
         )
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        StatRow("Total Runs", stats.totalRuns.toString())
-        StatRow("Completed", stats.completedRuns.toString(), TrackerColors.Success)
+        StatRow("Total Runs", stats.totalRuns.toString(), fontSize = fs)
+        StatRow("Completed", stats.completedRuns.toString(), TrackerColors.Success, fontSize = fs)
         StatRow("Failed", stats.failedRuns.toString(),
-            if (stats.failedRuns > 0) TrackerColors.Error else TrackerColors.OnSurfaceVariant)
+            if (stats.failedRuns > 0) TrackerColors.Error else TrackerColors.OnSurfaceVariant, fontSize = fs)
         if (stats.totalRuns > 0) {
             val completionRate = stats.completedRuns.toFloat() / stats.totalRuns * 100
             StatRow("Completion Rate", "%.2f%%".format(completionRate),
-                redToGreenGradient(completionRate / 100f))
+                redToGreenGradient(completionRate / 100f), fontSize = fs)
         }
 
         Divider(color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 4.dp))
 
-        StatRow("Total Play Time", formatDuration(stats.totalPlayTime))
-        StatRow("Completed Time", formatDuration(stats.completedPlayTime))
+        StatRow("Total Play Time", formatDuration(stats.totalPlayTime), fontSize = fs)
+        StatRow("Completed Time", formatDuration(stats.completedPlayTime), fontSize = fs)
 
         if (stats.fastestRun != null) {
             Divider(color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 4.dp))
-            StatRow("Fastest Run", formatDuration(stats.fastestRun), GoldColor)
-            StatRow("Average", formatDuration(stats.averageCompletedTime ?: 0))
-            StatRow("Median", formatDuration(stats.medianCompletedTime ?: 0))
+            StatRow("Fastest Run", formatDuration(stats.fastestRun), GoldColor, fontSize = fs)
+            StatRow("Average", formatDuration(stats.averageCompletedTime ?: 0), fontSize = fs)
+            StatRow("Median", formatDuration(stats.medianCompletedTime ?: 0), fontSize = fs)
         }
     }
 }
 
 @Composable
-private fun StatRow(label: String, value: String, valueColor: Color = TrackerColors.OnSurfaceVariant) {
+private fun StatRow(
+    label: String,
+    value: String,
+    valueColor: Color = TrackerColors.OnSurfaceVariant,
+    fontSize: StatsFontSize = StatsFontSize.MEDIUM
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -173,7 +212,7 @@ private fun StatRow(label: String, value: String, valueColor: Color = TrackerCol
             style = MaterialTheme.typography.bodySmall.copy(
                 color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.7f),
                 fontFamily = FontFamily.Monospace,
-                fontSize = 11.sp
+                fontSize = fontSize.label.sp
             )
         )
         Text(
@@ -182,7 +221,7 @@ private fun StatRow(label: String, value: String, valueColor: Color = TrackerCol
                 color = valueColor,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
-                fontSize = 11.sp
+                fontSize = fontSize.value.sp
             )
         )
     }
@@ -191,7 +230,8 @@ private fun StatRow(label: String, value: String, valueColor: Color = TrackerCol
 @Composable
 private fun SplitCompletionsTab(
     runs: List<com.supermetroid.model.RunSession>,
-    profile: SplitProfile
+    profile: SplitProfile,
+    fs: StatsFontSize
 ) {
     val completions = remember(runs, profile) {
         StatsService.computeSplitCompletions(runs, profile)
@@ -199,7 +239,8 @@ private fun SplitCompletionsTab(
     val maxCount = completions.maxOfOrNull { it.timesCompleted } ?: 1
     // Compute name column width based on longest split name (monospace, ~6dp per char at 9sp)
     val maxNameChars = completions.maxOfOrNull { it.splitName.length } ?: 10
-    val nameWidthDp = (maxNameChars * 5.5f + 4).coerceIn(60f, 200f)
+    val charWidth = fs.label * 0.62f  // scale with font size
+    val nameWidthDp = (maxNameChars * charWidth + 4).coerceIn(60f, 260f)
 
     var hoveredIndex by remember { mutableStateOf(-1) }
 
@@ -215,7 +256,8 @@ private fun SplitCompletionsTab(
                 color = TrackerColors.Success,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp
+                letterSpacing = 2.sp,
+                fontSize = fs.heading.sp
             )
         )
 
@@ -247,10 +289,10 @@ private fun SplitCompletionsTab(
                     style = MaterialTheme.typography.bodySmall.copy(
                         color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.8f),
                         fontFamily = FontFamily.Monospace,
-                        fontSize = 9.sp
+                        fontSize = fs.label.sp
                     ),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Clip,
                     modifier = Modifier.width(nameWidthDp.dp)
                 )
 
@@ -276,7 +318,7 @@ private fun SplitCompletionsTab(
                         color = if (isHovered) TrackerColors.Success else TrackerColors.OnSurfaceVariant,
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp
+                        fontSize = fs.value.sp
                     ),
                     textAlign = TextAlign.End,
                     modifier = Modifier.width(24.dp)
@@ -290,9 +332,9 @@ private fun SplitCompletionsTab(
                 modifier = Modifier.fillMaxWidth().padding(start = (nameWidthDp + 24).dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("0", style = axisLabelStyle())
-                Text("${maxCount / 2}", style = axisLabelStyle())
-                Text("$maxCount", style = axisLabelStyle())
+                Text("0", style = axisLabelStyle(fs))
+                Text("${maxCount / 2}", style = axisLabelStyle(fs))
+                Text("$maxCount", style = axisLabelStyle(fs))
             }
         }
     }
@@ -301,7 +343,8 @@ private fun SplitCompletionsTab(
 @Composable
 private fun DeathsTab(
     runs: List<com.supermetroid.model.RunSession>,
-    profile: SplitProfile
+    profile: SplitProfile,
+    fs: StatsFontSize
 ) {
     val deaths = remember(runs, profile) {
         StatsService.computeSplitDeaths(runs, profile)
@@ -309,7 +352,8 @@ private fun DeathsTab(
     val maxDeaths = deaths.maxOfOrNull { it.deaths } ?: 1
     val totalDeaths = deaths.sumOf { it.deaths }
     val maxNameChars = deaths.maxOfOrNull { it.splitName.length } ?: 10
-    val nameWidthDp = (maxNameChars * 5.5f + 4).coerceIn(60f, 200f)
+    val charWidth = fs.label * 0.62f
+    val nameWidthDp = (maxNameChars * charWidth + 4).coerceIn(60f, 260f)
 
     var hoveredIndex by remember { mutableStateOf(-1) }
 
@@ -325,7 +369,8 @@ private fun DeathsTab(
                 color = TrackerColors.Error,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp
+                letterSpacing = 2.sp,
+                fontSize = fs.heading.sp
             )
         )
 
@@ -336,7 +381,7 @@ private fun DeathsTab(
             style = MaterialTheme.typography.bodySmall.copy(
                 color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
                 fontFamily = FontFamily.Monospace,
-                fontSize = 8.sp
+                fontSize = fs.chart.sp
             )
         )
 
@@ -376,10 +421,10 @@ private fun DeathsTab(
                     style = MaterialTheme.typography.bodySmall.copy(
                         color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.8f),
                         fontFamily = FontFamily.Monospace,
-                        fontSize = 9.sp
+                        fontSize = fs.label.sp
                     ),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Clip,
                     modifier = Modifier.width(nameWidthDp.dp)
                 )
 
@@ -405,7 +450,7 @@ private fun DeathsTab(
                         color = if (isHovered) TrackerColors.Error else TrackerColors.OnSurfaceVariant,
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp
+                        fontSize = fs.value.sp
                     ),
                     textAlign = TextAlign.End,
                     modifier = Modifier.width(30.dp)
@@ -429,7 +474,7 @@ private fun DeathsTab(
 }
 
 @Composable
-private fun ProgressTab(runs: List<com.supermetroid.model.RunSession>) {
+private fun ProgressTab(runs: List<com.supermetroid.model.RunSession>, fs: StatsFontSize) {
     val completedProgress = remember(runs) {
         StatsService.computeRunProgress(runs).filter { it.isComplete }
     }
@@ -461,7 +506,8 @@ private fun ProgressTab(runs: List<com.supermetroid.model.RunSession>) {
                 color = TrackerColors.Success,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp
+                letterSpacing = 2.sp,
+                fontSize = fs.heading.sp
             )
         )
 
@@ -475,7 +521,6 @@ private fun ProgressTab(runs: List<com.supermetroid.model.RunSession>) {
             val isHovered = hoveredRunIndex == idx
             val isBest = entry.totalTime == minTime
             val fraction = if (maxTime > 0) entry.totalTime.toFloat() / maxTime else 0f
-            // Gradient: best (green) to worst (red), PB overridden to gold
             val normalizedQuality = 1f - ((entry.totalTime - minTime).toFloat() / timeRange)
             val barColor = if (isBest) GoldColor else redToGreenGradient(normalizedQuality)
 
@@ -492,7 +537,7 @@ private fun ProgressTab(runs: List<com.supermetroid.model.RunSession>) {
                     style = MaterialTheme.typography.bodySmall.copy(
                         color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.6f),
                         fontFamily = FontFamily.Monospace,
-                        fontSize = 9.sp
+                        fontSize = fs.label.sp
                     ),
                     modifier = Modifier.width(30.dp),
                     textAlign = TextAlign.End
@@ -524,7 +569,7 @@ private fun ProgressTab(runs: List<com.supermetroid.model.RunSession>) {
                         else TrackerColors.OnSurfaceVariant,
                         fontFamily = FontFamily.Monospace,
                         fontWeight = if (isBest) FontWeight.Bold else FontWeight.Normal,
-                        fontSize = 9.sp
+                        fontSize = fs.value.sp
                     ),
                     modifier = Modifier.width(65.dp),
                     textAlign = TextAlign.End
@@ -544,7 +589,7 @@ private val TREND_MODES = listOf(
 )
 
 @Composable
-private fun TrendTab(runs: List<com.supermetroid.model.RunSession>) {
+private fun TrendTab(runs: List<com.supermetroid.model.RunSession>, fs: StatsFontSize) {
     var selectedMode by remember { mutableStateOf(TREND_MODES[0]) } // Default to Raw
 
     val trendData = remember(runs, selectedMode) {
@@ -592,7 +637,8 @@ private fun TrendTab(runs: List<com.supermetroid.model.RunSession>) {
                     color = TrackerColors.Success,
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
-                    letterSpacing = 2.sp
+                    letterSpacing = 2.sp,
+                    fontSize = fs.heading.sp
                 )
             )
 
@@ -641,13 +687,13 @@ private fun TrendTab(runs: List<com.supermetroid.model.RunSession>) {
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(formatDuration(avgMax), style = MaterialTheme.typography.bodySmall.copy(
-                    color = labelColor, fontFamily = FontFamily.Monospace, fontSize = 8.sp
+                    color = labelColor, fontFamily = FontFamily.Monospace, fontSize = fs.chart.sp
                 ))
                 Text(formatDuration((avgMax + avgMin) / 2), style = MaterialTheme.typography.bodySmall.copy(
-                    color = labelColor, fontFamily = FontFamily.Monospace, fontSize = 8.sp
+                    color = labelColor, fontFamily = FontFamily.Monospace, fontSize = fs.chart.sp
                 ))
                 Text(formatDuration(avgMin), style = MaterialTheme.typography.bodySmall.copy(
-                    color = GoldColor, fontFamily = FontFamily.Monospace, fontSize = 8.sp
+                    color = GoldColor, fontFamily = FontFamily.Monospace, fontSize = fs.chart.sp
                 ))
             }
 
@@ -714,10 +760,10 @@ private fun TrendTab(runs: List<com.supermetroid.model.RunSession>) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text("Run ${trendData.first().first}", style = MaterialTheme.typography.bodySmall.copy(
-                color = labelColor, fontFamily = FontFamily.Monospace, fontSize = 8.sp
+                color = labelColor, fontFamily = FontFamily.Monospace, fontSize = fs.chart.sp
             ))
             Text("Run ${trendData.last().first}", style = MaterialTheme.typography.bodySmall.copy(
-                color = labelColor, fontFamily = FontFamily.Monospace, fontSize = 8.sp
+                color = labelColor, fontFamily = FontFamily.Monospace, fontSize = fs.chart.sp
             ))
         }
 
@@ -725,24 +771,24 @@ private fun TrendTab(runs: List<com.supermetroid.model.RunSession>) {
 
         // Current vs best stats
         if (selectedMode.windowSize == 1) {
-            StatRow("Latest", formatDuration(trendData.last().second))
-            StatRow("Best", formatDuration(avgMin), GoldColor)
+            StatRow("Latest", formatDuration(trendData.last().second), fontSize = fs)
+            StatRow("Best", formatDuration(avgMin), GoldColor, fontSize = fs)
         } else {
-            StatRow("Current Avg", formatDuration(trendData.last().second))
-            StatRow("Best Avg", formatDuration(avgMin), GoldColor)
+            StatRow("Current Avg", formatDuration(trendData.last().second), fontSize = fs)
+            StatRow("Best Avg", formatDuration(avgMin), GoldColor, fontSize = fs)
         }
         val improvement = trendData.first().second - trendData.last().second
         if (improvement > 0) {
-            StatRow("Total Improvement", "-${formatDuration(improvement)}", TrackerColors.Success)
+            StatRow("Total Improvement", "-${formatDuration(improvement)}", TrackerColors.Success, fontSize = fs)
         }
     }
 }
 
 @Composable
-private fun axisLabelStyle() = MaterialTheme.typography.bodySmall.copy(
+private fun axisLabelStyle(fs: StatsFontSize = StatsFontSize.MEDIUM) = MaterialTheme.typography.bodySmall.copy(
     color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
     fontFamily = FontFamily.Monospace,
-    fontSize = 8.sp
+    fontSize = fs.chart.sp
 )
 
 /**

@@ -108,5 +108,6 @@ data class AppConfig(
     val splitReadFormat: String = "json",         // "json" or "livesplit"
     val splitWriteJson: Boolean = true,           // Write runs in JSON format
     val splitWriteLiveSplit: Boolean = false,      // Write runs in LiveSplit (.lss) format
-    val liveSplitFilePath: String? = null          // Path to the .lss file for read/write
+    val liveSplitFilePath: String? = null,         // Path to the .lss file for read/write
+    val statsFontSize: String? = null              // Font size for stats panel (null = default Medium)
 )
