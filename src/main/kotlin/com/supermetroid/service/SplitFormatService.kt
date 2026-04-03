@@ -296,18 +296,24 @@ class SplitFormatService(
      * the BEST column and BP delta have the data they need (same as JSON load).
      */
     fun toLiveSplitSplitsState(): SplitsState? {
-        _liveSplitDocument.value ?: return null
+        val doc = _liveSplitDocument.value ?: return null
         val lssProfile = _liveSplitProfile.value ?: return null
         val pb = _liveSplitPersonalBest.value ?: return null
 
         val profile = resolveCanonicalProfile(lssProfile)
         val pbWithCanonicalId = pb.copy(profileId = profile.id)
+
+        // Build full run history from LSS attempt/segment data for stats
+        val lssRuns = converter.toRunHistory(doc, profile.id)
+
+        // Also include synthetic PB run so findActualPbRun() works for BEST column
         val syntheticRun = syntheticPbRun(profile, pbWithCanonicalId)
+        val allRuns = lssRuns + syntheticRun
 
         return SplitsState(
             currentRun = null,
             personalBests = mapOf(profile.id to pbWithCanonicalId),
-            runHistory = listOf(syntheticRun)
+            runHistory = allRuns
         )
     }
 

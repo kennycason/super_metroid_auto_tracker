@@ -84,6 +84,7 @@ data class AppConfig(
     val showSettings: Boolean = false,
     val showGameGenie: Boolean = false,
     val showMapRandoInfo: Boolean = false,
+    val showStats: Boolean = false,
     // Sound effects settings
     val soundEnabled: Boolean = false,
     val volume: Float = 1.0f,

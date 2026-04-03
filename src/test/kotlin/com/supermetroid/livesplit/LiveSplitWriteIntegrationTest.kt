@@ -239,7 +239,8 @@ class LiveSplitWriteIntegrationTest {
 
         val state = splitFormatService.toLiveSplitSplitsState()
         assertNotNull(state)
-        assertEquals(1, state!!.runHistory.size, "LiveSplit state should include synthetic PB run in runHistory")
+        assertTrue(state!!.runHistory.isNotEmpty(), "LiveSplit state should include runs in runHistory")
+        assertTrue(state.runHistory.any { it.id == "livesplit-pb" }, "runHistory should include synthetic PB run")
         assertTrue(state.personalBests.isNotEmpty())
         val resolvedProfile = splitFormatService.getResolvedLiveSplitProfile()
         assertNotNull(resolvedProfile)

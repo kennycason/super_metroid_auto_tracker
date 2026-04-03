@@ -622,11 +622,12 @@ private fun SplitFormatSection(
                         if (lssFilePath != null) {
                             TextButton(
                                 onClick = { splitFormatService.reloadLiveSplitFile() },
-                                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
+                                contentPadding = PaddingValues(0.dp),
+                                modifier = Modifier.size(32.dp)
                             ) {
                                 Text(
                                     "↻",
-                                    style = MaterialTheme.typography.bodySmall.copy(color = TrackerColors.Primary)
+                                    style = MaterialTheme.typography.bodyLarge.copy(color = TrackerColors.Primary)
                                 )
                             }
                         }

@@ -159,9 +159,12 @@ class LiveSplitConverter : Logging {
         val name = "${doc.gameName} - ${doc.categoryName}".takeIf { doc.gameName.isNotBlank() }
             ?: doc.categoryName
 
-        val splits = doc.segments.map { segment ->
-            val splitId = deriveSplitId(segment.name)
-            val type = splitIdToType[splitId] ?: "event"
+        val splitIds = deriveUniqueSplitIds(doc.segments)
+
+        val splits = doc.segments.mapIndexed { index, segment ->
+            val splitId = splitIds[index]
+            val baseId = deriveSplitId(segment.name)
+            val type = splitIdToType[baseId] ?: "event"
             Split(
                 id = splitId,
                 name = segment.name,
@@ -171,6 +174,20 @@ class LiveSplitConverter : Logging {
         }
 
         return SplitProfile(id = id, name = name, splits = splits)
+    }
+
+    /**
+     * Generate unique split IDs for a list of segments.
+     * Appends _2, _3, etc. for duplicate names (e.g., multiple "Ship" segments).
+     */
+    fun deriveUniqueSplitIds(segments: List<LiveSplitSegment>): List<String> {
+        val seen = mutableMapOf<String, Int>()
+        return segments.map { segment ->
+            val baseId = deriveSplitId(segment.name)
+            val count = seen.getOrDefault(baseId, 0) + 1
+            seen[baseId] = count
+            if (count == 1) baseId else "${baseId}_$count"
+        }
     }
 
     /**
@@ -195,10 +212,12 @@ class LiveSplitConverter : Logging {
             fastestAttempt.realTime!! < comparisonTotal &&
             hasCompleteSegmentHistory(doc, fastestAttempt.id)
 
+        val uniqueIds = deriveUniqueSplitIds(doc.segments)
+
         return if (useFastestAttempt) {
-            buildPbFromAttempt(doc, fastestAttempt!!.id, fastestAttempt.realTime!!, profileId)
+            buildPbFromAttempt(doc, fastestAttempt!!.id, fastestAttempt.realTime!!, profileId, uniqueIds)
         } else {
-            buildPbFromComparison(doc, profileId, comparisonTotal)
+            buildPbFromComparison(doc, profileId, comparisonTotal, uniqueIds)
         }
     }
 
@@ -219,13 +238,14 @@ class LiveSplitConverter : Logging {
         doc: LiveSplitDocument,
         attemptId: Int,
         attemptTotal: Long,
-        profileId: String
+        profileId: String,
+        uniqueIds: List<String>
     ): PersonalBest {
         val splitTimes = mutableMapOf<String, SplitTime>()
         var cumulative = 0L
 
-        for (segment in doc.segments) {
-            val splitId = deriveSplitId(segment.name)
+        for ((index, segment) in doc.segments.withIndex()) {
+            val splitId = uniqueIds[index]
             val bestSegment = segment.bestSegmentTime?.realTime ?: 0L
             val segTime = segment.segmentHistory
                 .find { it.id == attemptId }?.realTime ?: 0L
@@ -252,13 +272,14 @@ class LiveSplitConverter : Logging {
     private fun buildPbFromComparison(
         doc: LiveSplitDocument,
         profileId: String,
-        comparisonTotal: Long
+        comparisonTotal: Long,
+        uniqueIds: List<String>
     ): PersonalBest {
         val splitTimes = mutableMapOf<String, SplitTime>()
         var prevCumulativeTime = 0L
 
-        for (segment in doc.segments) {
-            val splitId = deriveSplitId(segment.name)
+        for ((index, segment) in doc.segments.withIndex()) {
+            val splitId = uniqueIds[index]
 
             val pbSplit = segment.splitTimes.find { it.comparisonName == "Personal Best" }
             val cumulativeTime = pbSplit?.realTime ?: 0L
@@ -367,6 +388,58 @@ class LiveSplitConverter : Logging {
     }
 
     /**
+     * Convert LSS attempt history + segment history into [RunSession] objects.
+     * Each attempt that has at least one segment history entry becomes a RunSession.
+     * Attempts without any segment data (quick resets with no splits) are included
+     * as zero-split runs so stats can count them.
+     */
+    fun toRunHistory(doc: LiveSplitDocument, profileId: String): List<RunSession> {
+        val uniqueIds = deriveUniqueSplitIds(doc.segments)
+        val dateFormat = liveSplitDateFormat
+
+        return doc.attemptHistory.map { attempt ->
+            // Build completed splits from segment history for this attempt
+            var cumulative = 0L
+            val completedSplits = doc.segments.mapIndexedNotNull { index, segment ->
+                val historyEntry = segment.segmentHistory.find { it.id == attempt.id }
+                val segmentTime = historyEntry?.realTime ?: return@mapIndexedNotNull null
+                if (segmentTime <= 0) return@mapIndexedNotNull null
+                cumulative += segmentTime
+                CompletedSplit(
+                    splitId = uniqueIds[index],
+                    time = SplitTime(totalTime = cumulative, segmentTime = segmentTime),
+                    timestamp = parseAttemptTimestamp(attempt.started, dateFormat)
+                )
+            }
+
+            val startTime = parseAttemptTimestamp(attempt.started, dateFormat)
+            val isComplete = attempt.realTime != null && attempt.realTime > 0
+            val totalTime = attempt.realTime ?: cumulative
+
+            RunSession(
+                id = "lss-attempt-${attempt.id}",
+                profileId = profileId,
+                startTime = startTime,
+                endTime = if (isComplete) parseAttemptTimestamp(attempt.ended, dateFormat) else null,
+                completedSplits = completedSplits,
+                totalTime = totalTime,
+                isPersonalBest = false
+            )
+        }
+    }
+
+    private fun parseAttemptTimestamp(timestamp: String?, dateFormat: DateTimeFormatter): Instant {
+        if (timestamp.isNullOrBlank()) return Instant.fromEpochMilliseconds(0L)
+        return try {
+            val parsed = dateFormat.parse(timestamp)
+            val javaInstant = java.time.Instant.from(parsed)
+            Instant.fromEpochMilliseconds(javaInstant.toEpochMilli())
+        } catch (e: Exception) {
+            Instant.fromEpochMilliseconds(0L)
+        }
+    }
+
+    /**
      * Convert our [RunSession] data into a [LiveSplitDocument], merging with
      * an existing document if provided (to preserve attempt history, icons, etc.)
      */
@@ -375,16 +448,32 @@ class LiveSplitConverter : Logging {
         profile: SplitProfile,
         existingDoc: LiveSplitDocument? = null
     ): LiveSplitDocument {
+        // Determine if this run is a new PB (faster than existing PB comparison)
+        val existingPbTotal = existingDoc?.segments?.lastOrNull()?.splitTimes
+            ?.find { it.comparisonName == "Personal Best" }?.realTime
+        val isNewPb = run.endTime != null && run.completedSplits.size == profile.splits.size &&
+            (existingPbTotal == null || existingPbTotal <= 0 || run.totalTime < existingPbTotal)
+
+        val newAttemptId = (existingDoc?.attemptHistory?.maxOfOrNull { it.id } ?: 0) + 1
+
         val segments = profile.splits.mapIndexed { segIdx, split ->
             val completedSplit = run.completedSplits.find { it.splitId == split.id }
             val existingSegment = existingDoc?.segments?.getOrNull(segIdx)
 
-            val bestSegment = existingSegment?.bestSegmentTime
-                ?: completedSplit?.let {
-                    LiveSplitTimeSpan(realTime = it.time.segmentTime, gameTime = null)
-                }
+            // Update best segment if this run's segment is faster
+            val existingBestMs = existingSegment?.bestSegmentTime?.realTime ?: Long.MAX_VALUE
+            val currentSegMs = completedSplit?.time?.segmentTime
+            val bestSegment = if (currentSegMs != null && currentSegMs < existingBestMs) {
+                LiveSplitTimeSpan(realTime = currentSegMs, gameTime = null)
+            } else {
+                existingSegment?.bestSegmentTime
+                    ?: completedSplit?.let {
+                        LiveSplitTimeSpan(realTime = it.time.segmentTime, gameTime = null)
+                    }
+            }
 
-            val splitTimes = if (completedSplit != null) {
+            // Only overwrite PB comparison if this run is a new PB
+            val splitTimes = if (isNewPb && completedSplit != null) {
                 listOf(
                     LiveSplitComparisonSplit(
                         comparisonName = "Personal Best",
@@ -393,7 +482,29 @@ class LiveSplitConverter : Logging {
                     )
                 )
             } else {
-                existingSegment?.splitTimes ?: emptyList()
+                existingSegment?.splitTimes ?: if (completedSplit != null) {
+                    listOf(
+                        LiveSplitComparisonSplit(
+                            comparisonName = "Personal Best",
+                            realTime = completedSplit.time.totalTime,
+                            gameTime = null
+                        )
+                    )
+                } else {
+                    emptyList()
+                }
+            }
+
+            // Always add this run's segment time to segment history
+            val existingHistory = existingSegment?.segmentHistory ?: emptyList()
+            val updatedHistory = if (completedSplit != null) {
+                existingHistory + LiveSplitHistoryEntry(
+                    id = newAttemptId,
+                    realTime = completedSplit.time.segmentTime,
+                    gameTime = null
+                )
+            } else {
+                existingHistory
             }
 
             LiveSplitSegment(
@@ -401,12 +512,12 @@ class LiveSplitConverter : Logging {
                 icon = existingSegment?.icon,
                 bestSegmentTime = bestSegment,
                 splitTimes = splitTimes,
-                segmentHistory = existingSegment?.segmentHistory ?: emptyList()
+                segmentHistory = updatedHistory
             )
         }
 
         val newAttempt = LiveSplitAttempt(
-            id = (existingDoc?.attemptHistory?.maxOfOrNull { it.id } ?: 0) + 1,
+            id = newAttemptId,
             started = formatInstantForLiveSplit(run.startTime),
             ended = run.endTime?.let { formatInstantForLiveSplit(it) },
             realTime = if (run.endTime != null) run.totalTime else null,

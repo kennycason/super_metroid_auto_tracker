@@ -136,7 +136,7 @@ fun SplitsList(
                 state = listState,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(maxHeight.dp),
+                    .heightIn(max = maxHeight.dp),
                 verticalArrangement = Arrangement.spacedBy(1.dp) // 1.dp spacing between rows
             ) {
                 itemsIndexed(currentProfile.splits) { index, split ->
@@ -825,7 +825,7 @@ private val nameContainsPatterns: List<Pair<String, String>> = listOf(
  * 2. Contains-based name matching (handles arbitrary LiveSplit segment names)
  * 3. Falls back to "missile" placeholder
  */
-private fun getSplitItemId(split: Split): String {
+internal fun getSplitItemId(split: Split): String {
     splitIdToSpriteId[split.id]?.let { return it }
 
     val name = split.name.lowercase()
