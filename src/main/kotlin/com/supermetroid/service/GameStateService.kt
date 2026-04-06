@@ -257,22 +257,27 @@ class GameStateService(
                     errorCount = errorCount
                 )
 
+                // Capture previous state BEFORE updating for change detection
+                val previousState = _trackerState.value.gameState
+
                 _trackerState.value = trackerState
-                
+
                 // Call the game state callback for direct processing (split detection)
                 // This is called on EVERY poll, not dependent on Compose recomposition
                 onGameStateUpdate?.invoke(stableGameState)
 
                 // Log significant changes and periodic status
-                val previousState = _trackerState.value.gameState
                 val significantChange = gameState.roomId != previousState.roomId ||
                     gameState.maxHealth != previousState.maxHealth ||
                     gameState.maxMissiles != previousState.maxMissiles ||
                     gameState.maxSupers != previousState.maxSupers ||
                     gameState.maxPowerBombs != previousState.maxPowerBombs
 
+                if (gameState.roomId != previousState.roomId && previousState.roomId != 0) {
+                    logger.info { "🚪 Room transition: ${previousState.roomId} (0x${previousState.roomId.toString(16).uppercase()}) → ${gameState.roomId} (0x${gameState.roomId.toString(16).uppercase()}) [${gameState.areaName}]" }
+                }
                 if (pollCount % 100L == 0L || significantChange) {
-                    logger.info { "🔄 Poll #$pollCount: ${gameState.areaName}, Room ${gameState.roomId}, Health ${gameState.health}/${gameState.maxHealth}, Missiles ${gameState.missiles}/${gameState.maxMissiles}, Supers ${gameState.supers}/${gameState.maxSupers}, PBs ${gameState.powerBombs}/${gameState.maxPowerBombs}" }
+                    logger.info { "🔄 Poll #$pollCount: ${gameState.areaName}, Room ${gameState.roomId} (0x${gameState.roomId.toString(16).uppercase()}), Health ${gameState.health}/${gameState.maxHealth}, Missiles ${gameState.missiles}/${gameState.maxMissiles}, Supers ${gameState.supers}/${gameState.maxSupers}, PBs ${gameState.powerBombs}/${gameState.maxPowerBombs}" }
                 }
                 // Reset backoff on successful poll
                 currentDelayMs = pollIntervalMs

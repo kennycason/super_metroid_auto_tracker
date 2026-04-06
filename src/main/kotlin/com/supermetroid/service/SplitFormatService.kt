@@ -2,9 +2,12 @@ package com.supermetroid.service
 
 import com.supermetroid.autosplits.SplitProfiles
 import com.supermetroid.livesplit.LiveSplitConverter
+import com.supermetroid.livesplit.LiveSplitComparisonSplit
 import com.supermetroid.livesplit.LiveSplitDocument
 import com.supermetroid.livesplit.LiveSplitParser
+import com.supermetroid.livesplit.LiveSplitSegment
 import com.supermetroid.livesplit.LiveSplitWriter
+import com.supermetroid.model.AppConfig
 import com.supermetroid.model.CompletedSplit
 import com.supermetroid.model.PersonalBest
 import com.supermetroid.model.RunSession
@@ -71,13 +74,65 @@ class SplitFormatService(
         _readFormat.value = if (config.splitReadFormat == "livesplit") ReadFormat.LIVESPLIT else ReadFormat.JSON
         _writeJson.value = config.splitWriteJson
         _writeLiveSplit.value = config.splitWriteLiveSplit
-        _liveSplitFilePath.value = config.liveSplitFilePath
 
-        if (_liveSplitFilePath.value != null) {
-            loadLiveSplitFile(_liveSplitFilePath.value!!)
+        // Migrate legacy single path to per-profile map
+        val profileId = splitProfileService.getCurrentProfileId()
+        val migratedConfig = migrateLegacyLssPath(config, profileId)
+
+        // Load LSS for current profile
+        val pathForProfile = migratedConfig.liveSplitFilePaths[profileId]
+        _liveSplitFilePath.value = pathForProfile
+
+        if (pathForProfile != null) {
+            loadLiveSplitFile(pathForProfile)
         }
 
-        logger.info { "Split format initialized: read=${_readFormat.value}, writeJson=${_writeJson.value}, writeLSS=${_writeLiveSplit.value}" }
+        logger.info { "Split format initialized: read=${_readFormat.value}, writeJson=${_writeJson.value}, writeLSS=${_writeLiveSplit.value}, lssPath=$pathForProfile (profile=$profileId)" }
+    }
+
+    /**
+     * Migrate legacy single liveSplitFilePath to per-profile map.
+     * If the old field has a value and the map is empty, move it to the current profile.
+     */
+    private suspend fun migrateLegacyLssPath(config: AppConfig, profileId: String): AppConfig {
+        if (config.liveSplitFilePath != null && config.liveSplitFilePaths.isEmpty()) {
+            logger.info { "Migrating legacy LSS path to per-profile: ${config.liveSplitFilePath} -> $profileId" }
+            val updated = config.copy(
+                liveSplitFilePath = null,
+                liveSplitFilePaths = mapOf(profileId to config.liveSplitFilePath)
+            )
+            fileStorageService.saveAppConfig(updated)
+            return updated
+        }
+        return config
+    }
+
+    /**
+     * Switch the active LSS file when the split profile changes.
+     * Loads the LSS for the new profile (or clears if none configured).
+     */
+    suspend fun onProfileChanged(profileId: String) {
+        val config = fileStorageService.loadAppConfig()
+        val pathForProfile = config.liveSplitFilePaths[profileId]
+        _liveSplitFilePath.value = pathForProfile
+
+        if (pathForProfile != null) {
+            loadLiveSplitFile(pathForProfile)
+        } else {
+            _liveSplitDocument.value = null
+            _liveSplitProfile.value = null
+            _liveSplitPersonalBest.value = null
+        }
+
+        logger.info { "Profile switched to $profileId, LSS path: $pathForProfile" }
+        onFormatChanged?.invoke()
+    }
+
+    /**
+     * Check if the current profile has an LSS file configured.
+     */
+    fun hasLssFileForCurrentProfile(): Boolean {
+        return _liveSplitFilePath.value != null
     }
 
     private var onFormatChanged: (suspend () -> Unit)? = null
@@ -109,10 +164,12 @@ class SplitFormatService(
 
     /**
      * Set the LiveSplit file path and load it immediately.
+     * The path is stored under the resolved profile (if the LSS matches a built-in profile)
+     * rather than always under the current profile, so the config mapping stays correct
+     * when the LSS triggers a profile switch.
      */
     suspend fun setLiveSplitFilePath(path: String?) {
         _liveSplitFilePath.value = path
-        persistSettings()
 
         if (path != null) {
             loadLiveSplitFile(path)
@@ -121,7 +178,61 @@ class SplitFormatService(
             _liveSplitProfile.value = null
             _liveSplitPersonalBest.value = null
         }
+
+        // Store under resolved profile if possible, otherwise current profile
+        val resolvedProfile = getResolvedLiveSplitProfile()
+        val profileId = resolvedProfile?.id ?: splitProfileService.getCurrentProfileId()
+        val config = fileStorageService.loadAppConfig()
+        val updatedPaths = if (path != null) {
+            config.liveSplitFilePaths + (profileId to path)
+        } else {
+            config.liveSplitFilePaths - splitProfileService.getCurrentProfileId()
+        }
+        fileStorageService.saveAppConfig(config.copy(
+            liveSplitFilePaths = updatedPaths,
+            splitReadFormat = _readFormat.value.name.lowercase(),
+            splitWriteJson = _writeJson.value,
+            splitWriteLiveSplit = _writeLiveSplit.value
+        ))
+
         onFormatChanged?.invoke()
+    }
+
+    /**
+     * Create a new empty LSS file for the given profile in the default storage directory.
+     * Returns the path to the created file, or null on failure.
+     */
+    suspend fun createNewLssFile(profile: SplitProfile): String? {
+        return try {
+            val segments = profile.splits.map { split ->
+                LiveSplitSegment(
+                    name = split.name,
+                    icon = null,
+                    bestSegmentTime = null,
+                    splitTimes = listOf(LiveSplitComparisonSplit("Personal Best", null, null)),
+                    segmentHistory = emptyList()
+                )
+            }
+            val doc = LiveSplitDocument(
+                gameName = profile.name,
+                categoryName = "",
+                attemptCount = 0,
+                segments = segments,
+                attemptHistory = emptyList()
+            )
+            val dir = fileStorageService.getStorageDir()
+            val fileName = "${profile.id}.lss"
+            val file = File(dir, fileName)
+            writer.writeToFile(doc, file)
+
+            val path = file.absolutePath
+            setLiveSplitFilePath(path)
+            logger.info { "Created new LSS file: $path" }
+            path
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to create new LSS file for profile: ${profile.id}" }
+            null
+        }
     }
 
     /**
@@ -230,6 +341,44 @@ class SplitFormatService(
     }
 
     /**
+     * Delete an attempt from the loaded LSS document and rewrite the file.
+     * Also removes matching segment history entries for that attempt ID.
+     */
+    fun deleteLssAttempt(attemptId: Int): Boolean {
+        val doc = _liveSplitDocument.value ?: return false
+        val path = _liveSplitFilePath.value ?: return false
+        val file = File(path)
+
+        val updatedAttempts = doc.attemptHistory.filter { it.id != attemptId }
+        if (updatedAttempts.size == doc.attemptHistory.size) {
+            logger.warn { "LSS attempt $attemptId not found" }
+            return false
+        }
+
+        // Also remove segment history entries for this attempt
+        val updatedSegments = doc.segments.map { segment ->
+            segment.copy(segmentHistory = segment.segmentHistory.filter { it.id != attemptId })
+        }
+
+        val updatedDoc = doc.copy(
+            attemptCount = updatedAttempts.size,
+            attemptHistory = updatedAttempts,
+            segments = updatedSegments
+        )
+
+        return try {
+            fileStorageService.backupFileSync(file)
+            writer.writeToFile(updatedDoc, file)
+            _liveSplitDocument.value = updatedDoc
+            logger.info { "🗑️ Deleted LSS attempt #$attemptId, ${updatedAttempts.size} attempts remaining" }
+            true
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to delete LSS attempt #$attemptId" }
+            false
+        }
+    }
+
+    /**
      * Check if we're reading from LiveSplit and have a loaded document.
      */
     fun isLiveSplitActive(): Boolean {
@@ -324,8 +473,7 @@ class SplitFormatService(
                 config.copy(
                     splitReadFormat = _readFormat.value.name.lowercase(),
                     splitWriteJson = _writeJson.value,
-                    splitWriteLiveSplit = _writeLiveSplit.value,
-                    liveSplitFilePath = _liveSplitFilePath.value
+                    splitWriteLiveSplit = _writeLiveSplit.value
                 )
             )
         } catch (e: Exception) {

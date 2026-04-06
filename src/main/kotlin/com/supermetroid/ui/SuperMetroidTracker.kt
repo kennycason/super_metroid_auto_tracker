@@ -273,7 +273,12 @@ fun SuperMetroidTrackerApp() {
         
         // Initialize split profile from saved config (notifies AutoSplitsEngine)
         splitProfileService.initialize()
-        
+
+        // Wire up profile change -> LSS switch callback
+        splitProfileService.setOnProfileChangedCallback { profileId ->
+            splitFormatService.onProfileChanged(profileId)
+        }
+
         // Initialize split format settings (JSON vs LiveSplit)
         splitFormatService.initialize()
         
@@ -286,10 +291,11 @@ fun SuperMetroidTrackerApp() {
             }
             autoSplitsEngine.loadSavedState(state)
             
-            // If LiveSplit loaded a profile, switch to it (use resolved canonical so id matches state)
+            // If LiveSplit loaded a profile, switch to it (use resolved canonical so id matches state).
+            // Don't notify format service back — it already has the right LSS loaded.
             val resolvedProfile = splitFormatService.getResolvedLiveSplitProfile()
             if (splitFormatService.isLiveSplitActive() && resolvedProfile != null) {
-                splitProfileService.setProfile(resolvedProfile)
+                splitProfileService.setProfile(resolvedProfile, notifyFormatService = false)
             }
         }
 
@@ -305,7 +311,7 @@ fun SuperMetroidTrackerApp() {
             // If LiveSplit loaded a profile, switch to it at startup too
             val resolvedProfile = splitFormatService.getResolvedLiveSplitProfile()
             if (splitFormatService.isLiveSplitActive() && resolvedProfile != null) {
-                splitProfileService.setProfile(resolvedProfile)
+                splitProfileService.setProfile(resolvedProfile, notifyFormatService = false)
             }
         }
 
@@ -474,6 +480,18 @@ fun SuperMetroidTrackerLayout(
                     CoroutineScope(Dispatchers.Swing).launch {
                         autoSplitsEngine.resetRun()
                     }
+                },
+                onManualSplit = {
+                    logger.debug { "🖱️ Timer UI manual split clicked" }
+                    autoSplitsEngine.manualSplit()
+                },
+                onUndoSplit = {
+                    logger.debug { "🖱️ Timer UI undo split clicked" }
+                    autoSplitsEngine.undoSplit()
+                },
+                onDiscardRun = {
+                    logger.debug { "🖱️ Timer UI discard run clicked" }
+                    autoSplitsEngine.discardRun()
                 }
             )
             Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout

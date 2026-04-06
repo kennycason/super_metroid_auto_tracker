@@ -362,7 +362,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
      * Start a new run or toggle pause/resume
      * Includes debounce logic to prevent rapid consecutive calls
      */
-    fun toggleRunState(profileId: String = SplitProfiles.DEFAULT.id) {
+    fun toggleRunState(profileId: String = currentProfile?.id ?: SplitProfiles.DEFAULT.id) {
         val currentTime = System.currentTimeMillis()
         val timeSinceLastToggle = currentTime - lastToggleTime
 
@@ -397,15 +397,6 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         }
 
         logger.info { "⏱️ toggleRunState called - current state: $runState" }
-
-        // Add stack trace to see where this is being called from
-        val stackTrace = Thread.currentThread().stackTrace
-        val caller = stackTrace.getOrNull(3)?.toString() ?: "unknown"
-        logger.info { "⏱️ Called from: $caller" }
-
-        // Log full stack trace for debugging
-        val fullStackTrace = stackTrace.joinToString("\n  at ")
-        logger.info { "⏱️ FULL CALL STACK:\n  at $fullStackTrace" }
 
         when {
             currentRun == null -> {
@@ -447,7 +438,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     /**
      * Start a completely new run
      */
-    internal fun startNewRun(profileId: String = SplitProfiles.DEFAULT.id) {
+    internal fun startNewRun(profileId: String = currentProfile?.id ?: SplitProfiles.DEFAULT.id) {
         // Re-enable auto-start when starting a new run (unless user manually set time)
         autoStartEnabled = true
         
@@ -535,21 +526,25 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     private fun resumeRun() {
         val currentRun = _splitsState.value.currentRun ?: return
 
-        // Check if pauseStartTime is null, which would indicate an inconsistent state
-        val pauseStart = pauseStartTime
-        if (pauseStart == null) {
-            logger.error { "⚠️ Attempted to resume run ${currentRun.id} but pauseStartTime is null! Using current time instead." }
-            // Create a new pauseStartTime to avoid errors, but log the issue
-            pauseStartTime = Clock.System.now()
-            return
-        }
-
-        // Calculate the pause duration and add it to the total paused time
         val now = Clock.System.now()
-        val pauseDuration = (now - pauseStart).inWholeMilliseconds
-        val newPausedTime = currentRun.pausedTime + pauseDuration
+        val newPausedTime: Long
 
-        logger.info { "▶️ Resuming run ${currentRun.id} - pause duration: ${formatTime(pauseDuration)}, total paused time: ${formatTime(newPausedTime)}" }
+        if (pauseStartTime != null) {
+            // Normal resume: calculate pause duration from when we paused
+            val pauseDuration = (now - pauseStartTime!!).inWholeMilliseconds
+            newPausedTime = currentRun.pausedTime + pauseDuration
+            logger.info { "▶️ Resuming run ${currentRun.id} - pause duration: ${formatTime(pauseDuration)}, total paused time: ${formatTime(newPausedTime)}" }
+        } else {
+            // Loaded from disk: calculate the gap between run state and now
+            // Timer formula is: now - startTime - pausedTime
+            // We want the display to resume from totalTime, so:
+            // totalTime = now - startTime - newPausedTime
+            // newPausedTime = now - startTime - totalTime
+            val gapMs = now.toEpochMilliseconds() - currentRun.startTime.toEpochMilliseconds() -
+                currentRun.totalTime - currentRun.pausedTime
+            newPausedTime = currentRun.pausedTime + gapMs
+            logger.info { "▶️ Resuming run ${currentRun.id} from disk - gap: ${formatTime(gapMs)}, total paused time: ${formatTime(newPausedTime)}" }
+        }
 
         // Reset the pause start time
         pauseStartTime = null
@@ -592,15 +587,6 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         }
 
         logger.info { "🔄 resetRun called - current state: $runState" }
-
-        // Add stack trace to see where this is being called from
-        val stackTrace = Thread.currentThread().stackTrace
-        val caller = stackTrace.getOrNull(3)?.toString() ?: "unknown"
-        logger.info { "🔄 Called from: $caller" }
-
-        // Log full stack trace for debugging
-        val fullStackTrace = stackTrace.joinToString("\n  at ")
-        logger.info { "🔄 FULL CALL STACK:\n  at $fullStackTrace" }
 
         // Save the run before resetting (if it has any completed splits)
         // This preserves segment PB data from partial runs
@@ -992,9 +978,51 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     }
 
     /**
+     * Check if all required items for a split are acquired
+     */
+    private fun hasRequiredItems(split: Split, gameState: GameState): Boolean {
+        val required = split.requiredItems ?: return true
+        return required.all { itemId ->
+            when (itemId) {
+                "morph_ball" -> gameState.items.morph
+                "bombs" -> gameState.items.bombs
+                "varia_suit" -> gameState.items.varia
+                "gravity_suit" -> gameState.items.gravity
+                "hi_jump" -> gameState.items.hiJump
+                "speed_booster" -> gameState.items.speed
+                "space_jump" -> gameState.items.spaceJump
+                "screw_attack" -> gameState.items.screw
+                "spring_ball" -> gameState.items.spring
+                "grapple_beam" -> gameState.items.grapple
+                "xray" -> gameState.items.xray
+                "charge_beam" -> gameState.beams.charge
+                "ice_beam" -> gameState.beams.ice
+                "wave_beam" -> gameState.beams.wave
+                "spazer" -> gameState.beams.spazer
+                "plasma_beam" -> gameState.beams.plasma
+                "missiles" -> gameState.maxMissiles > 0
+                "super_missiles" -> gameState.maxSupers > 0
+                "power_bombs" -> gameState.maxPowerBombs > 0
+                else -> {
+                    logger.warn { "Unknown required item: $itemId" }
+                    false
+                }
+            }
+        }
+    }
+
+    /**
      * Check if a split condition is already met in current game state
      */
     internal fun isConditionAlreadyMet(split: Split, gameState: GameState): Boolean {
+        // Room-entry splits: if the player is already in the trigger room, consider it met
+        // EXCEPT: splits with requiredItems must use transition-based detection (leave + re-enter)
+        // to avoid false triggers when picking up the required item while already in the room
+        if (split.triggerRoomId != null) {
+            if (split.requiredItems != null) return false // Force transition-based check
+            return gameState.roomId == split.triggerRoomId
+        }
+
         return when (split.id) {
             "ceres_station" -> gameState.areaId != 6 && gameState.bosses.ceresStation // Not in Ceres AND defeated Ceres Ridley
             "first_missile" -> gameState.maxMissiles > 0
@@ -1012,6 +1040,10 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             "gravity_suit" -> gameState.items.gravity
             "space_jump" -> gameState.items.spaceJump
             "plasma_beam" -> gameState.beams.plasma
+            "screw_attack" -> gameState.items.screw
+            "grapple_beam" -> gameState.items.grapple
+            "spring_ball" -> gameState.items.spring
+            "reserve_tank" -> gameState.maxReserveEnergy > 0
             "kraid" -> gameState.bosses.kraid
             "phantoon" -> gameState.bosses.phantoon
             "draygon" -> gameState.bosses.draygon
@@ -1129,6 +1161,26 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     private fun checkSplitCondition(split: Split, previousState: GameState?, currentState: GameState): Boolean {
         if (previousState == null) return false
 
+        // Room-entry trigger: split fires when player transitions into the specified room
+        if (split.triggerRoomId != null) {
+            val entered = previousState.roomId != split.triggerRoomId && currentState.roomId == split.triggerRoomId
+
+            // Log every check for requiredItems splits to help debug
+            if (split.requiredItems != null && currentState.roomId == split.triggerRoomId) {
+                val hasItems = hasRequiredItems(split, currentState)
+                logger.debug { "🔍 ${split.name}: inRoom=true, entered=$entered, hasItems=$hasItems, prevRoom=0x${previousState.roomId.toString(16)}, curRoom=0x${currentState.roomId.toString(16)}" }
+            }
+
+            if (entered && !hasRequiredItems(split, currentState)) {
+                logger.info { "🚪 Room entry for ${split.name} but missing required items: ${split.requiredItems}" }
+                return false
+            }
+            if (entered) {
+                logger.info { "🚪 Room entry split: ${split.name} (room 0x${split.triggerRoomId.toString(16)})" }
+            }
+            return entered
+        }
+
         return when (split.id) {
             "ceres_station" -> checkCeresStation(previousState, currentState)
             "first_missile" -> checkFirstMissile(previousState, currentState)
@@ -1146,6 +1198,10 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             "gravity_suit" -> checkGravitySuit(previousState, currentState)
             "space_jump" -> checkSpaceJump(previousState, currentState)
             "plasma_beam" -> checkPlasmaBeam(previousState, currentState)
+            "screw_attack" -> !previousState.items.screw && currentState.items.screw
+            "grapple_beam" -> !previousState.items.grapple && currentState.items.grapple
+            "spring_ball" -> !previousState.items.spring && currentState.items.spring
+            "reserve_tank" -> checkReserveTank(previousState, currentState)
             "kraid" -> checkKraid(previousState, currentState)
             "phantoon" -> checkPhantoon(previousState, currentState)
             "draygon" -> checkDraygon(previousState, currentState)
@@ -1383,6 +1439,138 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         } else null
     }
 
+    /**
+     * Discard the current run without saving. Resets timer and state.
+     */
+    fun discardRun() {
+        val currentRun = _splitsState.value.currentRun
+        if (currentRun == null) {
+            logger.info { "🗑️ discardRun called but no active run" }
+            return
+        }
+
+        logger.info { "🗑️ Discarding run ${currentRun.id} (${currentRun.completedSplits.size} splits, ${formatTime(currentRun.totalTime)})" }
+
+        currentSplitIndex = 0
+        pauseStartTime = null
+
+        val currentState = _splitsState.value
+        val updatedState = updatePersonalBestsFromRunHistory(currentState)
+        _splitsState.value = updatedState.copy(currentRun = null)
+
+        lastToggleTime = 0
+        autoStartEnabled = true
+
+        clearSavedTimer()
+
+        logger.info { "🗑️ Run discarded - no data saved" }
+    }
+
+    /**
+     * Resume an incomplete run. Loads the run as current, adjusts paused time
+     * to account for the gap, and positions at the next uncompleted split.
+     */
+    suspend fun resumeRun(runFileName: String) {
+        logger.info { "▶️ Resuming run: $runFileName" }
+
+        try {
+            fileStorageService?.let { storage ->
+                val targetRun = storage.loadRunByFileName(runFileName)
+                if (targetRun == null) {
+                    logger.error { "❌ Could not find run file: $runFileName" }
+                    return
+                }
+
+                if (targetRun.endTime != null) {
+                    logger.warn { "⚠️ Cannot resume a completed run" }
+                    return
+                }
+
+                // Calculate the gap between when the run was paused and now
+                val now = kotlinx.datetime.Clock.System.now()
+                val gapMs = now.toEpochMilliseconds() - targetRun.startTime.toEpochMilliseconds() -
+                    targetRun.totalTime - targetRun.pausedTime
+
+                // Resume the run: add the gap to pausedTime so the timer picks up from totalTime
+                val resumedRun = targetRun.copy(
+                    isPaused = false,
+                    pausedTime = targetRun.pausedTime + gapMs
+                )
+
+                // Set split index past completed splits
+                val profile = SplitProfiles.getProfileById(targetRun.profileId)
+                currentProfile = profile
+                currentSplitIndex = targetRun.completedSplits.size
+
+                // Load all runs for PB calculation
+                val allRuns = storage.loadAllRuns()
+                val previousRuns = allRuns.filter { it.startTime < targetRun.startTime && it.endTime != null }
+
+                val updatedState = SplitsState(
+                    currentRun = resumedRun,
+                    personalBests = emptyMap(),
+                    runHistory = previousRuns
+                )
+
+                val finalState = updatePersonalBestsFromRunHistory(updatedState)
+                _splitsState.value = finalState
+
+                onProfileChangedFromEngine?.invoke(profile)
+                autoStartEnabled = false
+
+                logger.info { "▶️ Resumed run ${targetRun.id}: ${targetRun.completedSplits.size} splits done, timer at ${formatTime(targetRun.totalTime)}" }
+
+                // Delete the old run file since we're continuing it
+                storage.deleteRun(runFileName)
+                logger.info { "🗑️ Removed old run file (run is now active): $runFileName" }
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to resume run" }
+        }
+    }
+
+    /**
+     * Manually trigger the current split at the current timer time.
+     * Used when auto-detection misses a split (e.g., ROM hacks, custom conditions).
+     * Returns true if a split was triggered, false if no active split exists.
+     */
+    fun manualSplit(): Boolean {
+        val currentRun = _splitsState.value.currentRun ?: return false
+        if (currentRun.isPaused && currentRun.endTime != null) return false // Run already finished
+
+        val profile = currentProfile ?: return false
+        if (currentSplitIndex >= profile.splits.size) return false
+
+        val split = profile.splits[currentSplitIndex]
+        logger.info { "✋ Manual split triggered: ${split.name}" }
+
+        // Use a minimal dummy GameState - triggerSplit only needs the current run state
+        triggerSplit(split, GameState())
+        return true
+    }
+
+    /**
+     * Undo the last completed split - removes the most recent split and moves back.
+     * This is destructive: the split time data is lost.
+     * Returns true if a split was undone.
+     */
+    fun undoSplit(): Boolean {
+        val currentRun = _splitsState.value.currentRun ?: return false
+        if (currentRun.completedSplits.isEmpty()) return false
+
+        val lastSplit = currentRun.completedSplits.last()
+        logger.info { "⏪ Undo split: removing ${lastSplit.splitId} (was split ${currentSplitIndex})" }
+
+        val updatedSplits = currentRun.completedSplits.dropLast(1)
+        currentSplitIndex = (currentSplitIndex - 1).coerceAtLeast(0)
+
+        val updatedRun = currentRun.copy(completedSplits = updatedSplits)
+        _splitsState.value = _splitsState.value.copy(currentRun = updatedRun)
+
+        logger.info { "⏪ Split undone. Now at split ${currentSplitIndex}/${currentProfile?.splits?.size ?: 0}" }
+        return true
+    }
+
     // Split condition checks - exact logic from TypeScript version
 
     private fun checkCeresStation(prev: GameState, curr: GameState): Boolean {
@@ -1448,6 +1636,9 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
     private fun checkPlasmaBeam(prev: GameState, curr: GameState): Boolean =
         !prev.beams.plasma && curr.beams.plasma
+
+    private fun checkReserveTank(prev: GameState, curr: GameState): Boolean =
+        prev.maxReserveEnergy == 0 && curr.maxReserveEnergy > 0
 
     private fun checkKraid(prev: GameState, curr: GameState): Boolean =
         !prev.bosses.kraid && curr.bosses.kraid

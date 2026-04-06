@@ -22,6 +22,9 @@ class SplitDisplayModeService(private val fileStorageService: FileStorageService
     private val _showSplitNames = MutableStateFlow(true)
     val showSplitNames: StateFlow<Boolean> = _showSplitNames.asStateFlow()
 
+    private val _showGameName = MutableStateFlow(true)
+    val showGameName: StateFlow<Boolean> = _showGameName.asStateFlow()
+
     private val _showSegmentDeltas = MutableStateFlow(false)
     val showSegmentDeltas: StateFlow<Boolean> = _showSegmentDeltas.asStateFlow()
 
@@ -48,6 +51,7 @@ class SplitDisplayModeService(private val fileStorageService: FileStorageService
             val config = fileStorageService.loadAppConfig()
             _showSplitIcons.value = config.showSplitIcons
             _showSplitNames.value = config.showSplitNames
+            _showGameName.value = config.showGameName
             _showSegmentDeltas.value = config.showSegmentDeltas
             _showBestPossibleColumn.value = config.showBestPossibleColumn
             _showBestPossibleDelta.value = config.showBestPossibleDelta
@@ -80,6 +84,16 @@ class SplitDisplayModeService(private val fileStorageService: FileStorageService
             logger.info { "💾 Saved split display mode: ${mode.displayName}" }
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to save split display mode" }
+        }
+    }
+
+    suspend fun setShowGameName(show: Boolean) {
+        _showGameName.value = show
+        try {
+            val currentConfig = fileStorageService.loadAppConfig()
+            fileStorageService.saveAppConfig(currentConfig.copy(showGameName = show))
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to save show game name setting" }
         }
     }
 

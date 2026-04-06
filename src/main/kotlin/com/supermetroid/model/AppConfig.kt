@@ -68,6 +68,7 @@ data class AppConfig(
     val splitIconSize: Int = 32,        // Icon size in pixels for splits view (default to 32x32)
     val showSplitIcons: Boolean = true, // Show icons in splits list
     val showSplitNames: Boolean = true, // Show split names in splits list
+    val showGameName: Boolean = true, // Show game/profile name above splits
     val showRoomName: Boolean = true,   // Show room name in status display
     val retroarchPort: Int = 55355,        // Future: RetroArch port config  
     val pollIntervalMs: Long = 500,        // Future: Polling interval config
@@ -108,6 +109,7 @@ data class AppConfig(
     val splitReadFormat: String = "json",         // "json" or "livesplit"
     val splitWriteJson: Boolean = true,           // Write runs in JSON format
     val splitWriteLiveSplit: Boolean = false,      // Write runs in LiveSplit (.lss) format
-    val liveSplitFilePath: String? = null,         // Path to the .lss file for read/write
+    val liveSplitFilePath: String? = null,         // Legacy: single LSS path (migrated to per-profile on first load)
+    val liveSplitFilePaths: Map<String, String> = emptyMap(), // Per-profile LSS file paths (profileId -> path)
     val statsFontSize: String? = null              // Font size for stats panel (null = default Medium)
 )

@@ -156,8 +156,12 @@ class LiveSplitConverter : Logging {
             .replace(Regex("[^a-z0-9]+"), "-")
             .trim('-')
 
-        val name = "${doc.gameName} - ${doc.categoryName}".takeIf { doc.gameName.isNotBlank() }
-            ?: doc.categoryName
+        val name = when {
+            doc.gameName.isBlank() && doc.categoryName.isBlank() -> "Unknown"
+            doc.gameName.isBlank() -> doc.categoryName
+            doc.categoryName.isBlank() || doc.categoryName == doc.gameName -> doc.gameName
+            else -> "${doc.gameName} - ${doc.categoryName}"
+        }
 
         val splitIds = deriveUniqueSplitIds(doc.segments)
 
@@ -413,7 +417,9 @@ class LiveSplitConverter : Logging {
             }
 
             val startTime = parseAttemptTimestamp(attempt.started, dateFormat)
+            // A run is only complete if it has realTime AND all segments have times
             val isComplete = attempt.realTime != null && attempt.realTime > 0
+                && completedSplits.size == doc.segments.size
             val totalTime = attempt.realTime ?: cumulative
 
             RunSession(

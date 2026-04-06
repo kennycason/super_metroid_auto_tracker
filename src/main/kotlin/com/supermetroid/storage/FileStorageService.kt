@@ -33,6 +33,9 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
     private val backupsDir = File(trackerDir, "backups")
     private val runSummariesFile = File(trackerDir, "run-summaries.json")
 
+    /** Get the storage directory path (e.g., ~/.smtracker/) */
+    fun getStorageDir(): File = trackerDir
+
     // Serialize all run file writes to prevent concurrent saves from corrupting files
     private val saveMutex = Mutex()
 
@@ -512,53 +515,45 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
     suspend fun loadSplitsStateFromNewFormat(): SplitsState = withContext(Dispatchers.IO) {
         try {
             val summaries = loadRunSummaries()
-            val kpdrSummary = summaries.profiles["kpdr-any"]
 
-            if (kpdrSummary == null) {
+            if (summaries.profiles.isEmpty()) {
                 logger.info { "📄 No run summaries found, returning empty state" }
                 return@withContext SplitsState()
             }
 
-            // Use best segments from summary (already calculated in deriveBestSplits)
-            val splitTimes = kpdrSummary.bestSplitTimes.mapValues { (_, bestSplit) ->
-                SplitTime(
-                    totalTime = bestSplit.totalTime,
-                    segmentTime = bestSplit.segmentTime,
-                    delta = 0,
-                    originalDelta = 0
+            val personalBests = mutableMapOf<String, PersonalBest>()
+            val allPbRuns = mutableListOf<RunSession>()
+
+            for ((profileId, profileSummary) in summaries.profiles) {
+                val splitTimes = profileSummary.bestSplitTimes.mapValues { (_, bestSplit) ->
+                    SplitTime(
+                        totalTime = bestSplit.totalTime,
+                        segmentTime = bestSplit.segmentTime,
+                        delta = 0,
+                        originalDelta = 0
+                    )
+                }
+
+                val bestPossibleTime = splitTimes.values.sumOf { it.segmentTime }
+                logger.info { "📊 Loaded best segments for $profileId - PB: ${formatTime(profileSummary.bestTotalTime ?: 0)}, Best Possible: ${formatTime(bestPossibleTime)}" }
+
+                val pbRunId = profileSummary.bestRunId ?: ""
+                if (pbRunId.isNotEmpty()) {
+                    loadRunById(pbRunId)?.let { allPbRuns.add(it) }
+                }
+
+                personalBests[profileId] = PersonalBest(
+                    profileId = profileId,
+                    runSessionId = pbRunId,
+                    totalTime = profileSummary.bestTotalTime ?: 0,
+                    splitTimes = splitTimes
                 )
             }
 
-            // Calculate theoretical best possible time
-            val bestPossibleTime = splitTimes.values.sumOf { it.segmentTime }
-
-            logger.info { "📊 Loaded best segments - PB: ${formatTime(kpdrSummary.bestTotalTime ?: 0)}, Best Possible: ${formatTime(bestPossibleTime)}" }
-
-            // Load the PB run from disk so the BEST column can display it
-            val pbRunId = kpdrSummary.bestRunId ?: ""
-            val pbRun = if (pbRunId.isNotEmpty()) {
-                loadRunById(pbRunId)
-            } else {
-                null
-            }
-            
-            val runHistory = if (pbRun != null) {
-                listOf(pbRun)
-            } else {
-                emptyList()
-            }
-
-            val personalBest = PersonalBest(
-                profileId = "kpdr-any",
-                runSessionId = pbRunId,
-                totalTime = kpdrSummary.bestTotalTime ?: 0, // Actual PB run time
-                splitTimes = splitTimes // Best segments for "Best Possible" calculation
-            )
-
             SplitsState(
                 currentRun = null,
-                personalBests = mapOf("kpdr-any" to personalBest),
-                runHistory = runHistory // Include the PB run so BEST column can display it
+                personalBests = personalBests,
+                runHistory = allPbRuns
             )
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to load splits state from new format" }

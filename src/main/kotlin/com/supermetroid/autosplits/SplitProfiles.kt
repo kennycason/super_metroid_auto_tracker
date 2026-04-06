@@ -136,13 +136,80 @@ object SplitProfiles {
     )
 
     /**
+     * Containment Chamber - Popular Super Metroid puzzle ROM hack
+     * Custom split points based on item acquisition and room entries.
+     * NOTE: Room-entry splits (missile, super_missiles) use triggerRoomId for
+     * ROM hack-specific rooms that don't correspond to vanilla item pickups.
+     */
+    val CONTAINMENT_CHAMBER = SplitProfile(
+        id = "containment-chamber",
+        name = "Containment Chamber",
+        splits = listOf(
+            Split("morph_ball", "Morph Ball", "item", "Morph Ball acquired"),
+            Split("charge_beam", "Charge Beam", "beam", "Charge Beam acquired"),
+            Split("bomb", "Bombs", "item", "Bombs acquired"),
+            Split("missile", "Missiles", "room_entry", "Entered Terminator Room (missiles)", triggerRoomId = 0x990D),
+            Split("super_missiles", "Super Missiles", "room_entry", "Entered Milly Mays' Room (supers)", triggerRoomId = 0xA1D8),
+            Split("speed_booster", "Speed Booster", "item", "Speed Booster acquired"),
+            Split("hi_jump", "Hi-Jump Boots", "item", "Hi-Jump Boots acquired"),
+            Split("grapple_beam", "Grapple Beam", "item", "Grapple Beam acquired"),
+            Split("ice_beam", "Ice Beam", "beam", "Ice Beam acquired"),
+            Split("gravity_suit", "Gravity Suit", "item", "Gravity Suit acquired"),
+            Split("spring_ball", "Spring Ball", "item", "Spring Ball acquired"),
+            Split("ship", "Ship", "event", "Escaped to ship (game complete)")
+        )
+    )
+
+    /**
+     * Containment Chamber (Puzzle) - Splits by puzzle room completion.
+     * Each split triggers when entering the room that follows solving a puzzle.
+     * Room IDs to be filled in from gameplay logs (look for room transitions in poll logs).
+     * Puzzles: 1-9 then A-O (23 total puzzles + ship escape)
+     */
+    val CONTAINMENT_CHAMBER_PUZZLES = SplitProfile(
+        id = "containment-chamber-puzzles",
+        name = "Containment Chamber (Puzzles)",
+        splits = listOf(
+            // Puzzles 1-9
+            Split("puzzle_1", "Puzzle 1", "room_entry", "Completed Puzzle 1", triggerRoomId = 0x92FD),
+            Split("puzzle_2", "Puzzle 2", "room_entry", "Completed Puzzle 2", triggerRoomId = 0x9A90),
+            Split("puzzle_3", "Puzzle 3", "room_entry", "Completed Puzzle 3 (Terminator Room)", triggerRoomId = 0x990D),
+            Split("puzzle_4", "Puzzle 4", "room_entry", "Completed Puzzle 4", triggerRoomId = 0x92FD, requiredItems = listOf("bombs")),
+            Split("puzzle_5", "Puzzle 5", "room_entry", "Completed Puzzle 5", triggerRoomId = 0x99BD),
+            Split("puzzle_6", "Puzzle 6", "room_entry", "Completed Puzzle 6", triggerRoomId = 0x9E52),
+            Split("puzzle_7", "Puzzle 7", "room_entry", "Completed Puzzle 7", triggerRoomId = 0x9AD9, requiredItems = listOf("speed_booster")),
+            Split("puzzle_8", "Puzzle 8", "room_entry", "Completed Puzzle 8 (Early Supers)", triggerRoomId = 0x9BC8),
+            Split("puzzle_9", "Puzzle 9", "room_entry", "Completed Puzzle 9", triggerRoomId = 0xCA08),
+            // Puzzles A-O
+            Split("puzzle_a", "Puzzle A", "room_entry", "Completed Puzzle A", triggerRoomId = 0xD08A),
+            Split("puzzle_b", "Puzzle B", "room_entry", "Completed Puzzle B", triggerRoomId = 0xD21C),
+            Split("puzzle_c", "Puzzle C", "room_entry", "Completed Puzzle C", triggerRoomId = 0xD646),
+            Split("puzzle_d", "Puzzle D", "room_entry", "Completed Puzzle D", triggerRoomId = 0xD1A3),
+            Split("puzzle_e", "Puzzle E", "room_entry", "Completed Puzzle E", triggerRoomId = 0xD95E),
+            Split("puzzle_f", "Puzzle F", "room_entry", "Completed Puzzle F", triggerRoomId = 0xD617),
+            Split("puzzle_g", "Puzzle G", "room_entry", "Completed Puzzle G", triggerRoomId = 0xD408),
+            Split("puzzle_h", "Puzzle H", "room_entry", "Completed Puzzle H", triggerRoomId = 0xB139),
+            Split("puzzle_i", "Puzzle I", "room_entry", "Completed Puzzle I", triggerRoomId = 0xAF3F),
+            Split("puzzle_j", "Puzzle J", "room_entry", "Completed Puzzle J", triggerRoomId = 0xDB31),
+            Split("puzzle_k", "Puzzle K", "room_entry", "Completed Puzzle K", triggerRoomId = 0xDB7D),
+            Split("puzzle_l", "Puzzle L", "room_entry", "Completed Puzzle L", triggerRoomId = 0xDBCD),
+            Split("puzzle_m", "Puzzle M", "room_entry", "Completed Puzzle M", triggerRoomId = 0xDDC4),
+            Split("puzzle_n", "Puzzle N", "room_entry", "Completed Puzzle N", triggerRoomId = 0xDEDE),
+            Split("puzzle_o", "Puzzle O", "room_entry", "Completed Puzzle O", triggerRoomId = 0x96BA),
+            Split("ship", "Ship", "room_entry", "Reached ship (game complete)", triggerRoomId = 0x91F8)
+        )
+    )
+
+    /**
      * All available profiles
      */
     val ALL_PROFILES = listOf(
         KPDR_ANY,
         KPDR_LATE_ICE,
         LOW_PERCENT_ICE,
-        HUNDRED_PERCENT
+        HUNDRED_PERCENT,
+        CONTAINMENT_CHAMBER,
+        CONTAINMENT_CHAMBER_PUZZLES
     )
     
     /**

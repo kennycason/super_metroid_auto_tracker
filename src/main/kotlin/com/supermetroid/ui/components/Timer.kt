@@ -2,6 +2,7 @@ package com.supermetroid.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -34,8 +36,12 @@ fun Timer(
     splitsState: SplitsState,
     onToggleRun: () -> Unit,
     onResetRun: () -> Unit,
+    onManualSplit: () -> Unit = {},
+    onUndoSplit: () -> Unit = {},
+    onDiscardRun: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    var showDiscardConfirm by remember { mutableStateOf(false) }
     val currentRun = splitsState.currentRun
 
     // Real-time timer update
@@ -179,8 +185,8 @@ fun Timer(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp) // Minimal padding for compact design
                     .hoverable(interactionSource = interactionSource)
+                    .padding(8.dp) // Minimal padding for compact design
             ) {
                 // Compute timer color: compare current time against PB run's cumulative time
                 // at the last completed split point
@@ -231,12 +237,18 @@ fun Timer(
                 // Control buttons (only show on hover, positioned absolutely)
                 if (isHovered) {
                     // Play/Pause Button (top left)
-                    IconButton(
-                        onClick = onToggleRun,
+                    // Play/Pause Button (top left)
+                    Box(
                         modifier = Modifier
                             .align(Alignment.TopStart)
                             .offset(x = 2.dp, y = -2.dp)
                             .size(20.dp)
+                            .background(
+                                TrackerColors.Surface.copy(alpha = 0.7f),
+                                RoundedCornerShape(4.dp)
+                            )
+                            .clickable { onToggleRun() },
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = when {
@@ -254,29 +266,127 @@ fun Timer(
                                 currentRun.isPaused -> TrackerColors.Success
                                 else -> TrackerColors.Warning
                             },
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(16.dp)
                         )
                     }
 
-                    // Reset Button (bottom left)
-                    IconButton(
-                        onClick = onResetRun,
-                        enabled = splitsState.currentRun != null,
+                    // Manual Split Button (bottom left) - two squished play arrows ▶▶
+                    val manualSplitEnabled = currentRun != null && currentRun.endTime == null
+                    val manualSplitColor = if (manualSplitEnabled) TrackerColors.Primary else TrackerColors.OnSurfaceVariant
+                    Box(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
-                            .offset(x = 2.dp, y = (2).dp)
+                            .offset(x = 2.dp, y = 2.dp)
                             .size(20.dp)
+                            .background(
+                                TrackerColors.Surface.copy(alpha = 0.7f),
+                                RoundedCornerShape(4.dp)
+                            )
+                            .then(if (manualSplitEnabled) Modifier.clickable { onManualSplit() } else Modifier),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = null,
+                            tint = manualSplitColor,
+                            modifier = Modifier.size(14.dp).offset(x = (-3).dp)
+                        )
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = "Manual Split",
+                            tint = manualSplitColor,
+                            modifier = Modifier.size(14.dp).offset(x = 3.dp)
+                        )
+                    }
+
+                    // Undo Split Button (bottom right) - ◀◀
+                    val undoSplitEnabled = currentRun != null && currentRun.endTime == null &&
+                        currentRun.completedSplits.isNotEmpty()
+                    val undoSplitColor = if (undoSplitEnabled) TrackerColors.Warning else TrackerColors.OnSurfaceVariant
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .offset(x = (-2).dp, y = 2.dp)
+                            .size(20.dp)
+                            .background(
+                                TrackerColors.Surface.copy(alpha = 0.7f),
+                                RoundedCornerShape(4.dp)
+                            )
+                            .then(if (undoSplitEnabled) Modifier.clickable { onUndoSplit() } else Modifier),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = null,
+                            tint = undoSplitColor,
+                            modifier = Modifier.size(14.dp).offset(x = 3.dp)
+                                .graphicsLayer(scaleX = -1f)
+                        )
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = "Undo Split",
+                            tint = undoSplitColor,
+                            modifier = Modifier.size(14.dp).offset(x = (-3).dp)
+                                .graphicsLayer(scaleX = -1f)
+                        )
+                    }
+
+                    // Reset Button (top right) - saves run
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = (-2).dp, y = -2.dp)
+                            .size(20.dp)
+                            .background(
+                                TrackerColors.Surface.copy(alpha = 0.7f),
+                                RoundedCornerShape(4.dp)
+                            )
+                            .then(if (splitsState.currentRun != null) Modifier.clickable { onResetRun() } else Modifier),
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "Reset",
+                            contentDescription = "Reset (save run)",
                             tint = if (splitsState.currentRun != null) TrackerColors.Error else TrackerColors.OnSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
             }
         }
+    }
+
+    // Discard confirmation dialog
+    if (showDiscardConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDiscardConfirm = false },
+            title = {
+                Text(
+                    "Discard Run?",
+                    style = MaterialTheme.typography.titleSmall.copy(color = TrackerColors.OnSurface)
+                )
+            },
+            text = {
+                Text(
+                    "This will reset the timer without saving. The run data will be lost.",
+                    style = MaterialTheme.typography.bodySmall.copy(color = TrackerColors.OnSurfaceVariant)
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDiscardConfirm = false
+                    onDiscardRun()
+                }) {
+                    Text("Discard", color = TrackerColors.Error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardConfirm = false }) {
+                    Text("Cancel", color = TrackerColors.OnSurfaceVariant)
+                }
+            },
+            containerColor = TrackerColors.Surface
+        )
     }
 }
 

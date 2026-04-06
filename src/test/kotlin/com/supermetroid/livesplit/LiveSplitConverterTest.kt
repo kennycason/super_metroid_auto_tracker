@@ -383,9 +383,9 @@ class LiveSplitConverterTest {
         // Should have an entry for every attempt
         assertEquals(doc.attemptHistory.size, runs.size)
 
-        // 18 completed runs (attempts with RealTime)
+        // Only truly complete runs (RealTime AND all segments) should have endTime
         val completed = runs.filter { it.endTime != null }
-        assertEquals(18, completed.size, "Should have 18 completed runs (attempts with RealTime)")
+        assertEquals(7, completed.size, "Should have 7 fully completed runs (all 55 segments)")
 
         // Failed/incomplete runs are the rest
         val incomplete = runs.filter { it.endTime == null }

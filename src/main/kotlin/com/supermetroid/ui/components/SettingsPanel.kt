@@ -116,6 +116,8 @@ fun SettingsPanel(
                     roomNameService = roomNameService,
                     autoSplitsEngine = autoSplitsEngine,
                     fileStorageService = fileStorageService,
+                    splitProfileService = splitProfileService,
+                    splitFormatService = splitFormatService,
                     gameGenieService = gameGenieService,
                     modifier = Modifier.fillMaxSize()
                 )
@@ -157,6 +159,8 @@ private fun GeneralSettingsTab(
     roomNameService: com.supermetroid.service.RoomNameService,
     autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
     fileStorageService: com.supermetroid.storage.FileStorageService,
+    splitProfileService: com.supermetroid.service.SplitProfileService,
+    splitFormatService: com.supermetroid.service.SplitFormatService,
     gameGenieService: com.supermetroid.service.GameGenieService,
     modifier: Modifier = Modifier
 ) {
@@ -169,6 +173,8 @@ private fun GeneralSettingsTab(
         LoadRunSection(
             fileStorageService = fileStorageService,
             autoSplitsEngine = autoSplitsEngine,
+            splitProfileService = splitProfileService,
+            splitFormatService = splitFormatService,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -310,7 +316,7 @@ private fun SplitsSettingsTab(
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         // Split Profile Section
         SplitProfileSection(
@@ -321,6 +327,7 @@ private fun SplitsSettingsTab(
         // Split Format Section (Read/Write format + LSS file picker)
         SplitFormatSection(
             splitFormatService = splitFormatService,
+            splitProfileService = splitProfileService,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -332,6 +339,12 @@ private fun SplitsSettingsTab(
 
         // Split Display Mode Section
         SplitDisplayModeSection(
+            splitDisplayModeService = splitDisplayModeService,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // Show Game Name Toggle
+        GameNameToggleSection(
             splitDisplayModeService = splitDisplayModeService,
             modifier = Modifier.fillMaxWidth()
         )
@@ -452,6 +465,7 @@ private fun SplitProfileSection(
 @Composable
 private fun SplitFormatSection(
     splitFormatService: com.supermetroid.service.SplitFormatService,
+    splitProfileService: com.supermetroid.service.SplitProfileService,
     modifier: Modifier = Modifier
 ) {
     val readFormat by splitFormatService.readFormat.collectAsState()
@@ -459,7 +473,46 @@ private fun SplitFormatSection(
     val writeLiveSplit by splitFormatService.writeLiveSplit.collectAsState()
     val lssFilePath by splitFormatService.liveSplitFilePath.collectAsState()
     val lssDoc by splitFormatService.liveSplitDocument.collectAsState()
+    val currentProfile by splitProfileService.currentProfile.collectAsState()
     val scope = rememberCoroutineScope()
+    var showCreateLssDialog by remember { mutableStateOf(false) }
+
+    // Dialog for creating a new LSS file
+    if (showCreateLssDialog) {
+        AlertDialog(
+            onDismissRequest = { showCreateLssDialog = false },
+            title = {
+                Text(
+                    "No LSS File for ${currentProfile.name}",
+                    style = MaterialTheme.typography.titleSmall.copy(color = TrackerColors.OnSurface)
+                )
+            },
+            text = {
+                Text(
+                    "No LiveSplit file is configured for this profile.\n\nCreate a new .lss file, or cancel and load an existing one with the file picker.",
+                    style = MaterialTheme.typography.bodySmall.copy(color = TrackerColors.OnSurfaceVariant)
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showCreateLssDialog = false
+                        scope.launch {
+                            splitFormatService.createNewLssFile(currentProfile)
+                        }
+                    }
+                ) {
+                    Text("Create New", color = TrackerColors.Primary)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCreateLssDialog = false }) {
+                    Text("Cancel", color = TrackerColors.OnSurfaceVariant)
+                }
+            },
+            containerColor = TrackerColors.Surface
+        )
+    }
 
     Card(
         modifier = modifier.fillMaxWidth(0.95f),
@@ -633,12 +686,26 @@ private fun SplitFormatSection(
                         }
                     }
 
+                    // No file configured — show create button
+                    if (lssFilePath == null) {
+                        TextButton(
+                            onClick = { showCreateLssDialog = true },
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                "or Create New .lss",
+                                style = MaterialTheme.typography.labelSmall.copy(color = TrackerColors.Primary)
+                            )
+                        }
+                    }
+
                     // LSS file info (when loaded)
                     if (lssDoc != null) {
                         val doc = lssDoc!!
                         val completedAttempts = doc.attemptHistory.count { it.realTime != null }
+                        val lssDisplayName = if (doc.categoryName.isBlank() || doc.categoryName == doc.gameName) doc.gameName else "${doc.gameName} - ${doc.categoryName}"
                         Text(
-                            text = "${doc.gameName} - ${doc.categoryName} | ${doc.segments.size} splits | $completedAttempts/${doc.attemptHistory.size} attempts",
+                            text = "$lssDisplayName | ${doc.segments.size} splits | $completedAttempts/${doc.attemptHistory.size} attempts",
                             style = MaterialTheme.typography.labelSmall.copy(
                                 color = TrackerColors.OnSurfaceVariant
                             ),
@@ -656,6 +723,19 @@ private fun SplitFormatSection(
  * Opens a native file picker dialog for .lss files.
  * Uses AWT FileDialog for cross-platform support in Compose Desktop.
  */
+private fun formatRunTime(timeMs: Long): String {
+    val totalSeconds = timeMs / 1000
+    val hours = totalSeconds / 3600
+    val minutes = (totalSeconds % 3600) / 60
+    val seconds = totalSeconds % 60
+    val millis = (timeMs % 1000) / 10
+    return if (hours > 0) {
+        "%d:%02d:%02d.%02d".format(hours, minutes, seconds, millis)
+    } else {
+        "%d:%02d.%02d".format(minutes, seconds, millis)
+    }
+}
+
 private fun showFilePickerDialog(): String? {
     val dialog = java.awt.FileDialog(null as java.awt.Frame?, "Select LiveSplit File", java.awt.FileDialog.LOAD)
     dialog.setFilenameFilter { _, name -> name.endsWith(".lss", ignoreCase = true) }
@@ -828,6 +908,22 @@ private fun RoomNameToggleSection(
         label = "Show room names in status display",
         checked = showRoomName,
         onCheckedChange = { roomNameService.setShowRoomName(it) },
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun GameNameToggleSection(
+    splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
+    modifier: Modifier = Modifier
+) {
+    val showGameName by splitDisplayModeService.showGameName.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    ToggleRow(
+        label = "Show Game Name",
+        checked = showGameName,
+        onCheckedChange = { scope.launch { splitDisplayModeService.setShowGameName(it) } },
         modifier = modifier
     )
 }
@@ -1679,10 +1775,57 @@ private fun MapRandoInfoItemRow(
 private fun LoadRunSection(
     fileStorageService: com.supermetroid.storage.FileStorageService,
     autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
+    splitProfileService: com.supermetroid.service.SplitProfileService,
+    splitFormatService: com.supermetroid.service.SplitFormatService,
     modifier: Modifier = Modifier
 ) {
+    val currentProfile by splitProfileService.currentProfile.collectAsState()
+    val lssDoc by splitFormatService.liveSplitDocument.collectAsState()
     var expanded by remember { mutableStateOf(false) }
-    var runFiles by remember { mutableStateOf<List<com.supermetroid.storage.FileStorageService.RunFileMetadata>>(emptyList()) }
+    var allRunFiles by remember { mutableStateOf<List<com.supermetroid.storage.FileStorageService.RunFileMetadata>>(emptyList()) }
+
+    // Build LSS run metadata from the loaded LiveSplit document
+    val lssRunFiles = remember(lssDoc, currentProfile.id) {
+        val doc = lssDoc ?: return@remember emptyList()
+        val resolvedProfile = splitFormatService.getResolvedLiveSplitProfile()
+        val profileId = resolvedProfile?.id ?: return@remember emptyList()
+        if (profileId != currentProfile.id) return@remember emptyList()
+
+        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+        doc.attemptHistory.filter { it.realTime != null && it.realTime > 0 }.map { attempt ->
+            val isComplete = true
+            val totalTime = attempt.realTime!!
+            val startTime = try {
+                attempt.started?.let {
+                    kotlinx.datetime.Instant.parse(
+                        it.replace(" ", "T").let { s -> if (!s.endsWith("Z")) "${s}Z" else s }
+                    )
+                } ?: kotlinx.datetime.Clock.System.now()
+            } catch (e: Exception) {
+                kotlinx.datetime.Clock.System.now()
+            }
+            val dateStr = dateFormat.format(java.util.Date(startTime.toEpochMilliseconds()))
+            val timeStr = formatRunTime(totalTime)
+            val completeIcon = if (isComplete) "\u2705" else "\u274C"
+            val profileName = currentProfile.name
+
+            com.supermetroid.storage.FileStorageService.RunFileMetadata(
+                fileName = "lss-attempt-${attempt.id}",
+                displayName = "$completeIcon $dateStr \u2013 $profileName ($timeStr)",
+                isComplete = isComplete,
+                startTime = startTime,
+                totalTime = totalTime,
+                profileId = currentProfile.id
+            )
+        }
+    }
+
+    // Merge JSON runs (filtered by profile) with LSS runs, deduplicated and sorted
+    val jsonRunFiles = allRunFiles.filter { it.profileId == currentProfile.id }
+    val lssFileNames = lssRunFiles.map { it.fileName }.toSet()
+    val runFiles = (jsonRunFiles.filter { it.fileName !in lssFileNames } + lssRunFiles)
+        .sortedByDescending { it.startTime }
+
     var selectedRun by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
     var confirmDeleteFileName by remember { mutableStateOf<String?>(null) }
@@ -1691,9 +1834,9 @@ private fun LoadRunSection(
 
     // Load run files when dropdown is opened
     LaunchedEffect(expanded) {
-        if (expanded && runFiles.isEmpty()) {
+        if (expanded && allRunFiles.isEmpty()) {
             isLoading = true
-            runFiles = fileStorageService.listRunFiles()
+            allRunFiles = fileStorageService.listRunFiles()
             isLoading = false
         }
     }
@@ -1812,6 +1955,7 @@ private fun LoadRunSection(
 
                         // Historical runs
                         runFiles.forEach { runFile ->
+                            val isLssRun = runFile.fileName.startsWith("lss-attempt-")
                             DropdownMenuItem(
                                 text = {
                                     Row(
@@ -1826,6 +1970,32 @@ private fun LoadRunSection(
                                             overflow = TextOverflow.Ellipsis,
                                             modifier = Modifier.weight(1f)
                                         )
+                                        // Resume button (only for incomplete JSON runs)
+                                        if (!isLssRun && !runFile.isComplete) {
+                                            IconButton(
+                                                onClick = {
+                                                    expanded = false
+                                                    scope.launch {
+                                                        try {
+                                                            autoSplitsEngine.resumeRun(runFile.fileName)
+                                                            statusMessage = "Resumed run"
+                                                            allRunFiles = fileStorageService.listRunFiles()
+                                                        } catch (e: Exception) {
+                                                            statusMessage = "Failed to resume"
+                                                        }
+                                                    }
+                                                },
+                                                modifier = Modifier.size(24.dp)
+                                            ) {
+                                                Text(
+                                                    "\u25B6",
+                                                    style = MaterialTheme.typography.labelSmall.copy(
+                                                        color = TrackerColors.Success,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                )
+                                            }
+                                        }
                                         // Delete button
                                         IconButton(
                                             onClick = {
@@ -1847,12 +2017,14 @@ private fun LoadRunSection(
                                     selectedRun = runFile.displayName
                                     expanded = false
 
-                                    // Load the run
-                                    scope.launch {
-                                        try {
-                                            autoSplitsEngine.loadReplayRun(runFile.fileName)
-                                        } catch (e: Exception) {
-                                            // Log error (handled in engine)
+                                    // Load the run (only JSON runs support replay)
+                                    if (!isLssRun) {
+                                        scope.launch {
+                                            try {
+                                                autoSplitsEngine.loadReplayRun(runFile.fileName)
+                                            } catch (e: Exception) {
+                                                // Log error (handled in engine)
+                                            }
                                         }
                                     }
                                 }
@@ -1868,7 +2040,7 @@ private fun LoadRunSection(
                     onClick = {
                         scope.launch {
                             isLoading = true
-                            runFiles = fileStorageService.listRunFiles()
+                            allRunFiles = fileStorageService.listRunFiles()
                             isLoading = false
                         }
                     },
@@ -1910,11 +2082,17 @@ private fun LoadRunSection(
                     onClick = {
                         confirmDeleteFileName = null
                         scope.launch {
-                            val success = fileStorageService.deleteRun(fileName)
+                            val isLss = fileName.startsWith("lss-attempt-")
+                            val success = if (isLss) {
+                                val attemptId = fileName.removePrefix("lss-attempt-").toIntOrNull()
+                                if (attemptId != null) splitFormatService.deleteLssAttempt(attemptId) else false
+                            } else {
+                                fileStorageService.deleteRun(fileName)
+                            }
                             if (success) {
                                 statusMessage = "Deleted (backup saved)"
                                 // Refresh the list
-                                runFiles = fileStorageService.listRunFiles()
+                                allRunFiles = fileStorageService.listRunFiles()
                                 if (selectedRun == runMeta?.displayName) {
                                     selectedRun = null
                                     autoSplitsEngine.resetToCurrentState()

@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
@@ -83,6 +84,7 @@ fun SplitsList(
     val showBestColumn by splitDisplayModeService.showBestColumn.collectAsState()
     val showAverageColumn by splitDisplayModeService.showAverageColumn.collectAsState()
     val showAverageDelta by splitDisplayModeService.showAverageDelta.collectAsState()
+    val showGameName by splitDisplayModeService.showGameName.collectAsState()
     val listState = rememberLazyListState()
     
     // Calculate average segment times for the CURRENT PROFILE (memoized to avoid recalculating on every recomposition)
@@ -122,6 +124,7 @@ fun SplitsList(
                 splitsState = splitsState,
                 autoSplitsEngine = autoSplitsEngine,
                 profile = currentProfile,
+                showGameName = showGameName,
                 showBestPossibleColumn = showBestPossibleColumn,
                 showBestPossibleDelta = showBestPossibleDelta,
                 showBestColumn = showBestColumn,
@@ -167,6 +170,7 @@ private fun SplitsHeader(
     splitsState: SplitsState,
     autoSplitsEngine: AutoSplitsEngine,
     profile: SplitProfile,
+    showGameName: Boolean,
     showBestPossibleColumn: Boolean,
     showBestPossibleDelta: Boolean,
     showBestColumn: Boolean,
@@ -181,22 +185,25 @@ private fun SplitsHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
-            Text(
-                text = profile.name.uppercase(),
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    color = TrackerColors.Primary,
-                    letterSpacing = 1.sp
+        if (showGameName) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = profile.name.uppercase(),
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        color = TrackerColors.Primary,
+                        letterSpacing = 1.sp
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Clip
                 )
-            )
+            }
         }
 
         // Column headers (Best Possible | BP Δ | Average | Avg Δ | BEST | TIME)
         Row(
-            horizontalArrangement = Arrangement.End,
-            modifier = Modifier.fillMaxWidth()
+            horizontalArrangement = Arrangement.End
         ) {
             if (showBestPossibleColumn) {
                 Text(
@@ -616,11 +623,11 @@ private fun SplitRow(
                         completedSplit.time.segmentTime - bestSegmentTime.segmentTime
                     } else 0L
 
-                    // Determine color: gold for beating best, gradient for delta
+                    // Determine color: gold for first run or beating best, gradient for delta
                     val timeColor = if (isCompleted && bestSegmentTime != null) {
                         deltaGradientColor(delta, isBestSegment = delta <= 0)
                     } else if (isCompleted) {
-                        TrackerColors.SplitCompleted
+                        Gold // First run = every segment is a best
                     } else {
                         TrackerColors.SplitPending
                     }

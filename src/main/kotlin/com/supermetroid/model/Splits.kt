@@ -7,8 +7,10 @@ import kotlinx.serialization.Serializable
 data class Split(
     val id: String,
     val name: String,
-    val type: String, // e.g., "item", "boss", "event"
-    val description: String? = null
+    val type: String, // e.g., "item", "boss", "event", "room_entry"
+    val description: String? = null,
+    val triggerRoomId: Int? = null, // When set, split triggers on first entry to this room ID
+    val requiredItems: List<String>? = null // Items that must be acquired before this split can trigger
 )
 
 @Serializable
