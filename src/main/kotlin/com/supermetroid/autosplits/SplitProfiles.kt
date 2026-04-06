@@ -156,7 +156,7 @@ object SplitProfiles {
             Split("ice_beam", "Ice Beam", "beam", "Ice Beam acquired"),
             Split("gravity_suit", "Gravity Suit", "item", "Gravity Suit acquired"),
             Split("spring_ball", "Spring Ball", "item", "Spring Ball acquired"),
-            Split("ship", "Ship", "event", "Escaped to ship (game complete)")
+            Split("ship", "Ship", "room_entry", "Reached ship (game complete)", triggerRoomId = 0x91F8)
         )
     )
 
