@@ -269,9 +269,13 @@ class SplitFormatService(
     /**
      * Re-load the current LiveSplit file (e.g., after external changes).
      */
-    fun reloadLiveSplitFile(): Boolean {
+    suspend fun reloadLiveSplitFile(): Boolean {
         val path = _liveSplitFilePath.value ?: return false
-        return loadLiveSplitFile(path)
+        val result = loadLiveSplitFile(path)
+        if (result) {
+            onFormatChanged?.invoke()
+        }
+        return result
     }
 
     /**

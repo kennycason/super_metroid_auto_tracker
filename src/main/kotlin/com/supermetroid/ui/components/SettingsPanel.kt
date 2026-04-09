@@ -674,7 +674,7 @@ private fun SplitFormatSection(
                         // Reload button (only if file is loaded)
                         if (lssFilePath != null) {
                             TextButton(
-                                onClick = { splitFormatService.reloadLiveSplitFile() },
+                                onClick = { scope.launch { splitFormatService.reloadLiveSplitFile() } },
                                 contentPadding = PaddingValues(0.dp),
                                 modifier = Modifier.size(32.dp)
                             ) {
@@ -2095,8 +2095,9 @@ private fun LoadRunSection(
                                 allRunFiles = fileStorageService.listRunFiles()
                                 if (selectedRun == runMeta?.displayName) {
                                     selectedRun = null
-                                    autoSplitsEngine.resetToCurrentState()
                                 }
+                                // Always refresh state after deletion to update PBs/BEST
+                                autoSplitsEngine.resetToCurrentState()
                             } else {
                                 statusMessage = "Failed to delete"
                             }
