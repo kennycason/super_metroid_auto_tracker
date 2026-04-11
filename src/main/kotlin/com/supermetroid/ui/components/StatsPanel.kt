@@ -67,13 +67,21 @@ fun StatsPanel(
     splitsState: SplitsState,
     profile: SplitProfile,
     statsFontSizeService: StatsFontSizeService,
+    fileStorageService: com.supermetroid.storage.FileStorageService? = null,
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableStateOf(StatsTab.SUMMARY) }
     val fs by statsFontSizeService.fontSize.collectAsState()
-    // Filter out synthetic PB run and only include runs matching current profile
-    val runs = remember(splitsState.runHistory, profile.id) {
-        splitsState.runHistory.filter {
+
+    // Load all runs from disk for accurate stats, filtered to current profile
+    var diskRuns by remember { mutableStateOf<List<com.supermetroid.model.RunSession>?>(null) }
+    LaunchedEffect(profile.id) {
+        diskRuns = fileStorageService?.loadAllRuns()
+    }
+
+    val runs = remember(diskRuns, splitsState.runHistory, profile.id) {
+        val source = diskRuns ?: splitsState.runHistory
+        source.filter {
             !it.id.startsWith("livesplit-pb") && it.profileId == profile.id
         }
     }

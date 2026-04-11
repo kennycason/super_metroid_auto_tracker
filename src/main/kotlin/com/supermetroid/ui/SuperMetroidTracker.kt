@@ -602,6 +602,7 @@ fun SuperMetroidTrackerLayout(
                 splitsState = splitsState,
                 profile = currentProfile,
                 statsFontSizeService = statsFontSizeService,
+                fileStorageService = fileStorageService,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)

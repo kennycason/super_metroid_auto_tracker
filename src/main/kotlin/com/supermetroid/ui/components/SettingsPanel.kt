@@ -2017,15 +2017,27 @@ private fun LoadRunSection(
                                     selectedRun = runFile.displayName
                                     expanded = false
 
-                                    // Load the run (only JSON runs support replay)
-                                    if (!isLssRun) {
-                                        scope.launch {
-                                            try {
-                                                autoSplitsEngine.loadReplayRun(runFile.fileName)
-                                            } catch (e: Exception) {
-                                                // Log error (handled in engine)
-                                            }
+                                    scope.launch {
+                                        val success = if (isLssRun) {
+                                            // Build RunSession from LiveSplit attempt history
+                                            val doc = lssDoc
+                                            val attemptId = runFile.fileName.removePrefix("lss-attempt-").toIntOrNull()
+                                            if (doc != null && attemptId != null) {
+                                                val profileId = currentProfile.id
+                                                val converter = com.supermetroid.livesplit.LiveSplitConverter()
+                                                val allLssRuns = converter.toRunHistory(doc, profileId)
+                                                val targetRun = allLssRuns.find { run -> run.id == "lss-attempt-$attemptId" }
+                                                if (targetRun != null) {
+                                                    val previousRuns = allLssRuns.filter { run ->
+                                                        run.startTime < targetRun.startTime && run.endTime != null
+                                                    }
+                                                    autoSplitsEngine.loadReplayRunSession(targetRun, previousRuns)
+                                                } else false
+                                            } else false
+                                        } else {
+                                            autoSplitsEngine.loadReplayRun(runFile.fileName)
                                         }
+                                        statusMessage = if (success) "Loaded run" else "Failed to load run"
                                     }
                                 }
                             )
