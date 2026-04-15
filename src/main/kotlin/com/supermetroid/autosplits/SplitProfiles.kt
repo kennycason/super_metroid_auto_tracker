@@ -8,14 +8,22 @@ import com.supermetroid.model.SplitProfile
  * Each profile defines a different speedrun category with its own split order
  */
 object SplitProfiles {
-    
+
+    // Profile ID constants
+    const val ID_KPDR_ANY = "kpdr-any"
+    const val ID_KPDR_LATE_ICE = "kpdr-late-ice"
+    const val ID_LOW_14_ICE = "low-14-ice"
+    const val ID_HUNDRED_PERCENT = "hundred-percent"
+    const val ID_CONTAINMENT_CHAMBER = "containment-chamber"
+    const val ID_CONTAINMENT_CHAMBER_PUZZLES = "containment-chamber-puzzles"
+
     /**
      * KPDR Any% - Standard route with early Ice Beam
      * Kraid → Phantoon → Draygon → Ridley
      * Ice Beam obtained before Phantoon
      */
     val KPDR_ANY = SplitProfile(
-        id = "kpdr-any",
+        id = ID_KPDR_ANY,
         name = "KPDR Any%",
         splits = listOf(
             Split("ceres_station", "Ceres Station", "boss", "Escape from Ceres Station"),
@@ -51,7 +59,7 @@ object SplitProfiles {
      * Ice Beam obtained after Gravity Suit (common for certain strats)
      */
     val KPDR_LATE_ICE = SplitProfile(
-        id = "kpdr-late-ice",
+        id = ID_KPDR_LATE_ICE,
         name = "KPDR Late Ice",
         splits = listOf(
             Split("ceres_station", "Ceres Station", "boss", "Escape from Ceres Station"),
@@ -87,7 +95,7 @@ object SplitProfiles {
      * No Varia, Hi-Jump, Speed Booster, Space Jump, Spazer, Wave, Plasma
      */
     val LOW_PERCENT_ICE = SplitProfile(
-        id = "low-14-ice",
+        id = ID_LOW_14_ICE,
         name = "Low% Ice (14%)",
         splits = listOf(
             Split("ceres_station", "Ceres Station", "boss", "Escape from Ceres Station"),
@@ -117,7 +125,7 @@ object SplitProfiles {
      * Splits derived from standard LiveSplit 100% layout (12 milestones)
      */
     val HUNDRED_PERCENT = SplitProfile(
-        id = "hundred-percent",
+        id = ID_HUNDRED_PERCENT,
         name = "100%",
         splits = listOf(
             Split("bomb", "Bomb", "item", "Bombs acquired"),
@@ -142,7 +150,7 @@ object SplitProfiles {
      * ROM hack-specific rooms that don't correspond to vanilla item pickups.
      */
     val CONTAINMENT_CHAMBER = SplitProfile(
-        id = "containment-chamber",
+        id = ID_CONTAINMENT_CHAMBER,
         name = "Containment Chamber",
         splits = listOf(
             Split("morph_ball", "Morph Ball", "item", "Morph Ball acquired"),
@@ -156,7 +164,7 @@ object SplitProfiles {
             Split("ice_beam", "Ice Beam", "beam", "Ice Beam acquired"),
             Split("gravity_suit", "Gravity Suit", "item", "Gravity Suit acquired"),
             Split("spring_ball", "Spring Ball", "item", "Spring Ball acquired"),
-            Split("ship", "Ship", "room_entry", "Reached ship (game complete)", triggerRoomId = 0x91F8)
+            Split("ship", "Ship", "event", "Boarded ship (game complete)")
         )
     )
 
@@ -167,7 +175,7 @@ object SplitProfiles {
      * Puzzles: 1-9 then A-O (23 total puzzles + ship escape)
      */
     val CONTAINMENT_CHAMBER_PUZZLES = SplitProfile(
-        id = "containment-chamber-puzzles",
+        id = ID_CONTAINMENT_CHAMBER_PUZZLES,
         name = "Containment Chamber (Puzzles)",
         splits = listOf(
             // Puzzles 1-9
@@ -196,7 +204,7 @@ object SplitProfiles {
             Split("puzzle_m", "Puzzle M", "room_entry", "Completed Puzzle M", triggerRoomId = 0xDDC4),
             Split("puzzle_n", "Puzzle N", "room_entry", "Completed Puzzle N", triggerRoomId = 0xDEDE),
             Split("puzzle_o", "Puzzle O", "room_entry", "Completed Puzzle O", triggerRoomId = 0x96BA),
-            Split("ship", "Ship", "room_entry", "Reached ship (game complete)", triggerRoomId = 0x91F8)
+            Split("ship", "Ship", "event", "Boarded ship (game complete)")
         )
     )
 

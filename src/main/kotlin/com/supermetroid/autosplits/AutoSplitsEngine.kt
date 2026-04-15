@@ -1109,7 +1109,13 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
                 gameState.bosses.motherBrain2 || mb2AlreadyDefeated || zebesEscaping || mbFinalDefeated
             }
-            "ship" -> gameState.bosses.samusShip
+            "ship" -> {
+                if (isContainmentChamberProfile()) {
+                    gameState.shipAi == 0xAA4F && gameState.roomId == 0x91F8
+                } else {
+                    gameState.bosses.samusShip
+                }
+            }
             else -> false
         }
     }
@@ -1765,20 +1771,30 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     }
 
     private fun checkShip(prev: GameState, curr: GameState): Boolean {
-        // Implement ASL RTA finish logic exactly:
-        // escape = zebesAblaze && shipAI.old != 0xaa4f && shipAI.current == 0xaa4f
-        val zebesAblaze = (curr.eventFlags and GameStateConstants.ZEBES_ABLAZE_FLAG) != 0  // bit 6
-        val motherBrainDefeated = (curr.tourianBosses and GameStateConstants.MB_FINAL_DEFEATED_FLAG) != 0  // Bit 1 (0x2) for Mother Brain, matching ASL and parseMotherBrainFinal
+        // Detect shipAI transition: old != 0xAA4F && current == 0xAA4F
         val shipAiTransition = prev.shipAi != 0xAA4F && curr.shipAi == 0xAA4F
 
-        val result = zebesAblaze && motherBrainDefeated && shipAiTransition
+        // Vanilla/ASL RTA finish: requires zebesAblaze + MB defeated + shipAI transition
+        val zebesAblaze = (curr.eventFlags and GameStateConstants.ZEBES_ABLAZE_FLAG) != 0
+        val motherBrainDefeated = (curr.tourianBosses and GameStateConstants.MB_FINAL_DEFEATED_FLAG) != 0
+        val vanillaShip = zebesAblaze && motherBrainDefeated && shipAiTransition
 
-        // Log only on successful detection to reduce noise
+        // ROM hack support (e.g. Containment Chamber): shipAI transition in Landing Site is sufficient
+        // No MB or escape sequence exists, but the ship boarding animation uses the same AI state
+        val romHackShip = isContainmentChamberProfile() && shipAiTransition && curr.roomId == 0x91F8
+
+        val result = vanillaShip || romHackShip
+
         if (result) {
-            logger.info { "🚢 Ship escape detected" }
+            logger.info { "🚢 Ship escape detected (vanilla=$vanillaShip, romHack=$romHackShip)" }
         }
 
         return result
+    }
+
+    private fun isContainmentChamberProfile(): Boolean {
+        val id = currentProfile?.id
+        return id == SplitProfiles.ID_CONTAINMENT_CHAMBER || id == SplitProfiles.ID_CONTAINMENT_CHAMBER_PUZZLES
     }
 
     /**

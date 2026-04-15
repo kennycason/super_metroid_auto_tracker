@@ -42,6 +42,8 @@ class GameStateParser : Logging {
             eventFlags = memoryData["eventFlags"]?.readInt16LE() ?: 0,
             tourianBosses = memoryData["tourianBosses"]?.readInt16LE() ?: 0,
             shipAi = memoryData["shipAi"]?.readInt16LE() ?: 0,
+            samusX = memoryData["samusX"]?.readInt16LE() ?: 0,
+            samusY = memoryData["samusY"]?.readInt16LE() ?: 0,
             deathCount = parseDeathCount(memoryData["deathCount"]),
             reloadCount = parseReloadCount(memoryData["reloadCount"]),
             resetCount = parseResetCount(memoryData["resetCount"]),

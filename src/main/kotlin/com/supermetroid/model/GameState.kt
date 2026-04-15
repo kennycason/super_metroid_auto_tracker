@@ -27,6 +27,8 @@ data class GameState(
     val eventFlags: Int = 0,     // Added for ship detection
     val tourianBosses: Int = 0,  // Added for ship detection  
     val shipAi: Int = 0,         // Added for ship detection
+    val samusX: Int = 0,         // Samus X position ($7E0AF6)
+    val samusY: Int = 0,         // Samus Y position ($7E0AFA)
     val deathCount: Int = 0,     // Map Rando death counter from SRAM ($701E16)
     val reloadCount: Int = 0,    // Map Rando reload counter from SRAM ($701E18)
     val resetCount: Int = 0,     // Map Rando reset counter from SRAM ($701E1C)

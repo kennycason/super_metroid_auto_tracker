@@ -1,5 +1,6 @@
 package com.supermetroid.storage
 
+import com.supermetroid.autosplits.SplitProfiles
 import com.supermetroid.model.*
 import com.supermetroid.util.Logging
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -578,7 +579,7 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
 
     private fun getProfileName(profileId: String): String {
         return when (profileId) {
-            "kpdr-any" -> "KPDR Any%"
+            SplitProfiles.ID_KPDR_ANY -> "KPDR Any%"
             else -> profileId
         }
     }

@@ -416,6 +416,10 @@ object SuperMetroidAddresses {
     const val MOTHER_BRAIN_HP = 0x7E0FCC
     const val SHIP_AI = 0x7E0FB2
 
+    // Samus position (debug)
+    const val SAMUS_X = 0x7E0AF6
+    const val SAMUS_Y = 0x7E0AFA
+
     // Escape sequence
     const val ESCAPE_TIMER_1 = 0x7E0943
     const val ESCAPE_TIMER_2 = 0x7E0945
@@ -484,6 +488,8 @@ class SuperMetroidMemoryReader(private val udpClient: RetroArchUdpClient) {
             "eventFlags" to (SuperMetroidAddresses.EVENT_FLAGS to 2),
             "motherBrainHp" to (SuperMetroidAddresses.MOTHER_BRAIN_HP to 2),
             "shipAi" to (SuperMetroidAddresses.SHIP_AI to 2),
+            "samusX" to (SuperMetroidAddresses.SAMUS_X to 2),
+            "samusY" to (SuperMetroidAddresses.SAMUS_Y to 2),
             "escapeTimer1" to (SuperMetroidAddresses.ESCAPE_TIMER_1 to 2),
             "escapeTimer2" to (SuperMetroidAddresses.ESCAPE_TIMER_2 to 2),
             "escapeTimer3" to (SuperMetroidAddresses.ESCAPE_TIMER_3 to 2),

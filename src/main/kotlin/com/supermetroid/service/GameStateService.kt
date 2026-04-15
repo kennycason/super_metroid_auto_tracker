@@ -279,6 +279,10 @@ class GameStateService(
                 if (pollCount % 100L == 0L || significantChange) {
                     logger.info { "🔄 Poll #$pollCount: ${gameState.areaName}, Room ${gameState.roomId} (0x${gameState.roomId.toString(16).uppercase()}), Health ${gameState.health}/${gameState.maxHealth}, Missiles ${gameState.missiles}/${gameState.maxMissiles}, Supers ${gameState.supers}/${gameState.maxSupers}, PBs ${gameState.powerBombs}/${gameState.maxPowerBombs}" }
                 }
+                // Debug: log shipAi + Samus position when in Landing Site (0x91F8) to diagnose ship split timing
+                if (gameState.roomId == 0x91F8) {
+                    logger.info { "🚢 Landing Site shipAi=0x${gameState.shipAi.toString(16).uppercase()}, pos=(${gameState.samusX},${gameState.samusY}), eventFlags=0x${gameState.eventFlags.toString(16).uppercase()}, tourianBosses=0x${gameState.tourianBosses.toString(16).uppercase()}, gameState=${gameState.gameState}" }
+                }
                 // Reset backoff on successful poll
                 currentDelayMs = pollIntervalMs
 
@@ -417,6 +421,8 @@ class GameStateService(
             // Special addresses
             "motherBrainHp" to (SuperMetroidAddresses.MOTHER_BRAIN_HP to 2),
             "shipAi" to (SuperMetroidAddresses.SHIP_AI to 2),
+            "samusX" to (SuperMetroidAddresses.SAMUS_X to 2),
+            "samusY" to (SuperMetroidAddresses.SAMUS_Y to 2),
             // Escape timer addresses
             "escapeTimer1" to (SuperMetroidAddresses.ESCAPE_TIMER_1 to 2),
             "escapeTimer2" to (SuperMetroidAddresses.ESCAPE_TIMER_2 to 2),
