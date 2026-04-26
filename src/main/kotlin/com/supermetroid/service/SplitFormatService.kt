@@ -1,11 +1,13 @@
 package com.supermetroid.service
 
 import com.supermetroid.autosplits.SplitProfiles
-import com.supermetroid.livesplit.LiveSplitConverter
+import com.supermetroid.livesplit.LiveSplitAttempt
 import com.supermetroid.livesplit.LiveSplitComparisonSplit
+import com.supermetroid.livesplit.LiveSplitConverter
 import com.supermetroid.livesplit.LiveSplitDocument
 import com.supermetroid.livesplit.LiveSplitParser
 import com.supermetroid.livesplit.LiveSplitSegment
+import com.supermetroid.livesplit.LiveSplitTimeSpan
 import com.supermetroid.livesplit.LiveSplitWriter
 import com.supermetroid.model.AppConfig
 import com.supermetroid.model.CompletedSplit
@@ -246,8 +248,16 @@ class SplitFormatService(
                 return false
             }
 
-            val doc = parser.parseFile(file)
-            _liveSplitDocument.value = doc
+            val rawDoc = parser.parseFile(file)
+            _liveSplitDocument.value = rawDoc
+            _liveSplitFilePath.value = path
+
+            // Verify and repair PB/BestSegmentTime if stale from prior deletes
+            if (needsRepair(rawDoc)) {
+                logger.info { "🔧 Detected stale LSS data, repairing PB and BestSegmentTime..." }
+                repairLss()
+            }
+            val doc = _liveSplitDocument.value ?: rawDoc
 
             val profile = converter.toSplitProfile(doc)
             _liveSplitProfile.value = profile
@@ -359,10 +369,22 @@ class SplitFormatService(
             return false
         }
 
-        // Also remove segment history entries for this attempt
-        val updatedSegments = doc.segments.map { segment ->
+        // Remove segment history entries for this attempt
+        val segmentsWithoutAttempt = doc.segments.map { segment ->
             segment.copy(segmentHistory = segment.segmentHistory.filter { it.id != attemptId })
         }
+
+        // Only use segment times from completed attempts (filters out garbage auto-skip times)
+        val completedAttemptIds = updatedAttempts
+            .filter { (it.realTime ?: 0L) > 0L }
+            .map { it.id }
+            .toSet()
+
+        // Recalculate BestSegmentTime from remaining completed segment history
+        val segmentsWithBestTimes = recalculateBestSegmentTimes(segmentsWithoutAttempt, completedAttemptIds)
+
+        // Recalculate Personal Best from remaining completed attempts
+        val updatedSegments = recalculatePersonalBest(segmentsWithBestTimes, updatedAttempts)
 
         val updatedDoc = doc.copy(
             attemptCount = updatedAttempts.size,
@@ -378,6 +400,115 @@ class SplitFormatService(
             true
         } catch (e: Exception) {
             logger.error(e) { "Failed to delete LSS attempt #$attemptId" }
+            false
+        }
+    }
+
+    /**
+     * Recalculate BestSegmentTime for each segment from remaining segment history entries.
+     * Only considers entries from completed attempts to avoid garbage auto-skip times.
+     */
+    private fun recalculateBestSegmentTimes(
+        segments: List<LiveSplitSegment>,
+        completedAttemptIds: Set<Int>
+    ): List<LiveSplitSegment> {
+        return segments.map { segment ->
+            val bestRealTime = segment.segmentHistory
+                .filter { it.id in completedAttemptIds }
+                .mapNotNull { it.realTime }
+                .filter { it > 0 }
+                .minOrNull()
+            val bestSegmentTime = bestRealTime?.let { LiveSplitTimeSpan(realTime = it, gameTime = null) }
+            segment.copy(bestSegmentTime = bestSegmentTime)
+        }
+    }
+
+    /**
+     * Recalculate Personal Best split times from remaining completed attempts.
+     * Finds the fastest completed attempt and rebuilds cumulative PB times from its segment history.
+     */
+    private fun recalculatePersonalBest(
+        segments: List<LiveSplitSegment>,
+        attempts: List<LiveSplitAttempt>
+    ): List<LiveSplitSegment> {
+        // Find the fastest completed attempt (has realTime > 0)
+        val pbAttempt = attempts
+            .filter { (it.realTime ?: 0L) > 0L }
+            .minByOrNull { it.realTime!! }
+
+        if (pbAttempt == null) {
+            // No completed attempts remain — clear PB from all segments
+            return segments.map { segment ->
+                segment.copy(splitTimes = segment.splitTimes.filter { it.comparisonName != "Personal Best" })
+            }
+        }
+
+        // Rebuild cumulative PB times from the PB attempt's segment history
+        var cumulative = 0L
+        return segments.map { segment ->
+            val segTime = segment.segmentHistory.find { it.id == pbAttempt.id }?.realTime
+            val updatedSplitTimes = if (segTime != null) {
+                cumulative += segTime
+                val pbEntry = LiveSplitComparisonSplit("Personal Best", cumulative, null)
+                segment.splitTimes.filter { it.comparisonName != "Personal Best" } + pbEntry
+            } else {
+                // PB attempt didn't complete this segment — clear PB for this segment
+                segment.splitTimes.filter { it.comparisonName != "Personal Best" }
+            }
+            segment.copy(splitTimes = updatedSplitTimes)
+        }
+    }
+
+    /**
+     * Check if the LSS has stale BestSegmentTime values that don't match segment history.
+     * This happens when runs were deleted before the recalculation fix was deployed.
+     */
+    private fun needsRepair(doc: LiveSplitDocument): Boolean {
+        val completedAttemptIds = doc.attemptHistory
+            .filter { (it.realTime ?: 0L) > 0L }
+            .map { it.id }
+            .toSet()
+        if (completedAttemptIds.isEmpty()) return false
+
+        for (segment in doc.segments) {
+            val currentBest = segment.bestSegmentTime?.realTime ?: continue
+            val historyBest = segment.segmentHistory
+                .filter { it.id in completedAttemptIds }
+                .mapNotNull { it.realTime }
+                .filter { it > 0 }
+                .minOrNull() ?: continue
+            if (currentBest != historyBest) return true
+        }
+        return false
+    }
+
+    /**
+     * Recalculate PB and BestSegmentTime in the loaded LSS from its own segment history.
+     * Fixes stale values left by pre-fix deletes or corrupt auto-skip data.
+     */
+    fun repairLss(): Boolean {
+        val doc = _liveSplitDocument.value ?: return false
+        val path = _liveSplitFilePath.value ?: return false
+        val file = File(path)
+
+        val completedAttemptIds = doc.attemptHistory
+            .filter { (it.realTime ?: 0L) > 0L }
+            .map { it.id }
+            .toSet()
+
+        val repairedSegments = recalculateBestSegmentTimes(doc.segments, completedAttemptIds)
+        val finalSegments = recalculatePersonalBest(repairedSegments, doc.attemptHistory)
+
+        val repairedDoc = doc.copy(segments = finalSegments)
+
+        return try {
+            fileStorageService.backupFileSync(file)
+            writer.writeToFile(repairedDoc, file)
+            _liveSplitDocument.value = repairedDoc
+            logger.info { "🔧 Repaired LSS PB and BestSegmentTime from segment history" }
+            true
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to repair LSS" }
             false
         }
     }

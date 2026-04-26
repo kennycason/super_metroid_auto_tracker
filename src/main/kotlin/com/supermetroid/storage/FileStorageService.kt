@@ -250,6 +250,32 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
     }
 
     /**
+     * Find a JSON run file that matches a given profile and start time.
+     * Used to cross-delete the JSON file when an LSS attempt is deleted.
+     * Returns the filename if found, null otherwise.
+     */
+    suspend fun findJsonRunByStartTime(profileId: String, startTime: kotlinx.datetime.Instant): String? = withContext(Dispatchers.IO) {
+        try {
+            val runFiles = runsDir.listFiles { file ->
+                file.isFile && file.extension == "json" && file.name.startsWith(profileId)
+            } ?: return@withContext null
+
+            for (file in runFiles) {
+                try {
+                    val run = json.decodeFromString<RunSession>(file.readText())
+                    if (run.startTime == startTime) {
+                        return@withContext file.name
+                    }
+                } catch (_: Exception) {}
+            }
+            null
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to find JSON run for $profileId at $startTime" }
+            null
+        }
+    }
+
+    /**
      * Get the runs directory path for external backup (e.g., LSS files).
      */
     fun getBackupsDir(): File = backupsDir

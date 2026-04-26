@@ -186,6 +186,125 @@ class LiveSplitDeleteAttemptTest {
     }
 
     @Test
+    fun `deleting PB attempt recalculates best segment times from remaining history`() {
+        // Attempt 1: segment A=50s, B=80s (PB, total 130s)
+        // Attempt 2: segment A=60s, B=70s (total 130s, but B is faster)
+        // Delete attempt 1 → best segments should be A=60s, B=70s
+        val doc = makeDoc(
+            segments = listOf(
+                LiveSplitSegment("A", null, LiveSplitTimeSpan(50000, null),
+                    listOf(LiveSplitComparisonSplit("Personal Best", 50000, null)),
+                    listOf(LiveSplitHistoryEntry(1, 50000, null), LiveSplitHistoryEntry(2, 60000, null))),
+                LiveSplitSegment("B", null, LiveSplitTimeSpan(70000, null),
+                    listOf(LiveSplitComparisonSplit("Personal Best", 130000, null)),
+                    listOf(LiveSplitHistoryEntry(1, 80000, null), LiveSplitHistoryEntry(2, 70000, null)))
+            ),
+            attempts = listOf(
+                LiveSplitAttempt(1, null, null, 130000, null),
+                LiveSplitAttempt(2, null, null, 130000, null)
+            )
+        )
+
+        // Simulate deleteLssAttempt logic: remove attempt 1, recalculate
+        val deletedId = 1
+        val remainingAttempts = doc.attemptHistory.filter { it.id != deletedId }
+        val segmentsWithoutAttempt = doc.segments.map { segment ->
+            segment.copy(segmentHistory = segment.segmentHistory.filter { it.id != deletedId })
+        }
+
+        // Recalculate best segment times
+        val recalculated = segmentsWithoutAttempt.map { segment ->
+            val bestRealTime = segment.segmentHistory.mapNotNull { it.realTime }.filter { it > 0 }.minOrNull()
+            segment.copy(bestSegmentTime = bestRealTime?.let { LiveSplitTimeSpan(it, null) })
+        }
+
+        assertEquals(60000L, recalculated[0].bestSegmentTime?.realTime, "Best segment A should be 60s from attempt 2")
+        assertEquals(70000L, recalculated[1].bestSegmentTime?.realTime, "Best segment B should be 70s from attempt 2")
+    }
+
+    @Test
+    fun `deleting PB attempt recalculates personal best from next fastest attempt`() {
+        // Attempt 1: 100s total (PB), segments A=40s, B=60s
+        // Attempt 2: 150s total, segments A=50s, B=100s
+        // Delete attempt 1 → PB should now be attempt 2
+        val doc = makeDoc(
+            segments = listOf(
+                LiveSplitSegment("A", null, LiveSplitTimeSpan(40000, null),
+                    listOf(LiveSplitComparisonSplit("Personal Best", 40000, null)),
+                    listOf(LiveSplitHistoryEntry(1, 40000, null), LiveSplitHistoryEntry(2, 50000, null))),
+                LiveSplitSegment("B", null, LiveSplitTimeSpan(60000, null),
+                    listOf(LiveSplitComparisonSplit("Personal Best", 100000, null)),
+                    listOf(LiveSplitHistoryEntry(1, 60000, null), LiveSplitHistoryEntry(2, 100000, null)))
+            ),
+            attempts = listOf(
+                LiveSplitAttempt(1, null, null, 100000, null),
+                LiveSplitAttempt(2, null, null, 150000, null)
+            )
+        )
+
+        val deletedId = 1
+        val remainingAttempts = doc.attemptHistory.filter { it.id != deletedId }
+        val segmentsWithoutAttempt = doc.segments.map { segment ->
+            segment.copy(segmentHistory = segment.segmentHistory.filter { it.id != deletedId })
+        }
+
+        // Find new PB attempt
+        val pbAttempt = remainingAttempts.filter { (it.realTime ?: 0L) > 0L }.minByOrNull { it.realTime!! }
+        assertNotNull(pbAttempt)
+        assertEquals(2, pbAttempt!!.id, "New PB should be attempt 2")
+
+        // Rebuild cumulative PB times
+        var cumulative = 0L
+        val recalculated = segmentsWithoutAttempt.map { segment ->
+            val segTime = segment.segmentHistory.find { it.id == pbAttempt.id }?.realTime
+            if (segTime != null) cumulative += segTime
+            val pbEntry = segTime?.let { LiveSplitComparisonSplit("Personal Best", cumulative, null) }
+            val updatedSplitTimes = segment.splitTimes.filter { it.comparisonName != "Personal Best" } +
+                listOfNotNull(pbEntry)
+            segment.copy(splitTimes = updatedSplitTimes)
+        }
+
+        val pbA = recalculated[0].splitTimes.find { it.comparisonName == "Personal Best" }
+        val pbB = recalculated[1].splitTimes.find { it.comparisonName == "Personal Best" }
+        assertEquals(50000L, pbA?.realTime, "PB cumulative A should be 50s from attempt 2")
+        assertEquals(150000L, pbB?.realTime, "PB cumulative B should be 150s from attempt 2")
+    }
+
+    @Test
+    fun `deleting all completed attempts clears personal best`() {
+        val doc = makeDoc(
+            segments = listOf(
+                LiveSplitSegment("A", null, LiveSplitTimeSpan(50000, null),
+                    listOf(LiveSplitComparisonSplit("Personal Best", 50000, null)),
+                    listOf(LiveSplitHistoryEntry(1, 50000, null)))
+            ),
+            attempts = listOf(
+                LiveSplitAttempt(1, null, null, 50000, null)
+            )
+        )
+
+        val remainingAttempts = doc.attemptHistory.filter { it.id != 1 }
+        val segmentsWithoutAttempt = doc.segments.map { segment ->
+            segment.copy(segmentHistory = segment.segmentHistory.filter { it.id != 1 })
+        }
+
+        // No completed attempts → clear PB
+        val pbAttempt = remainingAttempts.filter { (it.realTime ?: 0L) > 0L }.minByOrNull { it.realTime!! }
+        assertNull(pbAttempt, "No PB attempt should remain")
+
+        val recalculated = segmentsWithoutAttempt.map { segment ->
+            segment.copy(
+                splitTimes = segment.splitTimes.filter { it.comparisonName != "Personal Best" },
+                bestSegmentTime = null
+            )
+        }
+
+        val pbA = recalculated[0].splitTimes.find { it.comparisonName == "Personal Best" }
+        assertNull(pbA, "PB should be cleared")
+        assertNull(recalculated[0].bestSegmentTime, "Best segment should be cleared")
+    }
+
+    @Test
     fun `filtering zero-time LSS attempts excludes resets`() {
         val attempts = listOf(
             LiveSplitAttempt(1, "04/01/2026 10:00:00", "04/01/2026 10:05:00", 300000, null),

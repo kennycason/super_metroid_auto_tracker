@@ -47,7 +47,7 @@ private val FullRed = Color(0xFFFF4444)
  */
 fun deltaGradientColor(deltaMs: Long, isBestSegment: Boolean = false, maxDeltaMs: Long = 30_000): Color {
     if (isBestSegment) return Gold
-    if (deltaMs == 0L) return Gold
+    if (deltaMs == 0L) return Color.White
     val fraction = min(deltaMs.absoluteValue.toFloat() / maxDeltaMs, 1f)
     val target = if (deltaMs < 0) FullGreen else FullRed
     return lerpColor(Color.White, target, fraction)
@@ -618,14 +618,20 @@ private fun SplitRow(
                         "--:--:--.--"
                     }
 
-                    // Calculate delta against best segment time for coloring
-                    val delta = if (isCompleted && bestSegmentTime != null && completedSplit != null) {
-                        completedSplit.time.segmentTime - bestSegmentTime.segmentTime
+                    // Determine color using LiveSplit conventions:
+                    // 1. Gold = new best segment (strictly faster than previous best)
+                    // 2. Green = ahead of PB (cumulative < PB cumulative)
+                    // 3. Red = behind PB (cumulative > PB cumulative)
+                    val isNewBestSegment = isCompleted && bestSegmentTime != null && completedSplit != null &&
+                        completedSplit.time.segmentTime < bestSegmentTime.segmentTime
+                    val pbCumulativeDelta = if (isCompleted && completedSplit != null && sumOfPbRunUpToHere > 0) {
+                        completedSplit.time.totalTime - sumOfPbRunUpToHere
                     } else 0L
 
-                    // Determine color: gold for first run or beating best, gradient for delta
-                    val timeColor = if (isCompleted && bestSegmentTime != null) {
-                        deltaGradientColor(delta, isBestSegment = delta <= 0)
+                    val timeColor = if (isCompleted && isNewBestSegment) {
+                        Gold // New best segment
+                    } else if (isCompleted && sumOfPbRunUpToHere > 0) {
+                        deltaGradientColor(pbCumulativeDelta) // Ahead/behind PB
                     } else if (isCompleted) {
                         Gold // First run = every segment is a best
                     } else {
@@ -650,7 +656,7 @@ private fun SplitRow(
                         // Color based on how this segment compares to best segment
                         val segmentColor = if (bestSegmentTime != null) {
                             val segDelta = segmentTime - bestSegmentTime.segmentTime
-                            deltaGradientColor(segDelta, isBestSegment = segDelta <= 0)
+                            deltaGradientColor(segDelta, isBestSegment = segDelta < 0)
                         } else {
                             TrackerColors.OnSurfaceVariant.copy(alpha = 0.7f)
                         }

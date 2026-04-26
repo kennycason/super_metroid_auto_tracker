@@ -2102,11 +2102,35 @@ private fun LoadRunSection(
                                 fileStorageService.deleteRun(fileName)
                             }
                             if (success) {
+                                // When deleting an LSS attempt, also delete the matching JSON run file
+                                if (isLss && runMeta != null) {
+                                    try {
+                                        val matchingJsonFile = fileStorageService.findJsonRunByStartTime(
+                                            runMeta.profileId, runMeta.startTime
+                                        )
+                                        if (matchingJsonFile != null) {
+                                            fileStorageService.deleteRun(matchingJsonFile)
+                                        }
+                                    } catch (_: Exception) {}
+                                }
                                 statusMessage = "Deleted (backup saved)"
                                 // Refresh the list
                                 allRunFiles = fileStorageService.listRunFiles()
                                 if (selectedRun == runMeta?.displayName) {
                                     selectedRun = null
+                                }
+                                // Recalculate run-summaries.json from remaining runs on disk
+                                val profileId = runMeta?.profileId
+                                if (profileId != null) {
+                                    try {
+                                        val summaries = fileStorageService.loadRunSummaries()
+                                        val updatedProfile = fileStorageService.deriveBestSplits(profileId)
+                                        val updatedSummaries = summaries.copy(
+                                            lastUpdated = kotlinx.datetime.Clock.System.now(),
+                                            profiles = summaries.profiles + (profileId to updatedProfile)
+                                        )
+                                        fileStorageService.saveRunSummaries(updatedSummaries)
+                                    } catch (_: Exception) {}
                                 }
                                 // Always refresh state after deletion to update PBs/BEST
                                 autoSplitsEngine.resetToCurrentState()

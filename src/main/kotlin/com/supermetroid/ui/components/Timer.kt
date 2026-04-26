@@ -395,14 +395,14 @@ private val TimerGreen = Color(0xFF00DD00)
 private val TimerRed = Color(0xFFFF4444)
 
 /**
- * Timer color gradient vs PB run cumulative time.
- * Ahead (negative delta) → gold. Behind → white..red gradient (saturates at 5 min).
- * 5 minutes gives a gentle gradient for hour-long runs — 7s behind is barely pink.
+ * Timer color gradient vs PB run cumulative time (LiveSplit conventions).
+ * Ahead (negative delta) → green. Behind → red. Saturates at [maxDeltaMs].
  */
 private fun timerGradientColor(deltaMs: Long, maxDeltaMs: Long = 300_000): Color {
-    if (deltaMs <= 0L) return TimerGold // Ahead of or matching PB
-    val fraction = kotlin.math.min(deltaMs.toFloat() / maxDeltaMs, 1f)
-    return lerpColor(Color.White, TimerRed, fraction)
+    if (deltaMs == 0L) return Color.White
+    val fraction = kotlin.math.min(kotlin.math.abs(deltaMs).toFloat() / maxDeltaMs, 1f)
+    val target = if (deltaMs < 0) TimerGreen else TimerRed
+    return lerpColor(Color.White, target, fraction)
 }
 
 private fun formatTime(milliseconds: Long): String {
