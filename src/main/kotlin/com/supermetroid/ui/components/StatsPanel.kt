@@ -59,7 +59,8 @@ private enum class StatsTab(val label: String) {
     SPLIT_COMPLETIONS("Splits"),
     DEATHS("Deaths"),
     PROGRESS("Progress"),
-    TREND("Trend")
+    TREND("Trend"),
+    RECORDS("Records")
 }
 
 @Composable
@@ -143,6 +144,12 @@ fun StatsPanel(
 
         Spacer(modifier = Modifier.height(4.dp))
 
+        // Load all runs (across all profiles) for Records tab
+        var allDiskRuns by remember { mutableStateOf<List<com.supermetroid.model.RunSession>?>(null) }
+        LaunchedEffect(Unit) {
+            allDiskRuns = fileStorageService?.loadAllRuns()
+        }
+
         // Tab content
         Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
             when (selectedTab) {
@@ -151,6 +158,7 @@ fun StatsPanel(
                 StatsTab.DEATHS -> DeathsTab(runs, profile, fs)
                 StatsTab.PROGRESS -> ProgressTab(runs, fs)
                 StatsTab.TREND -> TrendTab(runs, fs)
+                StatsTab.RECORDS -> RecordsTab(allDiskRuns ?: splitsState.runHistory, fs)
             }
         }
     }
@@ -805,6 +813,102 @@ private fun axisLabelStyle(fs: StatsFontSize = StatsFontSize.MEDIUM) = MaterialT
  */
 private fun statsSplitItemId(splitId: String, splitName: String): String {
     return getSplitItemId(com.supermetroid.model.Split(splitId, splitName, ""))
+}
+
+@Composable
+private fun RecordsTab(allRuns: List<com.supermetroid.model.RunSession>, fs: StatsFontSize) {
+    val records = remember(allRuns) {
+        val profilesById = com.supermetroid.autosplits.SplitProfiles.BY_ID
+        allRuns
+            .filter { it.endTime != null && !it.id.startsWith("livesplit-pb") }
+            .groupBy { it.profileId }
+            .mapNotNull { (profileId, runs) ->
+                val profile = profilesById[profileId] ?: return@mapNotNull null
+                val best = runs.minByOrNull { it.totalTime } ?: return@mapNotNull null
+                Triple(profile, best.totalTime, runs.size)
+            }
+            .sortedBy { (profile, _, _) ->
+                // Sort by the order in ALL_PROFILES
+                com.supermetroid.autosplits.SplitProfiles.ALL_PROFILES.indexOf(profile)
+            }
+    }
+
+    if (records.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                text = "No completed runs yet",
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
+                    fontFamily = FontFamily.Monospace
+                )
+            )
+        }
+        return
+    }
+
+    val bestOverall = records.minOf { it.second }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(4.dp)
+    ) {
+        Text(
+            text = "BEST TIMES BY PROFILE",
+            style = MaterialTheme.typography.labelMedium.copy(
+                color = GoldColor,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 2.sp,
+                fontSize = fs.heading.sp
+            )
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        records.forEach { (profile, bestTime, runCount) ->
+            val isBestOverall = bestTime == bestOverall
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 2.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = profile.name,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = if (isBestOverall) GoldColor else TrackerColors.OnSurfaceVariant.copy(alpha = 0.8f),
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = if (isBestOverall) FontWeight.Bold else FontWeight.Normal,
+                        fontSize = fs.label.sp
+                    ),
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = "${runCount}r",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.4f),
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = fs.chart.sp
+                    ),
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+                Text(
+                    text = formatDuration(bestTime),
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = if (isBestOverall) GoldColor else TrackerColors.Success,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = fs.value.sp
+                    ),
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.width(70.dp)
+                )
+            }
+        }
+    }
 }
 
 private fun formatDuration(ms: Long): String {

@@ -450,169 +450,158 @@ fun SuperMetroidTrackerLayout(
     // Determine if Map Rando info panel should be visible
     val showMapRandoPanel = showMapRandoInfo && showIcons && iconViewMode == com.supermetroid.model.IconViewMode.MAP_RANDO
 
+    // Determine if an overlay panel is active
+    val overlayActive = showSettings || (showGameGenie && gameGenieEnabled) || showStats
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(2.dp) // Minimal padding for very compact layout
     ) {
-        // Header with connection status
-        // TrackerHeader(
-        //     connectionInfo = trackerState.connection,
-        //     isFullscreen = false,
-        //     onToggleFullscreen = {}
-        // )
-
-        // Spacer(modifier = Modifier.height(8.dp))
-
-
-        // Timer section - Centered and compact
-        if (showTimer) {
-            Timer(
-                splitsState = splitsState,
-                onToggleRun = {
-                    logger.debug { "🖱️ Timer UI button clicked - onToggleRun callback" }
-                    CoroutineScope(Dispatchers.Swing).launch {
-                        autoSplitsEngine.toggleRunState()
-                    }
-                },
-                onResetRun = {
-                    logger.debug { "🖱️ Timer UI reset button clicked" }
-                    CoroutineScope(Dispatchers.Swing).launch {
-                        autoSplitsEngine.resetRun()
-                    }
-                },
-                onManualSplit = {
-                    logger.debug { "🖱️ Timer UI manual split clicked" }
-                    autoSplitsEngine.manualSplit()
-                },
-                onUndoSplit = {
-                    logger.debug { "🖱️ Timer UI undo split clicked" }
-                    autoSplitsEngine.undoSplit()
-                },
-                onDiscardRun = {
-                    logger.debug { "🖱️ Timer UI discard run clicked" }
-                    autoSplitsEngine.discardRun()
-                }
-            )
-            Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
-        }
-
-        // Room Name Display - separate row
-        RoomNameDisplay(
-            gameState = trackerState.gameState,
-            roomNameService = roomNameService,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
-
-        // TALL LAYOUT: Status Grid at top, Timer below, then Splits at bottom
-        // Status Grid (Icons) with optional Map Rando info panel on the right - Fixed height, non-stretchable
-        if (showIcons) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                SimpleStatusGrid(
-                    gameState = trackerState.gameState,
-                    iconConfigService = iconConfigService,
-                    iconSizeService = iconSizeService,
-                    iconViewModeService = iconViewModeService,
-                    modifier = Modifier.weight(1f)
-                )
-                
-                // Map Rando Info Panel on the right side of icons
-                if (showMapRandoPanel) {
-                    MapRandoInfoPanel(
-                        fontSizeService = mapRandoInfoFontSizeService,
-                        mapRandoDataService = mapRandoDataService,
-                        mapRandoInfoConfigService = mapRandoInfoConfigService,
-                        modifier = Modifier.wrapContentHeight()
+        // Main content area with overlay panels on top
+        Box(
+            modifier = Modifier.fillMaxWidth().weight(1f)
+        ) {
+            // Base layer: main content (timer, room name, icons, splits)
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Timer section - Centered and compact
+                if (showTimer) {
+                    Timer(
+                        splitsState = splitsState,
+                        onToggleRun = {
+                            logger.debug { "🖱️ Timer UI button clicked - onToggleRun callback" }
+                            CoroutineScope(Dispatchers.Swing).launch {
+                                autoSplitsEngine.toggleRunState()
+                            }
+                        },
+                        onResetRun = {
+                            logger.debug { "🖱️ Timer UI reset button clicked" }
+                            CoroutineScope(Dispatchers.Swing).launch {
+                                autoSplitsEngine.resetRun()
+                            }
+                        },
+                        onManualSplit = {
+                            logger.debug { "🖱️ Timer UI manual split clicked" }
+                            autoSplitsEngine.manualSplit()
+                        },
+                        onUndoSplit = {
+                            logger.debug { "🖱️ Timer UI undo split clicked" }
+                            autoSplitsEngine.undoSplit()
+                        },
+                        onDiscardRun = {
+                            logger.debug { "🖱️ Timer UI discard run clicked" }
+                            autoSplitsEngine.discardRun()
+                        }
                     )
+                    Spacer(modifier = Modifier.height(3.dp))
                 }
-            }
-            Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
-        }
 
-        // Splits list - Takes remaining space
-        if (showSplits) {
-            SplitsList(
-                splitsState = splitsState,
-                autoSplitsEngine = autoSplitsEngine,
-                splitIconSizeService = splitIconSizeService,
-                splitDisplayModeService = splitDisplayModeService,
-                splitProfileService = splitProfileService,
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                maxHeight = 2000 // Maximum list height for tall windows / large split profiles
-            )
-            
-            // Personal Best section - appears below splits when splits are showing
-            val currentProfile by splitProfileService.currentProfile.collectAsState()
-            val currentProfilePB = splitsState.personalBests[currentProfile.id]
-            if (currentProfilePB != null) {
-                PersonalBestSummary(
-                    splitsState = splitsState,
-                    profileId = currentProfile.id,
+                // Room Name Display - separate row
+                RoomNameDisplay(
+                    gameState = trackerState.gameState,
+                    roomNameService = roomNameService,
                     modifier = Modifier.fillMaxWidth()
                 )
+                Spacer(modifier = Modifier.height(3.dp))
+
+                // Status Grid (Icons) with optional Map Rando info panel
+                if (showIcons) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        SimpleStatusGrid(
+                            gameState = trackerState.gameState,
+                            iconConfigService = iconConfigService,
+                            iconSizeService = iconSizeService,
+                            iconViewModeService = iconViewModeService,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        if (showMapRandoPanel) {
+                            MapRandoInfoPanel(
+                                fontSizeService = mapRandoInfoFontSizeService,
+                                mapRandoDataService = mapRandoDataService,
+                                mapRandoInfoConfigService = mapRandoInfoConfigService,
+                                modifier = Modifier.wrapContentHeight()
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(3.dp))
+                }
+
+                // Splits list - Takes remaining space
+                if (showSplits) {
+                    SplitsList(
+                        splitsState = splitsState,
+                        autoSplitsEngine = autoSplitsEngine,
+                        splitIconSizeService = splitIconSizeService,
+                        splitDisplayModeService = splitDisplayModeService,
+                        splitProfileService = splitProfileService,
+                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        maxHeight = 2000
+                    )
+
+                    val currentProfile by splitProfileService.currentProfile.collectAsState()
+                    val currentProfilePB = splitsState.personalBests[currentProfile.id]
+                    if (currentProfilePB != null) {
+                        PersonalBestSummary(
+                            splitsState = splitsState,
+                            profileId = currentProfile.id,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(3.dp))
+                }
+
+                if (!showSplits) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
-            
-            Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
-        }
 
-        // Settings panel - takes remaining space when visible
-        if (showSettings) {
-            SettingsPanel(
-                themeService = themeService,
-                iconSizeService = iconSizeService,
-                fileStorageService = fileStorageService,
-                splitIconSizeService = splitIconSizeService,
-                splitDisplayModeService = splitDisplayModeService,
-                splitProfileService = splitProfileService,
-                splitFormatService = splitFormatService,
-                iconConfigService = iconConfigService,
-                roomNameService = roomNameService,
-                autoSplitsEngine = autoSplitsEngine,
-                iconViewModeService = iconViewModeService,
-                soundService = soundService,
-                gameGenieService = gameGenieService,
-                uiVisibilityService = uiVisibilityService,
-                mapRandoInfoFontSizeService = mapRandoInfoFontSizeService,
-                mapRandoInfoConfigService = mapRandoInfoConfigService,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f) // Takes all remaining vertical space
-            )
-            Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
-        }
-
-        // Game Genie panel - takes remaining space when visible
-        if (showGameGenie && gameGenieEnabled) {
-            GameGenieTab(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f) // Takes all remaining vertical space
-            )
-            Spacer(modifier = Modifier.height(3.dp)) // Minimal spacing for compact layout
-        }
-
-        // Stats panel - takes remaining space when visible
-        if (showStats) {
-            val currentProfile by splitProfileService.currentProfile.collectAsState()
-            com.supermetroid.ui.components.StatsPanel(
-                splitsState = splitsState,
-                profile = currentProfile,
-                statsFontSizeService = statsFontSizeService,
-                fileStorageService = fileStorageService,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            )
-            Spacer(modifier = Modifier.height(3.dp))
-        }
-
-        // Spacer to push footer to bottom when splits are hidden and settings/Game Genie not shown
-        if (!showSplits && !showSettings && !(showGameGenie && gameGenieEnabled) && !showStats) {
-            Spacer(modifier = Modifier.weight(1f))
+            // Overlay layer: settings, genie, or stats panel on top of main content
+            if (overlayActive) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background.copy(alpha = 0.97f)
+                ) {
+                    when {
+                        showSettings -> SettingsPanel(
+                            themeService = themeService,
+                            iconSizeService = iconSizeService,
+                            fileStorageService = fileStorageService,
+                            splitIconSizeService = splitIconSizeService,
+                            splitDisplayModeService = splitDisplayModeService,
+                            splitProfileService = splitProfileService,
+                            splitFormatService = splitFormatService,
+                            iconConfigService = iconConfigService,
+                            roomNameService = roomNameService,
+                            autoSplitsEngine = autoSplitsEngine,
+                            iconViewModeService = iconViewModeService,
+                            soundService = soundService,
+                            gameGenieService = gameGenieService,
+                            uiVisibilityService = uiVisibilityService,
+                            mapRandoInfoFontSizeService = mapRandoInfoFontSizeService,
+                            mapRandoInfoConfigService = mapRandoInfoConfigService,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        showGameGenie && gameGenieEnabled -> GameGenieTab(
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        showStats -> {
+                            val currentProfile by splitProfileService.currentProfile.collectAsState()
+                            com.supermetroid.ui.components.StatsPanel(
+                                splitsState = splitsState,
+                                profile = currentProfile,
+                                statsFontSizeService = statsFontSizeService,
+                                fileStorageService = fileStorageService,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         // UI Toggle footer
@@ -706,7 +695,12 @@ fun SuperMetroidTrackerLayout(
                 TextButton(
                     onClick = {
                         CoroutineScope(Dispatchers.Swing).launch {
-                            uiVisibilityService.setShowStats(!showStats)
+                            val newShow = !showStats
+                            if (newShow) {
+                                uiVisibilityService.setShowSettings(false)
+                                uiVisibilityService.setShowGameGenie(false)
+                            }
+                            uiVisibilityService.setShowStats(newShow)
                         }
                     },
                     colors = ButtonDefaults.textButtonColors(
@@ -724,9 +718,14 @@ fun SuperMetroidTrackerLayout(
                 // Game Genie toggle (only show if Game Genie is enabled in settings)
                 if (gameGenieEnabled) {
                     TextButton(
-                        onClick = { 
+                        onClick = {
                             CoroutineScope(Dispatchers.Swing).launch {
-                                uiVisibilityService.setShowGameGenie(!showGameGenie)
+                                val newShow = !showGameGenie
+                                if (newShow) {
+                                    uiVisibilityService.setShowSettings(false)
+                                    uiVisibilityService.setShowStats(false)
+                                }
+                                uiVisibilityService.setShowGameGenie(newShow)
                             }
                         },
                         colors = ButtonDefaults.textButtonColors(
@@ -744,9 +743,14 @@ fun SuperMetroidTrackerLayout(
 
                 // Settings toggle
                 TextButton(
-                    onClick = { 
+                    onClick = {
                         CoroutineScope(Dispatchers.Swing).launch {
-                            uiVisibilityService.setShowSettings(!showSettings)
+                            val newShow = !showSettings
+                            if (newShow) {
+                                uiVisibilityService.setShowStats(false)
+                                uiVisibilityService.setShowGameGenie(false)
+                            }
+                            uiVisibilityService.setShowSettings(newShow)
                         }
                     },
                     colors = ButtonDefaults.textButtonColors(

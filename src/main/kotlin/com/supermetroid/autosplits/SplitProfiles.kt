@@ -17,6 +17,32 @@ object SplitProfiles {
     const val ID_CONTAINMENT_CHAMBER = "containment-chamber"
     const val ID_CONTAINMENT_CHAMBER_PUZZLES = "containment-chamber-puzzles"
 
+    // Simple boss-order profile ID constants (all permutations of KPDR)
+    const val ID_SIMPLE_KPDR = "simple-kpdr"
+    const val ID_SIMPLE_KPRD = "simple-kprd"
+    const val ID_SIMPLE_PKDR = "simple-pkdr"
+    const val ID_SIMPLE_PKRD = "simple-pkrd"
+    const val ID_SIMPLE_PRKD = "simple-prkd"
+    const val ID_SIMPLE_PRDK = "simple-prdk"
+    const val ID_SIMPLE_KRPD = "simple-krpd"
+    const val ID_SIMPLE_KRDP = "simple-krdp"
+    const val ID_SIMPLE_PDKR = "simple-pdkr"
+    const val ID_SIMPLE_PDRK = "simple-pdrk"
+    const val ID_SIMPLE_KDPR = "simple-kdpr"
+    const val ID_SIMPLE_KDRP = "simple-kdrp"
+    const val ID_SIMPLE_DKPR = "simple-dkpr"
+    const val ID_SIMPLE_DKRP = "simple-dkrp"
+    const val ID_SIMPLE_DPKR = "simple-dpkr"
+    const val ID_SIMPLE_DPRK = "simple-dprk"
+    const val ID_SIMPLE_RPKD = "simple-rpkd"
+    const val ID_SIMPLE_RPDK = "simple-rpdk"
+    const val ID_SIMPLE_DRKP = "simple-drkp"
+    const val ID_SIMPLE_DRPK = "simple-drpk"
+    const val ID_SIMPLE_RKPD = "simple-rkpd"
+    const val ID_SIMPLE_RKDP = "simple-rkdp"
+    const val ID_SIMPLE_RDKP = "simple-rdkp"
+    const val ID_SIMPLE_RDPK = "simple-rdpk"
+
     /**
      * KPDR Any% - Standard route with early Ice Beam
      * Kraid → Phantoon → Draygon → Ridley
@@ -208,16 +234,102 @@ object SplitProfiles {
         )
     )
 
+    // Reusable boss split definitions
+    private val SPLIT_CERES = Split("ceres_station", "Ceres Station", "boss", "Escape from Ceres Station")
+    private val SPLIT_KRAID = Split("kraid", "Kraid", "boss", "Kraid defeated")
+    private val SPLIT_PHANTOON = Split("phantoon", "Phantoon", "boss", "Phantoon defeated")
+    private val SPLIT_DRAYGON = Split("draygon", "Draygon", "boss", "Draygon defeated")
+    private val SPLIT_RIDLEY = Split("ridley", "Ridley", "boss", "Ridley defeated")
+    private val SPLIT_G4 = Split("golden_four", "G4", "event", "Entered Tourian (all 4 bosses defeated)")
+    private val SPLIT_MB1 = Split("mother_brain_1", "Mother Brain 1", "boss", "Mother Brain phase 1 completed")
+    private val SPLIT_MB2 = Split("mother_brain_2", "Mother Brain 2", "boss", "Mother Brain phase 2 completed")
+    private val SPLIT_SHIP = Split("ship", "Ship", "event", "Escaped to ship (game complete)")
+
+    private val BOSS_SPLITS = mapOf(
+        'K' to SPLIT_KRAID,
+        'P' to SPLIT_PHANTOON,
+        'D' to SPLIT_DRAYGON,
+        'R' to SPLIT_RIDLEY
+    )
+
+    private fun simpleBossProfile(id: String, name: String, bossOrder: String): SplitProfile {
+        val bossSplits = bossOrder.map { BOSS_SPLITS[it]!! }
+        return SplitProfile(
+            id = id,
+            name = name,
+            splits = listOf(SPLIT_CERES) + bossSplits + listOf(SPLIT_G4, SPLIT_MB1, SPLIT_MB2, SPLIT_SHIP)
+        )
+    }
+
+    // === Simple Boss-Order Profiles ===
+    // Group 1: Standard Suit Paths
+    val SIMPLE_KPDR = simpleBossProfile(ID_SIMPLE_KPDR, "KPDR", "KPDR")
+    val SIMPLE_KPRD = simpleBossProfile(ID_SIMPLE_KPRD, "KPRD", "KPRD")
+    val SIMPLE_PKDR = simpleBossProfile(ID_SIMPLE_PKDR, "PKDR", "PKDR")
+    val SIMPLE_PKRD = simpleBossProfile(ID_SIMPLE_PKRD, "PKRD", "PKRD")
+    // Group 2: The Speedrun Paths
+    val SIMPLE_PRKD = simpleBossProfile(ID_SIMPLE_PRKD, "PRKD", "PRKD")
+    val SIMPLE_PRDK = simpleBossProfile(ID_SIMPLE_PRDK, "PRDK", "PRDK")
+    val SIMPLE_KRPD = simpleBossProfile(ID_SIMPLE_KRPD, "KRPD", "KRPD")
+    val SIMPLE_KRDP = simpleBossProfile(ID_SIMPLE_KRDP, "KRDP", "KRDP")
+    // Group 3: Late Phantoon Hybrids
+    val SIMPLE_PDKR = simpleBossProfile(ID_SIMPLE_PDKR, "PDKR", "PDKR")
+    val SIMPLE_PDRK = simpleBossProfile(ID_SIMPLE_PDRK, "PDRK", "PDRK")
+    // Group 4: Suitless Maridia Paths
+    val SIMPLE_KDPR = simpleBossProfile(ID_SIMPLE_KDPR, "KDPR", "KDPR")
+    val SIMPLE_KDRP = simpleBossProfile(ID_SIMPLE_KDRP, "KDRP", "KDRP")
+    val SIMPLE_DKPR = simpleBossProfile(ID_SIMPLE_DKPR, "DKPR", "DKPR")
+    val SIMPLE_DKRP = simpleBossProfile(ID_SIMPLE_DKRP, "DKRP", "DKRP")
+    // Group 5: Draygon First Blind Runs
+    val SIMPLE_DPKR = simpleBossProfile(ID_SIMPLE_DPKR, "DPKR", "DPKR")
+    val SIMPLE_DPRK = simpleBossProfile(ID_SIMPLE_DPRK, "DPRK", "DPRK")
+    // Group 6: Suitless Hell Paths
+    val SIMPLE_RPKD = simpleBossProfile(ID_SIMPLE_RPKD, "RPKD", "RPKD")
+    val SIMPLE_RPDK = simpleBossProfile(ID_SIMPLE_RPDK, "RPDK", "RPDK")
+    val SIMPLE_DRKP = simpleBossProfile(ID_SIMPLE_DRKP, "DRKP", "DRKP")
+    val SIMPLE_DRPK = simpleBossProfile(ID_SIMPLE_DRPK, "DRPK", "DRPK")
+    // Group 7: True Hell Paths
+    val SIMPLE_RKPD = simpleBossProfile(ID_SIMPLE_RKPD, "RKPD", "RKPD")
+    val SIMPLE_RKDP = simpleBossProfile(ID_SIMPLE_RKDP, "RKDP", "RKDP")
+    val SIMPLE_RDKP = simpleBossProfile(ID_SIMPLE_RDKP, "RDKP", "RDKP")
+    val SIMPLE_RDPK = simpleBossProfile(ID_SIMPLE_RDPK, "RDPK (RBO)", "RDPK")
+
     /**
      * All available profiles
      */
     val ALL_PROFILES = listOf(
+        // Detailed category profiles
         KPDR_ANY,
         KPDR_LATE_ICE,
         LOW_PERCENT_ICE,
         HUNDRED_PERCENT,
         CONTAINMENT_CHAMBER,
-        CONTAINMENT_CHAMBER_PUZZLES
+        CONTAINMENT_CHAMBER_PUZZLES,
+        // Simple boss-order profiles (ordered by difficulty)
+        SIMPLE_KPDR,
+        SIMPLE_KPRD,
+        SIMPLE_PKDR,
+        SIMPLE_PKRD,
+        SIMPLE_PRKD,
+        SIMPLE_PRDK,
+        SIMPLE_KRPD,
+        SIMPLE_KRDP,
+        SIMPLE_PDKR,
+        SIMPLE_PDRK,
+        SIMPLE_KDPR,
+        SIMPLE_KDRP,
+        SIMPLE_DKPR,
+        SIMPLE_DKRP,
+        SIMPLE_DPKR,
+        SIMPLE_DPRK,
+        SIMPLE_RPKD,
+        SIMPLE_RPDK,
+        SIMPLE_DRKP,
+        SIMPLE_DRPK,
+        SIMPLE_RKPD,
+        SIMPLE_RKDP,
+        SIMPLE_RDKP,
+        SIMPLE_RDPK
     )
     
     /**
