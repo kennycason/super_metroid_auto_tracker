@@ -846,8 +846,6 @@ private fun RecordsTab(allRuns: List<com.supermetroid.model.RunSession>, fs: Sta
         return
     }
 
-    val bestOverall = records.minOf { it.second }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -868,7 +866,6 @@ private fun RecordsTab(allRuns: List<com.supermetroid.model.RunSession>, fs: Sta
         Spacer(modifier = Modifier.height(8.dp))
 
         records.forEach { (profile, bestTime, runCount) ->
-            val isBestOverall = bestTime == bestOverall
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -879,9 +876,8 @@ private fun RecordsTab(allRuns: List<com.supermetroid.model.RunSession>, fs: Sta
                 Text(
                     text = profile.name,
                     style = MaterialTheme.typography.bodySmall.copy(
-                        color = if (isBestOverall) GoldColor else TrackerColors.OnSurfaceVariant.copy(alpha = 0.8f),
+                        color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.8f),
                         fontFamily = FontFamily.Monospace,
-                        fontWeight = if (isBestOverall) FontWeight.Bold else FontWeight.Normal,
                         fontSize = fs.label.sp
                     ),
                     modifier = Modifier.weight(1f)
@@ -898,7 +894,7 @@ private fun RecordsTab(allRuns: List<com.supermetroid.model.RunSession>, fs: Sta
                 Text(
                     text = formatDuration(bestTime),
                     style = MaterialTheme.typography.bodySmall.copy(
-                        color = if (isBestOverall) GoldColor else TrackerColors.Success,
+                        color = TrackerColors.OnSurfaceVariant,
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold,
                         fontSize = fs.value.sp
