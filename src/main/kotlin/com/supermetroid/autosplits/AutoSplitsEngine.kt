@@ -44,6 +44,9 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     
     // Callback fired after a run is saved to disk (used by SplitFormatService to also write LSS)
     private var onRunSaved: ((RunSession) -> Unit)? = null
+
+    // Callback to check if splits view is visible — auto-start is suppressed when splits are hidden
+    private var isSplitsVisible: () -> Boolean = { true }
     
     /**
      * Set callback for profile changes originating from the engine (e.g., loading a replay run)
@@ -59,6 +62,10 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
      */
     fun setOnRunSavedCallback(callback: (RunSession) -> Unit) {
         onRunSaved = callback
+    }
+
+    fun setSplitsVisibilityCheck(check: () -> Boolean) {
+        isSplitsVisible = check
     }
 
     // State flows for reactive UI
@@ -824,9 +831,13 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             logger.debug { "🔍 No current run - checking auto-start conditions" }
             val shouldAutoStart = checkAutoStartCondition(previousGameState, gameState)
             if (shouldAutoStart) {
-                logger.info { "🚀 Auto-starting new game run!" }
-                logger.info { "STARTING NEW RUN - Auto-start triggered!" }
-                startNewRun(currentProfile?.id ?: SplitProfiles.DEFAULT.id)
+                if (!isSplitsVisible()) {
+                    logger.info { "🚫 Auto-start suppressed - splits view is hidden" }
+                } else {
+                    logger.info { "🚀 Auto-starting new game run!" }
+                    logger.info { "STARTING NEW RUN - Auto-start triggered!" }
+                    startNewRun(currentProfile?.id ?: SplitProfiles.DEFAULT.id)
+                }
             }
             previousGameState = gameState
             return
@@ -836,10 +847,14 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         if (currentRun.isPaused) {
             val shouldAutoStart = checkAutoStartCondition(previousGameState, gameState)
             if (shouldAutoStart) {
-                logger.info { "🔄 Auto-resetting paused run to start new game!" }
-                logger.info { "AUTO-RESET: Clearing paused run to start new game!" }
-                resetRun() // Reset the current run
-                startNewRun(currentProfile?.id ?: SplitProfiles.DEFAULT.id) // Start fresh run with current profile
+                if (!isSplitsVisible()) {
+                    logger.info { "🚫 Auto-reset suppressed - splits view is hidden" }
+                } else {
+                    logger.info { "🔄 Auto-resetting paused run to start new game!" }
+                    logger.info { "AUTO-RESET: Clearing paused run to start new game!" }
+                    resetRun()
+                    startNewRun(currentProfile?.id ?: SplitProfiles.DEFAULT.id)
+                }
                 previousGameState = gameState
                 return
             }

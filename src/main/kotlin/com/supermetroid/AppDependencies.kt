@@ -58,6 +58,9 @@ data class AppDependencies(
             autoSplitsEngine.setOnRunSavedCallback { run ->
                 splitFormatService.handleRunSaved(run)
             }
+
+            val uiVisibility = UIVisibilityService(fileStorage)
+            autoSplitsEngine.setSplitsVisibilityCheck { uiVisibility.showSplits.value }
             
             return AppDependencies(
                 fileStorageService = fileStorage,
@@ -71,7 +74,7 @@ data class AppDependencies(
                 iconConfigService = IconConfigService(fileStorage),
                 roomNameService = RoomNameService(fileStorage),
                 iconViewModeService = IconViewModeService(fileStorage),
-                uiVisibilityService = UIVisibilityService(fileStorage),
+                uiVisibilityService = uiVisibility,
                 soundService = SoundService(fileStorage),
                 gameGenieService = GameGenieService(fileStorage),
                 mapRandoInfoFontSizeService = MapRandoInfoFontSizeService(fileStorage, scope),
