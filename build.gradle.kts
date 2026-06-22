@@ -138,6 +138,9 @@ compose.desktop {
             
             windows {
                 iconFile.set(project.file("src/main/resources/icon.ico"))
+                shortcut = true
+                menuGroup = "Super Metroid Auto Tracker"
+                perUserInstall = true
             }
             
             linux {
