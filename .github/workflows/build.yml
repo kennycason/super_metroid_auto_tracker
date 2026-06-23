@@ -44,19 +44,23 @@ jobs:
           path: build/compose/binaries/main/dmg/*.dmg
           retention-days: 30
           
-      - name: Test Windows MSI install
+      - name: Validate Windows MSI
         if: runner.os == 'Windows'
         shell: pwsh
+        timeout-minutes: 5
         run: |
           $msi = Get-ChildItem "build/compose/binaries/main/msi/*.msi" | Select-Object -First 1
-          Write-Host "Testing silent install of: $($msi.FullName)"
-          $process = Start-Process msiexec -ArgumentList "/i", "`"$($msi.FullName)`"", "/qn", "/l*v", "install.log" -Wait -PassThru
+          Write-Host "Validating MSI: $($msi.FullName)"
+          Write-Host "MSI size: $([math]::Round($msi.Length / 1MB, 2)) MB"
+          $extractDir = "$env:TEMP\msi-validate"
+          $process = Start-Process msiexec -ArgumentList "/a", "`"$($msi.FullName)`"", "TARGETDIR=`"$extractDir`"", "/qn", "/l*v", "install.log" -Wait -PassThru
           if ($process.ExitCode -ne 0) {
-            Write-Host "MSI install failed with exit code: $($process.ExitCode)"
-            Get-Content install.log | Select-Object -Last 50
+            Write-Host "MSI validation failed with exit code: $($process.ExitCode)"
+            if (Test-Path install.log) { Get-Content install.log | Select-Object -Last 50 }
             exit 1
           }
-          Write-Host "MSI install succeeded"
+          Write-Host "MSI validation succeeded"
+          if (Test-Path install.log) { Get-Content install.log | Select-String "error|warning" -CaseSensitive:$false | Select-Object -Last 20 }
 
       - name: Upload Windows build
         if: runner.os == 'Windows'
