@@ -122,7 +122,7 @@ compose.desktop {
             packageName = "Super Metroid Auto Tracker"
             packageVersion = "1.0.0"
             description = "Super Metroid Auto Tracker - Kotlin Compose Desktop"
-            copyright = "© 2025 Super Metroid Tracker"
+            copyright = "Copyright 2025 Super Metroid Tracker"
             vendor = "Super Metroid Community"
             
             // Include Java naming module in the packaged runtime
@@ -137,6 +137,7 @@ compose.desktop {
             }
             
             windows {
+                packageName = "SuperMetroidAutoTracker"
                 iconFile.set(project.file("src/main/resources/icon.ico"))
                 shortcut = true
                 menuGroup = "Super Metroid Auto Tracker"
