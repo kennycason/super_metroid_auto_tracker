@@ -98,6 +98,9 @@ data class AppConfig(
     val showBestColumn: Boolean = true,  // Show Personal Best run column
     val showAverageColumn: Boolean = false,      // Show Average Time (mean of all completed runs) column
     val showAverageDelta: Boolean = false,       // Show Average Delta (segment vs average) column
+    val showBestPossibleDeltaTotal: Boolean = false, // Show BP +/- Total (cumulative delta vs sum of best segments)
+    val showBestDelta: Boolean = false,              // Show Best +/- (segment delta vs PB run segment)
+    val showBestDeltaTotal: Boolean = false,          // Show Best +/- Total (cumulative delta vs PB run)
     // Timer persistence
     val savedTimerMs: Long? = null,  // Saved timer value in milliseconds (null = no saved timer)
     val savedTimerProfileId: String? = null,  // Profile ID for the saved timer

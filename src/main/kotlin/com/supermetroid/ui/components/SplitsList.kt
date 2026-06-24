@@ -36,6 +36,12 @@ private val Gold = Color(0xFFFFD700)
 private val FullGreen = Color(0xFF00DD00)
 private val FullRed = Color(0xFFFF4444)
 
+// LiveSplit semantic colors for cumulative delta columns
+private val AheadGaining = Color(0xFF00CC36)   // Bright green — ahead and gap widening
+private val AheadLosing = Color(0xFF6BD688)    // Light green — ahead but gap shrinking
+private val BehindGaining = Color(0xFFD68B6B)  // Light red — behind but gap shrinking
+private val BehindLosing = Color(0xFFCC0000)   // Bright red — behind and gap widening
+
 /**
  * Compute a gradient delta color:
  *   - negative delta (ahead) → white..green, saturating at [maxDeltaMs]
@@ -51,6 +57,26 @@ fun deltaGradientColor(deltaMs: Long, isBestSegment: Boolean = false, maxDeltaMs
     val fraction = min(deltaMs.absoluteValue.toFloat() / maxDeltaMs, 1f)
     val target = if (deltaMs < 0) FullGreen else FullRed
     return lerpColor(Color.White, target, fraction)
+}
+
+/**
+ * LiveSplit 5-color model for cumulative delta columns.
+ * Gold overrides everything. Then ahead/behind × gaining/losing based on
+ * whether the gap vs the previous split's delta is widening or shrinking.
+ */
+fun liveSplitDeltaColor(currentDelta: Long, previousDelta: Long?, isBestSegment: Boolean): Color {
+    if (isBestSegment) return Gold
+    return when {
+        currentDelta < 0L -> {
+            if (previousDelta != null && currentDelta < previousDelta) AheadGaining
+            else AheadLosing
+        }
+        currentDelta > 0L -> {
+            if (previousDelta != null && currentDelta > previousDelta) BehindLosing
+            else BehindGaining
+        }
+        else -> Color.White
+    }
 }
 
 /** Simple RGB lerp between two colors. */
@@ -84,6 +110,9 @@ fun SplitsList(
     val showBestColumn by splitDisplayModeService.showBestColumn.collectAsState()
     val showAverageColumn by splitDisplayModeService.showAverageColumn.collectAsState()
     val showAverageDelta by splitDisplayModeService.showAverageDelta.collectAsState()
+    val showBestPossibleDeltaTotal by splitDisplayModeService.showBestPossibleDeltaTotal.collectAsState()
+    val showBestDelta by splitDisplayModeService.showBestDelta.collectAsState()
+    val showBestDeltaTotal by splitDisplayModeService.showBestDeltaTotal.collectAsState()
     val showGameName by splitDisplayModeService.showGameName.collectAsState()
     val listState = rememberLazyListState()
     
@@ -127,7 +156,10 @@ fun SplitsList(
                 showGameName = showGameName,
                 showBestPossibleColumn = showBestPossibleColumn,
                 showBestPossibleDelta = showBestPossibleDelta,
+                showBestPossibleDeltaTotal = showBestPossibleDeltaTotal,
                 showBestColumn = showBestColumn,
+                showBestDelta = showBestDelta,
+                showBestDeltaTotal = showBestDeltaTotal,
                 showAverageColumn = showAverageColumn,
                 showAverageDelta = showAverageDelta
             )
@@ -155,7 +187,10 @@ fun SplitsList(
                         showSegmentDeltas = showSegmentDeltas,
                         showBestPossibleColumn = showBestPossibleColumn,
                         showBestPossibleDelta = showBestPossibleDelta,
+                        showBestPossibleDeltaTotal = showBestPossibleDeltaTotal,
                         showBestColumn = showBestColumn,
+                        showBestDelta = showBestDelta,
+                        showBestDeltaTotal = showBestDeltaTotal,
                         showAverageColumn = showAverageColumn,
                         showAverageDelta = showAverageDelta,
                         averageSegmentTimes = averageSegmentTimes
@@ -173,7 +208,10 @@ private fun SplitsHeader(
     showGameName: Boolean,
     showBestPossibleColumn: Boolean,
     showBestPossibleDelta: Boolean,
+    showBestPossibleDeltaTotal: Boolean,
     showBestColumn: Boolean,
+    showBestDelta: Boolean,
+    showBestDeltaTotal: Boolean,
     showAverageColumn: Boolean,
     showAverageDelta: Boolean
 ) {
@@ -201,7 +239,7 @@ private fun SplitsHeader(
             }
         }
 
-        // Column headers (Best Possible | BP Δ | Average | Avg Δ | BEST | TIME)
+        // Column headers
         Row(
             horizontalArrangement = Arrangement.End
         ) {
@@ -220,7 +258,20 @@ private fun SplitsHeader(
             }
             if (showBestPossibleDelta) {
                 Text(
-                    text = "BP Δ",
+                    text = "BP +/-",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = TrackerColors.OnSurfaceVariant,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 10.sp
+                    ),
+                    modifier = Modifier.width(65.dp),
+                    textAlign = TextAlign.End
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+            }
+            if (showBestPossibleDeltaTotal) {
+                Text(
+                    text = "BP +/-",
                     style = MaterialTheme.typography.labelSmall.copy(
                         color = TrackerColors.OnSurfaceVariant,
                         fontWeight = FontWeight.Bold,
@@ -246,7 +297,7 @@ private fun SplitsHeader(
             }
             if (showAverageDelta) {
                 Text(
-                    text = "Avg Δ",
+                    text = "Avg +/-",
                     style = MaterialTheme.typography.labelSmall.copy(
                         color = TrackerColors.OnSurfaceVariant,
                         fontWeight = FontWeight.Bold,
@@ -266,6 +317,32 @@ private fun SplitsHeader(
                         fontSize = 10.sp
                     ),
                     modifier = Modifier.width(85.dp),
+                    textAlign = TextAlign.End
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+            }
+            if (showBestDelta) {
+                Text(
+                    text = "Best +/-",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = TrackerColors.OnSurfaceVariant,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 10.sp
+                    ),
+                    modifier = Modifier.width(65.dp),
+                    textAlign = TextAlign.End
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+            }
+            if (showBestDeltaTotal) {
+                Text(
+                    text = "Best +/-",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = TrackerColors.OnSurfaceVariant,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 10.sp
+                    ),
+                    modifier = Modifier.width(65.dp),
                     textAlign = TextAlign.End
                 )
                 Spacer(modifier = Modifier.width(2.dp))
@@ -297,7 +374,10 @@ private fun SplitRow(
     showSegmentDeltas: Boolean,
     showBestPossibleColumn: Boolean,
     showBestPossibleDelta: Boolean,
+    showBestPossibleDeltaTotal: Boolean,
     showBestColumn: Boolean,
+    showBestDelta: Boolean,
+    showBestDeltaTotal: Boolean,
     showAverageColumn: Boolean,
     showAverageDelta: Boolean,
     averageSegmentTimes: Map<String, Long>
@@ -352,6 +432,46 @@ private fun SplitRow(
     val bestPossibleDelta = if (isCompleted && bestSegmentTime != null) {
         completedSplit!!.time.segmentTime - bestSegmentTime.segmentTime
     } else null
+
+    // BP +/- Total: cumulative delta vs sum of best segments
+    val bpTotalDelta = if (isCompleted && completedSplit != null && sumOfBestPossibleUpToHere > 0) {
+        completedSplit.time.totalTime - sumOfBestPossibleUpToHere
+    } else null
+
+    // BP +/- Total previous delta (for LiveSplit gaining/losing color)
+    val prevBpTotalDelta = if (isCompleted && splitIndex > 0 && profileSplitTimes != null) {
+        val prevSplit = profile.splits.getOrNull(splitIndex - 1)
+        val prevCompleted = prevSplit?.let { currentRun?.completedSplits?.find { c -> c.splitId == it.id } }
+        if (prevCompleted != null) {
+            val prevSumBp = profile.splits.take(splitIndex).sumOf { s ->
+                profileSplitTimes[s.id]?.segmentTime ?: 0L
+            }
+            if (prevSumBp > 0) prevCompleted.time.totalTime - prevSumBp else null
+        } else null
+    } else null
+
+    // Best +/- (segment): current segment vs PB run's segment
+    val bestDelta = if (isCompleted && completedSplit != null && pbRunSegmentTime != null) {
+        completedSplit.time.segmentTime - pbRunSegmentTime.segmentTime
+    } else null
+
+    // Best +/- Total: cumulative delta vs PB run
+    val bestTotalDelta = if (isCompleted && completedSplit != null && sumOfPbRunUpToHere > 0) {
+        completedSplit.time.totalTime - sumOfPbRunUpToHere
+    } else null
+
+    // Best +/- Total previous delta (for LiveSplit gaining/losing color)
+    val prevBestTotalDelta = if (isCompleted && splitIndex > 0) {
+        val prevSplit = profile.splits.getOrNull(splitIndex - 1)
+        val prevCompleted = prevSplit?.let { currentRun?.completedSplits?.find { c -> c.splitId == it.id } }
+        if (prevCompleted != null) {
+            val prevSumPb = calculatePbRunTimeUpTo(splitsState, profileId, profile, splitIndex - 1)
+            if (prevSumPb > 0) prevCompleted.time.totalTime - prevSumPb else null
+        } else null
+    } else null
+
+    val isNewBestSegment = isCompleted && bestSegmentTime != null && completedSplit != null &&
+        completedSplit.time.segmentTime < bestSegmentTime.segmentTime
 
     // Determine row colors and styling
     val backgroundColor = when {
@@ -497,6 +617,43 @@ private fun SplitRow(
                     }
                 }
 
+                // BP +/- Total Column (cumulative delta vs sum of best segments, LiveSplit colors)
+                if (showBestPossibleDeltaTotal) {
+                    Column(
+                        modifier = Modifier.width(65.dp),
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        if (bpTotalDelta != null) {
+                            val deltaColor = liveSplitDeltaColor(bpTotalDelta, prevBpTotalDelta, isNewBestSegment)
+                            val deltaText = when {
+                                bpTotalDelta < 0 -> "-${formatTime(-bpTotalDelta)}"
+                                bpTotalDelta > 0 -> "+${formatTime(bpTotalDelta)}"
+                                else -> "±0:00"
+                            }
+                            Text(
+                                text = deltaText,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = deltaColor,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                textAlign = TextAlign.End
+                            )
+                        } else {
+                            Text(
+                                text = "--:--",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 10.sp
+                                ),
+                                textAlign = TextAlign.End
+                            )
+                        }
+                    }
+                }
+
                 // Average Column (mean time from all completed runs)
                 if (showAverageColumn) {
                     Column(
@@ -606,6 +763,81 @@ private fun SplitRow(
                     }
                 }
 
+                // Best +/- Column (segment delta vs PB run's segment)
+                if (showBestDelta) {
+                    Column(
+                        modifier = Modifier.width(65.dp),
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        if (bestDelta != null) {
+                            val isBestSeg = isNewBestSegment
+                            val deltaColor = deltaGradientColor(bestDelta, isBestSegment = isBestSeg)
+                            val deltaText = when {
+                                bestDelta < 0 -> "-${formatTime(-bestDelta)}"
+                                bestDelta > 0 -> "+${formatTime(bestDelta)}"
+                                else -> "±0:00"
+                            }
+                            Text(
+                                text = deltaText,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = deltaColor,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                textAlign = TextAlign.End
+                            )
+                        } else {
+                            Text(
+                                text = "--:--",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 10.sp
+                                ),
+                                textAlign = TextAlign.End
+                            )
+                        }
+                    }
+                }
+
+                // Best +/- Total Column (cumulative delta vs PB run, LiveSplit colors)
+                if (showBestDeltaTotal) {
+                    Column(
+                        modifier = Modifier.width(65.dp),
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        if (bestTotalDelta != null) {
+                            val deltaColor = liveSplitDeltaColor(bestTotalDelta, prevBestTotalDelta, isNewBestSegment)
+                            val deltaText = when {
+                                bestTotalDelta < 0 -> "-${formatTime(-bestTotalDelta)}"
+                                bestTotalDelta > 0 -> "+${formatTime(bestTotalDelta)}"
+                                else -> "±0:00"
+                            }
+                            Text(
+                                text = deltaText,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = deltaColor,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                textAlign = TextAlign.End
+                            )
+                        } else {
+                            Text(
+                                text = "--:--",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 10.sp
+                                ),
+                                textAlign = TextAlign.End
+                            )
+                        }
+                    }
+                }
+
                 // TIME Column (Current run time)
                 Column(
                     modifier = Modifier.width(85.dp),
@@ -618,12 +850,6 @@ private fun SplitRow(
                         "--:--:--.--"
                     }
 
-                    // Determine color using LiveSplit conventions:
-                    // 1. Gold = new best segment (strictly faster than previous best)
-                    // 2. Green = ahead of PB (cumulative < PB cumulative)
-                    // 3. Red = behind PB (cumulative > PB cumulative)
-                    val isNewBestSegment = isCompleted && bestSegmentTime != null && completedSplit != null &&
-                        completedSplit.time.segmentTime < bestSegmentTime.segmentTime
                     val pbCumulativeDelta = if (isCompleted && completedSplit != null && sumOfPbRunUpToHere > 0) {
                         completedSplit.time.totalTime - sumOfPbRunUpToHere
                     } else 0L

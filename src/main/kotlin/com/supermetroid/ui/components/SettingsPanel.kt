@@ -6,8 +6,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -165,7 +167,7 @@ private fun GeneralSettingsTab(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier,
+        modifier = modifier.verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -201,8 +203,6 @@ private fun GeneralSettingsTab(
             gameGenieService = gameGenieService,
             modifier = Modifier.fillMaxWidth()
         )
-
-        Spacer(modifier = Modifier.weight(1f))
     }
 }
 
@@ -314,7 +314,7 @@ private fun SplitsSettingsTab(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier,
+        modifier = modifier.verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -365,7 +365,22 @@ private fun SplitsSettingsTab(
             modifier = Modifier.fillMaxWidth()
         )
 
+        BestPossibleDeltaTotalToggleSection(
+            splitDisplayModeService = splitDisplayModeService,
+            modifier = Modifier.fillMaxWidth()
+        )
+
         BestColumnToggleSection(
+            splitDisplayModeService = splitDisplayModeService,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        BestDeltaToggleSection(
+            splitDisplayModeService = splitDisplayModeService,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        BestDeltaTotalToggleSection(
             splitDisplayModeService = splitDisplayModeService,
             modifier = Modifier.fillMaxWidth()
         )
@@ -379,8 +394,6 @@ private fun SplitsSettingsTab(
             splitDisplayModeService = splitDisplayModeService,
             modifier = Modifier.fillMaxWidth()
         )
-
-        Spacer(modifier = Modifier.weight(1f))
     }
 }
 
@@ -969,7 +982,7 @@ private fun BestPossibleDeltaToggleSection(
     val scope = rememberCoroutineScope()
 
     ToggleRow(
-        label = "Show Best Possible Δ Column",
+        label = "Show BP +/- Column",
         checked = showBestPossibleDelta,
         onCheckedChange = { scope.launch { splitDisplayModeService.setShowBestPossibleDelta(it) } },
         modifier = modifier
@@ -1017,9 +1030,57 @@ private fun AverageDeltaToggleSection(
     val scope = rememberCoroutineScope()
 
     ToggleRow(
-        label = "Show Average Δ Column",
+        label = "Show Avg +/- Column",
         checked = showAverageDelta,
         onCheckedChange = { scope.launch { splitDisplayModeService.setShowAverageDelta(it) } },
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun BestPossibleDeltaTotalToggleSection(
+    splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
+    modifier: Modifier = Modifier
+) {
+    val show by splitDisplayModeService.showBestPossibleDeltaTotal.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    ToggleRow(
+        label = "Show BP +/- Total Column",
+        checked = show,
+        onCheckedChange = { scope.launch { splitDisplayModeService.setShowBestPossibleDeltaTotal(it) } },
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun BestDeltaToggleSection(
+    splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
+    modifier: Modifier = Modifier
+) {
+    val show by splitDisplayModeService.showBestDelta.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    ToggleRow(
+        label = "Show Best +/- Column",
+        checked = show,
+        onCheckedChange = { scope.launch { splitDisplayModeService.setShowBestDelta(it) } },
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun BestDeltaTotalToggleSection(
+    splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
+    modifier: Modifier = Modifier
+) {
+    val show by splitDisplayModeService.showBestDeltaTotal.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    ToggleRow(
+        label = "Show Best +/- Total Column",
+        checked = show,
+        onCheckedChange = { scope.launch { splitDisplayModeService.setShowBestDeltaTotal(it) } },
         modifier = modifier
     )
 }

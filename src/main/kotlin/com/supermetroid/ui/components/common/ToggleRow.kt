@@ -30,7 +30,9 @@ fun ToggleRow(
     description: String? = null
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(0.9f),
+        modifier = modifier
+            .fillMaxWidth(0.9f)
+            .height(32.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -85,7 +87,7 @@ fun PrimaryToggleRow(
     enabled: Boolean = true
 ) {
     Row(
-        modifier = modifier,
+        modifier = modifier.height(36.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

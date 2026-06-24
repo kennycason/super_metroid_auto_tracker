@@ -43,6 +43,15 @@ class SplitDisplayModeService(private val fileStorageService: FileStorageService
     private val _showAverageDelta = MutableStateFlow(false)
     val showAverageDelta: StateFlow<Boolean> = _showAverageDelta.asStateFlow()
 
+    private val _showBestPossibleDeltaTotal = MutableStateFlow(false)
+    val showBestPossibleDeltaTotal: StateFlow<Boolean> = _showBestPossibleDeltaTotal.asStateFlow()
+
+    private val _showBestDelta = MutableStateFlow(false)
+    val showBestDelta: StateFlow<Boolean> = _showBestDelta.asStateFlow()
+
+    private val _showBestDeltaTotal = MutableStateFlow(false)
+    val showBestDeltaTotal: StateFlow<Boolean> = _showBestDeltaTotal.asStateFlow()
+
     /**
      * Initialize split display mode service and load saved settings from config
      */
@@ -58,6 +67,9 @@ class SplitDisplayModeService(private val fileStorageService: FileStorageService
             _showBestColumn.value = config.showBestColumn
             _showAverageColumn.value = config.showAverageColumn
             _showAverageDelta.value = config.showAverageDelta
+            _showBestPossibleDeltaTotal.value = config.showBestPossibleDeltaTotal
+            _showBestDelta.value = config.showBestDelta
+            _showBestDeltaTotal.value = config.showBestDeltaTotal
             _currentDisplayMode.value = SplitDisplayMode.fromBooleans(config.showSplitIcons, config.showSplitNames)
             logger.info { "📋 Loaded split display mode: ${_currentDisplayMode.value.displayName}" }
         } catch (e: Exception) {
@@ -196,6 +208,36 @@ class SplitDisplayModeService(private val fileStorageService: FileStorageService
             logger.info { "💾 Saved show Average Delta column: $show" }
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to save show Average Delta column setting" }
+        }
+    }
+
+    suspend fun setShowBestPossibleDeltaTotal(show: Boolean) {
+        _showBestPossibleDeltaTotal.value = show
+        try {
+            val currentConfig = fileStorageService.loadAppConfig()
+            fileStorageService.saveAppConfig(currentConfig.copy(showBestPossibleDeltaTotal = show))
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to save show BP +/- Total setting" }
+        }
+    }
+
+    suspend fun setShowBestDelta(show: Boolean) {
+        _showBestDelta.value = show
+        try {
+            val currentConfig = fileStorageService.loadAppConfig()
+            fileStorageService.saveAppConfig(currentConfig.copy(showBestDelta = show))
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to save show Best +/- setting" }
+        }
+    }
+
+    suspend fun setShowBestDeltaTotal(show: Boolean) {
+        _showBestDeltaTotal.value = show
+        try {
+            val currentConfig = fileStorageService.loadAppConfig()
+            fileStorageService.saveAppConfig(currentConfig.copy(showBestDeltaTotal = show))
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to save show Best +/- Total setting" }
         }
     }
 }
