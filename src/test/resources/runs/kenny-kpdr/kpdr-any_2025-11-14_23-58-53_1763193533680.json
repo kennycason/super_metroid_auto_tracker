@@ -1,0 +1,202 @@
+{
+    "id": "run_1763193533680",
+    "profileId": "kpdr-any",
+    "startTime": "2025-11-15T07:58:53.681553Z",
+    "endTime": null,
+    "completedSplits": [
+        {
+            "splitId": "ceres_station",
+            "time": {
+                "totalTime": 95457,
+                "segmentTime": 95457,
+                "delta": 157,
+                "originalDelta": 157
+            },
+            "timestamp": "2025-11-15T08:00:29.138615Z"
+        },
+        {
+            "splitId": "morph_ball",
+            "time": {
+                "totalTime": 201922,
+                "segmentTime": 106465,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-15T08:02:15.603650Z"
+        },
+        {
+            "splitId": "first_missile",
+            "time": {
+                "totalTime": 226090,
+                "segmentTime": 24168,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-15T08:02:39.772535Z"
+        },
+        {
+            "splitId": "bomb",
+            "time": {
+                "totalTime": 346668,
+                "segmentTime": 120578,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-15T08:04:40.349753Z"
+        },
+        {
+            "splitId": "first_super",
+            "time": {
+                "totalTime": 496921,
+                "segmentTime": 150253,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-15T08:07:10.602593Z"
+        },
+        {
+            "splitId": "charge_beam",
+            "time": {
+                "totalTime": 560587,
+                "segmentTime": 63666,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-15T08:08:14.269353Z"
+        },
+        {
+            "splitId": "spazer",
+            "time": {
+                "totalTime": 640666,
+                "segmentTime": 80079,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-15T08:09:34.348071Z"
+        },
+        {
+            "splitId": "kraid",
+            "time": {
+                "totalTime": 759063,
+                "segmentTime": 118397,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-15T08:11:32.744554Z"
+        },
+        {
+            "splitId": "varia_suit",
+            "time": {
+                "totalTime": 766714,
+                "segmentTime": 7651,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-15T08:11:40.396375Z"
+        },
+        {
+            "splitId": "hi_jump",
+            "time": {
+                "totalTime": 898385,
+                "segmentTime": 131671,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-15T08:13:52.066567Z"
+        },
+        {
+            "splitId": "speed_booster",
+            "time": {
+                "totalTime": 1031018,
+                "segmentTime": 132633,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-15T08:16:04.700499Z"
+        },
+        {
+            "splitId": "wave_beam",
+            "time": {
+                "totalTime": 1097909,
+                "segmentTime": 66891,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-15T08:17:11.590964Z"
+        },
+        {
+            "splitId": "ice_beam",
+            "time": {
+                "totalTime": 1200971,
+                "segmentTime": 103062,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-15T08:18:54.652891Z"
+        },
+        {
+            "splitId": "first_power_bomb",
+            "time": {
+                "totalTime": 1377711,
+                "segmentTime": 176740,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-15T08:21:51.392773Z"
+        },
+        {
+            "splitId": "phantoon",
+            "time": {
+                "totalTime": 1632923,
+                "segmentTime": 255212,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-15T08:26:06.605239Z"
+        },
+        {
+            "splitId": "gravity_suit",
+            "time": {
+                "totalTime": 1804056,
+                "segmentTime": 171133,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-15T08:28:57.738173Z"
+        },
+        {
+            "splitId": "draygon",
+            "time": {
+                "totalTime": 2288709,
+                "segmentTime": 484653,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-15T08:37:02.391072Z"
+        },
+        {
+            "splitId": "space_jump",
+            "time": {
+                "totalTime": 2296377,
+                "segmentTime": 7668,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-15T08:37:10.059021Z"
+        },
+        {
+            "splitId": "plasma_beam",
+            "time": {
+                "totalTime": 2413580,
+                "segmentTime": 117203,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-11-15T08:39:07.262456Z"
+        }
+    ],
+    "totalTime": 2413580,
+    "isPersonalBest": false,
+    "isPaused": false,
+    "pausedTime": 0
+}

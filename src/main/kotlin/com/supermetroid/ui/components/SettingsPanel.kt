@@ -394,6 +394,11 @@ private fun SplitsSettingsTab(
             splitDisplayModeService = splitDisplayModeService,
             modifier = Modifier.fillMaxWidth()
         )
+
+        BestPossibleSummaryToggleSection(
+            splitDisplayModeService = splitDisplayModeService,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
@@ -478,54 +483,13 @@ private fun SplitProfileSection(
 @Composable
 private fun SplitFormatSection(
     splitFormatService: com.supermetroid.service.SplitFormatService,
-    splitProfileService: com.supermetroid.service.SplitProfileService,
+    @Suppress("UNUSED_PARAMETER") splitProfileService: com.supermetroid.service.SplitProfileService,
     modifier: Modifier = Modifier
 ) {
-    val readFormat by splitFormatService.readFormat.collectAsState()
     val writeJson by splitFormatService.writeJson.collectAsState()
-    val writeLiveSplit by splitFormatService.writeLiveSplit.collectAsState()
     val lssFilePath by splitFormatService.liveSplitFilePath.collectAsState()
     val lssDoc by splitFormatService.liveSplitDocument.collectAsState()
-    val currentProfile by splitProfileService.currentProfile.collectAsState()
     val scope = rememberCoroutineScope()
-    var showCreateLssDialog by remember { mutableStateOf(false) }
-
-    // Dialog for creating a new LSS file
-    if (showCreateLssDialog) {
-        AlertDialog(
-            onDismissRequest = { showCreateLssDialog = false },
-            title = {
-                Text(
-                    "No LSS File for ${currentProfile.name}",
-                    style = MaterialTheme.typography.titleSmall.copy(color = TrackerColors.OnSurface)
-                )
-            },
-            text = {
-                Text(
-                    "No LiveSplit file is configured for this profile.\n\nCreate a new .lss file, or cancel and load an existing one with the file picker.",
-                    style = MaterialTheme.typography.bodySmall.copy(color = TrackerColors.OnSurfaceVariant)
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showCreateLssDialog = false
-                        scope.launch {
-                            splitFormatService.createNewLssFile(currentProfile)
-                        }
-                    }
-                ) {
-                    Text("Create New", color = TrackerColors.Primary)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showCreateLssDialog = false }) {
-                    Text("Cancel", color = TrackerColors.OnSurfaceVariant)
-                }
-            },
-            containerColor = TrackerColors.Surface
-        )
-    }
 
     Card(
         modifier = modifier.fillMaxWidth(0.95f),
@@ -548,14 +512,12 @@ private fun SplitFormatSection(
                 )
             )
 
-            // Read Format toggle
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            // LiveSplit file picker (always shown — LSS is the primary format)
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = "Read Format",
+                    text = "LiveSplit File (.lss)",
                     style = MaterialTheme.typography.bodySmall.copy(
                         color = TrackerColors.OnSurface,
                         fontWeight = FontWeight.Medium
@@ -563,171 +525,70 @@ private fun SplitFormatSection(
                 )
 
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    com.supermetroid.service.SplitFormatService.ReadFormat.values().forEach { format ->
-                        val isSelected = readFormat == format
-                        Button(
-                            onClick = {
-                                scope.launch { splitFormatService.setReadFormat(format) }
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isSelected) TrackerColors.Primary else TrackerColors.SurfaceOverlayLight,
-                                contentColor = if (isSelected) TrackerColors.OnPrimary else TrackerColors.OnSurface
-                            ),
-                            shape = RoundedCornerShape(4.dp),
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                            modifier = Modifier.height(30.dp)
-                        ) {
-                            Text(
-                                text = format.displayName,
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Write Format checkboxes
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Write Format",
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = TrackerColors.OnSurface,
-                        fontWeight = FontWeight.Medium
-                    )
-                )
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        Checkbox(
-                            checked = writeJson,
-                            onCheckedChange = { scope.launch { splitFormatService.setWriteJson(it) } },
-                            modifier = Modifier.size(20.dp),
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = TrackerColors.Primary,
-                                uncheckedColor = TrackerColors.OnSurfaceVariant
-                            )
-                        )
-                        Text("JSON", style = MaterialTheme.typography.labelSmall.copy(color = TrackerColors.OnSurface))
-                    }
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        Checkbox(
-                            checked = writeLiveSplit,
-                            onCheckedChange = { scope.launch { splitFormatService.setWriteLiveSplit(it) } },
-                            modifier = Modifier.size(20.dp),
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = TrackerColors.Primary,
-                                uncheckedColor = TrackerColors.OnSurfaceVariant
-                            )
-                        )
-                        Text("LiveSplit", style = MaterialTheme.typography.labelSmall.copy(color = TrackerColors.OnSurface))
-                    }
-                }
-            }
-
-            // LiveSplit file picker
-            if (readFormat == com.supermetroid.service.SplitFormatService.ReadFormat.LIVESPLIT || writeLiveSplit) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = "LiveSplit File (.lss)",
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = TrackerColors.OnSurface,
-                            fontWeight = FontWeight.Medium
-                        )
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // File path display
-                        OutlinedButton(
-                            onClick = {
-                                scope.launch {
-                                    val path = showFilePickerDialog()
-                                    if (path != null) {
-                                        splitFormatService.setLiveSplitFilePath(path)
-                                    }
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                val path = showFilePickerDialog()
+                                if (path != null) {
+                                    splitFormatService.setLiveSplitFilePath(path)
                                 }
-                            },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(4.dp),
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = TrackerColors.OnSurface
-                            )
-                        ) {
-                            Text(
-                                text = lssFilePath?.let { java.io.File(it).name } ?: "Select .lss file...",
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-
-                        // Reload button (only if file is loaded)
-                        if (lssFilePath != null) {
-                            TextButton(
-                                onClick = { scope.launch { splitFormatService.reloadLiveSplitFile() } },
-                                contentPadding = PaddingValues(0.dp),
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                Text(
-                                    "↻",
-                                    style = MaterialTheme.typography.bodyLarge.copy(color = TrackerColors.Primary)
-                                )
                             }
-                        }
-                    }
-
-                    // No file configured — show create button
-                    if (lssFilePath == null) {
-                        TextButton(
-                            onClick = { showCreateLssDialog = true },
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
-                        ) {
-                            Text(
-                                "or Create New .lss",
-                                style = MaterialTheme.typography.labelSmall.copy(color = TrackerColors.Primary)
-                            )
-                        }
-                    }
-
-                    // LSS file info (when loaded)
-                    if (lssDoc != null) {
-                        val doc = lssDoc!!
-                        val completedAttempts = doc.attemptHistory.count { it.realTime != null }
-                        val lssDisplayName = if (doc.categoryName.isBlank() || doc.categoryName == doc.gameName) doc.gameName else "${doc.gameName} - ${doc.categoryName}"
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(4.dp),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = TrackerColors.OnSurface
+                        )
+                    ) {
                         Text(
-                            text = "$lssDisplayName | ${doc.segments.size} splits | $completedAttempts/${doc.attemptHistory.size} attempts",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = TrackerColors.OnSurfaceVariant
-                            ),
-                            maxLines = 2,
+                            text = lssFilePath?.let { java.io.File(it).name } ?: "Select .lss file...",
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
+
+                    if (lssFilePath != null) {
+                        TextButton(
+                            onClick = { scope.launch { splitFormatService.reloadLiveSplitFile() } },
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Text(
+                                "↻",
+                                style = MaterialTheme.typography.bodyLarge.copy(color = TrackerColors.Primary)
+                            )
+                        }
+                    }
+                }
+
+                if (lssDoc != null) {
+                    val doc = lssDoc!!
+                    val completedAttempts = doc.attemptHistory.count { it.realTime != null }
+                    val lssDisplayName = if (doc.categoryName.isBlank() || doc.categoryName == doc.gameName) doc.gameName else "${doc.gameName} - ${doc.categoryName}"
+                    Text(
+                        text = "$lssDisplayName | ${doc.segments.size} splits | $completedAttempts/${doc.attemptHistory.size} attempts",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = TrackerColors.OnSurfaceVariant
+                        ),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
+
+            // JSON dual-write toggle
+            ToggleRow(
+                label = "Write JSON Run History",
+                checked = writeJson,
+                onCheckedChange = { scope.launch { splitFormatService.setWriteJson(it) } },
+                description = "Save run data as JSON files for easy viewing"
+            )
         }
     }
 }
@@ -1081,6 +942,22 @@ private fun BestDeltaTotalToggleSection(
         label = "Show Best +/- Total Column",
         checked = show,
         onCheckedChange = { scope.launch { splitDisplayModeService.setShowBestDeltaTotal(it) } },
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun BestPossibleSummaryToggleSection(
+    splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
+    modifier: Modifier = Modifier
+) {
+    val show by splitDisplayModeService.showBestPossibleSummary.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    ToggleRow(
+        label = "Show Best Possible Time",
+        checked = show,
+        onCheckedChange = { scope.launch { splitDisplayModeService.setShowBestPossibleSummary(it) } },
         modifier = modifier
     )
 }
@@ -2007,7 +1884,8 @@ private fun LoadRunSection(
                                 selectedRun = null
                                 expanded = false
                                 scope.launch {
-                                    autoSplitsEngine.resetToCurrentState()
+                                    val state = splitFormatService.loadCurrentState()
+                                    autoSplitsEngine.resetToCurrentState(state)
                                 }
                             }
                         )
@@ -2180,21 +2058,9 @@ private fun LoadRunSection(
                                 if (selectedRun == runMeta?.displayName) {
                                     selectedRun = null
                                 }
-                                // Recalculate run-summaries.json from remaining runs on disk
-                                val profileId = runMeta?.profileId
-                                if (profileId != null) {
-                                    try {
-                                        val summaries = fileStorageService.loadRunSummaries()
-                                        val updatedProfile = fileStorageService.deriveBestSplits(profileId)
-                                        val updatedSummaries = summaries.copy(
-                                            lastUpdated = kotlinx.datetime.Clock.System.now(),
-                                            profiles = summaries.profiles + (profileId to updatedProfile)
-                                        )
-                                        fileStorageService.saveRunSummaries(updatedSummaries)
-                                    } catch (_: Exception) {}
-                                }
-                                // Always refresh state after deletion to update PBs/BEST
-                                autoSplitsEngine.resetToCurrentState()
+                                // Refresh state after deletion to update PBs/BEST
+                                val state = splitFormatService.loadCurrentState()
+                                autoSplitsEngine.resetToCurrentState(state)
                             } else {
                                 statusMessage = "Failed to delete"
                             }

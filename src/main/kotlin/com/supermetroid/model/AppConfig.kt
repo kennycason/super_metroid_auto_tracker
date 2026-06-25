@@ -101,6 +101,7 @@ data class AppConfig(
     val showBestPossibleDeltaTotal: Boolean = false, // Show BP +/- Total (cumulative delta vs sum of best segments)
     val showBestDelta: Boolean = false,              // Show Best +/- (segment delta vs PB run segment)
     val showBestDeltaTotal: Boolean = false,          // Show Best +/- Total (cumulative delta vs PB run)
+    val showBestPossibleSummary: Boolean = true,       // Show Best Possible time below Personal Best
     // Timer persistence
     val savedTimerMs: Long? = null,  // Saved timer value in milliseconds (null = no saved timer)
     val savedTimerProfileId: String? = null,  // Profile ID for the saved timer
@@ -108,10 +109,10 @@ data class AppConfig(
     val mapRandoInfoFontSize: String? = null,  // Font size for Map Rando info panel (null = default)
     // Split profile selection
     val selectedProfileId: String = com.supermetroid.autosplits.SplitProfiles.ID_KPDR_ANY,  // Currently selected split profile
-    // Split format settings
-    val splitReadFormat: String = "json",         // "json" or "livesplit"
-    val splitWriteJson: Boolean = true,           // Write runs in JSON format
-    val splitWriteLiveSplit: Boolean = false,      // Write runs in LiveSplit (.lss) format
+    // Split format settings (LSS is always primary read/write; JSON is optional dual-write)
+    val splitReadFormat: String = "livesplit",     // Kept for config compat; always "livesplit"
+    val splitWriteJson: Boolean = true,            // Dual-write JSON run files for easy viewing
+    val splitWriteLiveSplit: Boolean = true,        // Kept for config compat; always true
     val liveSplitFilePath: String? = null,         // Legacy: single LSS path (migrated to per-profile on first load)
     val liveSplitFilePaths: Map<String, String> = emptyMap(), // Per-profile LSS file paths (profileId -> path)
     val statsFontSize: String? = null              // Font size for stats panel (null = default Medium)

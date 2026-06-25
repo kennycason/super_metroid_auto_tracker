@@ -107,10 +107,6 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         }
 
         try {
-            // Load all runs
-            val allRuns = storage.loadAllRuns()
-
-            // Find the target run by filename
             val targetRun = storage.loadRunByFileName(runFileName)
             if (targetRun == null) {
                 logger.error { "❌ Could not find run file: $runFileName" }
@@ -118,33 +114,12 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             }
 
             logger.info { "✓ Found target run: ${targetRun.id}" }
-            logger.info { "  Profile: ${targetRun.profileId}" }
-            logger.info { "  Start time: ${targetRun.startTime}" }
-            logger.info { "  Total time: ${formatTime(targetRun.totalTime)}" }
-            logger.info { "  Splits: ${targetRun.completedSplits.size}" }
+            logger.info { "  Total time: ${formatTime(targetRun.totalTime)}, Splits: ${targetRun.completedSplits.size}" }
 
-            // Get target run's start time to filter previous runs
-            val targetStartTime = targetRun.startTime
-
-            // Filter runs that came before this run (by start time)
-            val previousRuns = allRuns.filter { it.startTime < targetStartTime && it.endTime != null }
-            logger.info { "📊 Found ${previousRuns.size} completed runs before target run" }
-
-            // Calculate best segments from previous runs only
-            // IMPORTANT: Always mark replay runs as paused to prevent timer from advancing
             val replayRun = targetRun.copy(isPaused = true)
 
-            val updatedState = SplitsState(
-                currentRun = replayRun, // Set as current run (paused)
-                personalBests = emptyMap(),
-                runHistory = previousRuns // Include previous runs for BP calculation
-            )
-
-            // Update personal bests from previous runs
-            val finalState = updatePersonalBestsFromRunHistory(updatedState)
-
-            // Set the state
-            _splitsState.value = finalState
+            // Preserve current PBs (from LSS) — don't recalculate from JSON runs
+            _splitsState.value = _splitsState.value.copy(currentRun = replayRun)
 
             // Load the profile and sync to SplitProfileService
             val newProfile = SplitProfiles.getProfileById(targetRun.profileId)
@@ -156,7 +131,6 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
             logger.info { "✅ Replay mode loaded successfully" }
             logger.info { "  Displaying run with ${targetRun.completedSplits.size} splits" }
-            logger.info { "  Best Possible calculated from ${previousRuns.size} previous runs" }
             return true
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to load replay run" }
@@ -173,14 +147,8 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         try {
             val replayRun = targetRun.copy(isPaused = true)
 
-            val updatedState = SplitsState(
-                currentRun = replayRun,
-                personalBests = emptyMap(),
-                runHistory = previousRuns
-            )
-
-            val finalState = updatePersonalBestsFromRunHistory(updatedState)
-            _splitsState.value = finalState
+            // Preserve current PBs (from LSS) — don't recalculate from JSON runs
+            _splitsState.value = _splitsState.value.copy(currentRun = replayRun)
 
             val newProfile = SplitProfiles.getProfileById(targetRun.profileId)
             currentProfile = newProfile
@@ -200,29 +168,13 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
      * Reset to current state - reload all runs and show true personal bests
      * Use this to exit replay mode and return to normal tracking
      */
-    suspend fun resetToCurrentState() {
+    suspend fun resetToCurrentState(state: SplitsState) {
         logger.info { "🔄 Resetting to current state (exiting replay mode)" }
-        
-        try {
-            fileStorageService?.let { storage ->
-                // Reload the full splits state from disk (all runs, true PB)
-                val savedState = storage.loadSplitsState()
-                
-                // Clear current run (start fresh, not mid-run)
-                val resetState = savedState.copy(currentRun = null)
-                
-                // Load the saved state
-                loadSavedState(resetState)
-                
-                // Reset the split index
-                currentSplitIndex = 0
-                
-                val pbTime = savedState.personalBests.values.firstOrNull()?.totalTime ?: 0
-                logger.info { "✅ Reset to current state - PB: ${formatTime(pbTime)} from ${savedState.runHistory.size} total runs" }
-            }
-        } catch (e: Exception) {
-            logger.error(e) { "❌ Failed to reset to current state" }
-        }
+        val resetState = state.copy(currentRun = null)
+        loadSavedState(resetState)
+        currentSplitIndex = 0
+        val pbTime = state.personalBests.values.firstOrNull()?.totalTime ?: 0
+        logger.info { "✅ Reset to current state - PB: ${formatTime(pbTime)}" }
     }
 
     /**
@@ -665,16 +617,6 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                         storage.saveRun(runToSave)
                         onRunSaved?.invoke(runToSave)
                         logger.info { "💾 Saved partial run to runs/ directory (${currentRun.completedSplits.size} splits, ${formatTime(finalTime)})" }
-
-                        // Update run summaries to include segment PBs from this partial run
-                        val summaries = storage.loadRunSummaries()
-                        val updatedProfile = storage.deriveBestSplits(runToSave.profileId)
-                        val updatedSummaries = summaries.copy(
-                            lastUpdated = Clock.System.now(),
-                            profiles = summaries.profiles + (runToSave.profileId to updatedProfile)
-                        )
-                        storage.saveRunSummaries(updatedSummaries)
-                        logger.info { "📊 Updated run summaries with partial run segments" }
                     } catch (e: Exception) {
                         logger.error(e) { "❌ Failed to save partial run" }
                     }
@@ -994,20 +936,6 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                             storage.saveRun(finalRun)
                             onRunSaved?.invoke(finalRun)
                             logger.info { "✅ Successfully saved auto-skipped run progress for split: ${split.name}" }
-
-                            // Update run summaries
-                            try {
-                                val summaries = storage.loadRunSummaries()
-                                val updatedProfile = storage.deriveBestSplits(finalRun.profileId)
-                                val updatedSummaries = summaries.copy(
-                                    lastUpdated = Clock.System.now(),
-                                    profiles = summaries.profiles + (finalRun.profileId to updatedProfile)
-                                )
-                                storage.saveRunSummaries(updatedSummaries)
-                                logger.info { "✅ Updated run summaries after auto-skip" }
-                            } catch (e: Exception) {
-                                logger.error(e) { "⚠️  Failed to update run summaries after auto-skip, but run data was saved" }
-                            }
                         } catch (e: Exception) {
                             logger.error(e) { "❌ CRITICAL: Failed to save run progress after auto-skip ${split.name}" }
                         }
@@ -1426,20 +1354,6 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                     storage.saveRun(finalRun)
                     onRunSaved?.invoke(finalRun)
                     logger.info { "✅ Successfully saved run progress to disk for split: ${split.name}" }
-
-                    // Update run summaries to track segment PBs from this run so far
-                    try {
-                    val summaries = storage.loadRunSummaries()
-                    val updatedProfile = storage.deriveBestSplits(finalRun.profileId)
-                    val updatedSummaries = summaries.copy(
-                        lastUpdated = Clock.System.now(),
-                        profiles = summaries.profiles + (finalRun.profileId to updatedProfile)
-                    )
-                    storage.saveRunSummaries(updatedSummaries)
-                        logger.info { "✅ Updated run summaries with current segments" }
-                } catch (e: Exception) {
-                        logger.error(e) { "⚠️  Failed to update run summaries, but run data was saved" }
-                    }
                 } catch (e: Exception) {
                     logger.error(e) { "❌ CRITICAL: Failed to save run progress after split ${split.name}" }
                     // Try to save with error recovery

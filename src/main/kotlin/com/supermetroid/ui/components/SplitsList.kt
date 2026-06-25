@@ -906,53 +906,84 @@ private fun SplitRow(
 fun PersonalBestSummary(
     splitsState: SplitsState,
     profileId: String,
+    profile: SplitProfile,
+    showBestPossible: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    // Get the PB for the CURRENT profile only, not just any profile
     val currentProfilePB = splitsState.personalBests[profileId]
 
     if (currentProfilePB != null) {
-        Row(
+        // Personal Best row
+        SummaryRow(
+            label = "Personal Best",
+            timeMs = currentProfilePB.totalTime,
+            color = TrackerColors.OnSurface,
             modifier = modifier
-                .fillMaxWidth()
-                .height(20.dp) // Match split row height
-                .padding(horizontal = 4.dp, vertical = 1.dp), // Match split row padding
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Personal Best name (left side)
-            Row(
-                modifier = Modifier.weight(1f),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Personal Best",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = TrackerColors.OnSurface,
-                        fontWeight = FontWeight.Medium
-                    )
-                )
-            }
+        )
 
-            // Personal Best time (right side) with milliseconds
-            Row(
-                modifier = Modifier.width(192.dp), // Match split row time column width
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer(modifier = Modifier.width(72.dp))
-                Text(
-                    text = formatTimeWithMillis(currentProfilePB.totalTime),
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = TrackerColors.OnSurface,
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 12.sp
-                    ),
-                    modifier = Modifier.width(120.dp),
-                    textAlign = TextAlign.End
+        // Best Possible row: completed segments actual time + best segments for remaining
+        if (!showBestPossible) return
+        val currentRun = splitsState.currentRun
+        val bestSegmentTimes = currentProfilePB.splitTimes
+        if (bestSegmentTimes.isNotEmpty()) {
+            var bestPossibleTime = 0L
+            var hasData = false
+            for (split in profile.splits) {
+                val completed = currentRun?.completedSplits?.find { it.splitId == split.id }
+                if (completed != null) {
+                    bestPossibleTime += completed.time.segmentTime
+                    hasData = true
+                } else {
+                    val bestSeg = bestSegmentTimes[split.id]?.segmentTime
+                    if (bestSeg != null && bestSeg > 0) {
+                        bestPossibleTime += bestSeg
+                        hasData = true
+                    }
+                }
+            }
+            if (hasData && bestPossibleTime > 0) {
+                SummaryRow(
+                    label = "Best Possible",
+                    timeMs = bestPossibleTime,
+                    color = TrackerColors.OnSurface,
+                    modifier = modifier
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun SummaryRow(
+    label: String,
+    timeMs: Long,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(20.dp)
+            .padding(horizontal = 4.dp, vertical = 1.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = color,
+                fontWeight = FontWeight.Medium
+            )
+        )
+        Text(
+            text = formatTimeWithMillis(timeMs),
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = color,
+                fontFamily = FontFamily.Monospace,
+                fontSize = 12.sp
+            ),
+            textAlign = TextAlign.End
+        )
     }
 }
 

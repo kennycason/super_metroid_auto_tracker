@@ -72,7 +72,7 @@ class LiveSplitWriteIntegrationTest {
     @Test
     fun `handleRunSaved writes to LSS file when LiveSplit write is enabled`() = runBlocking {
         // Enable LiveSplit writing and set file path
-        splitFormatService.setWriteLiveSplit(true)
+
         splitFormatService.setLiveSplitFilePath(lssFile.absolutePath)
         splitProfileService.initialize()
 
@@ -94,7 +94,7 @@ class LiveSplitWriteIntegrationTest {
 
     @Test
     fun `handleRunSaved appends multiple runs to same LSS file`() = runBlocking {
-        splitFormatService.setWriteLiveSplit(true)
+
         splitFormatService.setLiveSplitFilePath(lssFile.absolutePath)
         splitProfileService.initialize()
 
@@ -113,21 +113,8 @@ class LiveSplitWriteIntegrationTest {
     }
 
     @Test
-    fun `handleRunSaved does nothing when LiveSplit write is disabled`() = runBlocking {
-        splitFormatService.setWriteLiveSplit(false)
-        splitFormatService.setLiveSplitFilePath(lssFile.absolutePath)
-        splitProfileService.initialize()
-
-        val run = makeCompletedRun()
-        fileStorage.saveRun(run)
-        splitFormatService.handleRunSaved(run)
-
-        assertFalse(lssFile.exists(), "LSS file should NOT be created when write is disabled")
-    }
-
-    @Test
     fun `handleRunSaved does nothing when no LSS file path is set`() = runBlocking {
-        splitFormatService.setWriteLiveSplit(true)
+
         // Don't set a file path
         splitProfileService.initialize()
 
@@ -140,7 +127,7 @@ class LiveSplitWriteIntegrationTest {
 
     @Test
     fun `handleRunSaved skips run with mismatched profile`() = runBlocking {
-        splitFormatService.setWriteLiveSplit(true)
+
         splitFormatService.setLiveSplitFilePath(lssFile.absolutePath)
         splitProfileService.initialize()
 
@@ -154,7 +141,7 @@ class LiveSplitWriteIntegrationTest {
 
     @Test
     fun `handleRunSaved updates best segment times across runs`() = runBlocking {
-        splitFormatService.setWriteLiveSplit(true)
+
         splitFormatService.setLiveSplitFilePath(lssFile.absolutePath)
         splitProfileService.initialize()
 
@@ -186,7 +173,7 @@ class LiveSplitWriteIntegrationTest {
 
     @Test
     fun `callback wiring - onRunSaved fires handleRunSaved`() = runBlocking {
-        splitFormatService.setWriteLiveSplit(true)
+
         splitFormatService.setLiveSplitFilePath(lssFile.absolutePath)
         splitProfileService.initialize()
 
@@ -229,8 +216,6 @@ class LiveSplitWriteIntegrationTest {
 
         fileStorage.saveAppConfig(
             com.supermetroid.model.AppConfig(
-                splitReadFormat = "livesplit",
-                splitWriteLiveSplit = true,
                 liveSplitFilePath = lssFile.absolutePath
             )
         )
@@ -249,7 +234,7 @@ class LiveSplitWriteIntegrationTest {
 
     @Test
     fun `incomplete run (no endTime) still appends to LSS as DNF`() = runBlocking {
-        splitFormatService.setWriteLiveSplit(true)
+
         splitFormatService.setLiveSplitFilePath(lssFile.absolutePath)
         splitProfileService.initialize()
 

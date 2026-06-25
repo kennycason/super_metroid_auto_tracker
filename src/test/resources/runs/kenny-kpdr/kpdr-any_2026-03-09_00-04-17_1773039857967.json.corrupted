@@ -1,0 +1,57 @@
+{
+    "id": "run_1773039857967",
+    "profileId": "kpdr-any",
+    "startTime": "2026-03-09T07:04:17.967315Z",
+    "endTime": null,
+    "completedSplits": [
+        {
+            "splitId": "ceres_station",
+            "time": {
+                "totalTime": 3986,
+                "segmentTime": 3986,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2026-03-09T07:04:21.953835Z"
+        }
+    ],
+    "totalTime": 3986,
+    "isPersonalBest": false,
+    "isPaused": false,
+    "pausedTime": 0
+},
+                "segmentTime": 0,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2026-03-09T07:04:21.953835Z"
+        }
+    ],
+    "totalTime": 3986,
+    "isPersonalBest": false,
+    "isPaused": false,
+    "pausedTime": 0
+}986,
+                "segmentTime": 0,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2026-03-09T07:04:21.953835Z"
+        }
+    ],
+    "totalTime": 3986,
+    "isPersonalBest": false,
+    "isPaused": false,
+    "pausedTime": 0
+}            "segmentTime": 0,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2026-03-09T07:04:21.953835Z"
+        }
+    ],
+    "totalTime": 3986,
+    "isPersonalBest": false,
+    "isPaused": false,
+    "pausedTime": 0
+}

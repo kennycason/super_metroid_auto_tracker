@@ -1,0 +1,22 @@
+{
+    "id": "run_1764747404839",
+    "profileId": "kpdr-any",
+    "startTime": "2025-12-03T07:36:44.839618Z",
+    "endTime": null,
+    "completedSplits": [
+        {
+            "splitId": "ceres_station",
+            "time": {
+                "totalTime": 126104,
+                "segmentTime": 126104,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2025-12-03T07:38:50.944510Z"
+        }
+    ],
+    "totalTime": 126104,
+    "isPersonalBest": false,
+    "isPaused": false,
+    "pausedTime": 0
+}

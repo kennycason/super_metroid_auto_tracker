@@ -1,0 +1,309 @@
+{
+    "version": "1.0.0",
+    "lastUpdated": "2026-06-25T08:10:37.669582Z",
+    "profiles": {
+        "containment-chamber-puzzles": {
+            "profileId": "containment-chamber-puzzles",
+            "profileName": "containment-chamber-puzzles",
+            "bestTotalTime": 869780,
+            "bestRunId": "run_1778826539570",
+            "bestRunFile": "containment-chamber-puzzles_2026-05-14_23-28-59_1778826539570.json",
+            "totalRuns": 66,
+            "completedRuns": 42,
+            "bestSplitTimes": {
+                "puzzle_1": {
+                    "totalTime": 25646,
+                    "segmentTime": 25646,
+                    "runId": "run_1779344063222"
+                },
+                "puzzle_2": {
+                    "totalTime": 41437,
+                    "segmentTime": 12416,
+                    "runId": "run_1778826539570"
+                },
+                "puzzle_3": {
+                    "totalTime": 112227,
+                    "segmentTime": 72318,
+                    "runId": "run_1777877672819"
+                },
+                "puzzle_4": {
+                    "totalTime": 156018,
+                    "segmentTime": 24854,
+                    "runId": "run_1778285046441"
+                },
+                "puzzle_5": {
+                    "totalTime": 281611,
+                    "segmentTime": 85528,
+                    "runId": "run_1777709277334"
+                },
+                "puzzle_6": {
+                    "totalTime": 308698,
+                    "segmentTime": 12480,
+                    "runId": "run_1777562277231"
+                },
+                "puzzle_7": {
+                    "totalTime": 689615,
+                    "segmentTime": 21547,
+                    "runId": "run_1775881162955"
+                },
+                "puzzle_8": {
+                    "totalTime": 341479,
+                    "segmentTime": 12445,
+                    "runId": "run_1779342961227"
+                },
+                "puzzle_9": {
+                    "totalTime": 312724,
+                    "segmentTime": 11601,
+                    "runId": "run_1778826539570"
+                },
+                "puzzle_a": {
+                    "totalTime": 977727,
+                    "segmentTime": 15926,
+                    "runId": "run_1775892886178"
+                },
+                "puzzle_b": {
+                    "totalTime": 489373,
+                    "segmentTime": 16597,
+                    "runId": "run_1777441818015"
+                },
+                "puzzle_c": {
+                    "totalTime": 444202,
+                    "segmentTime": 42292,
+                    "runId": "run_1778825043090"
+                },
+                "puzzle_d": {
+                    "totalTime": 444763,
+                    "segmentTime": 17461,
+                    "runId": "run_1777877672819"
+                },
+                "puzzle_e": {
+                    "totalTime": 621655,
+                    "segmentTime": 15680,
+                    "runId": "run_1777530807623"
+                },
+                "puzzle_f": {
+                    "totalTime": 528116,
+                    "segmentTime": 21535,
+                    "runId": "run_1778828502554"
+                },
+                "puzzle_g": {
+                    "totalTime": 638196,
+                    "segmentTime": 48008,
+                    "runId": "run_1779342961227"
+                },
+                "puzzle_h": {
+                    "totalTime": 727267,
+                    "segmentTime": 73914,
+                    "runId": "run_1779341744812"
+                },
+                "puzzle_i": {
+                    "totalTime": 649390,
+                    "segmentTime": 33109,
+                    "runId": "run_1778826539570"
+                },
+                "puzzle_j": {
+                    "totalTime": 880417,
+                    "segmentTime": 26454,
+                    "runId": "run_1777532028681"
+                },
+                "puzzle_k": {
+                    "totalTime": 810070,
+                    "segmentTime": 7442,
+                    "runId": "run_1779341744812"
+                },
+                "puzzle_l": {
+                    "totalTime": 807470,
+                    "segmentTime": 7443,
+                    "runId": "run_1779342961227"
+                },
+                "puzzle_m": {
+                    "totalTime": 802123,
+                    "segmentTime": 17438,
+                    "runId": "run_1778825043090"
+                },
+                "puzzle_n": {
+                    "totalTime": 848869,
+                    "segmentTime": 61238,
+                    "runId": "run_1777562277231"
+                },
+                "puzzle_o": {
+                    "totalTime": 935670,
+                    "segmentTime": 23172,
+                    "runId": "run_1779344063222"
+                },
+                "ship": {
+                    "totalTime": 1482558,
+                    "segmentTime": 10390,
+                    "runId": "run_1775800617994"
+                }
+            }
+        },
+        "kpdr-any": {
+            "profileId": "kpdr-any",
+            "profileName": "KPDR Any%",
+            "bestTotalTime": 3518591,
+            "bestRunId": "run_1782025414121",
+            "bestRunFile": "kpdr-any_2026-06-21_00-03-34_1782025414121.json",
+            "totalRuns": 80,
+            "completedRuns": 41,
+            "bestSplitTimes": {
+                "ceres_station": {
+                    "totalTime": 88904,
+                    "segmentTime": 88904,
+                    "runId": "run_1781070056368"
+                },
+                "morph_ball": {
+                    "totalTime": 188561,
+                    "segmentTime": 99657,
+                    "runId": "run_1781070056368"
+                },
+                "first_missiles": {
+                    "totalTime": 226060,
+                    "segmentTime": 24320,
+                    "runId": "run_1762426932513"
+                },
+                "bomb": {
+                    "totalTime": 322005,
+                    "segmentTime": 101259,
+                    "runId": "run_1782025414121"
+                },
+                "first_super": {
+                    "totalTime": 451457,
+                    "segmentTime": 129452,
+                    "runId": "run_1782025414121"
+                },
+                "charge_beam": {
+                    "totalTime": 563577,
+                    "segmentTime": 55904,
+                    "runId": "run_1758552730939"
+                },
+                "spazer": {
+                    "totalTime": 584205,
+                    "segmentTime": 76353,
+                    "runId": "run_1782025414121"
+                },
+                "kraid": {
+                    "totalTime": 688739,
+                    "segmentTime": 104534,
+                    "runId": "run_1782025414121"
+                },
+                "varia_suit": {
+                    "totalTime": 724119,
+                    "segmentTime": 4981,
+                    "runId": "run_1782029700769"
+                },
+                "hijump_boots": {
+                    "totalTime": 949800,
+                    "segmentTime": 134860,
+                    "runId": "run_1762426932513"
+                },
+                "speed_booster": {
+                    "totalTime": 973994,
+                    "segmentTime": 116138,
+                    "runId": "run_1782021531027"
+                },
+                "wave_beam": {
+                    "totalTime": 1041806,
+                    "segmentTime": 62195,
+                    "runId": "run_1779519554164"
+                },
+                "ice_beam": {
+                    "totalTime": 1123988,
+                    "segmentTime": 95074,
+                    "runId": "run_1780129815528"
+                },
+                "first_power_bomb": {
+                    "totalTime": 1232491,
+                    "segmentTime": 122881,
+                    "runId": "run_1782025414121"
+                },
+                "phantoon": {
+                    "totalTime": 1508086,
+                    "segmentTime": 209088,
+                    "runId": "run_1781070056368"
+                },
+                "gravity_suit": {
+                    "totalTime": 1924400,
+                    "segmentTime": 154590,
+                    "runId": "run_1762426932513"
+                },
+                "draygon": {
+                    "totalTime": 2109926,
+                    "segmentTime": 383884,
+                    "runId": "run_1781854974644"
+                },
+                "space_jump": {
+                    "totalTime": 2118675,
+                    "segmentTime": 6606,
+                    "runId": "run_1779652483413"
+                },
+                "plasma_beam": {
+                    "totalTime": 2418635,
+                    "segmentTime": 106918,
+                    "runId": "run_1772093693409"
+                },
+                "ridley": {
+                    "totalTime": 2639521,
+                    "segmentTime": 420382,
+                    "runId": "run_1780480337493"
+                },
+                "g4": {
+                    "totalTime": 3508330,
+                    "segmentTime": 391220,
+                    "runId": "run_1762426932513"
+                },
+                "mb1": {
+                    "totalTime": 3784190,
+                    "segmentTime": 275860,
+                    "runId": "run_1762426932513"
+                },
+                "mb2": {
+                    "totalTime": 3968880,
+                    "segmentTime": 184690,
+                    "runId": "run_1762426932513"
+                },
+                "ship": {
+                    "totalTime": 4010705,
+                    "segmentTime": 156532,
+                    "runId": "run_1758552730939"
+                },
+                "first_missile": {
+                    "totalTime": 218460,
+                    "segmentTime": 22302,
+                    "runId": "run_1779957315982"
+                },
+                "hi_jump": {
+                    "totalTime": 851714,
+                    "segmentTime": 119665,
+                    "runId": "run_1779519554164"
+                },
+                "golden_four": {
+                    "totalTime": 3026971,
+                    "segmentTime": 326562,
+                    "runId": "run_1764755895966"
+                },
+                "mother_brain_1": {
+                    "totalTime": 3265285,
+                    "segmentTime": 254767,
+                    "runId": "run_1781854974644"
+                },
+                "mother_brain_2": {
+                    "totalTime": 3477888,
+                    "segmentTime": 92029,
+                    "runId": "run_1772607849746"
+                }
+            }
+        },
+        "containment-chamber": {
+            "profileId": "containment-chamber",
+            "profileName": "containment-chamber",
+            "bestTotalTime": null,
+            "bestRunId": null,
+            "bestRunFile": null,
+            "totalRuns": 3,
+            "completedRuns": 0,
+            "bestSplitTimes": {
+            }
+        }
+    }
+}

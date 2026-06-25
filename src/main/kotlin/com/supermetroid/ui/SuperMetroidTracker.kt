@@ -279,38 +279,27 @@ fun SuperMetroidTrackerApp() {
             splitFormatService.onProfileChanged(profileId)
         }
 
-        // Initialize split format settings (JSON vs LiveSplit)
+        // Initialize split format (LSS is always primary)
         splitFormatService.initialize()
-        
-        // When the format or LSS file changes, reload PB data into the engine
+
+        // When the LSS file changes, reload PB data into the engine
         splitFormatService.setOnFormatChangedCallback {
-            val state = if (splitFormatService.isLiveSplitActive()) {
-                splitFormatService.toLiveSplitSplitsState() ?: fileStorageService.loadSplitsState()
-            } else {
-                fileStorageService.loadSplitsState()
-            }
+            val state = splitFormatService.loadCurrentState()
             autoSplitsEngine.loadSavedState(state)
-            
-            // If LiveSplit loaded a profile, switch to it (use resolved canonical so id matches state).
-            // Don't notify format service back — it already has the right LSS loaded.
+
             val resolvedProfile = splitFormatService.getResolvedLiveSplitProfile()
-            if (splitFormatService.isLiveSplitActive() && resolvedProfile != null) {
+            if (resolvedProfile != null) {
                 splitProfileService.setProfile(resolvedProfile, notifyFormatService = false)
             }
         }
 
         // Load saved splits state and resume from current position (unless in replay mode)
         if (!isReplayMode) {
-            val savedSplitsState = if (splitFormatService.isLiveSplitActive()) {
-                splitFormatService.toLiveSplitSplitsState() ?: fileStorageService.loadSplitsState()
-            } else {
-                fileStorageService.loadSplitsState()
-            }
+            val savedSplitsState = splitFormatService.loadCurrentState()
             autoSplitsEngine.loadSavedState(savedSplitsState)
 
-            // If LiveSplit loaded a profile, switch to it at startup too
             val resolvedProfile = splitFormatService.getResolvedLiveSplitProfile()
-            if (splitFormatService.isLiveSplitActive() && resolvedProfile != null) {
+            if (resolvedProfile != null) {
                 splitProfileService.setProfile(resolvedProfile, notifyFormatService = false)
             }
         }
@@ -544,10 +533,13 @@ fun SuperMetroidTrackerLayout(
 
                     val currentProfile by splitProfileService.currentProfile.collectAsState()
                     val currentProfilePB = splitsState.personalBests[currentProfile.id]
+                    val showBestPossibleSummary by splitDisplayModeService.showBestPossibleSummary.collectAsState()
                     if (currentProfilePB != null) {
                         PersonalBestSummary(
                             splitsState = splitsState,
                             profileId = currentProfile.id,
+                            profile = currentProfile,
+                            showBestPossible = showBestPossibleSummary,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }

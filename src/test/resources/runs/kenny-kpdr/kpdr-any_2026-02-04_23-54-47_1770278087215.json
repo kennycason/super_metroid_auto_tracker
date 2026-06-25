@@ -1,0 +1,72 @@
+{
+    "id": "run_1770278087215",
+    "profileId": "kpdr-any",
+    "startTime": "2026-02-05T07:54:47.215213Z",
+    "endTime": null,
+    "completedSplits": [
+        {
+            "splitId": "ceres_station",
+            "time": {
+                "totalTime": 93599,
+                "segmentTime": 93599,
+                "delta": 2596,
+                "originalDelta": 2596
+            },
+            "timestamp": "2026-02-05T07:56:20.814499Z"
+        },
+        {
+            "splitId": "morph_ball",
+            "time": {
+                "totalTime": 199333,
+                "segmentTime": 105734,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2026-02-05T07:58:06.548993Z"
+        },
+        {
+            "splitId": "bomb",
+            "time": {
+                "totalTime": 349960,
+                "segmentTime": 150627,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2026-02-05T08:00:37.175382Z"
+        },
+        {
+            "splitId": "first_missile",
+            "time": {
+                "totalTime": 349960,
+                "segmentTime": 0,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2026-02-05T08:00:37.175382Z"
+        },
+        {
+            "splitId": "first_super",
+            "time": {
+                "totalTime": 493617,
+                "segmentTime": 143657,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2026-02-05T08:03:00.832991Z"
+        },
+        {
+            "splitId": "charge_beam",
+            "time": {
+                "totalTime": 552513,
+                "segmentTime": 58896,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2026-02-05T08:03:59.728848Z"
+        }
+    ],
+    "totalTime": 552513,
+    "isPersonalBest": false,
+    "isPaused": false,
+    "pausedTime": 0
+}

@@ -1,0 +1,82 @@
+{
+    "id": "run_1780479309197",
+    "profileId": "kpdr-any",
+    "startTime": "2026-06-03T09:35:09.197592Z",
+    "endTime": null,
+    "completedSplits": [
+        {
+            "splitId": "ceres_station",
+            "time": {
+                "totalTime": 91851,
+                "segmentTime": 91851,
+                "delta": 848,
+                "originalDelta": 848
+            },
+            "timestamp": "2026-06-03T09:36:41.049448Z"
+        },
+        {
+            "splitId": "morph_ball",
+            "time": {
+                "totalTime": 197113,
+                "segmentTime": 105262,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2026-06-03T09:38:26.311153Z"
+        },
+        {
+            "splitId": "first_missile",
+            "time": {
+                "totalTime": 221113,
+                "segmentTime": 24000,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2026-06-03T09:38:50.311406Z"
+        },
+        {
+            "splitId": "bomb",
+            "time": {
+                "totalTime": 326299,
+                "segmentTime": 105186,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2026-06-03T09:40:35.496595Z"
+        },
+        {
+            "splitId": "first_super",
+            "time": {
+                "totalTime": 475996,
+                "segmentTime": 149697,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2026-06-03T09:43:05.194172Z"
+        },
+        {
+            "splitId": "charge_beam",
+            "time": {
+                "totalTime": 533224,
+                "segmentTime": 57228,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2026-06-03T09:44:02.421787Z"
+        },
+        {
+            "splitId": "spazer",
+            "time": {
+                "totalTime": 611078,
+                "segmentTime": 77854,
+                "delta": null,
+                "originalDelta": null
+            },
+            "timestamp": "2026-06-03T09:45:20.276286Z"
+        }
+    ],
+    "totalTime": 701078,
+    "isPersonalBest": false,
+    "isPaused": false,
+    "pausedTime": 0
+}

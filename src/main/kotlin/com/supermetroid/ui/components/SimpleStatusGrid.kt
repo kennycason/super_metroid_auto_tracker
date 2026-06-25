@@ -113,8 +113,7 @@ private fun MapRandoGrid(
                                 AmmoNumberMode.COUNT -> countFromMax(id, max)
                                 else -> "$cur/$max"
                             }
-                            // Font size proportional to icon size (~1/4 of icon)
-                            val baseFontSize = (currentIconSize.size / 4).coerceIn(8, 32)
+                            val baseFontSize = (currentIconSize.size / 3).coerceIn(8, 36)
                             val fontSize = when (ammoMode) {
                                 AmmoNumberMode.COUNT -> baseFontSize.sp
                                 else -> if (cur < 100 && max < 100) (baseFontSize * 0.85).toInt().sp
@@ -404,9 +403,8 @@ fun FlowRowLayout(
                                                 }
                                             }
                                         }
-                                        // Font size proportional to icon size
                                         val iconSize by iconSizeService.currentIconSize.collectAsState()
-                                        val baseFontSize = (iconSize.size / 4).coerceIn(8, 32)
+                                        val baseFontSize = (iconSize.size / 3).coerceIn(8, 36)
                                         val fontSize = when (ammoMode) {
                                             AmmoNumberMode.COUNT -> baseFontSize.sp
                                             else -> if (item.current < 100 && item.max < 100) (baseFontSize * 0.85).toInt().sp
