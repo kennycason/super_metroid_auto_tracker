@@ -137,7 +137,7 @@ compose.desktop {
             }
             
             windows {
-                packageName = "SuperMetroidAutoTracker"
+                packageName = "Super Metroid Auto Tracker"
                 iconFile.set(project.file("src/main/resources/icon.ico"))
                 shortcut = true
                 menuGroup = "Super Metroid Auto Tracker"

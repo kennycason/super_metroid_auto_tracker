@@ -121,7 +121,7 @@ fun SettingsPanel(
                     splitProfileService = splitProfileService,
                     splitFormatService = splitFormatService,
                     gameGenieService = gameGenieService,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 1 -> IconsSettingsTab(
@@ -139,7 +139,7 @@ fun SettingsPanel(
                     splitFormatService = splitFormatService,
                     splitIconSizeService = splitIconSizeService,
                     splitDisplayModeService = splitDisplayModeService,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 3 -> SFXSettingsTab(
