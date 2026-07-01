@@ -108,7 +108,41 @@ class GameStateParserTest {
         assertFalse(stateWithoutRidley.bosses.ridley, "Ridley should NOT be detected when flag is missing")
     }
 
+    @Test
+    fun `map rando counters parse normal values`() {
+        val state = parser.parseGameState(
+            mapOf(
+                "deathCount" to le16(12),
+                "reloadCount" to le16(34),
+                "resetCount" to le16(56)
+            )
+        )
+
+        assertEquals(12, state.deathCount)
+        assertEquals(34, state.reloadCount)
+        assertEquals(56, state.resetCount)
+    }
+
+    @Test
+    fun `map rando counters clamp extreme bad reads to zero`() {
+        val state = parser.parseGameState(
+            mapOf(
+                "deathCount" to le16(65000),
+                "reloadCount" to le16(65535),
+                "resetCount" to le16(65001)
+            )
+        )
+
+        assertEquals(0, state.deathCount)
+        assertEquals(0, state.reloadCount)
+        assertEquals(0, state.resetCount)
+    }
+
     // Helper methods to create test memory data
+
+    private fun le16(value: Int): ByteArray {
+        return byteArrayOf(value.toByte(), (value shr 8).toByte())
+    }
 
     private fun createMemoryDataWithNorfairBossFlag(flagValue: Int): Map<String, ByteArray> {
         val result = mutableMapOf<String, ByteArray>()

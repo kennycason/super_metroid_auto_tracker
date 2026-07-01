@@ -12,6 +12,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
  * Implements exact logic from the original TypeScript backend
  */
 class GameStateParser : Logging {
+    private companion object {
+        const val INVALID_MAP_RANDO_COUNTER_MIN = 65000
+    }
 
     /**
      * Parse raw memory data into GameState
@@ -76,18 +79,20 @@ class GameStateParser : Logging {
     }
     
     private fun parseDeathCount(data: ByteArray?): Int {
-        val count = data?.readInt16LE() ?: 0
-        return count
+        return parseMapRandoCounter(data)
     }
     
     private fun parseReloadCount(data: ByteArray?): Int {
-        val count = data?.readInt16LE() ?: 0
-        return count
+        return parseMapRandoCounter(data)
     }
     
     private fun parseResetCount(data: ByteArray?): Int {
+        return parseMapRandoCounter(data)
+    }
+
+    private fun parseMapRandoCounter(data: ByteArray?): Int {
         val count = data?.readInt16LE() ?: 0
-        return count
+        return if (count >= INVALID_MAP_RANDO_COUNTER_MIN) 0 else count
     }
     
     /**
