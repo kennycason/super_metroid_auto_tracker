@@ -1352,7 +1352,9 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                 try {
                     logger.info { "💾 Saving run progress for split: ${split.name} (${finalRun.completedSplits.size} splits)" }
                     storage.saveRun(finalRun)
-                    onRunSaved?.invoke(finalRun)
+                    if (finalRun.endTime != null) {
+                        onRunSaved?.invoke(finalRun)
+                    }
                     logger.info { "✅ Successfully saved run progress to disk for split: ${split.name}" }
                 } catch (e: Exception) {
                     logger.error(e) { "❌ CRITICAL: Failed to save run progress after split ${split.name}" }

@@ -10,7 +10,7 @@ A real-time item, boss, and location tracker for Super Metroid with automatic sp
 </div>
 
 <div align="left">
-  <img src="screenshots/screenshot_splits_all.png" width="45%"/>
+  <img src="screenshots/screenshot_splits_latest.png" width="45%"/>
   <img src="screenshots/screenshot_splits_run_pb.png" width="45%"/>
 </div>
 

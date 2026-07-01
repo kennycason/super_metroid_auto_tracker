@@ -351,17 +351,15 @@ class SplitFormatService(
             segment.copy(segmentHistory = segment.segmentHistory.filter { it.id != attemptId })
         }
 
-        // Only use segment times from completed attempts (filters out garbage auto-skip times)
-        val completedAttemptIds = updatedAttempts
-            .filter { (it.realTime ?: 0L) > 0L }
-            .map { it.id }
-            .toSet()
+        // Only use valid complete attempts. A RealTime alone is not enough: old
+        // corrupt attempts can have a final time but zero/missing segment entries.
+        val completedAttemptIds = validCompletedAttemptIds(segmentsWithoutAttempt, updatedAttempts)
 
         // Recalculate BestSegmentTime from remaining completed segment history
         val segmentsWithBestTimes = recalculateBestSegmentTimes(segmentsWithoutAttempt, completedAttemptIds)
 
         // Recalculate Personal Best from remaining completed attempts
-        val updatedSegments = recalculatePersonalBest(segmentsWithBestTimes, updatedAttempts)
+        val updatedSegments = recalculatePersonalBest(segmentsWithBestTimes, updatedAttempts, completedAttemptIds)
 
         val updatedDoc = doc.copy(
             attemptCount = updatedAttempts.size,
@@ -383,7 +381,7 @@ class SplitFormatService(
 
     /**
      * Recalculate BestSegmentTime for each segment from remaining segment history entries.
-     * Only considers entries from completed attempts to avoid garbage auto-skip times.
+     * Only considers entries from valid completed attempts to avoid garbage auto-skip times.
      */
     private fun recalculateBestSegmentTimes(
         segments: List<LiveSplitSegment>,
@@ -406,11 +404,12 @@ class SplitFormatService(
      */
     private fun recalculatePersonalBest(
         segments: List<LiveSplitSegment>,
-        attempts: List<LiveSplitAttempt>
+        attempts: List<LiveSplitAttempt>,
+        completedAttemptIds: Set<Int>
     ): List<LiveSplitSegment> {
-        // Find the fastest completed attempt (has realTime > 0)
+        // Find the fastest valid completed attempt.
         val pbAttempt = attempts
-            .filter { (it.realTime ?: 0L) > 0L }
+            .filter { it.id in completedAttemptIds }
             .minByOrNull { it.realTime!! }
 
         if (pbAttempt == null) {
@@ -441,10 +440,7 @@ class SplitFormatService(
      * This happens when runs were deleted before the recalculation fix was deployed.
      */
     private fun needsRepair(doc: LiveSplitDocument): Boolean {
-        val completedAttemptIds = doc.attemptHistory
-            .filter { (it.realTime ?: 0L) > 0L }
-            .map { it.id }
-            .toSet()
+        val completedAttemptIds = validCompletedAttemptIds(doc.segments, doc.attemptHistory)
         if (completedAttemptIds.isEmpty()) return false
 
         for (segment in doc.segments) {
@@ -468,13 +464,10 @@ class SplitFormatService(
         val path = _liveSplitFilePath.value ?: return false
         val file = File(path)
 
-        val completedAttemptIds = doc.attemptHistory
-            .filter { (it.realTime ?: 0L) > 0L }
-            .map { it.id }
-            .toSet()
+        val completedAttemptIds = validCompletedAttemptIds(doc.segments, doc.attemptHistory)
 
         val repairedSegments = recalculateBestSegmentTimes(doc.segments, completedAttemptIds)
-        val finalSegments = recalculatePersonalBest(repairedSegments, doc.attemptHistory)
+        val finalSegments = recalculatePersonalBest(repairedSegments, doc.attemptHistory, completedAttemptIds)
 
         val repairedDoc = doc.copy(segments = finalSegments)
 
@@ -492,6 +485,23 @@ class SplitFormatService(
 
     fun isLiveSplitActive(): Boolean {
         return _liveSplitDocument.value != null
+    }
+
+    private fun validCompletedAttemptIds(
+        segments: List<LiveSplitSegment>,
+        attempts: List<LiveSplitAttempt>
+    ): Set<Int> {
+        return attempts
+            .filter { (it.realTime ?: 0L) > 0L }
+            .filter { attempt ->
+                segments.all { segment ->
+                    segment.segmentHistory.any { entry ->
+                        entry.id == attempt.id && (entry.realTime ?: 0L) > 0L
+                    }
+                }
+            }
+            .map { it.id }
+            .toSet()
     }
 
     fun loadCurrentState(): SplitsState {

@@ -263,4 +263,48 @@ class LiveSplitWriteIntegrationTest {
         assertEquals(1, doc.attemptHistory.size)
         assertNull(doc.attemptHistory[0].realTime, "Incomplete run should be recorded as DNF (no realTime)")
     }
+
+    @Test
+    fun `loadLiveSplitFile repairs best segments from valid complete attempts only`() = runBlocking {
+        val doc = LiveSplitDocument(
+            gameName = "Test",
+            categoryName = "Any%",
+            attemptCount = 2,
+            segments = listOf(
+                LiveSplitSegment(
+                    name = "Split A",
+                    icon = null,
+                    bestSegmentTime = LiveSplitTimeSpan(10_000, null),
+                    splitTimes = listOf(LiveSplitComparisonSplit("Personal Best", 10_000, null)),
+                    segmentHistory = listOf(
+                        LiveSplitHistoryEntry(1, 60_000, null),
+                        LiveSplitHistoryEntry(2, 10_000, null)
+                    )
+                ),
+                LiveSplitSegment(
+                    name = "Split B",
+                    icon = null,
+                    bestSegmentTime = LiveSplitTimeSpan(60_000, null),
+                    splitTimes = listOf(LiveSplitComparisonSplit("Personal Best", 70_000, null)),
+                    segmentHistory = listOf(
+                        LiveSplitHistoryEntry(1, 60_000, null),
+                        LiveSplitHistoryEntry(2, 0, null)
+                    )
+                )
+            ),
+            attemptHistory = listOf(
+                LiveSplitAttempt(1, "01/01/2026 00:00:00", "01/01/2026 00:02:00", 120_000, null),
+                LiveSplitAttempt(2, "01/02/2026 00:00:00", "01/02/2026 00:01:10", 70_000, null)
+            )
+        )
+        LiveSplitWriter().writeToFile(doc, lssFile)
+
+        assertTrue(splitFormatService.loadLiveSplitFile(lssFile.absolutePath))
+
+        val repaired = LiveSplitParser().parseFile(lssFile)
+        assertEquals(60_000L, repaired.segments[0].bestSegmentTime?.realTime)
+        assertEquals(60_000L, repaired.segments[1].bestSegmentTime?.realTime)
+        assertEquals(60_000L, repaired.segments[0].splitTimes.find { it.comparisonName == "Personal Best" }?.realTime)
+        assertEquals(120_000L, repaired.segments[1].splitTimes.find { it.comparisonName == "Personal Best" }?.realTime)
+    }
 }

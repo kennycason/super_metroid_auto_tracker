@@ -534,6 +534,17 @@ class LiveSplitConverterTest {
         assertEquals(200000L, splitBPb?.realTime, "PB should not be overwritten by incomplete run")
     }
 
+    @Test
+    fun `fromRunSession - incomplete run does not update best segment`() {
+        val existingDoc = makeExistingDoc(pbTotalA = 100000, pbTotalB = 200000, bestA = 90000, bestB = 95000)
+        val incompleteRun = makeRun("incomplete", 50000, 25000, 25000, 50000, 25000, complete = false)
+
+        val result = converter.fromRunSession(incompleteRun, testProfile, existingDoc)
+
+        assertEquals(90000L, result.segments[0].bestSegmentTime?.realTime)
+        assertEquals(95000L, result.segments[1].bestSegmentTime?.realTime)
+    }
+
     private fun makeLssSegment(
         name: String,
         pbCumulative: Long,

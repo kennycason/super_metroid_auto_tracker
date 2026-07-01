@@ -454,10 +454,12 @@ class LiveSplitConverter : Logging {
         profile: SplitProfile,
         existingDoc: LiveSplitDocument? = null
     ): LiveSplitDocument {
+        val isCompleteRun = run.endTime != null && run.completedSplits.size == profile.splits.size
+
         // Determine if this run is a new PB (faster than existing PB comparison)
         val existingPbTotal = existingDoc?.segments?.lastOrNull()?.splitTimes
             ?.find { it.comparisonName == "Personal Best" }?.realTime
-        val isNewPb = run.endTime != null && run.completedSplits.size == profile.splits.size &&
+        val isNewPb = isCompleteRun &&
             (existingPbTotal == null || existingPbTotal <= 0 || run.totalTime < existingPbTotal)
 
         val newAttemptId = (existingDoc?.attemptHistory?.maxOfOrNull { it.id } ?: 0) + 1
@@ -469,11 +471,11 @@ class LiveSplitConverter : Logging {
             // Update best segment if this run's segment is faster
             val existingBestMs = existingSegment?.bestSegmentTime?.realTime ?: Long.MAX_VALUE
             val currentSegMs = completedSplit?.time?.segmentTime
-            val bestSegment = if (currentSegMs != null && currentSegMs < existingBestMs) {
+            val bestSegment = if (isCompleteRun && currentSegMs != null && currentSegMs > 0 && currentSegMs < existingBestMs) {
                 LiveSplitTimeSpan(realTime = currentSegMs, gameTime = null)
             } else {
                 existingSegment?.bestSegmentTime
-                    ?: completedSplit?.let {
+                    ?: completedSplit?.takeIf { isCompleteRun && it.time.segmentTime > 0 }?.let {
                         LiveSplitTimeSpan(realTime = it.time.segmentTime, gameTime = null)
                     }
             }
