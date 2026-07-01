@@ -1027,6 +1027,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             "reserve_tank" -> gameState.maxReserveEnergy > 0
             "kraid" -> gameState.bosses.kraid
             "phantoon" -> gameState.bosses.phantoon
+            "botwoon" -> gameState.bosses.botwoon
             "draygon" -> gameState.bosses.draygon
             "ridley" -> gameState.bosses.ridley
             // For G4, we need to check if we're in the statues room, not just if all bosses are defeated
@@ -1191,6 +1192,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             "reserve_tank" -> checkReserveTank(previousState, currentState)
             "kraid" -> checkKraid(previousState, currentState)
             "phantoon" -> checkPhantoon(previousState, currentState)
+            "botwoon" -> checkBotwoon(previousState, currentState)
             "draygon" -> checkDraygon(previousState, currentState)
             "ridley" -> checkRidley(previousState, currentState)
             "golden_four" -> checkGoldenFour(previousState, currentState)
@@ -1620,6 +1622,9 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
     private fun checkPhantoon(prev: GameState, curr: GameState): Boolean =
         !prev.bosses.phantoon && curr.bosses.phantoon
+
+    private fun checkBotwoon(prev: GameState, curr: GameState): Boolean =
+        !prev.bosses.botwoon && curr.bosses.botwoon
 
     private fun checkDraygon(prev: GameState, curr: GameState): Boolean =
         !prev.bosses.draygon && curr.bosses.draygon

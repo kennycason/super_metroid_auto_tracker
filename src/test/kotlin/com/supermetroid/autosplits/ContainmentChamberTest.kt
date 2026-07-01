@@ -556,11 +556,13 @@ class ContainmentChamberTest {
     }
 
     @Test
-    fun `CC puzzles ship split uses room_entry not event`() {
+    fun `CC puzzles ship split uses ship event detector`() {
         val ship = SplitProfiles.CONTAINMENT_CHAMBER_PUZZLES.splits.find { it.id == "ship" }
         expectThat(ship).isNotNull()
-        expectThat(ship!!.type).isEqualTo("room_entry")
-        expectThat(ship.triggerRoomId).isEqualTo(0x91F8)
+        // Keep this as an event split: AutoSplitsEngine.checkShip handles the
+        // Containment Chamber shipAI transition in Landing Site.
+        expectThat(ship!!.type).isEqualTo("event")
+        expectThat(ship.triggerRoomId).isNull()
     }
 
     // --- Discard run tests ---

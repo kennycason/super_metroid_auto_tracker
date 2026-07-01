@@ -64,6 +64,16 @@ class LiveSplitConverterTest {
     }
 
     @Test
+    fun `deriveSplitId - common PRKD LiveSplit names`() {
+        assertEquals("first_power_bomb", converter.deriveSplitId("Power Bombs"))
+        assertEquals("lower_norfair_elevator", converter.deriveSplitId("LN Elevator"))
+        assertEquals("ridley", converter.deriveSplitId("Ridley Dead"))
+        assertEquals("botwoon", converter.deriveSplitId("Botwoon"))
+        assertEquals("draygon", converter.deriveSplitId("Draygon Dead"))
+        assertEquals("ship", converter.deriveSplitId("Escape"))
+    }
+
+    @Test
     fun `deriveSplitId - case insensitive`() {
         assertEquals("bomb", converter.deriveSplitId("BOMB"))
         assertEquals("bomb", converter.deriveSplitId("bomb"))
@@ -130,6 +140,32 @@ class LiveSplitConverterTest {
         assertEquals("item", types["reserve_tank"])
         assertEquals("event", types["golden_four"])
         assertEquals("event", types["ship"])
+    }
+
+    @Test
+    fun `toSplitProfile - assigns room trigger for imported lower norfair elevator split`() {
+        val doc = LiveSplitDocument(
+            gameName = "Super Metroid",
+            categoryName = "Any% PRKD",
+            attemptCount = 0,
+            segments = listOf(
+                LiveSplitSegment(
+                    name = "LN Elevator",
+                    icon = null,
+                    bestSegmentTime = null,
+                    splitTimes = emptyList(),
+                    segmentHistory = emptyList()
+                )
+            ),
+            attemptHistory = emptyList()
+        )
+
+        val profile = converter.toSplitProfile(doc, "prkd-import")
+        val split = profile.splits.single()
+
+        assertEquals("lower_norfair_elevator", split.id)
+        assertEquals("room_entry", split.type)
+        assertEquals(0xAF3F, split.triggerRoomId)
     }
 
     @Test

@@ -12,6 +12,7 @@ object SplitProfiles {
     // Profile ID constants
     const val ID_KPDR_ANY = "kpdr-any"
     const val ID_KPDR_LATE_ICE = "kpdr-late-ice"
+    const val ID_PRKD_ANY = "prkd-any"
     const val ID_LOW_14_ICE = "low-14-ice"
     const val ID_HUNDRED_PERCENT = "hundred-percent"
     const val ID_CONTAINMENT_CHAMBER = "containment-chamber"
@@ -108,6 +109,33 @@ object SplitProfiles {
             Split("space_jump", "Space Jump", "item", "Space Jump acquired"),
             Split("plasma_beam", "Plasma Beam", "beam", "Plasma Beam acquired"),
             Split("ridley", "Ridley", "boss", "Ridley defeated"),
+            Split("golden_four", "G4", "event", "Entered Tourian (all 4 bosses defeated)"),
+            Split("mother_brain_1", "Mother Brain 1", "boss", "Mother Brain phase 1 completed"),
+            Split("mother_brain_2", "Mother Brain 2", "boss", "Mother Brain phase 2 completed"),
+            Split("ship", "Ship", "event", "Escaped to ship (game complete)")
+        )
+    )
+
+    /**
+     * PRKD Any% - Advanced route
+     * Phantoon -> Ridley -> Kraid -> Draygon
+     * Common public LSS layouts center on Bombs, Power Bombs, Gravity, Ice,
+     * Lower Norfair Elevator, Ridley, Varia, Draygon, G4, and escape.
+     */
+    val PRKD_ANY = SplitProfile(
+        id = ID_PRKD_ANY,
+        name = "PRKD Any%",
+        splits = listOf(
+            Split("bomb", "Bombs", "item", "Bombs acquired"),
+            Split("first_power_bomb", "Power Bombs", "item", "First power bomb pack collected"),
+            Split("phantoon", "Phantoon", "boss", "Phantoon defeated"),
+            Split("gravity_suit", "Gravity Suit", "item", "Gravity Suit acquired"),
+            Split("ice_beam", "Ice Beam", "beam", "Ice Beam acquired"),
+            Split("lower_norfair_elevator", "LN Elevator", "room_entry", "Entered Lower Norfair Elevator", triggerRoomId = 0xAF3F),
+            Split("ridley", "Ridley", "boss", "Ridley defeated"),
+            Split("varia_suit", "Varia Suit", "item", "Varia Suit acquired"),
+            Split("botwoon", "Botwoon", "boss", "Botwoon defeated"),
+            Split("draygon", "Draygon", "boss", "Draygon defeated"),
             Split("golden_four", "G4", "event", "Entered Tourian (all 4 bosses defeated)"),
             Split("mother_brain_1", "Mother Brain 1", "boss", "Mother Brain phase 1 completed"),
             Split("mother_brain_2", "Mother Brain 2", "boss", "Mother Brain phase 2 completed"),
@@ -310,6 +338,7 @@ object SplitProfiles {
         SIMPLE_KPRD,
         SIMPLE_PKDR,
         SIMPLE_PKRD,
+        PRKD_ANY,
         SIMPLE_PRKD,
         SIMPLE_PRDK,
         SIMPLE_KRPD,

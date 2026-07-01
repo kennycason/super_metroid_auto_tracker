@@ -28,9 +28,12 @@ class LiveSplitConverter : Logging {
         "kraid" to "kraid",
         "phantoon" to "phantoon",
         "phaaan" to "phantoon",
+        "botwoon" to "botwoon",
         "draygon" to "draygon",
+        "draygon dead" to "draygon",
         "water" to "draygon",
         "ridley" to "ridley",
+        "ridley dead" to "ridley",
         "mother brain 1" to "mother_brain_1",
         "mb1" to "mother_brain_1",
         "mother brain 2" to "mother_brain_2",
@@ -97,6 +100,8 @@ class LiveSplitConverter : Logging {
         "g4" to "golden_four",
         "golden four" to "golden_four",
         "tourian" to "golden_four",
+        "ln elevator" to "lower_norfair_elevator",
+        "lower norfair elevator" to "lower_norfair_elevator",
         "ship" to "ship",
         "done" to "ship",
         "escape" to "ship"
@@ -114,6 +119,7 @@ class LiveSplitConverter : Logging {
         "charge_beam" to "beam",
         "spazer" to "item",
         "kraid" to "boss",
+        "botwoon" to "boss",
         "varia_suit" to "item",
         "hi_jump" to "item",
         "speed_booster" to "item",
@@ -132,9 +138,18 @@ class LiveSplitConverter : Logging {
         "xray_scope" to "item",
         "ridley" to "boss",
         "golden_four" to "event",
+        "lower_norfair_elevator" to "room_entry",
         "mother_brain_1" to "boss",
         "mother_brain_2" to "boss",
         "ship" to "event"
+    )
+
+    /**
+     * Room-entry trigger IDs for imported LiveSplit segment names that map to
+     * supported room-based split IDs.
+     */
+    private val splitIdToTriggerRoomId: Map<String, Int> = mapOf(
+        "lower_norfair_elevator" to 0xAF3F
     )
 
     /**
@@ -173,7 +188,8 @@ class LiveSplitConverter : Logging {
                 id = splitId,
                 name = segment.name,
                 type = type,
-                description = "Imported from LiveSplit"
+                description = "Imported from LiveSplit",
+                triggerRoomId = splitIdToTriggerRoomId[baseId]
             )
         }
 

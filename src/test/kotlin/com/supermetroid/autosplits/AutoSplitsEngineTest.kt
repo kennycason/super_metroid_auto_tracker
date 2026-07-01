@@ -52,6 +52,35 @@ class AutoSplitsEngineTest {
     }
 
     @Test
+    fun `test isConditionAlreadyMet for botwoon`() {
+        val botwoonSplit = Split("botwoon", "Botwoon", "boss", "Botwoon defeated")
+        val gameState = GameState(
+            gameState = 8,
+            bosses = Bosses(botwoon = true)
+        )
+
+        assertTrue(engine.isConditionAlreadyMet(botwoonSplit, gameState), "Botwoon should be detected as already completed")
+    }
+
+    @Test
+    fun `botwoon split triggers on boss flag transition`() {
+        val profile = SplitProfile(
+            id = "test-botwoon",
+            name = "Test Botwoon",
+            splits = listOf(Split("botwoon", "Botwoon", "boss", "Botwoon defeated"))
+        )
+        engine.loadProfile(profile)
+        engine.toggleRunState(profile.id)
+
+        engine.processGameState(GameState(gameState = 8, bosses = Bosses(botwoon = false)))
+        engine.processGameState(GameState(gameState = 8, bosses = Bosses(botwoon = true)))
+
+        val run = engine.splitsState.value.currentRun
+        assertNotNull(run)
+        assertEquals(listOf("botwoon"), run!!.completedSplits.map { it.splitId })
+    }
+
+    @Test
     fun `test isConditionAlreadyMet for MB1`() {
         // Create game state with all bosses + MB1 defeated
         val gameState = createGameStateWithMB1Defeated()
