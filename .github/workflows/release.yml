@@ -23,7 +23,7 @@ jobs:
           distribution: 'temurin'
           
       - name: Cache Gradle packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
@@ -77,42 +77,37 @@ jobs:
           name: super-metroid-tracker-linux
           path: build/compose/binaries/main/deb/*.deb
 
-  create-release:
+  attach-to-release:
     needs: build-and-release
     runs-on: ubuntu-latest
     if: github.event_name == 'release'
+    permissions:
+      contents: write
     
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         
-      - name: Create Release Assets
+      - name: Prepare release assets
         run: |
-          # Create a release directory
           mkdir -p release-assets
-          
-          # Copy and rename files for clarity
-          if [ -f "super-metroid-tracker-macos"/*.dmg ]; then
-            cp "super-metroid-tracker-macos"/*.dmg release-assets/SuperMetroidAutoTracker-macOS.dmg
-          fi
-          
-          if [ -f "super-metroid-tracker-windows"/*.msi ]; then
-            cp "super-metroid-tracker-windows"/*.msi release-assets/SuperMetroidAutoTracker-Windows.msi
-          fi
-          
-          if [ -f "super-metroid-tracker-linux"/*.deb ]; then
-            cp "super-metroid-tracker-linux"/*.deb release-assets/SuperMetroidAutoTracker-Linux.deb
-          fi
-          
-          # List what we have
-          ls -la release-assets/
-          
-      - name: Upload Release Assets
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          for f in super-metroid-tracker-macos/*.dmg; do
+            [ -f "$f" ] && cp "$f" release-assets/SuperMetroidAutoTracker-macOS.dmg
+          done
+
+          for f in super-metroid-tracker-windows/*.msi; do
+            [ -f "$f" ] && cp "$f" release-assets/SuperMetroidAutoTracker-Windows.msi
+          done
+
+          for f in super-metroid-tracker-linux/*.deb; do
+            [ -f "$f" ] && cp "$f" release-assets/SuperMetroidAutoTracker-Linux.deb
+          done
+
+          ls -lh release-assets/
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./release-assets/
-          asset_name: SuperMetroidAutoTracker-${{ github.event.release.tag_name }}
-          asset_content_type: application/octet-stream
+          files: release-assets/*
+          tag_name: ${{ github.event.release.tag_name }}
