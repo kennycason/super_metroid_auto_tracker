@@ -116,6 +116,31 @@ class FileStorageServiceRunsTest {
         assertEquals(20_000, morphBest!!.segmentTime, "Expected best morph segment to be 20_000ms (from runA)")
         assertEquals("runA", morphBest.runId, "Best morph segment should be from runA")
     }
+
+    @Test
+    fun `findJsonRunByStartTime matches LiveSplit second precision timestamp`(@TempDir tempDir: Path) = runBlocking {
+        val storage = FileStorageService(tempDir.toAbsolutePath().toString())
+        val jsonStartTime = Instant.fromEpochMilliseconds(1_776_329_777_459L)
+        val liveSplitStartTime = Instant.fromEpochMilliseconds(1_776_329_777_000L)
+        val run = RunSession(
+            id = "run_1776329777459",
+            profileId = "containment-chamber-puzzles",
+            startTime = jsonStartTime,
+            endTime = jsonStartTime.plusMillis(1_000L),
+            completedSplits = emptyList(),
+            totalTime = 1_043_210L
+        )
+
+        storage.saveRun(run)
+
+        val match = storage.findJsonRunByStartTime(
+            profileId = "containment-chamber-puzzles",
+            startTime = liveSplitStartTime
+        )
+
+        assertNotNull(match)
+        assertTrue(match!!.startsWith("containment-chamber-puzzles_"))
+    }
 }
 
 // Simple Instant helpers

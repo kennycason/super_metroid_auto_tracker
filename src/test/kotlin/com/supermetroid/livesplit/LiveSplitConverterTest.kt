@@ -452,6 +452,45 @@ class LiveSplitConverterTest {
         assertTrue(shipIds.contains("ship_2"), "Second Ship should be 'ship_2'")
     }
 
+    @Test
+    fun `parseLiveSplitTimestamp parses attempt dates`() {
+        val parsed = LiveSplitConverter.parseLiveSplitTimestamp("04/01/2026 10:00:00")
+
+        assertNotNull(parsed)
+        assertEquals("04/01/2026 10:00:00", LiveSplitConverter.formatInstantForLiveSplit(parsed!!))
+    }
+
+    @Test
+    fun `toRunHistory uses stable fallback for missing attempt dates`() {
+        val doc = LiveSplitDocument(
+            gameName = "Test",
+            categoryName = "Any%",
+            attemptCount = 2,
+            segments = listOf(
+                makeLssSegment(
+                    name = "Split A",
+                    pbCumulative = 1_000L,
+                    bestSegment = 1_000L,
+                    history = listOf(
+                        LiveSplitHistoryEntry(2, 1_000L, null),
+                        LiveSplitHistoryEntry(5, 1_500L, null)
+                    )
+                )
+            ),
+            attemptHistory = listOf(
+                LiveSplitAttempt(2, null, null, 1_000L, null),
+                LiveSplitAttempt(5, "", "", 1_500L, null)
+            )
+        )
+
+        val runs = converter.toRunHistory(doc, "test")
+
+        assertEquals(Instant.fromEpochMilliseconds(2), runs[0].startTime)
+        assertEquals(Instant.fromEpochMilliseconds(1_002), runs[0].endTime)
+        assertEquals(Instant.fromEpochMilliseconds(5), runs[1].startTime)
+        assertEquals(Instant.fromEpochMilliseconds(1_505), runs[1].endTime)
+    }
+
     // =============================================
     // fromRunSession — PB comparison protection
     // =============================================

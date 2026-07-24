@@ -14,6 +14,7 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
+import kotlin.math.abs
 
 /**
  * File-based storage service for splits data and personal bests
@@ -254,21 +255,30 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
      * Used to cross-delete the JSON file when an LSS attempt is deleted.
      * Returns the filename if found, null otherwise.
      */
-    suspend fun findJsonRunByStartTime(profileId: String, startTime: kotlinx.datetime.Instant): String? = withContext(Dispatchers.IO) {
+    suspend fun findJsonRunByStartTime(
+        profileId: String,
+        startTime: kotlinx.datetime.Instant,
+        toleranceMillis: Long = 1_000L
+    ): String? = withContext(Dispatchers.IO) {
         try {
             val runFiles = runsDir.listFiles { file ->
                 file.isFile && file.extension == "json" && file.name.startsWith(profileId)
             } ?: return@withContext null
 
+            var closestMatch: Pair<String, Long>? = null
             for (file in runFiles) {
                 try {
                     val run = json.decodeFromString<RunSession>(file.readText())
-                    if (run.startTime == startTime) {
-                        return@withContext file.name
+                    if (run.profileId != profileId) {
+                        continue
+                    }
+                    val deltaMillis = abs(run.startTime.toEpochMilliseconds() - startTime.toEpochMilliseconds())
+                    if (deltaMillis <= toleranceMillis && (closestMatch == null || deltaMillis < closestMatch.second)) {
+                        closestMatch = file.name to deltaMillis
                     }
                 } catch (_: Exception) {}
             }
-            null
+            closestMatch?.first
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to find JSON run for $profileId at $startTime" }
             null

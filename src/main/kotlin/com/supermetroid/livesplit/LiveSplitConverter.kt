@@ -5,6 +5,7 @@ import com.supermetroid.util.Logging
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -415,9 +416,10 @@ class LiveSplitConverter : Logging {
      */
     fun toRunHistory(doc: LiveSplitDocument, profileId: String): List<RunSession> {
         val uniqueIds = deriveUniqueSplitIds(doc.segments)
-        val dateFormat = liveSplitDateFormat
 
         return doc.attemptHistory.map { attempt ->
+            val startTime = startTimeForAttempt(attempt)
+
             // Build completed splits from segment history for this attempt
             var cumulative = 0L
             val completedSplits = doc.segments.mapIndexedNotNull { index, segment ->
@@ -428,36 +430,30 @@ class LiveSplitConverter : Logging {
                 CompletedSplit(
                     splitId = uniqueIds[index],
                     time = SplitTime(totalTime = cumulative, segmentTime = segmentTime),
-                    timestamp = parseAttemptTimestamp(attempt.started, dateFormat)
+                    timestamp = startTime
                 )
             }
 
-            val startTime = parseAttemptTimestamp(attempt.started, dateFormat)
             // A run is only complete if it has realTime AND all segments have times
             val isComplete = attempt.realTime != null && attempt.realTime > 0
                 && completedSplits.size == doc.segments.size
             val totalTime = attempt.realTime ?: cumulative
+            val endTime = if (isComplete) {
+                parseLiveSplitTimestamp(attempt.ended)
+                    ?: Instant.fromEpochMilliseconds(startTime.toEpochMilliseconds() + totalTime)
+            } else {
+                null
+            }
 
             RunSession(
                 id = "lss-attempt-${attempt.id}",
                 profileId = profileId,
                 startTime = startTime,
-                endTime = if (isComplete) parseAttemptTimestamp(attempt.ended, dateFormat) else null,
+                endTime = endTime,
                 completedSplits = completedSplits,
                 totalTime = totalTime,
                 isPersonalBest = false
             )
-        }
-    }
-
-    private fun parseAttemptTimestamp(timestamp: String?, dateFormat: DateTimeFormatter): Instant {
-        if (timestamp.isNullOrBlank()) return Instant.fromEpochMilliseconds(0L)
-        return try {
-            val parsed = dateFormat.parse(timestamp)
-            val javaInstant = java.time.Instant.from(parsed)
-            Instant.fromEpochMilliseconds(javaInstant.toEpochMilli())
-        } catch (e: Exception) {
-            Instant.fromEpochMilliseconds(0L)
         }
     }
 
@@ -563,14 +559,34 @@ class LiveSplitConverter : Logging {
 
     companion object {
         /** Thread-safe date formatter for LiveSplit attempt timestamps */
+        private val liveSplitZone: ZoneId = ZoneId.systemDefault()
         private val liveSplitDateFormat: DateTimeFormatter =
             DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss")
-                .withZone(ZoneId.systemDefault())
+
+        fun parseLiveSplitTimestamp(timestamp: String?): Instant? {
+            if (timestamp.isNullOrBlank()) return null
+            return try {
+                val parsed = LocalDateTime.parse(timestamp.trim(), liveSplitDateFormat)
+                val javaInstant = parsed.atZone(liveSplitZone).toInstant()
+                Instant.fromEpochMilliseconds(javaInstant.toEpochMilli())
+            } catch (e: Exception) {
+                null
+            }
+        }
+
+        fun fallbackAttemptStartTime(attemptId: Int): Instant {
+            return Instant.fromEpochMilliseconds(attemptId.coerceAtLeast(0).toLong())
+        }
+
+        fun startTimeForAttempt(attempt: LiveSplitAttempt): Instant {
+            return parseLiveSplitTimestamp(attempt.started)
+                ?: fallbackAttemptStartTime(attempt.id)
+        }
 
         /** Format a kotlinx Instant consistently for LiveSplit attempt history */
         fun formatInstantForLiveSplit(instant: Instant): String {
             val javaInstant = java.time.Instant.ofEpochMilli(instant.toEpochMilliseconds())
-            return liveSplitDateFormat.format(javaInstant)
+            return liveSplitDateFormat.format(javaInstant.atZone(liveSplitZone))
         }
     }
 }

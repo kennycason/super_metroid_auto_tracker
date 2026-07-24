@@ -28,6 +28,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.supermetroid.model.IconItem
 import com.supermetroid.model.IconSize
+import com.supermetroid.livesplit.LiveSplitConverter
+import com.supermetroid.livesplit.LiveSplitDocument
+import com.supermetroid.storage.FileStorageService
 import com.supermetroid.ui.components.common.ToggleRow
 import com.supermetroid.ui.components.common.PrimaryToggleRow
 import com.supermetroid.ui.components.common.SelectionRow
@@ -1722,47 +1725,30 @@ private fun LoadRunSection(
     var expanded by remember { mutableStateOf(false) }
     var allRunFiles by remember { mutableStateOf<List<com.supermetroid.storage.FileStorageService.RunFileMetadata>>(emptyList()) }
 
-    // Build LSS run metadata from the loaded LiveSplit document
-    val lssRunFiles = remember(lssDoc, currentProfile.id) {
-        val doc = lssDoc ?: return@remember emptyList()
-        val resolvedProfile = splitFormatService.getResolvedLiveSplitProfile()
-        val profileId = resolvedProfile?.id ?: return@remember emptyList()
-        if (profileId != currentProfile.id) return@remember emptyList()
-
-        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-        doc.attemptHistory.filter { it.realTime != null && it.realTime > 0 }.map { attempt ->
-            val isComplete = true
-            val totalTime = attempt.realTime!!
-            val startTime = try {
-                attempt.started?.let {
-                    kotlinx.datetime.Instant.parse(
-                        it.replace(" ", "T").let { s -> if (!s.endsWith("Z")) "${s}Z" else s }
-                    )
-                } ?: kotlinx.datetime.Clock.System.now()
-            } catch (e: Exception) {
-                kotlinx.datetime.Clock.System.now()
-            }
-            val dateStr = dateFormat.format(java.util.Date(startTime.toEpochMilliseconds()))
-            val timeStr = formatRunTime(totalTime)
-            val completeIcon = if (isComplete) "\u2705" else "\u274C"
-            val profileName = currentProfile.name
-
-            com.supermetroid.storage.FileStorageService.RunFileMetadata(
-                fileName = "lss-attempt-${attempt.id}",
-                displayName = "$completeIcon $dateStr \u2013 $profileName ($timeStr)",
-                isComplete = isComplete,
-                startTime = startTime,
-                totalTime = totalTime,
-                profileId = currentProfile.id
-            )
-        }
+    val hasLiveSplitRunSource = remember(lssDoc, currentProfile.id) {
+        lssDoc != null && splitFormatService.getResolvedLiveSplitProfile()?.id == currentProfile.id
     }
 
-    // Merge JSON runs (filtered by profile) with LSS runs, deduplicated and sorted
+    // Build LSS run metadata from the loaded LiveSplit document
+    val lssRunFiles = remember(lssDoc, currentProfile.id, hasLiveSplitRunSource) {
+        val doc = lssDoc ?: return@remember emptyList()
+        if (!hasLiveSplitRunSource) return@remember emptyList()
+
+        buildLiveSplitRunFileMetadata(
+            doc = doc,
+            profileId = currentProfile.id,
+            profileName = currentProfile.name
+        )
+    }
+
+    // LiveSplit is the canonical read source when a matching LSS document is loaded.
+    // JSON files are an optional output/fallback source.
     val jsonRunFiles = allRunFiles.filter { it.profileId == currentProfile.id }
-    val lssFileNames = lssRunFiles.map { it.fileName }.toSet()
-    val runFiles = (jsonRunFiles.filter { it.fileName !in lssFileNames } + lssRunFiles)
-        .sortedByDescending { it.startTime }
+    val runFiles = selectRunFileMetadata(
+        jsonRunFiles = jsonRunFiles,
+        lssRunFiles = lssRunFiles,
+        useLiveSplitSource = hasLiveSplitRunSource
+    )
 
     var selectedRun by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
@@ -1771,8 +1757,8 @@ private fun LoadRunSection(
     val scope = rememberCoroutineScope()
 
     // Load run files when dropdown is opened
-    LaunchedEffect(expanded) {
-        if (expanded && allRunFiles.isEmpty()) {
+    LaunchedEffect(expanded, hasLiveSplitRunSource) {
+        if (expanded && !hasLiveSplitRunSource && allRunFiles.isEmpty()) {
             isLoading = true
             allRunFiles = fileStorageService.listRunFiles()
             isLoading = false
@@ -1991,7 +1977,11 @@ private fun LoadRunSection(
                     onClick = {
                         scope.launch {
                             isLoading = true
-                            allRunFiles = fileStorageService.listRunFiles()
+                            if (hasLiveSplitRunSource) {
+                                splitFormatService.reloadLiveSplitFile()
+                            } else {
+                                allRunFiles = fileStorageService.listRunFiles()
+                            }
                             isLoading = false
                         }
                     },
@@ -2054,7 +2044,9 @@ private fun LoadRunSection(
                                 }
                                 statusMessage = "Deleted (backup saved)"
                                 // Refresh the list
-                                allRunFiles = fileStorageService.listRunFiles()
+                                if (!hasLiveSplitRunSource) {
+                                    allRunFiles = fileStorageService.listRunFiles()
+                                }
                                 if (selectedRun == runMeta?.displayName) {
                                     selectedRun = null
                                 }
@@ -2078,4 +2070,41 @@ private fun LoadRunSection(
             containerColor = TrackerColors.Surface
         )
     }
+}
+
+internal fun buildLiveSplitRunFileMetadata(
+    doc: LiveSplitDocument,
+    profileId: String,
+    profileName: String
+): List<FileStorageService.RunFileMetadata> {
+    val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    return doc.attemptHistory
+        .filter { it.realTime != null && it.realTime > 0 }
+        .map { attempt ->
+            val totalTime = attempt.realTime!!
+            val parsedStartTime = LiveSplitConverter.parseLiveSplitTimestamp(attempt.started)
+            val startTime = parsedStartTime ?: LiveSplitConverter.fallbackAttemptStartTime(attempt.id)
+            val runLabel = parsedStartTime
+                ?.let { dateFormat.format(java.util.Date(it.toEpochMilliseconds())) }
+                ?: "Attempt ${attempt.id}"
+            val timeStr = formatRunTime(totalTime)
+
+            FileStorageService.RunFileMetadata(
+                fileName = "lss-attempt-${attempt.id}",
+                displayName = "\u2705 $runLabel \u2013 $profileName ($timeStr)",
+                isComplete = true,
+                startTime = startTime,
+                totalTime = totalTime,
+                profileId = profileId
+            )
+        }
+}
+
+internal fun selectRunFileMetadata(
+    jsonRunFiles: List<FileStorageService.RunFileMetadata>,
+    lssRunFiles: List<FileStorageService.RunFileMetadata>,
+    useLiveSplitSource: Boolean
+): List<FileStorageService.RunFileMetadata> {
+    val selectedRuns = if (useLiveSplitSource) lssRunFiles else jsonRunFiles
+    return selectedRuns.sortedByDescending { it.startTime }
 }
