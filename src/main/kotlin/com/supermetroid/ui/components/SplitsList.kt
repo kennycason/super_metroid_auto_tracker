@@ -96,12 +96,14 @@ fun SplitsList(
     splitIconSizeService: com.supermetroid.service.SplitIconSizeService,
     splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
     splitProfileService: SplitProfileService,
+    splitsFontSizeService: com.supermetroid.service.SplitsFontSizeService,
     modifier: Modifier = Modifier,
     maxHeight: Int = 400
 ) {
     // Get current profile from service
     val currentProfile by splitProfileService.currentProfile.collectAsState()
     val currentSplitIconSize by splitIconSizeService.currentSplitIconSize.collectAsState()
+    val splitsFontSize by splitsFontSizeService.fontSize.collectAsState()
     val showSplitIcons by splitDisplayModeService.showSplitIcons.collectAsState()
     val showSplitNames by splitDisplayModeService.showSplitNames.collectAsState()
     val showSegmentDeltas by splitDisplayModeService.showSegmentDeltas.collectAsState()
@@ -161,7 +163,8 @@ fun SplitsList(
                 showBestDelta = showBestDelta,
                 showBestDeltaTotal = showBestDeltaTotal,
                 showAverageColumn = showAverageColumn,
-                showAverageDelta = showAverageDelta
+                showAverageDelta = showAverageDelta,
+                fontSize = splitsFontSize
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -193,7 +196,8 @@ fun SplitsList(
                         showBestDeltaTotal = showBestDeltaTotal,
                         showAverageColumn = showAverageColumn,
                         showAverageDelta = showAverageDelta,
-                        averageSegmentTimes = averageSegmentTimes
+                        averageSegmentTimes = averageSegmentTimes,
+                        fontSize = splitsFontSize
                     )
                 }
             }
@@ -213,7 +217,8 @@ private fun SplitsHeader(
     showBestDelta: Boolean,
     showBestDeltaTotal: Boolean,
     showAverageColumn: Boolean,
-    showAverageDelta: Boolean
+    showAverageDelta: Boolean,
+    fontSize: com.supermetroid.model.SplitsFontSize
 ) {
     @Suppress("UNUSED_PARAMETER") // splitsState might be used in future
     val currentSplit = autoSplitsEngine.getCurrentSplit()
@@ -249,7 +254,7 @@ private fun SplitsHeader(
                     style = MaterialTheme.typography.labelSmall.copy(
                         color = TrackerColors.OnSurfaceVariant,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp
+                        fontSize = fontSize.time.sp
                     ),
                     modifier = Modifier.width(85.dp),
                     textAlign = TextAlign.End
@@ -262,7 +267,7 @@ private fun SplitsHeader(
                     style = MaterialTheme.typography.labelSmall.copy(
                         color = TrackerColors.OnSurfaceVariant,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp
+                        fontSize = fontSize.time.sp
                     ),
                     modifier = Modifier.width(65.dp),
                     textAlign = TextAlign.End
@@ -275,7 +280,7 @@ private fun SplitsHeader(
                     style = MaterialTheme.typography.labelSmall.copy(
                         color = TrackerColors.OnSurfaceVariant,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp
+                        fontSize = fontSize.time.sp
                     ),
                     modifier = Modifier.width(65.dp),
                     textAlign = TextAlign.End
@@ -288,7 +293,7 @@ private fun SplitsHeader(
                     style = MaterialTheme.typography.labelSmall.copy(
                         color = TrackerColors.OnSurfaceVariant,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp
+                        fontSize = fontSize.time.sp
                     ),
                     modifier = Modifier.width(85.dp),
                     textAlign = TextAlign.End
@@ -301,7 +306,7 @@ private fun SplitsHeader(
                     style = MaterialTheme.typography.labelSmall.copy(
                         color = TrackerColors.OnSurfaceVariant,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp
+                        fontSize = fontSize.time.sp
                     ),
                     modifier = Modifier.width(65.dp),
                     textAlign = TextAlign.End
@@ -314,7 +319,7 @@ private fun SplitsHeader(
                     style = MaterialTheme.typography.labelSmall.copy(
                         color = TrackerColors.OnSurfaceVariant,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp
+                        fontSize = fontSize.time.sp
                     ),
                     modifier = Modifier.width(85.dp),
                     textAlign = TextAlign.End
@@ -327,7 +332,7 @@ private fun SplitsHeader(
                     style = MaterialTheme.typography.labelSmall.copy(
                         color = TrackerColors.OnSurfaceVariant,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp
+                        fontSize = fontSize.time.sp
                     ),
                     modifier = Modifier.width(65.dp),
                     textAlign = TextAlign.End
@@ -340,7 +345,7 @@ private fun SplitsHeader(
                     style = MaterialTheme.typography.labelSmall.copy(
                         color = TrackerColors.OnSurfaceVariant,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp
+                        fontSize = fontSize.time.sp
                     ),
                     modifier = Modifier.width(65.dp),
                     textAlign = TextAlign.End
@@ -380,7 +385,8 @@ private fun SplitRow(
     showBestDeltaTotal: Boolean,
     showAverageColumn: Boolean,
     showAverageDelta: Boolean,
-    averageSegmentTimes: Map<String, Long>
+    averageSegmentTimes: Map<String, Long>,
+    fontSize: com.supermetroid.model.SplitsFontSize
 ) {
     val currentRun = splitsState.currentRun
     val completedSplit = currentRun?.completedSplits?.find { it.splitId == split.id }
@@ -533,7 +539,7 @@ private fun SplitRow(
                                 else -> TrackerColors.OnBackground
                             },
                             fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                            fontSize = 12.sp
+                            fontSize = fontSize.text.sp
                         )
                     )
                 }
@@ -560,7 +566,7 @@ private fun SplitRow(
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 color = TrackerColors.OnSurfaceVariant,
                                 fontFamily = FontFamily.Monospace,
-                                fontSize = if (showSegmentDeltas) 10.sp else 11.sp
+                                fontSize = if (showSegmentDeltas) fontSize.time.sp else (fontSize.time + 1).sp
                             ),
                             textAlign = TextAlign.End
                         )
@@ -572,7 +578,7 @@ private fun SplitRow(
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.7f),
                                     fontFamily = FontFamily.Monospace,
-                                    fontSize = 9.sp
+                                    fontSize = fontSize.detail.sp
                                 ),
                                 textAlign = TextAlign.End
                             )
@@ -598,7 +604,7 @@ private fun SplitRow(
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = deltaColor,
                                     fontFamily = FontFamily.Monospace,
-                                    fontSize = 10.sp,
+                                    fontSize = fontSize.time.sp,
                                     fontWeight = FontWeight.Bold
                                 ),
                                 textAlign = TextAlign.End
@@ -609,7 +615,7 @@ private fun SplitRow(
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
                                     fontFamily = FontFamily.Monospace,
-                                    fontSize = 10.sp
+                                    fontSize = fontSize.time.sp
                                 ),
                                 textAlign = TextAlign.End
                             )
@@ -635,7 +641,7 @@ private fun SplitRow(
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = deltaColor,
                                     fontFamily = FontFamily.Monospace,
-                                    fontSize = 10.sp,
+                                    fontSize = fontSize.time.sp,
                                     fontWeight = FontWeight.Bold
                                 ),
                                 textAlign = TextAlign.End
@@ -646,7 +652,7 @@ private fun SplitRow(
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
                                     fontFamily = FontFamily.Monospace,
-                                    fontSize = 10.sp
+                                    fontSize = fontSize.time.sp
                                 ),
                                 textAlign = TextAlign.End
                             )
@@ -670,7 +676,7 @@ private fun SplitRow(
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 color = TrackerColors.OnSurfaceVariant,
                                 fontFamily = FontFamily.Monospace,
-                                fontSize = if (showSegmentDeltas) 10.sp else 11.sp
+                                fontSize = if (showSegmentDeltas) fontSize.time.sp else (fontSize.time + 1).sp
                             ),
                             textAlign = TextAlign.End
                         )
@@ -682,7 +688,7 @@ private fun SplitRow(
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.7f),
                                     fontFamily = FontFamily.Monospace,
-                                    fontSize = 9.sp
+                                    fontSize = fontSize.detail.sp
                                 ),
                                 textAlign = TextAlign.End
                             )
@@ -708,7 +714,7 @@ private fun SplitRow(
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = deltaColor,
                                     fontFamily = FontFamily.Monospace,
-                                    fontSize = 10.sp,
+                                    fontSize = fontSize.time.sp,
                                     fontWeight = FontWeight.Bold
                                 ),
                                 textAlign = TextAlign.End
@@ -719,7 +725,7 @@ private fun SplitRow(
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
                                     fontFamily = FontFamily.Monospace,
-                                    fontSize = 10.sp
+                                    fontSize = fontSize.time.sp
                                 ),
                                 textAlign = TextAlign.End
                             )
@@ -743,7 +749,7 @@ private fun SplitRow(
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.9f),
                                 fontFamily = FontFamily.Monospace,
-                                fontSize = if (showSegmentDeltas) 10.sp else 11.sp
+                                fontSize = if (showSegmentDeltas) fontSize.time.sp else (fontSize.time + 1).sp
                             ),
                             textAlign = TextAlign.End
                         )
@@ -755,7 +761,7 @@ private fun SplitRow(
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.7f),
                                     fontFamily = FontFamily.Monospace,
-                                    fontSize = 9.sp
+                                    fontSize = fontSize.detail.sp
                                 ),
                                 textAlign = TextAlign.End
                             )
@@ -782,7 +788,7 @@ private fun SplitRow(
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = deltaColor,
                                     fontFamily = FontFamily.Monospace,
-                                    fontSize = 10.sp,
+                                    fontSize = fontSize.time.sp,
                                     fontWeight = FontWeight.Bold
                                 ),
                                 textAlign = TextAlign.End
@@ -793,7 +799,7 @@ private fun SplitRow(
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
                                     fontFamily = FontFamily.Monospace,
-                                    fontSize = 10.sp
+                                    fontSize = fontSize.time.sp
                                 ),
                                 textAlign = TextAlign.End
                             )
@@ -819,7 +825,7 @@ private fun SplitRow(
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = deltaColor,
                                     fontFamily = FontFamily.Monospace,
-                                    fontSize = 10.sp,
+                                    fontSize = fontSize.time.sp,
                                     fontWeight = FontWeight.Bold
                                 ),
                                 textAlign = TextAlign.End
@@ -830,7 +836,7 @@ private fun SplitRow(
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
                                     fontFamily = FontFamily.Monospace,
-                                    fontSize = 10.sp
+                                    fontSize = fontSize.time.sp
                                 ),
                                 textAlign = TextAlign.End
                             )
@@ -869,7 +875,7 @@ private fun SplitRow(
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = timeColor,
                             fontFamily = FontFamily.Monospace,
-                            fontSize = if (showSegmentDeltas) 10.sp else 11.sp
+                            fontSize = if (showSegmentDeltas) fontSize.time.sp else (fontSize.time + 1).sp
                         ),
                         textAlign = TextAlign.End
                     )
@@ -892,7 +898,7 @@ private fun SplitRow(
                             style = MaterialTheme.typography.bodySmall.copy(
                                 color = segmentColor,
                                 fontFamily = FontFamily.Monospace,
-                                fontSize = 9.sp
+                                fontSize = fontSize.detail.sp
                             ),
                             textAlign = TextAlign.End
                         )
@@ -907,9 +913,11 @@ fun PersonalBestSummary(
     splitsState: SplitsState,
     profileId: String,
     profile: SplitProfile,
+    splitsFontSizeService: com.supermetroid.service.SplitsFontSizeService,
     showBestPossible: Boolean = true,
     modifier: Modifier = Modifier
 ) {
+    val fontSize by splitsFontSizeService.fontSize.collectAsState()
     val currentProfilePB = splitsState.personalBests[profileId]
 
     if (currentProfilePB != null) {
@@ -918,6 +926,7 @@ fun PersonalBestSummary(
             label = "Personal Best",
             timeMs = currentProfilePB.totalTime,
             color = TrackerColors.OnSurface,
+            fontSize = fontSize,
             modifier = modifier
         )
 
@@ -946,6 +955,7 @@ fun PersonalBestSummary(
                     label = "Best Possible",
                     timeMs = bestPossibleTime,
                     color = TrackerColors.OnSurface,
+                    fontSize = fontSize,
                     modifier = modifier
                 )
             }
@@ -958,13 +968,13 @@ private fun SummaryRow(
     label: String,
     timeMs: Long,
     color: Color,
+    fontSize: com.supermetroid.model.SplitsFontSize,
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(20.dp)
-            .padding(horizontal = 4.dp, vertical = 1.dp),
+            .padding(horizontal = 4.dp, vertical = 2.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -972,7 +982,8 @@ private fun SummaryRow(
             text = label,
             style = MaterialTheme.typography.bodyMedium.copy(
                 color = color,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                fontSize = fontSize.summary.sp
             )
         )
         Text(
@@ -980,7 +991,7 @@ private fun SummaryRow(
             style = MaterialTheme.typography.bodyMedium.copy(
                 color = color,
                 fontFamily = FontFamily.Monospace,
-                fontSize = 12.sp
+                fontSize = fontSize.summary.sp
             ),
             textAlign = TextAlign.End
         )

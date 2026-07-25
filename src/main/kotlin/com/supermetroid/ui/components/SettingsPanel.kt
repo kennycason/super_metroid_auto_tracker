@@ -32,7 +32,6 @@ import com.supermetroid.livesplit.LiveSplitConverter
 import com.supermetroid.livesplit.LiveSplitDocument
 import com.supermetroid.storage.FileStorageService
 import com.supermetroid.ui.components.common.ToggleRow
-import com.supermetroid.ui.components.common.PrimaryToggleRow
 import com.supermetroid.ui.components.common.SelectionRow
 import com.supermetroid.ui.theme.TrackerColors
 
@@ -53,10 +52,10 @@ fun SettingsPanel(
     autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
     iconViewModeService: com.supermetroid.service.IconViewModeService,
     soundService: com.supermetroid.service.SoundService,
-    gameGenieService: com.supermetroid.service.GameGenieService,
     uiVisibilityService: com.supermetroid.service.UIVisibilityService,
     mapRandoInfoFontSizeService: com.supermetroid.service.MapRandoInfoFontSizeService,
     mapRandoInfoConfigService: com.supermetroid.service.MapRandoInfoConfigService,
+    splitsFontSizeService: com.supermetroid.service.SplitsFontSizeService,
 
     modifier: Modifier = Modifier
 ) {
@@ -120,10 +119,6 @@ fun SettingsPanel(
                     themeService = themeService,
                     roomNameService = roomNameService,
                     autoSplitsEngine = autoSplitsEngine,
-                    fileStorageService = fileStorageService,
-                    splitProfileService = splitProfileService,
-                    splitFormatService = splitFormatService,
-                    gameGenieService = gameGenieService,
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -140,8 +135,11 @@ fun SettingsPanel(
                 2 -> SplitsSettingsTab(
                     splitProfileService = splitProfileService,
                     splitFormatService = splitFormatService,
-                    splitIconSizeService = splitIconSizeService,
                     splitDisplayModeService = splitDisplayModeService,
+                    splitIconSizeService = splitIconSizeService,
+                    splitsFontSizeService = splitsFontSizeService,
+                    fileStorageService = fileStorageService,
+                    autoSplitsEngine = autoSplitsEngine,
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -163,10 +161,6 @@ private fun GeneralSettingsTab(
     themeService: com.supermetroid.service.ThemeService,
     roomNameService: com.supermetroid.service.RoomNameService,
     autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
-    fileStorageService: com.supermetroid.storage.FileStorageService,
-    splitProfileService: com.supermetroid.service.SplitProfileService,
-    splitFormatService: com.supermetroid.service.SplitFormatService,
-    gameGenieService: com.supermetroid.service.GameGenieService,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -174,15 +168,6 @@ private fun GeneralSettingsTab(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Load Run Section (for reviewing historical runs)
-        LoadRunSection(
-            fileStorageService = fileStorageService,
-            autoSplitsEngine = autoSplitsEngine,
-            splitProfileService = splitProfileService,
-            splitFormatService = splitFormatService,
-            modifier = Modifier.fillMaxWidth()
-        )
-
         // Theme Selection Section
         ThemeSelectionSection(
             themeService = themeService,
@@ -200,26 +185,21 @@ private fun GeneralSettingsTab(
             roomNameService = roomNameService,
             modifier = Modifier.fillMaxWidth()
         )
-
-        // Game Genie Toggle Section
-        GameGenieToggleSection(
-            gameGenieService = gameGenieService,
-            modifier = Modifier.fillMaxWidth()
-        )
     }
 }
 
 @Composable
-private fun GameGenieToggleSection(
-    gameGenieService: com.supermetroid.service.GameGenieService,
+private fun SplitsFontSizeSelectionSection(
+    splitsFontSizeService: com.supermetroid.service.SplitsFontSizeService,
     modifier: Modifier = Modifier
 ) {
-    val gameGenieEnabled by gameGenieService.gameGenieEnabled.collectAsState()
+    val currentSize by splitsFontSizeService.fontSize.collectAsState()
 
-    PrimaryToggleRow(
-        label = "Enable Game Genie",
-        checked = gameGenieEnabled,
-        onCheckedChange = { kotlinx.coroutines.GlobalScope.launch { gameGenieService.setGameGenieEnabled(it) } },
+    SelectionRow(
+        label = "Splits Font Size",
+        selectedValue = currentSize.displayName,
+        options = com.supermetroid.model.SplitsFontSize.values().map { it to it.displayName },
+        onOptionSelected = { splitsFontSizeService.setFontSize(it) },
         modifier = modifier
     )
 }
@@ -312,8 +292,11 @@ private fun IconAmmoDisplayModeSection(
 private fun SplitsSettingsTab(
     splitProfileService: com.supermetroid.service.SplitProfileService,
     splitFormatService: com.supermetroid.service.SplitFormatService,
-    splitIconSizeService: com.supermetroid.service.SplitIconSizeService,
     splitDisplayModeService: com.supermetroid.service.SplitDisplayModeService,
+    splitIconSizeService: com.supermetroid.service.SplitIconSizeService,
+    splitsFontSizeService: com.supermetroid.service.SplitsFontSizeService,
+    fileStorageService: com.supermetroid.storage.FileStorageService,
+    autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -327,16 +310,19 @@ private fun SplitsSettingsTab(
             modifier = Modifier.fillMaxWidth()
         )
 
+        // Load Run Section (review / delete historical runs)
+        LoadRunSection(
+            fileStorageService = fileStorageService,
+            autoSplitsEngine = autoSplitsEngine,
+            splitProfileService = splitProfileService,
+            splitFormatService = splitFormatService,
+            modifier = Modifier.fillMaxWidth()
+        )
+
         // Split Format Section (Read/Write format + LSS file picker)
         SplitFormatSection(
             splitFormatService = splitFormatService,
             splitProfileService = splitProfileService,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Split Icon Size Selection Section
-        SplitIconSizeSelectionSection(
-            splitIconSizeService = splitIconSizeService,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -400,6 +386,18 @@ private fun SplitsSettingsTab(
 
         BestPossibleSummaryToggleSection(
             splitDisplayModeService = splitDisplayModeService,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // Split Icon Size
+        SplitIconSizeSelectionSection(
+            splitIconSizeService = splitIconSizeService,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // Splits Font Size
+        SplitsFontSizeSelectionSection(
+            splitsFontSizeService = splitsFontSizeService,
             modifier = Modifier.fillMaxWidth()
         )
     }

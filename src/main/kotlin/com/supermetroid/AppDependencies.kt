@@ -30,12 +30,12 @@ data class AppDependencies(
     val iconViewModeService: IconViewModeService,
     val uiVisibilityService: UIVisibilityService,
     val soundService: SoundService,
-    val gameGenieService: GameGenieService,
     val mapRandoInfoFontSizeService: MapRandoInfoFontSizeService,
     val mapRandoDataService: MapRandoDataService,
     val mapRandoInfoConfigService: MapRandoInfoConfigService,
     val splitFormatService: SplitFormatService,
-    val statsFontSizeService: StatsFontSizeService
+    val statsFontSizeService: StatsFontSizeService,
+    val splitsFontSizeService: SplitsFontSizeService
 ) {
     companion object {
         /**
@@ -76,12 +76,12 @@ data class AppDependencies(
                 iconViewModeService = IconViewModeService(fileStorage),
                 uiVisibilityService = uiVisibility,
                 soundService = SoundService(fileStorage),
-                gameGenieService = GameGenieService(fileStorage),
                 mapRandoInfoFontSizeService = MapRandoInfoFontSizeService(fileStorage, scope),
                 mapRandoDataService = MapRandoDataService(),
                 mapRandoInfoConfigService = MapRandoInfoConfigService(),
                 splitFormatService = splitFormatService,
-                statsFontSizeService = StatsFontSizeService(fileStorage, scope)
+                statsFontSizeService = StatsFontSizeService(fileStorage, scope),
+                splitsFontSizeService = SplitsFontSizeService(fileStorage, scope)
             )
         }
     }

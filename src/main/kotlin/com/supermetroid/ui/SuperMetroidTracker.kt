@@ -48,12 +48,12 @@ val roomNameService: com.supermetroid.service.RoomNameService get() = appDepende
 val iconViewModeService: com.supermetroid.service.IconViewModeService get() = appDependencies.iconViewModeService
 val uiVisibilityService: com.supermetroid.service.UIVisibilityService get() = appDependencies.uiVisibilityService
 val soundService: com.supermetroid.service.SoundService get() = appDependencies.soundService
-val gameGenieService: com.supermetroid.service.GameGenieService get() = appDependencies.gameGenieService
 val mapRandoInfoFontSizeService: com.supermetroid.service.MapRandoInfoFontSizeService get() = appDependencies.mapRandoInfoFontSizeService
 val mapRandoDataService: com.supermetroid.service.MapRandoDataService get() = appDependencies.mapRandoDataService
 val mapRandoInfoConfigService: com.supermetroid.service.MapRandoInfoConfigService get() = appDependencies.mapRandoInfoConfigService
 val splitFormatService: com.supermetroid.service.SplitFormatService get() = appDependencies.splitFormatService
 val statsFontSizeService: com.supermetroid.service.StatsFontSizeService get() = appDependencies.statsFontSizeService
+val splitsFontSizeService: com.supermetroid.service.SplitsFontSizeService get() = appDependencies.splitsFontSizeService
 
 // Flag to indicate if we're in replay mode (don't load saved state)
 var isReplayMode = false
@@ -220,9 +220,7 @@ fun SuperMetroidTrackerApp() {
     val showIcons by uiVisibilityService.showIcons.collectAsState()
     val showTimer by uiVisibilityService.showTimer.collectAsState()
     val showSettings by uiVisibilityService.showSettings.collectAsState()
-    val showGameGenie by uiVisibilityService.showGameGenie.collectAsState()
     val showStats by uiVisibilityService.showStats.collectAsState()
-    val gameGenieEnabled by gameGenieService.gameGenieEnabled.collectAsState()
     
     // Track if services are initialized
     var servicesInitialized by remember { mutableStateOf(false) }
@@ -256,14 +254,14 @@ fun SuperMetroidTrackerApp() {
         // Initialize sound service
         soundService.initialize()
         
-        // Initialize Game Genie service
-        gameGenieService.initialize()
-        
         // Initialize Map Rando info font size service
         mapRandoInfoFontSizeService.initialize()
 
         // Initialize stats font size service
         statsFontSizeService.initialize()
+
+        // Initialize splits font size service
+        splitsFontSizeService.initialize()
         
         // Initialize Map Rando info config service
         mapRandoInfoConfigService.initialize()
@@ -399,9 +397,7 @@ fun SuperMetroidTrackerApp() {
                         showIcons = showIcons,
                         showTimer = showTimer,
                         showSettings = showSettings,
-                        showGameGenie = showGameGenie,
                         showStats = showStats,
-                        gameGenieEnabled = gameGenieEnabled,
                         uiVisibilityService = uiVisibilityService,
                         themeService = themeService,
                         iconConfigService = iconConfigService,
@@ -423,9 +419,7 @@ fun SuperMetroidTrackerLayout(
     showIcons: Boolean,
     showTimer: Boolean,
     showSettings: Boolean,
-    showGameGenie: Boolean,
     showStats: Boolean,
-    gameGenieEnabled: Boolean,
     uiVisibilityService: com.supermetroid.service.UIVisibilityService,
     themeService: com.supermetroid.service.ThemeService,
     iconConfigService: com.supermetroid.service.IconConfigService,
@@ -440,7 +434,7 @@ fun SuperMetroidTrackerLayout(
     val showMapRandoPanel = showMapRandoInfo && showIcons && iconViewMode == com.supermetroid.model.IconViewMode.MAP_RANDO
 
     // Determine if an overlay panel is active
-    val overlayActive = showSettings || (showGameGenie && gameGenieEnabled) || showStats
+    val overlayActive = showSettings || showStats
 
     Column(
         modifier = Modifier
@@ -527,6 +521,7 @@ fun SuperMetroidTrackerLayout(
                         splitIconSizeService = splitIconSizeService,
                         splitDisplayModeService = splitDisplayModeService,
                         splitProfileService = splitProfileService,
+                        splitsFontSizeService = splitsFontSizeService,
                         modifier = Modifier.fillMaxWidth().weight(1f),
                         maxHeight = 2000
                     )
@@ -539,6 +534,7 @@ fun SuperMetroidTrackerLayout(
                             splitsState = splitsState,
                             profileId = currentProfile.id,
                             profile = currentProfile,
+                            splitsFontSizeService = splitsFontSizeService,
                             showBestPossible = showBestPossibleSummary,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -572,13 +568,10 @@ fun SuperMetroidTrackerLayout(
                             autoSplitsEngine = autoSplitsEngine,
                             iconViewModeService = iconViewModeService,
                             soundService = soundService,
-                            gameGenieService = gameGenieService,
                             uiVisibilityService = uiVisibilityService,
                             mapRandoInfoFontSizeService = mapRandoInfoFontSizeService,
                             mapRandoInfoConfigService = mapRandoInfoConfigService,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                        showGameGenie && gameGenieEnabled -> GameGenieTab(
+                            splitsFontSizeService = splitsFontSizeService,
                             modifier = Modifier.fillMaxSize()
                         )
                         showStats -> {
@@ -690,7 +683,6 @@ fun SuperMetroidTrackerLayout(
                             val newShow = !showStats
                             if (newShow) {
                                 uiVisibilityService.setShowSettings(false)
-                                uiVisibilityService.setShowGameGenie(false)
                             }
                             uiVisibilityService.setShowStats(newShow)
                         }
@@ -707,32 +699,6 @@ fun SuperMetroidTrackerLayout(
                     )
                 }
 
-                // Game Genie toggle (only show if Game Genie is enabled in settings)
-                if (gameGenieEnabled) {
-                    TextButton(
-                        onClick = {
-                            CoroutineScope(Dispatchers.Swing).launch {
-                                val newShow = !showGameGenie
-                                if (newShow) {
-                                    uiVisibilityService.setShowSettings(false)
-                                    uiVisibilityService.setShowStats(false)
-                                }
-                                uiVisibilityService.setShowGameGenie(newShow)
-                            }
-                        },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = if (showGameGenie) TrackerColors.Success else TrackerColors.OnSurfaceVariant
-                        ),
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 2.dp),
-                        modifier = Modifier.height(20.dp)
-                    ) {
-                        Text(
-                            text = "genie",
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
-                }
-
                 // Settings toggle
                 TextButton(
                     onClick = {
@@ -740,7 +706,6 @@ fun SuperMetroidTrackerLayout(
                             val newShow = !showSettings
                             if (newShow) {
                                 uiVisibilityService.setShowStats(false)
-                                uiVisibilityService.setShowGameGenie(false)
                             }
                             uiVisibilityService.setShowSettings(newShow)
                         }

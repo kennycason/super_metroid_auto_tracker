@@ -24,9 +24,6 @@ class UIVisibilityService(private val fileStorageService: FileStorageService) : 
     private val _showSettings = MutableStateFlow(false)
     val showSettings: StateFlow<Boolean> = _showSettings.asStateFlow()
 
-    private val _showGameGenie = MutableStateFlow(false)
-    val showGameGenie: StateFlow<Boolean> = _showGameGenie.asStateFlow()
-
     private val _showMapRandoInfo = MutableStateFlow(false)
     val showMapRandoInfo: StateFlow<Boolean> = _showMapRandoInfo.asStateFlow()
 
@@ -40,10 +37,9 @@ class UIVisibilityService(private val fileStorageService: FileStorageService) : 
             _showIcons.value = config.showIcons
             _showTimer.value = config.showTimer
             _showSettings.value = config.showSettings
-            _showGameGenie.value = config.showGameGenie
             _showMapRandoInfo.value = config.showMapRandoInfo
             _showStats.value = config.showStats
-            logger.info { "📋 Loaded UI visibility state: splits=${_showSplits.value}, icons=${_showIcons.value}, timer=${_showTimer.value}, settings=${_showSettings.value}, gameGenie=${_showGameGenie.value}, mapRandoInfo=${_showMapRandoInfo.value}, stats=${_showStats.value}" }
+            logger.info { "📋 Loaded UI visibility state: splits=${_showSplits.value}, icons=${_showIcons.value}, timer=${_showTimer.value}, settings=${_showSettings.value}, mapRandoInfo=${_showMapRandoInfo.value}, stats=${_showStats.value}" }
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to load UI visibility state" }
         }
@@ -73,12 +69,6 @@ class UIVisibilityService(private val fileStorageService: FileStorageService) : 
         logger.info { "💾 Saved showSettings: $show" }
     }
 
-    suspend fun setShowGameGenie(show: Boolean) {
-        _showGameGenie.value = show
-        saveToConfig()
-        logger.info { "💾 Saved showGameGenie: $show" }
-    }
-
     suspend fun setShowMapRandoInfo(show: Boolean) {
         _showMapRandoInfo.value = show
         saveToConfig()
@@ -99,7 +89,6 @@ class UIVisibilityService(private val fileStorageService: FileStorageService) : 
                 showIcons = _showIcons.value,
                 showTimer = _showTimer.value,
                 showSettings = _showSettings.value,
-                showGameGenie = _showGameGenie.value,
                 showMapRandoInfo = _showMapRandoInfo.value,
                 showStats = _showStats.value
             ))

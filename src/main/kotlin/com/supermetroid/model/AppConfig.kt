@@ -83,14 +83,11 @@ data class AppConfig(
     val showIcons: Boolean = true,
     val showTimer: Boolean = true,
     val showSettings: Boolean = false,
-    val showGameGenie: Boolean = false,
     val showMapRandoInfo: Boolean = false,
     val showStats: Boolean = false,
     // Sound effects settings
     val soundEnabled: Boolean = false,
     val volume: Float = 1.0f,
-    // Game Genie settings
-    val gameGenieEnabled: Boolean = false,
     // Splits display settings
     val showSegmentDeltas: Boolean = false,
     val showBestPossibleColumn: Boolean = true,  // Show Best Possible (theoretical best from completed runs) column
@@ -115,5 +112,6 @@ data class AppConfig(
     val splitWriteLiveSplit: Boolean = true,        // Kept for config compat; always true
     val liveSplitFilePath: String? = null,         // Legacy: single LSS path (migrated to per-profile on first load)
     val liveSplitFilePaths: Map<String, String> = emptyMap(), // Per-profile LSS file paths (profileId -> path)
-    val statsFontSize: String? = null              // Font size for stats panel (null = default Medium)
+    val statsFontSize: String? = null,             // Font size for stats panel (null = default Medium)
+    val splitsFontSize: String? = null             // Font size for splits text/numbers (null = default Medium)
 )
