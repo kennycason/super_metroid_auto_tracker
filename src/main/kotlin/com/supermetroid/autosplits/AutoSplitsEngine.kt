@@ -116,10 +116,9 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             logger.info { "✓ Found target run: ${targetRun.id}" }
             logger.info { "  Total time: ${formatTime(targetRun.totalTime)}, Splits: ${targetRun.completedSplits.size}" }
 
-            val replayRun = targetRun.copy(isPaused = true)
-
-            // Preserve current PBs (from LSS) — don't recalculate from JSON runs
-            _splitsState.value = _splitsState.value.copy(currentRun = replayRun)
+            val previousRuns = storage.loadAllRuns()
+            val replayState = buildReplayState(targetRun, previousRuns)
+            _splitsState.value = replayState
 
             // Load the profile and sync to SplitProfileService
             val newProfile = SplitProfiles.getProfileById(targetRun.profileId)
@@ -145,10 +144,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     suspend fun loadReplayRunSession(targetRun: RunSession, previousRuns: List<RunSession> = emptyList()): Boolean {
         logger.info { "🎬 Loading replay run session: ${targetRun.id}" }
         try {
-            val replayRun = targetRun.copy(isPaused = true)
-
-            // Preserve current PBs (from LSS) — don't recalculate from JSON runs
-            _splitsState.value = _splitsState.value.copy(currentRun = replayRun)
+            _splitsState.value = buildReplayState(targetRun, previousRuns)
 
             val newProfile = SplitProfiles.getProfileById(targetRun.profileId)
             currentProfile = newProfile
@@ -162,6 +158,32 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             logger.error(e) { "❌ Failed to load replay run session" }
             return false
         }
+    }
+
+    /**
+     * Build replay state as it existed before [targetRun].
+     * This keeps review deltas meaningful when loading a PB: the run is displayed
+     * as current, while BEST/BP comparisons are derived from earlier completed runs.
+     */
+    private fun buildReplayState(targetRun: RunSession, runsForComparison: List<RunSession>): SplitsState {
+        val replayRun = targetRun.copy(isPaused = true)
+        val previousCompletedRuns = runsForComparison
+            .filter { run ->
+                run.id != targetRun.id &&
+                    run.profileId == targetRun.profileId &&
+                    run.startTime < targetRun.startTime &&
+                    run.endTime != null &&
+                    run.completedSplits.isNotEmpty()
+            }
+            .sortedBy { it.startTime }
+
+        val replayState = SplitsState(
+            currentRun = replayRun,
+            personalBests = emptyMap(),
+            runHistory = previousCompletedRuns
+        )
+
+        return updatePersonalBestsFromRunHistory(replayState)
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.supermetroid.autosplits
 
 import com.supermetroid.model.*
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.junit.jupiter.api.Test
@@ -172,6 +173,65 @@ class PersonalBestTotalTimeTest {
             // But segment times should be the best from any run
             get { splitTimes["ceres_station"]?.segmentTime }.isEqualTo(80000L) // From run1
             get { splitTimes["morph_ball"]?.segmentTime }.isEqualTo(20000L)    // From run2
+        }
+    }
+
+    @Test
+    fun `loading replay PB compares against previous PB not loaded run`() {
+        runBlocking {
+            val now = Clock.System.now()
+
+            val previousPb = createCompleteRun(
+                id = "previous_pb",
+                profileId = "kpdr-any",
+                startTime = now,
+                totalTime = 120_000L,
+                splits = listOf(
+                    createSplit("ceres_station", 50_000L, 50_000L),
+                    createSplit("morph_ball", 120_000L, 70_000L)
+                )
+            )
+
+            val loadedPb = createCompleteRun(
+                id = "loaded_pb",
+                profileId = "kpdr-any",
+                startTime = now.plus(1.minutes),
+                totalTime = 110_000L,
+                splits = listOf(
+                    createSplit("ceres_station", 45_000L, 45_000L),
+                    createSplit("morph_ball", 110_000L, 65_000L)
+                )
+            )
+
+            engine.loadSavedState(
+                SplitsState(
+                    currentRun = null,
+                    personalBests = emptyMap(),
+                    runHistory = listOf(previousPb, loadedPb)
+                )
+            )
+
+            expectThat(engine.splitsState.value.personalBests["kpdr-any"]).isNotNull().and {
+                get { runSessionId }.isEqualTo("loaded_pb")
+            }
+
+            val loaded = engine.loadReplayRunSession(
+                targetRun = loadedPb,
+                previousRuns = listOf(previousPb, loadedPb)
+            )
+
+            expectThat(loaded).isTrue()
+            expectThat(engine.splitsState.value.currentRun).isNotNull().and {
+                get { id }.isEqualTo("loaded_pb")
+                get { isPaused }.isTrue()
+            }
+            expectThat(engine.splitsState.value.runHistory.map { it.id }).containsExactly("previous_pb")
+            expectThat(engine.splitsState.value.personalBests["kpdr-any"]).isNotNull().and {
+                get { runSessionId }.isEqualTo("previous_pb")
+                get { totalTime }.isEqualTo(120_000L)
+                get { splitTimes["ceres_station"]?.segmentTime }.isEqualTo(50_000L)
+                get { splitTimes["morph_ball"]?.segmentTime }.isEqualTo(70_000L)
+            }
         }
     }
     
