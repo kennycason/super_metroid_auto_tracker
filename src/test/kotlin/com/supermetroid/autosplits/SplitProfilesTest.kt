@@ -8,6 +8,48 @@ import org.junit.jupiter.api.Test
 class SplitProfilesTest {
 
     @Test
+    fun `KPDR Any late ice profile is registered and findable`() {
+        assertTrue(SplitProfiles.ALL_PROFILES.contains(SplitProfiles.KPDR_LATE_ICE))
+        assertSame(SplitProfiles.KPDR_LATE_ICE, SplitProfiles.getProfileById("kpdr-late-ice"))
+    }
+
+    @Test
+    fun `KPDR Any late ice profile clones KPDR Any route without Spazer and with Ice after Plasma`() {
+        val splitIds = SplitProfiles.KPDR_LATE_ICE.splits.map { it.id }
+
+        assertEquals("KPDR Any% Late Ice", SplitProfiles.KPDR_LATE_ICE.name)
+        assertEquals(23, splitIds.size)
+        assertEquals(
+            listOf(
+                "ceres_station",
+                "morph_ball",
+                "first_missile",
+                "bomb",
+                "first_super",
+                "charge_beam",
+                "kraid",
+                "varia_suit",
+                "hi_jump",
+                "speed_booster",
+                "wave_beam",
+                "first_power_bomb",
+                "phantoon",
+                "gravity_suit",
+                "draygon",
+                "space_jump",
+                "plasma_beam",
+                "ice_beam",
+                "ridley",
+                "golden_four",
+                "mother_brain_1",
+                "mother_brain_2",
+                "ship"
+            ),
+            splitIds
+        )
+    }
+
+    @Test
     fun `PRKD Any profile is registered and findable`() {
         assertTrue(SplitProfiles.ALL_PROFILES.contains(SplitProfiles.PRKD_ANY))
         assertSame(SplitProfiles.PRKD_ANY, SplitProfiles.getProfileById("prkd-any"))

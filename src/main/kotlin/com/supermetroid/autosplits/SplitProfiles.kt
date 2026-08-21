@@ -81,13 +81,13 @@ object SplitProfiles {
     )
     
     /**
-     * KPDR Late Ice - Route with Ice Beam obtained after Phantoon
+     * KPDR Any% Late Ice - KPDR Any% route with Ice Beam obtained after Phantoon
      * Kraid → Phantoon → Draygon → Ridley
-     * Ice Beam obtained after Gravity Suit (common for certain strats)
+     * Ice Beam obtained after Plasma Beam; Spazer is omitted for late-ice routing.
      */
     val KPDR_LATE_ICE = SplitProfile(
         id = ID_KPDR_LATE_ICE,
-        name = "KPDR Late Ice",
+        name = "KPDR Any% Late Ice",
         splits = listOf(
             Split("ceres_station", "Ceres Station", "boss", "Escape from Ceres Station"),
             Split("morph_ball", "Morph Ball", "item", "Morph Ball acquired"),
@@ -95,7 +95,6 @@ object SplitProfiles {
             Split("bomb", "Bomb", "item", "Bomb acquired"),
             Split("first_super", "First Super", "item", "First super missile pack collected"),
             Split("charge_beam", "Charge Beam", "beam", "Charge Beam acquired"),
-            Split("spazer", "Spazer", "item", "Spazer acquired"),
             Split("kraid", "Kraid", "boss", "Kraid defeated"),
             Split("varia_suit", "Varia Suit", "item", "Varia Suit acquired"),
             Split("hi_jump", "Hi-Jump Boots", "item", "Hi-Jump Boots acquired"),
@@ -104,10 +103,10 @@ object SplitProfiles {
             Split("first_power_bomb", "First Power Bomb", "item", "First power bomb pack collected"),
             Split("phantoon", "Phantoon", "boss", "Phantoon defeated"),
             Split("gravity_suit", "Gravity Suit", "item", "Gravity Suit acquired"),
-            Split("ice_beam", "Ice Beam", "beam", "Ice Beam acquired"),  // Moved after Gravity Suit
             Split("draygon", "Draygon", "boss", "Draygon defeated"),
             Split("space_jump", "Space Jump", "item", "Space Jump acquired"),
             Split("plasma_beam", "Plasma Beam", "beam", "Plasma Beam acquired"),
+            Split("ice_beam", "Ice Beam", "beam", "Ice Beam acquired"),
             Split("ridley", "Ridley", "boss", "Ridley defeated"),
             Split("golden_four", "G4", "event", "Entered Tourian (all 4 bosses defeated)"),
             Split("mother_brain_1", "Mother Brain 1", "boss", "Mother Brain phase 1 completed"),

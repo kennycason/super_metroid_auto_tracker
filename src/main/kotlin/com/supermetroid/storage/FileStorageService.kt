@@ -614,10 +614,7 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
     // Helper functions
 
     private fun getProfileName(profileId: String): String {
-        return when (profileId) {
-            SplitProfiles.ID_KPDR_ANY -> "KPDR Any%"
-            else -> profileId
-        }
+        return SplitProfiles.BY_ID[profileId]?.name ?: profileId
     }
 
     private fun findRunFileName(runId: String): String? {

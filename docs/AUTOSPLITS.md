@@ -11,7 +11,7 @@
 | Profile | ID | Splits | Description |
 |---------|-----|--------|-------------|
 | KPDR Any% | `kpdr-any` | 24 | Standard route, early Ice Beam |
-| KPDR Late Ice | `kpdr-late-ice` | 23 | Ice after Gravity |
+| KPDR Any% Late Ice | `kpdr-late-ice` | 23 | Ice after Plasma, no Spazer |
 | Low% Ice | `low-percent-ice` | 17 | Minimal items (14%) |
 | 100% | `hundred-percent` | 12 | Full collection |
 
