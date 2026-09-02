@@ -305,7 +305,7 @@ private fun SplitsSettingsTab(
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         // Split Profile Section
-        SplitProfileSection(
+        SplitProfileManagementSection(
             splitProfileService = splitProfileService,
             modifier = Modifier.fillMaxWidth()
         )
@@ -400,84 +400,6 @@ private fun SplitsSettingsTab(
             splitsFontSizeService = splitsFontSizeService,
             modifier = Modifier.fillMaxWidth()
         )
-    }
-}
-
-@Composable
-private fun SplitProfileSection(
-    splitProfileService: com.supermetroid.service.SplitProfileService,
-    modifier: Modifier = Modifier
-) {
-    val currentProfile by splitProfileService.currentProfile.collectAsState()
-    var expanded by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    
-    Row(
-        modifier = modifier.fillMaxWidth(0.9f),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Label on left
-        Text(
-            text = "Split Profile",
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = TrackerColors.OnSurface,
-                fontWeight = FontWeight.Medium
-            )
-        )
-
-        // Profile Dropdown
-        Box {
-            Button(
-                onClick = { expanded = !expanded },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = TrackerColors.SurfaceOverlayLight,
-                    contentColor = TrackerColors.OnSurface
-                ),
-                shape = RoundedCornerShape(6.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "${currentProfile.name} (${currentProfile.splits.size} splits)",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    Text(
-                        text = if (expanded) "▲" else "▼",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
-
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.background(TrackerColors.Surface)
-            ) {
-                com.supermetroid.autosplits.SplitProfiles.ALL_PROFILES.forEach { profile ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = "${profile.name} (${profile.splits.size} splits)",
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = if (profile.id == currentProfile.id) TrackerColors.Primary else TrackerColors.OnSurface
-                                )
-                            )
-                        },
-                        onClick = {
-                            scope.launch { splitProfileService.setProfile(profile) }
-                            expanded = false
-                        },
-                        colors = MenuDefaults.itemColors(
-                            textColor = TrackerColors.OnSurface
-                        )
-                    )
-                }
-            }
-        }
     }
 }
 

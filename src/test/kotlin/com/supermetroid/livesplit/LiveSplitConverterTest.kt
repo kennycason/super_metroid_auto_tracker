@@ -35,16 +35,21 @@ class LiveSplitConverterTest {
 
     @Test
     fun `deriveSplitId - common boss names`() {
+        assertEquals("bomb_torizo", converter.deriveSplitId("Bomb Torizo"))
+        assertEquals("spore_spawn", converter.deriveSplitId("Spore Spawn"))
         assertEquals("phantoon", converter.deriveSplitId("Phantoon"))
         assertEquals("phantoon", converter.deriveSplitId("Phaaan"))
         assertEquals("kraid", converter.deriveSplitId("Kraid"))
+        assertEquals("crocomire", converter.deriveSplitId("Crocomire"))
         assertEquals("draygon", converter.deriveSplitId("Draygon"))
         assertEquals("draygon", converter.deriveSplitId("Water"))
+        assertEquals("golden_torizo", converter.deriveSplitId("Golden Torizo"))
         assertEquals("ridley", converter.deriveSplitId("Ridley"))
     }
 
     @Test
     fun `deriveSplitId - common item names`() {
+        assertEquals("energy_tank", converter.deriveSplitId("First Energy Tank"))
         assertEquals("bomb", converter.deriveSplitId("Bomb"))
         assertEquals("varia_suit", converter.deriveSplitId("Varia"))
         assertEquals("gravity_suit", converter.deriveSplitId("Gravity"))
@@ -53,10 +58,13 @@ class LiveSplitConverterTest {
         assertEquals("screw_attack", converter.deriveSplitId("Screw"))
         assertEquals("grapple_beam", converter.deriveSplitId("Grapple"))
         assertEquals("reserve_tank", converter.deriveSplitId("Reserve"))
+        assertEquals("xray_scope", converter.deriveSplitId("X-Ray Scope"))
     }
 
     @Test
     fun `deriveSplitId - event names`() {
+        assertEquals("metroid1", converter.deriveSplitId("Metroid Room 1"))
+        assertEquals("metroid4", converter.deriveSplitId("Metroid Room 4"))
         assertEquals("golden_four", converter.deriveSplitId("G4"))
         assertEquals("ship", converter.deriveSplitId("Done"))
         assertEquals("ship", converter.deriveSplitId("Ship"))

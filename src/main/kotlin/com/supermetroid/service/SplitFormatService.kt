@@ -80,7 +80,7 @@ class SplitFormatService(
             logger.info { "Auto-created LSS file for $profileId: $pathForProfile" }
         } else {
             _liveSplitFilePath.value = pathForProfile
-            loadLiveSplitFile(pathForProfile)
+            loadLiveSplitFile(pathForProfile, profileId)
         }
 
         logger.info { "Split format initialized: writeJson=${_writeJson.value}, lssPath=$pathForProfile (profile=$profileId)" }
@@ -113,9 +113,10 @@ class SplitFormatService(
 
         if (pathForProfile != null && File(pathForProfile).exists()) {
             _liveSplitFilePath.value = pathForProfile
-            loadLiveSplitFile(pathForProfile)
+            loadLiveSplitFile(pathForProfile, profileId)
         } else {
-            val profile = SplitProfiles.getProfileById(profileId)
+            val profile = splitProfileService.findProfileById(profileId)
+                ?: SplitProfiles.getProfileById(profileId)
             pathForProfile = createNewLssFile(profile)
             logger.info { "Auto-created LSS file for $profileId: $pathForProfile" }
         }
@@ -152,11 +153,11 @@ class SplitFormatService(
      * rather than always under the current profile, so the config mapping stays correct
      * when the LSS triggers a profile switch.
      */
-    suspend fun setLiveSplitFilePath(path: String?) {
+    suspend fun setLiveSplitFilePath(path: String?, expectedProfileId: String? = null) {
         _liveSplitFilePath.value = path
 
         if (path != null) {
-            loadLiveSplitFile(path)
+            loadLiveSplitFile(path, expectedProfileId)
         } else {
             _liveSplitDocument.value = null
             _liveSplitProfile.value = null
@@ -208,7 +209,7 @@ class SplitFormatService(
             writer.writeToFile(doc, file)
 
             val path = file.absolutePath
-            setLiveSplitFilePath(path)
+            setLiveSplitFilePath(path, profile.id)
             logger.info { "Created new LSS file: $path" }
             path
         } catch (e: Exception) {
@@ -220,7 +221,7 @@ class SplitFormatService(
     /**
      * Load and parse a LiveSplit file. Extracts the profile and PB data.
      */
-    fun loadLiveSplitFile(path: String): Boolean {
+    fun loadLiveSplitFile(path: String, expectedProfileId: String? = null): Boolean {
         return try {
             val file = File(path)
             if (!file.exists()) {
@@ -239,10 +240,18 @@ class SplitFormatService(
             }
             val doc = _liveSplitDocument.value ?: rawDoc
 
-            val profile = converter.toSplitProfile(doc)
+            val inferredProfile = converter.toSplitProfile(doc)
+            val expectedProfile = expectedProfileId
+                ?.let { splitProfileService.findProfileById(it) }
+                ?.takeIf { it.splits.size == doc.segments.size }
+            val profile = expectedProfile ?: inferredProfile
             _liveSplitProfile.value = profile
 
-            val pb = converter.toPersonalBest(doc, profile.id)
+            val pb = converter.toPersonalBest(
+                doc,
+                profile.id,
+                profile.splits.map { it.id }
+            )
             _liveSplitPersonalBest.value = pb
 
             logger.info { "Loaded LiveSplit file: ${doc.gameName} - ${doc.categoryName} (${doc.segments.size} segments, ${doc.attemptHistory.size} attempts)" }
@@ -261,7 +270,7 @@ class SplitFormatService(
      */
     suspend fun reloadLiveSplitFile(): Boolean {
         val path = _liveSplitFilePath.value ?: return false
-        val result = loadLiveSplitFile(path)
+        val result = loadLiveSplitFile(path, splitProfileService.getCurrentProfileId())
         if (result) {
             onFormatChanged?.invoke()
         }
@@ -523,10 +532,13 @@ class SplitFormatService(
      * return the canonical profile so the UI and state use a consistent id (e.g. "kpdr-any").
      */
     private fun resolveCanonicalProfile(lssProfile: SplitProfile): SplitProfile {
+        splitProfileService.findProfileById(lssProfile.id)?.let { return it }
         val lssIds = lssProfile.splits.map { it.id }
-        for (builtIn in SplitProfiles.ALL_PROFILES) {
-            if (builtIn.splits.map { it.id } == lssIds) {
-                return builtIn
+        val current = splitProfileService.currentProfile.value
+        if (current.splits.map { it.id } == lssIds) return current
+        for (knownProfile in splitProfileService.availableProfiles.value) {
+            if (knownProfile.splits.map { it.id } == lssIds) {
+                return knownProfile
             }
         }
         return lssProfile
@@ -576,7 +588,7 @@ class SplitFormatService(
         val pbWithCanonicalId = pb.copy(profileId = profile.id)
 
         // Build full run history from LSS attempt/segment data for stats
-        val lssRuns = converter.toRunHistory(doc, profile.id)
+        val lssRuns = converter.toRunHistory(doc, profile.id, profile.splits.map { it.id })
 
         // Also include synthetic PB run so findActualPbRun() works for BEST column
         val syntheticRun = syntheticPbRun(profile, pbWithCanonicalId)
@@ -597,6 +609,38 @@ class SplitFormatService(
             )
         } catch (e: Exception) {
             logger.error(e) { "Failed to persist split format settings" }
+        }
+    }
+
+    /**
+     * Apply editor-owned display names to the active LSS without changing split
+     * identity or timing history.
+     */
+    suspend fun onProfileDefinitionChanged(profile: SplitProfile) {
+        if (profile.id != splitProfileService.getCurrentProfileId()) return
+        val doc = _liveSplitDocument.value ?: return
+        val path = _liveSplitFilePath.value ?: return
+        if (doc.segments.size != profile.splits.size) return
+
+        try {
+            val updated = doc.copy(
+                segments = doc.segments.zip(profile.splits).map { (segment, split) ->
+                    segment.copy(name = split.name)
+                }
+            )
+            val file = File(path)
+            fileStorageService.backupFileSync(file)
+            writer.writeToFile(updated, file)
+            _liveSplitDocument.value = updated
+            _liveSplitProfile.value = profile
+            _liveSplitPersonalBest.value = converter.toPersonalBest(
+                updated,
+                profile.id,
+                profile.splits.map { it.id }
+            )
+            logger.info { "Updated LiveSplit display names for ${profile.name}" }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to update LiveSplit display names for ${profile.name}" }
         }
     }
 }

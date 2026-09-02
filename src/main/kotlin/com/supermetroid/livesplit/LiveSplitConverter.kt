@@ -26,7 +26,10 @@ class LiveSplitConverter : Logging {
      */
     private val segmentNameToSplitId: Map<String, String> = mapOf(
         // Bosses
+        "bomb torizo" to "bomb_torizo",
+        "spore spawn" to "spore_spawn",
         "kraid" to "kraid",
+        "crocomire" to "crocomire",
         "phantoon" to "phantoon",
         "phaaan" to "phantoon",
         "botwoon" to "botwoon",
@@ -35,6 +38,8 @@ class LiveSplitConverter : Logging {
         "water" to "draygon",
         "ridley" to "ridley",
         "ridley dead" to "ridley",
+        "gold torizo" to "golden_torizo",
+        "golden torizo" to "golden_torizo",
         "mother brain 1" to "mother_brain_1",
         "mb1" to "mother_brain_1",
         "mother brain 2" to "mother_brain_2",
@@ -42,6 +47,8 @@ class LiveSplitConverter : Logging {
         "mother brain" to "mother_brain_2",
 
         // Items
+        "energy tank" to "energy_tank",
+        "first energy tank" to "energy_tank",
         "morph" to "morph_ball",
         "morph ball" to "morph_ball",
         "bomb" to "bomb",
@@ -96,6 +103,14 @@ class LiveSplitConverter : Logging {
         "reserve tank" to "reserve_tank",
 
         // Events
+        "metroid 1" to "metroid1",
+        "metroid room 1" to "metroid1",
+        "metroid 2" to "metroid2",
+        "metroid room 2" to "metroid2",
+        "metroid 3" to "metroid3",
+        "metroid room 3" to "metroid3",
+        "metroid 4" to "metroid4",
+        "metroid room 4" to "metroid4",
         "ceres" to "ceres_station",
         "ceres station" to "ceres_station",
         "g4" to "golden_four",
@@ -113,13 +128,17 @@ class LiveSplitConverter : Logging {
      */
     private val splitIdToType: Map<String, String> = mapOf(
         "ceres_station" to "boss",
+        "energy_tank" to "item",
         "morph_ball" to "item",
         "bomb" to "item",
         "first_missile" to "item",
         "first_super" to "item",
         "charge_beam" to "beam",
         "spazer" to "item",
+        "bomb_torizo" to "boss",
+        "spore_spawn" to "boss",
         "kraid" to "boss",
+        "crocomire" to "boss",
         "botwoon" to "boss",
         "varia_suit" to "item",
         "hi_jump" to "item",
@@ -137,7 +156,12 @@ class LiveSplitConverter : Logging {
         "reserve_tank" to "item",
         "spring_ball" to "item",
         "xray_scope" to "item",
+        "golden_torizo" to "boss",
         "ridley" to "boss",
+        "metroid1" to "event",
+        "metroid2" to "event",
+        "metroid3" to "event",
+        "metroid4" to "event",
         "golden_four" to "event",
         "lower_norfair_elevator" to "room_entry",
         "mother_brain_1" to "boss",
@@ -220,7 +244,11 @@ class LiveSplitConverter : Logging {
      * fastest attempt's segment history. This handles cases where the PB comparison
      * was overwritten by a slower run (e.g., after LSS corruption or incorrect save).
      */
-    fun toPersonalBest(doc: LiveSplitDocument, profileId: String): PersonalBest {
+    fun toPersonalBest(
+        doc: LiveSplitDocument,
+        profileId: String,
+        stableSplitIds: List<String>? = null
+    ): PersonalBest {
         // Check if the fastest attempt disagrees with the PB comparison
         val comparisonTotal = doc.segments.lastOrNull()?.splitTimes
             ?.find { it.comparisonName == "Personal Best" }?.realTime ?: 0L
@@ -233,7 +261,9 @@ class LiveSplitConverter : Logging {
             fastestAttempt.realTime!! < comparisonTotal &&
             hasCompleteSegmentHistory(doc, fastestAttempt.id)
 
-        val uniqueIds = deriveUniqueSplitIds(doc.segments)
+        val uniqueIds = stableSplitIds
+            ?.takeIf { it.size == doc.segments.size }
+            ?: deriveUniqueSplitIds(doc.segments)
 
         return if (useFastestAttempt) {
             buildPbFromAttempt(doc, fastestAttempt!!.id, fastestAttempt.realTime!!, profileId, uniqueIds)
@@ -414,8 +444,14 @@ class LiveSplitConverter : Logging {
      * Attempts without any segment data (quick resets with no splits) are included
      * as zero-split runs so stats can count them.
      */
-    fun toRunHistory(doc: LiveSplitDocument, profileId: String): List<RunSession> {
-        val uniqueIds = deriveUniqueSplitIds(doc.segments)
+    fun toRunHistory(
+        doc: LiveSplitDocument,
+        profileId: String,
+        stableSplitIds: List<String>? = null
+    ): List<RunSession> {
+        val uniqueIds = stableSplitIds
+            ?.takeIf { it.size == doc.segments.size }
+            ?: deriveUniqueSplitIds(doc.segments)
 
         return doc.attemptHistory.map { attempt ->
             val startTime = startTimeForAttempt(attempt)

@@ -27,6 +27,11 @@ A real-time item, boss, and location tracker for Super Metroid with automatic sp
 - **Multi-Platform Support**: Works with RetroArch (any platform) and SNI-compatible devices (SD2SNES, SNES Classic, etc.)
 - **Automatic Item & Boss Tracking**: Real-time detection of all items, beams, suits, and boss defeats
 - **Auto-Splits**: Automatic speedrun splits for KPDR Any% route with best possible time calculation
+- **Split Profile Editor**:
+  - Create named custom profiles from every supported automatic split
+  - Add, remove, and reorder splits while keeping Ship as the finish
+  - Override split display names in both custom and built-in profiles
+  - Version structural edits so previous run history remains isolated and replayable
 - **Customizable UI**: 
   - Adjustable icon sizes (16x16 to 256x256)
   - Multiple themes (Dark, Light, Matrix Green, etc.)
@@ -124,8 +129,18 @@ ls -lt ~/.smtracker/runs/ | head -10  # Show 10 most recent runs
 - **Icon Size**: Adjust main icon grid size (16x16 to 256x256)
 - **Split Icon Size**: Separate size control for split icons
 - **Split Display Mode**: Show icons, names, or both in splits view
+- **Splits Font Size**: Choose Small through Very Large for split names, times, details, and summaries
 - **Room Name Display**: Toggle current room name visibility
 - **Icon Management**: Show/hide individual icons and reorder them
+- **Split Profile Management**: Create and edit custom split routes, or customize display names in built-in routes
+
+### Custom Split Profiles
+
+Choose **Create New Split Profile…** from the Split Profile dropdown. Custom profiles can use any supported automatic split in any order; Ceres is optional and Ship is always kept as the final split. The timer can be started manually with Space for ROM hacks whose start sequence does not match vanilla Super Metroid.
+
+Built-in profiles share the same editor, but their split selection and ordering are locked. Their display names can still be customized per profile.
+
+Structural changes to a custom profile are committed only when **Save** is clicked and create a new profile version. Old versions are retained for historical run replay. Deleting a custom profile requires confirmation, archives its definition, backs up `split-profiles.json`, and does not delete recorded runs or LiveSplit files.
 
 
 ## 🧪 Building and Testing

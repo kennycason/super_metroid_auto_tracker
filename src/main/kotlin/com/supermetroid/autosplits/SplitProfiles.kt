@@ -364,6 +364,34 @@ object SplitProfiles {
      * Map of profile ID to profile for quick lookup
      */
     val BY_ID: Map<String, SplitProfile> = ALL_PROFILES.associateBy { it.id }
+
+    /**
+     * Automatic splits supported by the tracker but not currently used by a
+     * built-in route. Keeping them explicit prevents the profile editor from
+     * silently losing valid triggers just because no preset happens to use one.
+     */
+    private val ADDITIONAL_AUTOMATIC_SPLITS = listOf(
+        Split("energy_tank", "First Energy Tank", "item", "First Energy Tank collected"),
+        Split("xray_scope", "X-Ray Scope", "item", "X-Ray Scope acquired"),
+        Split("bomb_torizo", "Bomb Torizo", "boss", "Bomb Torizo defeated"),
+        Split("spore_spawn", "Spore Spawn", "boss", "Spore Spawn defeated"),
+        Split("crocomire", "Crocomire", "boss", "Crocomire defeated"),
+        Split("golden_torizo", "Golden Torizo", "boss", "Golden Torizo defeated"),
+        Split("metroid1", "Metroid Room 1", "event", "First Tourian Metroid room cleared"),
+        Split("metroid2", "Metroid Room 2", "event", "Second Tourian Metroid room cleared"),
+        Split("metroid3", "Metroid Room 3", "event", "Third Tourian Metroid room cleared"),
+        Split("metroid4", "Metroid Room 4", "event", "Fourth Tourian Metroid room cleared")
+    )
+
+    /**
+     * Canonical definitions available to the profile editor. This includes the
+     * union of every built-in route and every other game-state trigger supported
+     * by the engine. The first occurrence supplies the default display name.
+     */
+    val SPLIT_CATALOG: List<Split> = (ALL_PROFILES.flatMap { it.splits } + ADDITIONAL_AUTOMATIC_SPLITS)
+        .distinctBy { it.id }
+
+    val SPLIT_CATALOG_BY_ID: Map<String, Split> = SPLIT_CATALOG.associateBy { it.id }
     
     /**
      * Get a profile by ID, returns KPDR_ANY as default if not found

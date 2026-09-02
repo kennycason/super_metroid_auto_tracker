@@ -8,6 +8,60 @@ import org.junit.jupiter.api.Test
 class SplitProfilesTest {
 
     @Test
+    fun `editor catalog includes every tracker-supported item boss and event split`() {
+        val catalogIds = SplitProfiles.SPLIT_CATALOG.map { it.id }
+        val expectedTrackerSplits = setOf(
+            "energy_tank",
+            "reserve_tank",
+            "first_missile",
+            "first_super",
+            "first_power_bomb",
+            "morph_ball",
+            "bomb",
+            "charge_beam",
+            "spazer",
+            "varia_suit",
+            "hi_jump",
+            "speed_booster",
+            "wave_beam",
+            "ice_beam",
+            "gravity_suit",
+            "space_jump",
+            "spring_ball",
+            "screw_attack",
+            "plasma_beam",
+            "grapple_beam",
+            "xray_scope",
+            "ceres_station",
+            "bomb_torizo",
+            "spore_spawn",
+            "kraid",
+            "crocomire",
+            "phantoon",
+            "botwoon",
+            "draygon",
+            "golden_torizo",
+            "ridley",
+            "golden_four",
+            "metroid1",
+            "metroid2",
+            "metroid3",
+            "metroid4",
+            "mother_brain_1",
+            "mother_brain_2",
+            "ship"
+        )
+
+        assertTrue(catalogIds.containsAll(expectedTrackerSplits))
+        assertEquals(catalogIds.distinct(), catalogIds)
+        assertTrue(
+            catalogIds.containsAll(SplitProfiles.ALL_PROFILES.flatMap { profile ->
+                profile.splits.map { it.id }
+            })
+        )
+    }
+
+    @Test
     fun `KPDR Any late ice profile is registered and findable`() {
         assertTrue(SplitProfiles.ALL_PROFILES.contains(SplitProfiles.KPDR_LATE_ICE))
         assertSame(SplitProfiles.KPDR_LATE_ICE, SplitProfiles.getProfileById("kpdr-late-ice"))

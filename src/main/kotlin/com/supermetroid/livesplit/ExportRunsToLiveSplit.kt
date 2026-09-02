@@ -33,6 +33,7 @@ fun main() {
     for (profileId in profileIds) {
         val profileRuns = allRuns.filter { it.profileId == profileId }.sortedBy { it.startTime }
         val profile = SplitProfiles.BY_ID[profileId]
+            ?: profileRuns.firstNotNullOfOrNull { it.profileSnapshot }
 
         if (profile == null) {
             println("  SKIP $profileId - no matching SplitProfile found in registry")

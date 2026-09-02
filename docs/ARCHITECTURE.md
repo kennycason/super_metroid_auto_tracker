@@ -117,12 +117,14 @@ SplitsList UI / Timer UI (Compose StateFlow)
 ```
 ~/.smtracker/
 ├── smtracker.json          # AppConfig (35 settings)
+├── split-profiles.json     # Custom profiles, archived revisions, and built-in name overrides
 ├── icon-config.json        # Icon visibility/ordering
 ├── maprando-info-config.json  # Map Rando panel config
 ├── sounds.json             # Sound effect config
 ├── sounds/                 # Custom sound files (WAV/MP3)
 ├── run-history.json        # Complete run history + derived PBs
 ├── run-summaries.json      # Cached summary data
+├── backups/                # Pre-delete profile snapshots and run/LSS backups
 ├── runs/                   # Individual run files
 │   └── {profileId}_{date}_{timestamp}.json
 └── exports/                # LSS export output

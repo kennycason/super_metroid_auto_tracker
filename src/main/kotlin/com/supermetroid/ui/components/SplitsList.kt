@@ -492,8 +492,12 @@ private fun SplitRow(
         else -> TrackerColors.Border.copy(alpha = 0.3f)
     }
 
-    // Calculate row height: max of icon size or 24dp base height, plus padding
-    val rowHeight = kotlin.math.max(splitIconSize, 24) + 2 // +2 for vertical padding
+    // The existing tiers retain their current compact rows. Very Large needs
+    // enough vertical room for its main time and segment-delta lines.
+    val minimumRowHeight = if (
+        fontSize == com.supermetroid.model.SplitsFontSize.VERY_LARGE
+    ) 36 else 24
+    val rowHeight = kotlin.math.max(splitIconSize, minimumRowHeight) + 2
 
             Row(
                 modifier = Modifier
@@ -1005,6 +1009,7 @@ private fun SummaryRow(
  */
 private val splitIdToSpriteId: Map<String, String> = mapOf(
     "ceres_station" to "ceres_station",
+    "energy_tank" to "energy_tank",
     "morph_ball" to "morph_ball",
     "first_missile" to "missile",
     "first_super" to "super_missile",

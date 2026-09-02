@@ -41,6 +41,12 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     // Callback for notifying SplitProfileService when profile changes from within engine
     // This avoids circular dependency while enabling bidirectional sync
     private var onProfileChangedFromEngine: (suspend (SplitProfile) -> Unit)? = null
+
+    // Dynamic resolver supplied by SplitProfileService so replay/resume can load
+    // custom profiles and archived structural revisions.
+    private var profileResolver: (String) -> SplitProfile? = { profileId ->
+        SplitProfiles.BY_ID[profileId]
+    }
     
     // Callback fired after a run is saved to disk (used by SplitFormatService to also write LSS)
     private var onRunSaved: ((RunSession) -> Unit)? = null
@@ -55,6 +61,13 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     fun setOnProfileChangedCallback(callback: suspend (SplitProfile) -> Unit) {
         onProfileChangedFromEngine = callback
     }
+
+    fun setProfileResolver(resolver: (String) -> SplitProfile?) {
+        profileResolver = resolver
+    }
+
+    private fun resolveProfile(profileId: String): SplitProfile =
+        profileResolver(profileId) ?: SplitProfiles.getProfileById(profileId)
     
     /**
      * Set callback fired after a run is saved to JSON.
@@ -121,7 +134,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             _splitsState.value = replayState
 
             // Load the profile and sync to SplitProfileService
-            val newProfile = SplitProfiles.getProfileById(targetRun.profileId)
+            val newProfile = targetRun.profileSnapshot ?: resolveProfile(targetRun.profileId)
             currentProfile = newProfile
             currentSplitIndex = targetRun.completedSplits.size
 
@@ -146,7 +159,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         try {
             _splitsState.value = buildReplayState(targetRun, previousRuns)
 
-            val newProfile = SplitProfiles.getProfileById(targetRun.profileId)
+            val newProfile = targetRun.profileSnapshot ?: resolveProfile(targetRun.profileId)
             currentProfile = newProfile
             currentSplitIndex = targetRun.completedSplits.size
 
@@ -248,7 +261,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         val currentRun = finalState.currentRun
         if (currentRun != null) {
-            val profile = currentProfile ?: SplitProfiles.getProfileById(currentRun.profileId)
+            val profile = currentRun.profileSnapshot ?: currentProfile ?: resolveProfile(currentRun.profileId)
             currentSplitIndex = currentRun.completedSplits.size
 
             logger.info { "🔄 Resumed run ${currentRun.id} at split ${currentSplitIndex}/${profile.splits.size}" }
@@ -484,7 +497,8 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             completedSplits = emptyList(),
             totalTime = 0,
             isPaused = false,
-            pausedTime = 0
+            pausedTime = 0,
+            profileSnapshot = currentProfile?.takeIf { it.id == profileId }
         )
 
         // Reset the split index and pause state
@@ -726,7 +740,8 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                 completedSplits = emptyList(),
                 totalTime = timeMs,
                 isPaused = true,  // Start paused so time doesn't advance
-                pausedTime = 0
+                pausedTime = 0,
+                profileSnapshot = (currentProfile ?: resolveProfile(profileId)).takeIf { it.id == profileId }
             )
 
             // Set pause start time to now
@@ -1031,6 +1046,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             "first_missile" -> gameState.maxMissiles > 0
             "first_super" -> gameState.maxSupers > 0
             "first_power_bomb" -> gameState.maxPowerBombs > 0
+            "energy_tank" -> gameState.maxHealth > 99
             "morph_ball" -> gameState.items.morph
             "bomb" -> gameState.items.bombs
             "charge_beam" -> gameState.beams.charge
@@ -1046,12 +1062,21 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             "screw_attack" -> gameState.items.screw
             "grapple_beam" -> gameState.items.grapple
             "spring_ball" -> gameState.items.spring
+            "xray_scope" -> gameState.items.xray
             "reserve_tank" -> gameState.maxReserveEnergy > 0
+            "bomb_torizo" -> gameState.bosses.bombTorizo
+            "spore_spawn" -> gameState.bosses.sporeSpawn
             "kraid" -> gameState.bosses.kraid
+            "crocomire" -> gameState.bosses.crocomire
             "phantoon" -> gameState.bosses.phantoon
             "botwoon" -> gameState.bosses.botwoon
             "draygon" -> gameState.bosses.draygon
+            "golden_torizo" -> gameState.bosses.goldenTorizo
             "ridley" -> gameState.bosses.ridley
+            "metroid1" -> gameState.bosses.metroid1
+            "metroid2" -> gameState.bosses.metroid2
+            "metroid3" -> gameState.bosses.metroid3
+            "metroid4" -> gameState.bosses.metroid4
             // For G4, we need to check if we're in the statues room, not just if all bosses are defeated
             // This prevents auto-triggering G4 immediately after defeating the last boss
             "golden_four" -> gameState.roomId == RoomIds.STATUES && gameState.bosses.kraid && gameState.bosses.phantoon && gameState.bosses.draygon && gameState.bosses.ridley
@@ -1168,7 +1193,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     /**
      * Check if a split condition is met
      */
-    private fun checkSplitCondition(split: Split, previousState: GameState?, currentState: GameState): Boolean {
+    internal fun checkSplitCondition(split: Split, previousState: GameState?, currentState: GameState): Boolean {
         if (previousState == null) return false
 
         // Room-entry trigger: split fires when player transitions into the specified room
@@ -1196,6 +1221,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             "first_missile" -> checkFirstMissile(previousState, currentState)
             "first_super" -> checkFirstSuper(previousState, currentState)
             "first_power_bomb" -> checkFirstPowerBomb(previousState, currentState)
+            "energy_tank" -> previousState.maxHealth < currentState.maxHealth
             "morph_ball" -> checkMorphBall(previousState, currentState)
             "bomb" -> checkBomb(previousState, currentState)
             "charge_beam" -> checkChargeBeam(previousState, currentState)
@@ -1211,12 +1237,21 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             "screw_attack" -> !previousState.items.screw && currentState.items.screw
             "grapple_beam" -> !previousState.items.grapple && currentState.items.grapple
             "spring_ball" -> !previousState.items.spring && currentState.items.spring
+            "xray_scope" -> !previousState.items.xray && currentState.items.xray
             "reserve_tank" -> checkReserveTank(previousState, currentState)
+            "bomb_torizo" -> !previousState.bosses.bombTorizo && currentState.bosses.bombTorizo
+            "spore_spawn" -> !previousState.bosses.sporeSpawn && currentState.bosses.sporeSpawn
             "kraid" -> checkKraid(previousState, currentState)
+            "crocomire" -> !previousState.bosses.crocomire && currentState.bosses.crocomire
             "phantoon" -> checkPhantoon(previousState, currentState)
             "botwoon" -> checkBotwoon(previousState, currentState)
             "draygon" -> checkDraygon(previousState, currentState)
+            "golden_torizo" -> !previousState.bosses.goldenTorizo && currentState.bosses.goldenTorizo
             "ridley" -> checkRidley(previousState, currentState)
+            "metroid1" -> !previousState.bosses.metroid1 && currentState.bosses.metroid1
+            "metroid2" -> !previousState.bosses.metroid2 && currentState.bosses.metroid2
+            "metroid3" -> !previousState.bosses.metroid3 && currentState.bosses.metroid3
+            "metroid4" -> !previousState.bosses.metroid4 && currentState.bosses.metroid4
             "golden_four" -> checkGoldenFour(previousState, currentState)
             "mother_brain_1" -> checkMotherBrain1(previousState, currentState)
             "mother_brain_2" -> checkMotherBrain2(previousState, currentState)
@@ -1497,7 +1532,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                 )
 
                 // Set split index past completed splits
-                val profile = SplitProfiles.getProfileById(targetRun.profileId)
+                val profile = targetRun.profileSnapshot ?: resolveProfile(targetRun.profileId)
                 currentProfile = profile
                 currentSplitIndex = targetRun.completedSplits.size
 

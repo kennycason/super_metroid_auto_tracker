@@ -74,8 +74,10 @@ fun main(args: Array<String>) {
     // Initialize all services via AppDependencies
     appDependencies = AppDependencies.create(customDataDir)
     
-    // Initialize autoSplitsEngine to restore saved timer OR load replay run
+    // Load the profile registry before restoring a timer or replay. Custom and
+    // archived profile IDs must be resolvable when the engine rebuilds a run.
     runBlocking {
+        splitProfileService.initialize()
         if (currentRunFile != null) {
             autoSplitsEngine.loadReplayRun(currentRunFile)
         } else {
@@ -275,6 +277,11 @@ fun SuperMetroidTrackerApp() {
         // Wire up profile change -> LSS switch callback
         splitProfileService.setOnProfileChangedCallback { profileId ->
             splitFormatService.onProfileChanged(profileId)
+        }
+
+        // Display-name edits keep stable split IDs while updating the active LSS labels.
+        splitProfileService.setOnProfileDefinitionChangedCallback { profile ->
+            splitFormatService.onProfileDefinitionChanged(profile)
         }
 
         // Initialize split format (LSS is always primary)

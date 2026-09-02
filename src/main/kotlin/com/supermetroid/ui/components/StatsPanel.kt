@@ -158,7 +158,7 @@ fun StatsPanel(
                 StatsTab.DEATHS -> DeathsTab(runs, profile, fs)
                 StatsTab.PROGRESS -> ProgressTab(runs, fs)
                 StatsTab.TREND -> TrendTab(runs, fs)
-                StatsTab.RECORDS -> RecordsTab(allDiskRuns ?: splitsState.runHistory, fs)
+                StatsTab.RECORDS -> RecordsTab(allDiskRuns ?: splitsState.runHistory, profile, fs)
             }
         }
     }
@@ -816,20 +816,28 @@ private fun statsSplitItemId(splitId: String, splitName: String): String {
 }
 
 @Composable
-private fun RecordsTab(allRuns: List<com.supermetroid.model.RunSession>, fs: StatsFontSize) {
-    val records = remember(allRuns) {
+private fun RecordsTab(
+    allRuns: List<com.supermetroid.model.RunSession>,
+    currentProfile: SplitProfile,
+    fs: StatsFontSize
+) {
+    val records = remember(allRuns, currentProfile) {
         val profilesById = com.supermetroid.autosplits.SplitProfiles.BY_ID
         allRuns
             .filter { it.endTime != null && !it.id.startsWith("livesplit-pb") }
             .groupBy { it.profileId }
             .mapNotNull { (profileId, runs) ->
-                val profile = profilesById[profileId] ?: return@mapNotNull null
+                val profile = profilesById[profileId]
+                    ?: currentProfile.takeIf { it.id == profileId }
+                    ?: runs.maxByOrNull { it.startTime }?.profileSnapshot
+                    ?: return@mapNotNull null
                 val best = runs.minByOrNull { it.totalTime } ?: return@mapNotNull null
                 Triple(profile, best.totalTime, runs.size)
             }
             .sortedBy { (profile, _, _) ->
                 // Sort by the order in ALL_PROFILES
-                com.supermetroid.autosplits.SplitProfiles.ALL_PROFILES.indexOf(profile)
+                com.supermetroid.autosplits.SplitProfiles.ALL_PROFILES.indexOfFirst { it.id == profile.id }
+                    .takeIf { it >= 0 } ?: Int.MAX_VALUE
             }
     }
 

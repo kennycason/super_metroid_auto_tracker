@@ -17,7 +17,15 @@ data class Split(
 data class SplitProfile(
     val id: String,
     val name: String,
-    val splits: List<Split>
+    val splits: List<Split>,
+    /**
+     * Structural version of this profile. Built-in profiles remain at version 1.
+     * Custom profiles receive a new version (and profile [id]) whenever their
+     * ordered split list changes.
+     */
+    val version: Int = 1,
+    /** Stable identity shared by all structural versions of a custom profile. */
+    val familyId: String = id
 )
 
 @Serializable
@@ -45,7 +53,12 @@ data class RunSession(
     val totalTime: Long,
     val isPersonalBest: Boolean = false,
     val isPaused: Boolean = false,
-    val pausedTime: Long = 0 // Total time spent paused in milliseconds
+    val pausedTime: Long = 0, // Total time spent paused in milliseconds
+    /**
+     * Snapshot used to replay runs after a custom profile is revised or deleted.
+     * Optional so all existing run JSON remains backwards compatible.
+     */
+    val profileSnapshot: SplitProfile? = null
 )
 
 @Serializable

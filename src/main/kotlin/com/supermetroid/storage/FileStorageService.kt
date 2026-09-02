@@ -34,6 +34,7 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
     private val runsDir = File(trackerDir, "runs")
     private val backupsDir = File(trackerDir, "backups")
     private val runSummariesFile = File(trackerDir, "run-summaries.json")
+    private val splitProfilesFile = File(trackerDir, "split-profiles.json")
 
     /** Get the storage directory path (e.g., ~/.smtracker/) */
     fun getStorageDir(): File = trackerDir
@@ -155,6 +156,42 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
         }
     }
 
+    /** Load custom profiles and built-in split-name overrides. */
+    suspend fun loadSplitProfilesConfig(): SplitProfilesConfig = withContext(Dispatchers.IO) {
+        try {
+            if (!splitProfilesFile.exists()) {
+                return@withContext SplitProfilesConfig()
+            }
+            json.decodeFromString<SplitProfilesConfig>(splitProfilesFile.readText())
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to load split profile configuration; using defaults" }
+            SplitProfilesConfig()
+        }
+    }
+
+    /** Atomically save custom profiles and built-in split-name overrides. */
+    suspend fun saveSplitProfilesConfig(config: SplitProfilesConfig) = withContext(Dispatchers.IO) {
+        val jsonString = json.encodeToString(config)
+        val tmpFile = File.createTempFile("split_profiles_", ".tmp", trackerDir)
+        try {
+            tmpFile.writeText(jsonString)
+            if (!tmpFile.renameTo(splitProfilesFile)) {
+                tmpFile.copyTo(splitProfilesFile, overwrite = true)
+                tmpFile.delete()
+            }
+            logger.debug { "Saved split profile configuration to ${splitProfilesFile.absolutePath}" }
+        } catch (e: Exception) {
+            tmpFile.delete()
+            logger.error(e) { "Failed to save split profile configuration" }
+            throw e
+        }
+    }
+
+    /** Back up the complete profile configuration before deleting a profile. */
+    suspend fun backupSplitProfilesConfig(): Boolean = withContext(Dispatchers.IO) {
+        backupFileSync(splitProfilesFile)
+    }
+
     /**
      * Get config file path for debugging
      */
@@ -212,7 +249,9 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
     fun backupFileSync(sourceFile: File): Boolean {
         return try {
             if (!sourceFile.exists()) return false
-            val timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH-mm-ss").format(Date())
+            // Milliseconds keep rapid consecutive destructive actions from
+            // overwriting one another's backups.
+            val timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH-mm-ss-SSS").format(Date())
             val backupName = "${sourceFile.nameWithoutExtension}_$timestamp.${sourceFile.extension}"
             val backupFile = File(backupsDir, backupName)
             sourceFile.copyTo(backupFile, overwrite = true)
@@ -390,7 +429,8 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
                     // Format display name
                     val dateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
                     val dateStr = dateFormatter.format(Date(run.startTime.toEpochMilliseconds()))
-                    val profileName = run.profileId.uppercase().replace("-", " ")
+                    val profileName = run.profileSnapshot?.name
+                        ?: run.profileId.uppercase().replace("-", " ")
                     val timeStr = formatTime(run.totalTime)
                     val completeIcon = if (run.endTime != null) "✅" else "❌"
                     
@@ -472,7 +512,9 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
 
         ProfileSummary(
             profileId = profileId,
-            profileName = getProfileName(profileId),
+            profileName = bestRun?.profileSnapshot?.name
+                ?: allRuns.firstNotNullOfOrNull { it.profileSnapshot?.name }
+                ?: getProfileName(profileId),
             bestTotalTime = bestRun?.totalTime,
             bestRunId = bestRun?.id,
             bestRunFile = bestRun?.let { findRunFileName(it.id) },
