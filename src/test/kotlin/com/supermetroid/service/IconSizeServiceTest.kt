@@ -101,9 +101,18 @@ class IconSizeTest {
         
         assertEquals(24, IconSize.MEDIUM_SMALL.size)
         assertEquals("24x24", IconSize.MEDIUM_SMALL.displayName)
+
+        assertEquals(28, IconSize.MEDIUM_SMALL_PLUS.size)
+        assertEquals("28x28", IconSize.MEDIUM_SMALL_PLUS.displayName)
         
         assertEquals(32, IconSize.MEDIUM.size)
         assertEquals("32x32", IconSize.MEDIUM.displayName)
+
+        assertEquals(36, IconSize.MEDIUM_PLUS.size)
+        assertEquals("36x36", IconSize.MEDIUM_PLUS.displayName)
+
+        assertEquals(40, IconSize.MEDIUM_LARGE.size)
+        assertEquals("40x40", IconSize.MEDIUM_LARGE.displayName)
         
         assertEquals(48, IconSize.LARGE.size)
         assertEquals("48x48", IconSize.LARGE.displayName)
@@ -116,7 +125,10 @@ class IconSizeTest {
     fun `fromSize should return correct IconSize for valid sizes`() {
         assertEquals(IconSize.SMALL, IconSize.fromSize(16))
         assertEquals(IconSize.MEDIUM_SMALL, IconSize.fromSize(24))
+        assertEquals(IconSize.MEDIUM_SMALL_PLUS, IconSize.fromSize(28))
         assertEquals(IconSize.MEDIUM, IconSize.fromSize(32))
+        assertEquals(IconSize.MEDIUM_PLUS, IconSize.fromSize(36))
+        assertEquals(IconSize.MEDIUM_LARGE, IconSize.fromSize(40))
         assertEquals(IconSize.LARGE, IconSize.fromSize(48))
         assertEquals(IconSize.EXTRA_LARGE, IconSize.fromSize(64))
     }

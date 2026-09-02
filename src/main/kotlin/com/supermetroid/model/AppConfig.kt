@@ -8,7 +8,10 @@ import kotlinx.serialization.Serializable
 enum class IconSize(val size: Int, val displayName: String) {
     SMALL(16, "16x16"),
     MEDIUM_SMALL(24, "24x24"),
+    MEDIUM_SMALL_PLUS(28, "28x28"),
     MEDIUM(32, "32x32"),
+    MEDIUM_PLUS(36, "36x36"),
+    MEDIUM_LARGE(40, "40x40"),
     LARGE(48, "48x48"),
     EXTRA_LARGE(64, "64x64"),
     HUGE(128, "128x128"),

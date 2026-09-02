@@ -249,121 +249,79 @@ private fun SplitsHeader(
             horizontalArrangement = Arrangement.End
         ) {
             if (showBestPossibleColumn) {
-                Text(
-                    text = "Best Possible",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = TrackerColors.OnSurfaceVariant,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = fontSize.time.sp
-                    ),
-                    modifier = Modifier.width(85.dp),
-                    textAlign = TextAlign.End
-                )
+                SplitColumnHeader("Best Possible", fontSize.timeColumnWidth, fontSize)
                 Spacer(modifier = Modifier.width(2.dp))
             }
             if (showBestPossibleDelta) {
-                Text(
-                    text = "BP +/-",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = TrackerColors.OnSurfaceVariant,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = fontSize.time.sp
-                    ),
-                    modifier = Modifier.width(65.dp),
-                    textAlign = TextAlign.End
-                )
+                SplitColumnHeader("BP +/-", fontSize.deltaColumnWidth, fontSize)
                 Spacer(modifier = Modifier.width(2.dp))
             }
             if (showBestPossibleDeltaTotal) {
-                Text(
-                    text = "BP +/-",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = TrackerColors.OnSurfaceVariant,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = fontSize.time.sp
-                    ),
-                    modifier = Modifier.width(65.dp),
-                    textAlign = TextAlign.End
-                )
+                SplitColumnHeader("BP +/-", fontSize.deltaColumnWidth, fontSize)
                 Spacer(modifier = Modifier.width(2.dp))
             }
             if (showAverageColumn) {
-                Text(
-                    text = "Average",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = TrackerColors.OnSurfaceVariant,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = fontSize.time.sp
-                    ),
-                    modifier = Modifier.width(85.dp),
-                    textAlign = TextAlign.End
-                )
+                SplitColumnHeader("Average", fontSize.timeColumnWidth, fontSize)
                 Spacer(modifier = Modifier.width(2.dp))
             }
             if (showAverageDelta) {
-                Text(
-                    text = "Avg +/-",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = TrackerColors.OnSurfaceVariant,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = fontSize.time.sp
-                    ),
-                    modifier = Modifier.width(65.dp),
-                    textAlign = TextAlign.End
-                )
+                SplitColumnHeader("Avg +/-", fontSize.deltaColumnWidth, fontSize)
                 Spacer(modifier = Modifier.width(2.dp))
             }
             if (showBestColumn) {
-                Text(
-                    text = "BEST",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = TrackerColors.OnSurfaceVariant,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = fontSize.time.sp
-                    ),
-                    modifier = Modifier.width(85.dp),
-                    textAlign = TextAlign.End
-                )
+                SplitColumnHeader("BEST", fontSize.timeColumnWidth, fontSize)
                 Spacer(modifier = Modifier.width(2.dp))
             }
             if (showBestDelta) {
-                Text(
-                    text = "Best +/-",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = TrackerColors.OnSurfaceVariant,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = fontSize.time.sp
-                    ),
-                    modifier = Modifier.width(65.dp),
-                    textAlign = TextAlign.End
-                )
+                SplitColumnHeader("+/-", fontSize.deltaColumnWidth, fontSize)
                 Spacer(modifier = Modifier.width(2.dp))
             }
             if (showBestDeltaTotal) {
-                Text(
-                    text = "Best +/-",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = TrackerColors.OnSurfaceVariant,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = fontSize.time.sp
-                    ),
-                    modifier = Modifier.width(65.dp),
-                    textAlign = TextAlign.End
-                )
+                SplitColumnHeader("+/-", fontSize.deltaColumnWidth, fontSize)
                 Spacer(modifier = Modifier.width(2.dp))
             }
-            Text(
-                text = "TIME",
-                style = MaterialTheme.typography.labelSmall.copy(
-                    color = TrackerColors.OnSurfaceVariant,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 10.sp
-                ),
-                modifier = Modifier.width(85.dp),
-                textAlign = TextAlign.End
-            )
+            SplitColumnHeader("TIME", fontSize.timeColumnWidth, fontSize)
         }
     }
+}
+
+@Composable
+private fun SplitColumnHeader(
+    text: String,
+    width: Int,
+    fontSize: com.supermetroid.model.SplitsFontSize
+) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall.copy(
+            color = TrackerColors.OnSurfaceVariant,
+            fontWeight = FontWeight.Bold,
+            fontSize = fontSize.header.sp
+        ),
+        modifier = Modifier.width(width.dp),
+        textAlign = TextAlign.End,
+        maxLines = 1,
+        softWrap = false,
+        overflow = TextOverflow.Clip
+    )
+}
+
+/** Timing values are always a single line; their tier-specific columns provide the space. */
+@Composable
+private fun SplitTimeText(
+    text: String,
+    style: androidx.compose.ui.text.TextStyle,
+    textAlign: TextAlign = TextAlign.End
+) {
+    Text(
+        text = text,
+        style = style,
+        modifier = Modifier.fillMaxWidth(),
+        textAlign = textAlign,
+        maxLines = 1,
+        softWrap = false,
+        overflow = TextOverflow.Clip
+    )
 }
 
 @Composable
@@ -492,11 +450,9 @@ private fun SplitRow(
         else -> TrackerColors.Border.copy(alpha = 0.3f)
     }
 
-    // The existing tiers retain their current compact rows. Very Large needs
-    // enough vertical room for its main time and segment-delta lines.
-    val minimumRowHeight = if (
-        fontSize == com.supermetroid.model.SplitsFontSize.VERY_LARGE
-    ) 36 else 24
+    // Keep names visually grouped. Font tiers can grow the text without forcing
+    // the large empty vertical gaps that a fixed Very Large row introduced.
+    val minimumRowHeight = kotlin.math.max(24, fontSize.text + 6)
     val rowHeight = kotlin.math.max(splitIconSize, minimumRowHeight) + 2
 
             Row(
@@ -544,7 +500,9 @@ private fun SplitRow(
                             },
                             fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
                             fontSize = fontSize.text.sp
-                        )
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -557,11 +515,11 @@ private fun SplitRow(
                 // Best Possible Column (theoretical best from COMPLETED runs only)
                 if (showBestPossibleColumn) {
                     Column(
-                        modifier = Modifier.width(85.dp), // Match header width
+                        modifier = Modifier.width(fontSize.timeColumnWidth.dp),
                         horizontalAlignment = Alignment.End
                     ) {
                         // Sum of best segments up to this point (main line)
-                        Text(
+                        SplitTimeText(
                             text = if (showBestPossible && sumOfBestPossibleUpToHere > 0) {
                                 formatTimeWithMillis(sumOfBestPossibleUpToHere)
                             } else {
@@ -577,7 +535,7 @@ private fun SplitRow(
 
                         // Best segment time for this split (second line) - conditionally shown
                         if (showSegmentDeltas && (bestSegmentTime?.segmentTime ?: 0L) > 0) {
-                            Text(
+                            SplitTimeText(
                                 text = formatTime(bestSegmentTime!!.segmentTime),
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.7f),
@@ -593,7 +551,7 @@ private fun SplitRow(
                 // Best Possible Delta Column (segment vs best segment)
                 if (showBestPossibleDelta) {
                     Column(
-                        modifier = Modifier.width(65.dp), // Match header width
+                        modifier = Modifier.width(fontSize.deltaColumnWidth.dp),
                         horizontalAlignment = Alignment.End
                     ) {
                         if (bestPossibleDelta != null) {
@@ -603,7 +561,7 @@ private fun SplitRow(
                                 bestPossibleDelta > 0 -> "+${formatTime(bestPossibleDelta)}"
                                 else -> "±0:00"
                             }
-                            Text(
+                            SplitTimeText(
                                 text = deltaText,
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = deltaColor,
@@ -614,7 +572,7 @@ private fun SplitRow(
                                 textAlign = TextAlign.End
                             )
                         } else {
-                            Text(
+                            SplitTimeText(
                                 text = "--:--",
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
@@ -630,7 +588,7 @@ private fun SplitRow(
                 // BP +/- Total Column (cumulative delta vs sum of best segments, LiveSplit colors)
                 if (showBestPossibleDeltaTotal) {
                     Column(
-                        modifier = Modifier.width(65.dp),
+                        modifier = Modifier.width(fontSize.deltaColumnWidth.dp),
                         horizontalAlignment = Alignment.End
                     ) {
                         if (bpTotalDelta != null) {
@@ -640,7 +598,7 @@ private fun SplitRow(
                                 bpTotalDelta > 0 -> "+${formatTime(bpTotalDelta)}"
                                 else -> "±0:00"
                             }
-                            Text(
+                            SplitTimeText(
                                 text = deltaText,
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = deltaColor,
@@ -651,7 +609,7 @@ private fun SplitRow(
                                 textAlign = TextAlign.End
                             )
                         } else {
-                            Text(
+                            SplitTimeText(
                                 text = "--:--",
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
@@ -667,11 +625,11 @@ private fun SplitRow(
                 // Average Column (mean time from all completed runs)
                 if (showAverageColumn) {
                     Column(
-                        modifier = Modifier.width(85.dp),
+                        modifier = Modifier.width(fontSize.timeColumnWidth.dp),
                         horizontalAlignment = Alignment.End
                     ) {
                         // Sum of average segments up to this point (main line)
-                        Text(
+                        SplitTimeText(
                             text = if (sumOfAveragesUpToHere > 0) {
                                 formatTimeWithMillis(sumOfAveragesUpToHere)
                             } else {
@@ -687,7 +645,7 @@ private fun SplitRow(
 
                         // Average segment time for this split (second line) - conditionally shown
                         if (showSegmentDeltas && (averageSegmentTime ?: 0L) > 0) {
-                            Text(
+                            SplitTimeText(
                                 text = formatTime(averageSegmentTime!!),
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.7f),
@@ -703,7 +661,7 @@ private fun SplitRow(
                 // Average Delta Column (segment vs average segment)
                 if (showAverageDelta) {
                     Column(
-                        modifier = Modifier.width(65.dp),
+                        modifier = Modifier.width(fontSize.deltaColumnWidth.dp),
                         horizontalAlignment = Alignment.End
                     ) {
                         if (averageDelta != null) {
@@ -713,7 +671,7 @@ private fun SplitRow(
                                 averageDelta > 0 -> "+${formatTime(averageDelta)}"
                                 else -> "±0:00"
                             }
-                            Text(
+                            SplitTimeText(
                                 text = deltaText,
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = deltaColor,
@@ -724,7 +682,7 @@ private fun SplitRow(
                                 textAlign = TextAlign.End
                             )
                         } else {
-                            Text(
+                            SplitTimeText(
                                 text = "--:--",
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
@@ -740,11 +698,11 @@ private fun SplitRow(
                 // BEST Column (Personal Best run's segment time)
                 if (showBestColumn) {
                     Column(
-                        modifier = Modifier.width(85.dp), // Match header width
+                        modifier = Modifier.width(fontSize.timeColumnWidth.dp),
                         horizontalAlignment = Alignment.End
                     ) {
                         // PB run's total time up to this point (main line)
-                        Text(
+                        SplitTimeText(
                             text = if (sumOfPbRunUpToHere > 0) {
                                 formatTimeWithMillis(sumOfPbRunUpToHere)
                             } else {
@@ -760,7 +718,7 @@ private fun SplitRow(
 
                         // PB run's segment time for this split (second line) - conditionally shown
                         if (showSegmentDeltas && (pbRunSegmentTime?.segmentTime ?: 0L) > 0) {
-                            Text(
+                            SplitTimeText(
                                 text = formatTime(pbRunSegmentTime!!.segmentTime),
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.7f),
@@ -776,7 +734,7 @@ private fun SplitRow(
                 // Best +/- Column (segment delta vs PB run's segment)
                 if (showBestDelta) {
                     Column(
-                        modifier = Modifier.width(65.dp),
+                        modifier = Modifier.width(fontSize.deltaColumnWidth.dp),
                         horizontalAlignment = Alignment.End
                     ) {
                         if (bestDelta != null) {
@@ -787,7 +745,7 @@ private fun SplitRow(
                                 bestDelta > 0 -> "+${formatTime(bestDelta)}"
                                 else -> "±0:00"
                             }
-                            Text(
+                            SplitTimeText(
                                 text = deltaText,
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = deltaColor,
@@ -798,7 +756,7 @@ private fun SplitRow(
                                 textAlign = TextAlign.End
                             )
                         } else {
-                            Text(
+                            SplitTimeText(
                                 text = "--:--",
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
@@ -814,7 +772,7 @@ private fun SplitRow(
                 // Best +/- Total Column (cumulative delta vs PB run, LiveSplit colors)
                 if (showBestDeltaTotal) {
                     Column(
-                        modifier = Modifier.width(65.dp),
+                        modifier = Modifier.width(fontSize.deltaColumnWidth.dp),
                         horizontalAlignment = Alignment.End
                     ) {
                         if (bestTotalDelta != null) {
@@ -824,7 +782,7 @@ private fun SplitRow(
                                 bestTotalDelta > 0 -> "+${formatTime(bestTotalDelta)}"
                                 else -> "±0:00"
                             }
-                            Text(
+                            SplitTimeText(
                                 text = deltaText,
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = deltaColor,
@@ -835,7 +793,7 @@ private fun SplitRow(
                                 textAlign = TextAlign.End
                             )
                         } else {
-                            Text(
+                            SplitTimeText(
                                 text = "--:--",
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.5f),
@@ -850,7 +808,7 @@ private fun SplitRow(
 
                 // TIME Column (Current run time)
                 Column(
-                    modifier = Modifier.width(85.dp),
+                    modifier = Modifier.width(fontSize.timeColumnWidth.dp),
                     horizontalAlignment = Alignment.End
                 ) {
                     // Current time (main line) with milliseconds
@@ -874,7 +832,7 @@ private fun SplitRow(
                         TrackerColors.SplitPending
                     }
 
-                    Text(
+                    SplitTimeText(
                         text = timeText,
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = timeColor,
@@ -897,7 +855,7 @@ private fun SplitRow(
                             TrackerColors.OnSurfaceVariant.copy(alpha = 0.7f)
                         }
 
-                        Text(
+                        SplitTimeText(
                             text = formatTime(segmentTime),
                             style = MaterialTheme.typography.bodySmall.copy(
                                 color = segmentColor,

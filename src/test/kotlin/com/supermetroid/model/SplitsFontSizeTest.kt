@@ -40,4 +40,12 @@ class SplitsFontSizeTest {
         expectThat(SplitsFontSize.fromDisplayName("Very Large"))
             .isEqualTo(SplitsFontSize.VERY_LARGE)
     }
+
+    @Test
+    fun `time and delta columns grow with the larger font tiers`() {
+        expectThat(SplitsFontSize.values().map { it.timeColumnWidth })
+            .containsExactly(85, 85, 96, 116)
+        expectThat(SplitsFontSize.values().map { it.deltaColumnWidth })
+            .containsExactly(60, 65, 72, 86)
+    }
 }

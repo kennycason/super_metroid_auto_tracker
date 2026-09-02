@@ -126,7 +126,7 @@ ls -lt ~/.smtracker/runs/ | head -10  # Show 10 most recent runs
 
 ### Settings Panel
 - **Theme Selection**: Choose from multiple color schemes
-- **Icon Size**: Adjust main icon grid size (16x16 to 256x256)
+- **Icon Size**: Adjust main icon grid size (16x16 to 256x256, including 28x28, 36x36, and 40x40 steps)
 - **Split Icon Size**: Separate size control for split icons
 - **Split Display Mode**: Show icons, names, or both in splits view
 - **Splits Font Size**: Choose Small through Very Large for split names, times, details, and summaries

@@ -78,7 +78,6 @@ fun SplitProfileManagementSection(
     var dropdownExpanded by remember { mutableStateOf(false) }
     var editorProfile by remember { mutableStateOf<SplitProfile?>(null) }
     var creatingProfile by remember { mutableStateOf(false) }
-    var deleteCandidate by remember { mutableStateOf<SplitProfile?>(null) }
     var mutationError by remember { mutableStateOf<String?>(null) }
 
     Card(
@@ -203,37 +202,21 @@ fun SplitProfileManagementSection(
                 }
             }
 
-            Row(
+            Button(
+                onClick = { editorProfile = currentProfile },
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = TrackerColors.SurfaceOverlayLight,
+                    contentColor = TrackerColors.OnSurface
+                ),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
             ) {
-                Button(
-                    onClick = { editorProfile = currentProfile },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = TrackerColors.SurfaceOverlayLight,
-                        contentColor = TrackerColors.OnSurface
-                    ),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
-                ) {
-                    Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.size(4.dp))
-                    Text(
-                        if (splitProfileService.isBuiltIn(currentProfile.id)) "Customize Names" else "Edit Profile",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-
-                if (!splitProfileService.isBuiltIn(currentProfile.id)) {
-                    TextButton(
-                        onClick = { deleteCandidate = currentProfile },
-                        colors = ButtonDefaults.textButtonColors(contentColor = TrackerColors.Error)
-                    ) {
-                        Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.size(4.dp))
-                        Text("Delete", style = MaterialTheme.typography.bodySmall)
-                    }
-                }
+                Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.size(4.dp))
+                Text(
+                    if (splitProfileService.isBuiltIn(currentProfile.id)) "Customize Names" else "Edit Profile",
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
 
             mutationError?.let {
@@ -258,36 +241,6 @@ fun SplitProfileManagementSection(
         )
     }
 
-    deleteCandidate?.let { profile ->
-        AlertDialog(
-            onDismissRequest = { deleteCandidate = null },
-            title = { Text("Delete split profile?") },
-            text = {
-                Text(
-                    "Delete '${profile.name}'? Its definition will be archived and all recorded runs and LiveSplit data will be kept."
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        deleteCandidate = null
-                        mutationError = null
-                        scope.launch {
-                            when (val result = splitProfileService.deleteCustomProfile(profile.id)) {
-                                SplitProfileDeleteResult.Success -> Unit
-                                is SplitProfileDeleteResult.Failure -> mutationError = result.message
-                            }
-                        }
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = TrackerColors.Error)
-                ) { Text("Delete") }
-            },
-            dismissButton = {
-                TextButton(onClick = { deleteCandidate = null }) { Text("Cancel") }
-            },
-            containerColor = TrackerColors.Surface
-        )
-    }
 }
 
 @Composable
@@ -358,6 +311,8 @@ private fun SplitProfileEditorContent(
     var search by remember { mutableStateOf("") }
     var saveError by remember { mutableStateOf<String?>(null) }
     var saving by remember { mutableStateOf(false) }
+    var deleting by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     val unusedSplits = remember(catalog, selectedSplitIds, search) {
@@ -565,7 +520,7 @@ private fun SplitProfileEditorContent(
                     }
 
                     if (!builtIn) {
-                        Divider(color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.2f))
+//                        Divider(color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.2f))
                         val ship = catalogById["ship"]
                         if (ship != null) {
                             SelectedSplitRow(
@@ -602,10 +557,21 @@ private fun SplitProfileEditorContent(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TextButton(onClick = onClose, enabled = !saving) { Text("Cancel") }
+            if (profile != null && !builtIn) {
+                TextButton(
+                    onClick = { showDeleteConfirmation = true },
+                    enabled = !saving && !deleting,
+                    colors = ButtonDefaults.textButtonColors(contentColor = TrackerColors.Error)
+                ) {
+                    Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.size(4.dp))
+                    Text("Delete Profile")
+                }
+            }
+            Spacer(Modifier.weight(1f))
+            TextButton(onClick = onClose, enabled = !saving && !deleting) { Text("Cancel") }
             Spacer(Modifier.size(8.dp))
             Button(
                 onClick = {
@@ -634,7 +600,7 @@ private fun SplitProfileEditorContent(
                         }
                     }
                 },
-                enabled = !saving && nameError == null && selectedSplitIds.lastOrNull() == "ship",
+                enabled = !saving && !deleting && nameError == null && selectedSplitIds.lastOrNull() == "ship",
                 colors = ButtonDefaults.buttonColors(
                     containerColor = TrackerColors.Primary,
                     contentColor = TrackerColors.OnPrimary
@@ -643,6 +609,41 @@ private fun SplitProfileEditorContent(
                 Text(if (saving) "Saving…" else "Save")
             }
         }
+    }
+
+    if (showDeleteConfirmation && profile != null && !builtIn) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text("Delete split profile?") },
+            text = {
+                Text(
+                    "Delete '${profile.name}'? Its definition will be archived and backed up. All recorded runs and LiveSplit data will be kept."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirmation = false
+                        saveError = null
+                        deleting = true
+                        scope.launch {
+                            when (val result = splitProfileService.deleteCustomProfile(profile.id)) {
+                                SplitProfileDeleteResult.Success -> onClose()
+                                is SplitProfileDeleteResult.Failure -> {
+                                    saveError = result.message
+                                    deleting = false
+                                }
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = TrackerColors.Error)
+                ) { Text("Delete Profile") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = false }) { Text("Cancel") }
+            },
+            containerColor = TrackerColors.Surface
+        )
     }
 }
 
