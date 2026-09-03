@@ -18,6 +18,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
+import java.io.File
 import java.nio.file.Path
 
 class SplitProfileServiceTest {
@@ -154,8 +155,10 @@ class SplitProfileServiceTest {
         val created = service.createCustomProfile(
             "Disposable",
             listOf("morph_ball", "ship"),
-            emptyMap()
+            emptyMap(),
+            mapOf("morph_ball" to fixture("crocomire.png").absolutePath)
         ) as SplitProfileSaveResult.Success
+        val image = created.profile.splitImageOverrides.getValue("morph_ball")
 
         expectThat(service.deleteCustomProfile(created.profile.id))
             .isA<SplitProfileDeleteResult.Success>()
@@ -167,8 +170,10 @@ class SplitProfileServiceTest {
 
         val backupFiles = tempDir.resolve("backups").toFile().listFiles().orEmpty()
         expectThat(backupFiles.any { it.name.startsWith("split-profiles_") }).isTrue()
-        expectThat(storage.loadSplitProfilesConfig().archivedProfiles.map { it.id })
-            .contains(created.profile.id)
+        val config = storage.loadSplitProfilesConfig()
+        expectThat(config.archivedProfiles.map { it.id }).contains(created.profile.id)
+        expectThat(config.archivedProfiles.single().splitImageOverrides).containsKey("morph_ball")
+        expectThat(storage.resolveSplitProfileImage(image.originalPath)?.isFile).isEqualTo(true)
         Unit
     }
 
@@ -276,4 +281,65 @@ class SplitProfileServiceTest {
         }
         Unit
     }
+
+    @Test
+    fun `custom split image persists across restart and can be restored to default`() = runBlocking {
+        val created = service.createCustomProfile(
+            "Illustrated Route",
+            listOf("kraid", "ship"),
+            emptyMap(),
+            mapOf("kraid" to fixture("kraid.png").absolutePath)
+        ) as SplitProfileSaveResult.Success
+
+        val image = created.profile.splitImageOverrides["kraid"]
+        expectThat(image).isNotNull().and {
+            get { previewWidth }.isEqualTo(228)
+            get { previewHeight }.isEqualTo(128)
+        }
+        expectThat(image?.let(service::resolveSplitImageFile)?.isFile).isEqualTo(true)
+
+        val restartedEngine = AutoSplitsEngine(storage)
+        val restartedService = SplitProfileService(storage, restartedEngine) { "unused" }
+        restartedService.initialize()
+        val restored = restartedService.findProfileById(created.profile.id)!!
+        expectThat(restored.splitImageOverrides).containsKey("kraid")
+
+        val removed = restartedService.saveProfile(
+            restored.id,
+            restored.name,
+            restored.splits.map { it.id },
+            emptyMap(),
+            removedSplitImageIds = setOf("kraid")
+        ) as SplitProfileSaveResult.Success
+        expectThat(removed.profile.splitImageOverrides).hasSize(0)
+        Unit
+    }
+
+    @Test
+    fun `built-in profiles support per-profile split images without changing structure`() = runBlocking {
+        val profile = service.findProfileById(SplitProfiles.ID_HUNDRED_PERCENT)!!
+
+        val saved = service.saveProfile(
+            profile.id,
+            profile.name,
+            profile.splits.map { it.id },
+            emptyMap(),
+            splitImageSources = mapOf("phantoon" to fixture("crocomire.png").absolutePath)
+        ) as SplitProfileSaveResult.Success
+
+        expectThat(saved.versionChanged).isFalse()
+        expectThat(saved.profile.splitImageOverrides["phantoon"]).isNotNull().and {
+            get { previewWidth }.isEqualTo(128)
+            get { previewHeight }.isEqualTo(134)
+        }
+        expectThat(storage.loadSplitProfilesConfig().builtInSplitImageOverrides[profile.id])
+            .isNotNull().and { containsKey("phantoon") }
+        Unit
+    }
+
+    private fun fixture(name: String): File = File(
+        requireNotNull(javaClass.getResource("/split-images/$name")) {
+            "Missing split image fixture $name"
+        }.toURI()
+    )
 }

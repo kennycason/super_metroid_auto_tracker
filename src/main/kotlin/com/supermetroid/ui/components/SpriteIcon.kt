@@ -1,6 +1,7 @@
 package com.supermetroid.ui.components
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.Dp
 import com.supermetroid.ui.theme.TrackerColors
 import com.supermetroid.util.Logging
+import java.io.File
 
 private object SpriteIconLog : Logging
 
@@ -83,6 +85,53 @@ fun SpriteIcon(
                 )
             }
     }
+}
+
+/**
+ * Profile-aware split artwork. User images use a centered square crop while
+ * retaining the same obtained/pending color treatment and footprint as sprites.
+ */
+@Composable
+fun SplitArtworkIcon(
+    itemId: String,
+    customImageFile: File?,
+    customImageCacheKey: Long? = null,
+    isObtained: Boolean,
+    modifier: Modifier = Modifier,
+    size: Int = 48
+) {
+    val path = customImageFile?.absolutePath
+    val fileModifiedAt = customImageFile?.lastModified()
+    val bitmap = remember(path, customImageCacheKey, fileModifiedAt) {
+        customImageFile?.takeIf { it.isFile }?.let { file ->
+            try {
+                file.inputStream().use { loadImageBitmap(it) }
+            } catch (e: Exception) {
+                SpriteIconLog.logger.warn(e) { "Could not load custom split image: ${file.absolutePath}" }
+                null
+            }
+        }
+    }
+
+    if (bitmap == null) {
+        SpriteIcon(itemId = itemId, isObtained = isObtained, modifier = modifier, size = size)
+        return
+    }
+
+    Image(
+        bitmap = bitmap,
+        contentDescription = null,
+        modifier = modifier
+            .size(size.dp)
+            .aspectRatio(1f)
+            .clip(RoundedCornerShape(2.dp)),
+        alignment = Alignment.Center,
+        contentScale = ContentScale.Crop,
+        alpha = if (isObtained) 1f else 0.7f,
+        colorFilter = if (isObtained) null else ColorFilter.colorMatrix(
+            ColorMatrix().apply { setToSaturation(0f) }
+        )
+    )
 }
 
 @Composable

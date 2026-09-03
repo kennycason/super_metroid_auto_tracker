@@ -154,8 +154,8 @@ fun StatsPanel(
         Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
             when (selectedTab) {
                 StatsTab.SUMMARY -> SummaryTab(runs, fs)
-                StatsTab.SPLIT_COMPLETIONS -> SplitCompletionsTab(runs, profile, fs)
-                StatsTab.DEATHS -> DeathsTab(runs, profile, fs)
+                StatsTab.SPLIT_COMPLETIONS -> SplitCompletionsTab(runs, profile, fs, fileStorageService)
+                StatsTab.DEATHS -> DeathsTab(runs, profile, fs, fileStorageService)
                 StatsTab.PROGRESS -> ProgressTab(runs, fs)
                 StatsTab.TREND -> TrendTab(runs, fs)
                 StatsTab.RECORDS -> RecordsTab(allDiskRuns ?: splitsState.runHistory, profile, fs)
@@ -247,7 +247,8 @@ private fun StatRow(
 private fun SplitCompletionsTab(
     runs: List<com.supermetroid.model.RunSession>,
     profile: SplitProfile,
-    fs: StatsFontSize
+    fs: StatsFontSize,
+    fileStorageService: com.supermetroid.storage.FileStorageService?
 ) {
     val completions = remember(runs, profile) {
         StatsService.computeSplitCompletions(runs, profile)
@@ -292,8 +293,13 @@ private fun SplitCompletionsTab(
                     .onPointerEvent(PointerEventType.Exit) { hoveredIndex = -1 },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                SpriteIcon(
+                val customImage = profile.splitImageOverrides[entry.splitId]
+                SplitArtworkIcon(
                     itemId = statsSplitItemId(entry.splitId, entry.splitName),
+                    customImageFile = customImage?.let {
+                        fileStorageService?.resolveSplitProfileImage(it.previewPath)
+                    },
+                    customImageCacheKey = customImage?.updatedAtEpochMs,
                     isObtained = entry.timesCompleted > 0,
                     size = 16
                 )
@@ -360,7 +366,8 @@ private fun SplitCompletionsTab(
 private fun DeathsTab(
     runs: List<com.supermetroid.model.RunSession>,
     profile: SplitProfile,
-    fs: StatsFontSize
+    fs: StatsFontSize,
+    fileStorageService: com.supermetroid.storage.FileStorageService?
 ) {
     val deaths = remember(runs, profile) {
         StatsService.computeSplitDeaths(runs, profile)
@@ -424,8 +431,13 @@ private fun DeathsTab(
                     .onPointerEvent(PointerEventType.Exit) { hoveredIndex = -1 },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                SpriteIcon(
+                val customImage = profile.splitImageOverrides[entry.splitId]
+                SplitArtworkIcon(
                     itemId = statsSplitItemId(entry.splitId, entry.splitName),
+                    customImageFile = customImage?.let {
+                        fileStorageService?.resolveSplitProfileImage(it.previewPath)
+                    },
+                    customImageCacheKey = customImage?.updatedAtEpochMs,
                     isObtained = true,
                     size = 16
                 )

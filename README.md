@@ -132,13 +132,15 @@ ls -lt ~/.smtracker/runs/ | head -10  # Show 10 most recent runs
 - **Splits Font Size**: Choose Small through Very Large for split names, times, details, and summaries
 - **Room Name Display**: Toggle current room name visibility
 - **Icon Management**: Show/hide individual icons and reorder them
-- **Split Profile Management**: Create and edit custom split routes, or customize display names in built-in routes
+- **Split Profile Management**: Create and edit custom split routes, or customize split names and artwork per profile
 
 ### Custom Split Profiles
 
 Choose **Create New Split Profile…** from the Split Profile dropdown. Custom profiles can use any supported automatic split in any order; Ceres is optional and Ship is always kept as the final split. The timer can be started manually with Space for ROM hacks whose start sequence does not match vanilla Super Metroid.
 
-Built-in profiles share the same editor, but their split selection and ordering are locked. Their display names can still be customized per profile.
+Built-in profiles share the same editor, but their split selection and ordering are locked. Split names and artwork can still be customized per profile. Hover a split name to reveal its edit pencil, or hover/click its image to upload a PNG, JPG, GIF, or BMP; the × overlay restores the default sprite.
+
+Uploaded artwork is kept under `~/.smtracker/split-profile-images/` alongside the profile configuration. The original file is preserved, plus a proportional PNG preview whose shorter side is reduced to 128 pixels when both dimensions are larger. Split artwork is displayed as a centered square crop, so portrait and landscape images never stretch.
 
 Structural changes to a custom profile are committed only when **Save** is clicked and create a new profile version. Old versions are retained for historical run replay. Deleting a custom profile requires confirmation, archives its definition, backs up `split-profiles.json`, and does not delete recorded runs or LiveSplit files.
 

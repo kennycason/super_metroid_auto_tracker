@@ -178,12 +178,15 @@ fun SplitsList(
                 verticalArrangement = Arrangement.spacedBy(1.dp) // 1.dp spacing between rows
             ) {
                 itemsIndexed(currentProfile.splits) { index, split ->
+                    val customImage = currentProfile.splitImageOverrides[split.id]
                     SplitRow(
                         split = split,
                         splitIndex = index,
                         splitsState = splitsState,
                         autoSplitsEngine = autoSplitsEngine,
                         profile = currentProfile,
+                        splitImageFile = customImage?.let(splitProfileService::resolveSplitImageFile),
+                        splitImageCacheKey = customImage?.updatedAtEpochMs,
                         splitIconSize = currentSplitIconSize.size,
                         showIcon = showSplitIcons,
                         showName = showSplitNames,
@@ -331,6 +334,8 @@ private fun SplitRow(
     splitsState: SplitsState,
     autoSplitsEngine: AutoSplitsEngine,
     profile: SplitProfile,
+    splitImageFile: java.io.File?,
+    splitImageCacheKey: Long?,
     splitIconSize: Int,
     showIcon: Boolean,
     showName: Boolean,
@@ -480,8 +485,10 @@ private fun SplitRow(
 
                 // Split icon (conditionally shown, uses configurable split icon size)
                 if (showIcon) {
-                    SpriteIcon(
+                    SplitArtworkIcon(
                         itemId = getSplitItemId(split),
+                        customImageFile = splitImageFile,
+                        customImageCacheKey = splitImageCacheKey,
                         isObtained = isCompleted,
                         size = splitIconSize,
                         modifier = Modifier.padding(end = if (showName) 4.dp else 0.dp)

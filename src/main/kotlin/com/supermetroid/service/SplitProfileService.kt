@@ -3,6 +3,7 @@ package com.supermetroid.service
 import com.supermetroid.autosplits.AutoSplitsEngine
 import com.supermetroid.autosplits.SplitProfiles
 import com.supermetroid.model.Split
+import com.supermetroid.model.SplitImageAsset
 import com.supermetroid.model.SplitProfile
 import com.supermetroid.model.SplitProfilesConfig
 import com.supermetroid.model.StoredSplitProfile
@@ -79,7 +80,13 @@ class SplitProfileService(
     suspend fun initialize() {
         if (initialized) return
         try {
-            storedConfig = fileStorageService.loadSplitProfilesConfig()
+            storedConfig = fileStorageService.loadSplitProfilesConfig().let { config ->
+                if (config.schemaVersion < SplitProfilesConfig.CURRENT_SCHEMA_VERSION) {
+                    config.copy(schemaVersion = SplitProfilesConfig.CURRENT_SCHEMA_VERSION)
+                } else {
+                    config
+                }
+            }
             refreshAvailableProfiles()
 
             val appConfig = fileStorageService.loadAppConfig()
@@ -124,6 +131,21 @@ class SplitProfileService(
             .orEmpty()
     }
 
+    fun splitImageOverrides(profileId: String): Map<String, SplitImageAsset> {
+        if (isBuiltIn(profileId)) {
+            return storedConfig.builtInSplitImageOverrides[profileId].orEmpty()
+        }
+        return (storedConfig.customProfiles + storedConfig.archivedProfiles)
+            .firstOrNull { it.id == profileId }
+            ?.splitImageOverrides
+            .orEmpty()
+    }
+
+    fun resolveSplitImageFile(asset: SplitImageAsset, original: Boolean = false): java.io.File? =
+        fileStorageService.resolveSplitProfileImage(
+            if (original) asset.originalPath else asset.previewPath
+        )
+
     fun validateProfileName(name: String, excludingProfileId: String? = null): String? {
         val normalized = normalizeProfileName(name)
         if (normalized.isBlank()) return "Profile name is required"
@@ -144,13 +166,24 @@ class SplitProfileService(
     suspend fun createCustomProfile(
         name: String,
         splitIds: List<String>,
-        splitNameOverrides: Map<String, String>
+        splitNameOverrides: Map<String, String>,
+        splitImageSources: Map<String, String> = emptyMap()
     ): SplitProfileSaveResult {
         validateProfileName(name)?.let { return SplitProfileSaveResult.Failure(it) }
         validateSplitList(splitIds)?.let { return SplitProfileSaveResult.Failure(it) }
         validateOverrides(splitIds, splitNameOverrides)?.let { return SplitProfileSaveResult.Failure(it) }
+        validateImageChanges(splitIds, splitImageSources, emptySet())?.let {
+            return SplitProfileSaveResult.Failure(it)
+        }
 
         val familyId = generateUniqueFamilyId()
+        val imageOverrides = try {
+            applyImageChanges(familyId, splitIds, emptyMap(), splitImageSources, emptySet())
+        } catch (e: Exception) {
+            return SplitProfileSaveResult.Failure(
+                "Could not save split image: ${e.message ?: "unknown error"}"
+            )
+        }
         val stored = StoredSplitProfile(
             id = versionedId(familyId, 1),
             familyId = familyId,
@@ -159,11 +192,15 @@ class SplitProfileService(
             splitIds = splitIds,
             splitDefinitions = splitIds.mapNotNull(SplitProfiles.SPLIT_CATALOG_BY_ID::get),
             splitNameOverrides = normalizeOverrides(splitIds, splitNameOverrides),
+            splitImageOverrides = imageOverrides,
             updatedAtEpochMs = System.currentTimeMillis()
         )
 
         return persistMutation(
-            newConfig = storedConfig.copy(customProfiles = storedConfig.customProfiles + stored),
+            newConfig = storedConfig.copy(
+                schemaVersion = SplitProfilesConfig.CURRENT_SCHEMA_VERSION,
+                customProfiles = storedConfig.customProfiles + stored
+            ),
             profileId = stored.id,
             versionChanged = true,
             selectAfterSave = true
@@ -178,7 +215,9 @@ class SplitProfileService(
         profileId: String,
         name: String,
         splitIds: List<String>,
-        splitNameOverrides: Map<String, String>
+        splitNameOverrides: Map<String, String>,
+        splitImageSources: Map<String, String> = emptyMap(),
+        removedSplitImageIds: Set<String> = emptySet()
     ): SplitProfileSaveResult {
         val builtIn = SplitProfiles.BY_ID[profileId]
         if (builtIn != null) {
@@ -188,6 +227,22 @@ class SplitProfileService(
             validateOverrides(splitIds, splitNameOverrides)?.let {
                 return SplitProfileSaveResult.Failure(it)
             }
+            validateImageChanges(splitIds, splitImageSources, removedSplitImageIds)?.let {
+                return SplitProfileSaveResult.Failure(it)
+            }
+            val imageOverrides = try {
+                applyImageChanges(
+                    profileId,
+                    splitIds,
+                    storedConfig.builtInSplitImageOverrides[profileId].orEmpty(),
+                    splitImageSources,
+                    removedSplitImageIds
+                )
+            } catch (e: Exception) {
+                return SplitProfileSaveResult.Failure(
+                    "Could not save split image: ${e.message ?: "unknown error"}"
+                )
+            }
             val normalizedOverrides = storedConfig.builtInSplitNameOverrides.toMutableMap().apply {
                 val overrides = normalizeOverrides(
                     splitIds,
@@ -196,8 +251,15 @@ class SplitProfileService(
                 )
                 if (overrides.isEmpty()) remove(profileId) else put(profileId, overrides)
             }
+            val normalizedImageOverrides = storedConfig.builtInSplitImageOverrides.toMutableMap().apply {
+                if (imageOverrides.isEmpty()) remove(profileId) else put(profileId, imageOverrides)
+            }
             return persistMutation(
-                newConfig = storedConfig.copy(builtInSplitNameOverrides = normalizedOverrides),
+                newConfig = storedConfig.copy(
+                    schemaVersion = SplitProfilesConfig.CURRENT_SCHEMA_VERSION,
+                    builtInSplitNameOverrides = normalizedOverrides,
+                    builtInSplitImageOverrides = normalizedImageOverrides
+                ),
                 profileId = profileId,
                 versionChanged = false,
                 selectAfterSave = _currentProfile.value.id == profileId,
@@ -215,12 +277,29 @@ class SplitProfileService(
         validateOverrides(splitIds, splitNameOverrides)?.let {
             return SplitProfileSaveResult.Failure(it)
         }
+        validateImageChanges(splitIds, splitImageSources, removedSplitImageIds)?.let {
+            return SplitProfileSaveResult.Failure(it)
+        }
 
         val structureChanged = existing.splitIds != splitIds
         val activeRun = autoSplitsEngine.splitsState.value.currentRun
         if (structureChanged && activeRun?.profileId == existing.id && activeRun.endTime == null) {
             return SplitProfileSaveResult.Failure(
                 "Finish, reset, or discard the active run before changing this profile's split order"
+            )
+        }
+
+        val imageOverrides = try {
+            applyImageChanges(
+                existing.familyId,
+                splitIds,
+                existing.splitImageOverrides,
+                splitImageSources,
+                removedSplitImageIds
+            )
+        } catch (e: Exception) {
+            return SplitProfileSaveResult.Failure(
+                "Could not save split image: ${e.message ?: "unknown error"}"
             )
         }
 
@@ -232,12 +311,14 @@ class SplitProfileService(
                 splitIds = splitIds,
                 splitDefinitions = splitIds.mapNotNull(SplitProfiles.SPLIT_CATALOG_BY_ID::get),
                 splitNameOverrides = normalizeOverrides(splitIds, splitNameOverrides),
+                splitImageOverrides = imageOverrides,
                 updatedAtEpochMs = System.currentTimeMillis()
             )
         } else {
             existing.copy(
                 name = normalizeProfileName(name),
                 splitNameOverrides = normalizeOverrides(splitIds, splitNameOverrides),
+                splitImageOverrides = imageOverrides,
                 updatedAtEpochMs = System.currentTimeMillis()
             )
         }
@@ -251,6 +332,7 @@ class SplitProfileService(
 
         return persistMutation(
             newConfig = storedConfig.copy(
+                schemaVersion = SplitProfilesConfig.CURRENT_SCHEMA_VERSION,
                 customProfiles = newActive,
                 archivedProfiles = newArchived
             ),
@@ -280,6 +362,7 @@ class SplitProfileService(
             }
 
             storedConfig = storedConfig.copy(
+                schemaVersion = SplitProfilesConfig.CURRENT_SCHEMA_VERSION,
                 customProfiles = storedConfig.customProfiles.filterNot { it.id == profileId },
                 archivedProfiles = storedConfig.archivedProfiles.filterNot { it.id == profileId } + existing
             )
@@ -392,7 +475,8 @@ class SplitProfileService(
         return profile.copy(
             splits = profile.splits.map { split ->
                 overrides[split.id]?.let { split.copy(name = it) } ?: split
-            }
+            },
+            splitImageOverrides = storedConfig.builtInSplitImageOverrides[profile.id].orEmpty()
         )
     }
 
@@ -414,7 +498,8 @@ class SplitProfileService(
             name = stored.name,
             splits = splits,
             version = stored.version,
-            familyId = stored.familyId
+            familyId = stored.familyId,
+            splitImageOverrides = stored.splitImageOverrides.filterKeys { it in stored.splitIds }
         )
     }
 
@@ -438,6 +523,35 @@ class SplitProfileService(
             return "Split names must be $MAX_SPLIT_NAME_LENGTH characters or fewer"
         }
         return null
+    }
+
+    private fun validateImageChanges(
+        splitIds: List<String>,
+        imageSources: Map<String, String>,
+        removedImageIds: Set<String>
+    ): String? {
+        val invalidId = (imageSources.keys + removedImageIds).firstOrNull { it !in splitIds }
+        return invalidId?.let { "An image override refers to an unselected split: $it" }
+    }
+
+    private suspend fun applyImageChanges(
+        profileStorageKey: String,
+        splitIds: List<String>,
+        existing: Map<String, SplitImageAsset>,
+        imageSources: Map<String, String>,
+        removedImageIds: Set<String>
+    ): Map<String, SplitImageAsset> {
+        val images = existing
+            .filterKeys { it in splitIds && it !in removedImageIds }
+            .toMutableMap()
+        imageSources.forEach { (splitId, sourcePath) ->
+            images[splitId] = fileStorageService.saveSplitProfileImage(
+                profileStorageKey = profileStorageKey,
+                splitId = splitId,
+                sourcePath = sourcePath
+            )
+        }
+        return splitIds.mapNotNull { splitId -> images[splitId]?.let { splitId to it } }.toMap()
     }
 
     private fun normalizeOverrides(

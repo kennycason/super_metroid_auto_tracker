@@ -1,7 +1,10 @@
+@file:OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+
 package com.supermetroid.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,6 +46,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +56,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -64,7 +72,9 @@ import com.supermetroid.service.SplitProfileDeleteResult
 import com.supermetroid.service.SplitProfileSaveResult
 import com.supermetroid.service.SplitProfileService
 import com.supermetroid.ui.theme.TrackerColors
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
 
 @Composable
 fun SplitProfileManagementSection(
@@ -249,11 +259,12 @@ private fun SplitProfileEditorWindow(
     profile: SplitProfile?,
     onClose: () -> Unit
 ) {
-    val builtIn = profile?.let { splitProfileService.isBuiltIn(it.id) } == true
+    var editingProfile by remember(profile?.id) { mutableStateOf(profile) }
+    val builtIn = editingProfile?.let { splitProfileService.isBuiltIn(it.id) } == true
     val title = when {
-        profile == null -> "Create Split Profile"
-        builtIn -> "Customize ${profile.name}"
-        else -> "Edit ${profile.name}"
+        editingProfile == null -> "Create Split Profile"
+        builtIn -> "Customize ${editingProfile?.name}"
+        else -> "Edit ${editingProfile?.name}"
     }
 
     DialogWindow(
@@ -265,8 +276,9 @@ private fun SplitProfileEditorWindow(
         Surface(modifier = Modifier.fillMaxSize(), color = TrackerColors.Background) {
             SplitProfileEditorContent(
                 splitProfileService = splitProfileService,
-                profile = profile,
+                profile = editingProfile,
                 builtIn = builtIn,
+                onSaved = { editingProfile = it },
                 onClose = onClose
             )
         }
@@ -279,17 +291,21 @@ private fun SplitProfileEditorContent(
     splitProfileService: SplitProfileService,
     profile: SplitProfile?,
     builtIn: Boolean,
+    onSaved: (SplitProfile) -> Unit,
     onClose: () -> Unit
 ) {
     val catalog = splitProfileService.splitCatalog
     val catalogById = remember(catalog) { catalog.associateBy { it.id } }
-    val initialSplitIds = remember(profile?.id) {
+    val initialSplitIds = remember(profile) {
         profile?.splits?.map { it.id } ?: listOf("ship")
     }
-    val initialOverrides = remember(profile?.id) {
+    val initialOverrides = remember(profile) {
         profile?.let { splitProfileService.splitNameOverrides(it.id) }.orEmpty()
     }
-    val defaultNames = remember(profile?.id, builtIn, catalog) {
+    val initialImageOverrides = remember(profile) {
+        profile?.let { splitProfileService.splitImageOverrides(it.id) }.orEmpty()
+    }
+    val defaultNames = remember(profile, builtIn, catalog) {
         if (builtIn && profile != null) {
             SplitProfiles.BY_ID[profile.id]?.splits?.associate { it.id to it.name }.orEmpty()
         } else {
@@ -297,9 +313,9 @@ private fun SplitProfileEditorContent(
         }
     }
 
-    var profileName by remember(profile?.id) { mutableStateOf(profile?.name.orEmpty()) }
-    var selectedSplitIds by remember(profile?.id) { mutableStateOf(initialSplitIds) }
-    var splitNames by remember(profile?.id) {
+    var profileName by remember(profile) { mutableStateOf(profile?.name.orEmpty()) }
+    var selectedSplitIds by remember(profile) { mutableStateOf(initialSplitIds) }
+    var splitNames by remember(profile) {
         mutableStateOf(
             initialSplitIds.associateWith { splitId ->
                 initialOverrides[splitId]
@@ -308,12 +324,22 @@ private fun SplitProfileEditorContent(
             }
         )
     }
+    var pendingImageSources by remember(profile) { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var removedImageIds by remember(profile) { mutableStateOf<Set<String>>(emptySet()) }
     var search by remember { mutableStateOf("") }
     var saveError by remember { mutableStateOf<String?>(null) }
     var saving by remember { mutableStateOf(false) }
+    var showSaved by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(showSaved) {
+        if (showSaved) {
+            delay(1_800)
+            showSaved = false
+        }
+    }
 
     val unusedSplits = remember(catalog, selectedSplitIds, search) {
         catalog
@@ -331,6 +357,27 @@ private fun SplitProfileEditorContent(
     val routeSplitIds = remember(selectedSplitIds, builtIn) {
         if (builtIn) selectedSplitIds else selectedSplitIds.filterNot { it == "ship" }
     }
+    fun chooseSplitImage(splitId: String) {
+        showSplitImagePickerDialog()?.let { path ->
+            pendingImageSources = pendingImageSources + (splitId to path)
+            removedImageIds = removedImageIds - splitId
+            saveError = null
+        }
+    }
+    fun resetSplitImage(splitId: String) {
+        pendingImageSources = pendingImageSources - splitId
+        removedImageIds = removedImageIds + splitId
+    }
+    fun imageFile(splitId: String): File? = pendingImageSources[splitId]?.let(::File)
+        ?: initialImageOverrides[splitId]
+            ?.takeIf { splitId !in removedImageIds }
+            ?.let(splitProfileService::resolveSplitImageFile)
+    fun imageCacheKey(splitId: String): Long? = pendingImageSources[splitId]?.let { File(it).lastModified() }
+        ?: initialImageOverrides[splitId]
+            ?.takeIf { splitId !in removedImageIds }
+            ?.updatedAtEpochMs
+    fun hasCustomImage(splitId: String): Boolean = splitId in pendingImageSources ||
+        (splitId in initialImageOverrides && splitId !in removedImageIds)
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -351,9 +398,9 @@ private fun SplitProfileEditorContent(
                 )
                 Text(
                     text = when {
-                        builtIn -> "Built-in ordering is locked; display names are editable."
-                        profile == null -> "Choose and order automatic splits. Ship is always the finish."
-                        else -> "Structural changes create version ${profile.version + 1} when saved."
+                        builtIn -> "Built-in ordering is locked; click a name or image to customize it."
+                        profile == null -> "Choose and order splits; click a name or image to customize it."
+                        else -> "Click names or images to customize; structural changes create version ${profile.version + 1}."
                     },
                     style = MaterialTheme.typography.bodySmall.copy(color = TrackerColors.OnSurfaceVariant)
                 )
@@ -493,6 +540,9 @@ private fun SplitProfileEditorContent(
                                 positionLabel = "${index + 1}",
                                 displayName = splitNames[splitId] ?: split.name,
                                 defaultName = defaultNames[splitId] ?: split.name,
+                                customImageFile = imageFile(splitId),
+                                customImageCacheKey = imageCacheKey(splitId),
+                                hasCustomImage = hasCustomImage(splitId),
                                 structureLocked = builtIn,
                                 canMoveUp = selectedIndex > 0,
                                 canMoveDown = selectedIndex in 0 until selectedSplitIds.lastIndex - 1,
@@ -505,6 +555,8 @@ private fun SplitProfileEditorContent(
                                 onResetName = {
                                     splitNames = splitNames + (splitId to (defaultNames[splitId] ?: split.name))
                                 },
+                                onChooseImage = { chooseSplitImage(splitId) },
+                                onResetImage = { resetSplitImage(splitId) },
                                 onMoveUp = {
                                     selectedSplitIds = selectedSplitIds.moved(selectedIndex, selectedIndex - 1)
                                 },
@@ -528,6 +580,9 @@ private fun SplitProfileEditorContent(
                                 positionLabel = "Finish",
                                 displayName = splitNames["ship"] ?: ship.name,
                                 defaultName = defaultNames["ship"] ?: ship.name,
+                                customImageFile = imageFile("ship"),
+                                customImageCacheKey = imageCacheKey("ship"),
+                                hasCustomImage = hasCustomImage("ship"),
                                 structureLocked = true,
                                 canMoveUp = false,
                                 canMoveDown = false,
@@ -541,6 +596,8 @@ private fun SplitProfileEditorContent(
                                 onResetName = {
                                     splitNames = splitNames + ("ship" to (defaultNames["ship"] ?: ship.name))
                                 },
+                                onChooseImage = { chooseSplitImage("ship") },
+                                onResetImage = { resetSplitImage("ship") },
                                 onMoveUp = {},
                                 onMoveDown = {},
                                 onRemove = {}
@@ -570,6 +627,15 @@ private fun SplitProfileEditorContent(
                     Text("Delete Profile")
                 }
             }
+            if (showSaved) {
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    "Saved",
+                    color = TrackerColors.Success,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
             Spacer(Modifier.weight(1f))
             TextButton(onClick = onClose, enabled = !saving && !deleting) { Text("Cancel") }
             Spacer(Modifier.size(8.dp))
@@ -581,18 +647,31 @@ private fun SplitProfileEditorContent(
                         val overrides = selectedSplitIds.associateWith { id ->
                             splitNames[id].orEmpty()
                         }
+                        val imageSources = pendingImageSources.filterKeys { it in selectedSplitIds }
+                        val removedImages = removedImageIds.filterTo(mutableSetOf()) { it in selectedSplitIds }
                         val result = if (profile == null) {
-                            splitProfileService.createCustomProfile(profileName, selectedSplitIds, overrides)
+                            splitProfileService.createCustomProfile(
+                                profileName,
+                                selectedSplitIds,
+                                overrides,
+                                imageSources
+                            )
                         } else {
                             splitProfileService.saveProfile(
                                 profile.id,
                                 if (builtIn) profile.name else profileName,
                                 selectedSplitIds,
-                                overrides
+                                overrides,
+                                imageSources,
+                                removedImages
                             )
                         }
                         when (result) {
-                            is SplitProfileSaveResult.Success -> onClose()
+                            is SplitProfileSaveResult.Success -> {
+                                saving = false
+                                showSaved = true
+                                onSaved(result.profile)
+                            }
                             is SplitProfileSaveResult.Failure -> {
                                 saveError = result.message
                                 saving = false
@@ -698,6 +777,9 @@ private fun SelectedSplitRow(
     positionLabel: String,
     displayName: String,
     defaultName: String,
+    customImageFile: File?,
+    customImageCacheKey: Long?,
+    hasCustomImage: Boolean,
     structureLocked: Boolean,
     canMoveUp: Boolean,
     canMoveDown: Boolean,
@@ -705,6 +787,8 @@ private fun SelectedSplitRow(
     supportingLabel: String? = null,
     onDisplayNameChanged: (String) -> Unit,
     onResetName: () -> Unit,
+    onChooseImage: () -> Unit,
+    onResetImage: () -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
     onRemove: () -> Unit
@@ -721,10 +805,13 @@ private fun SelectedSplitRow(
             text = positionLabel,
             style = MaterialTheme.typography.labelSmall.copy(color = TrackerColors.OnSurfaceVariant)
         )
-        SpriteIcon(
+        EditableSplitArtwork(
             itemId = getSplitItemId(split),
-            isObtained = true,
-            size = 34
+            customImageFile = customImageFile,
+            customImageCacheKey = customImageCacheKey,
+            hasCustomImage = hasCustomImage,
+            onChooseImage = onChooseImage,
+            onResetImage = onResetImage
         )
         CompactSplitNameField(
             value = displayName,
@@ -738,9 +825,14 @@ private fun SelectedSplitRow(
             TextButton(
                 onClick = onResetName,
                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
-                modifier = Modifier.size(44.dp, 24.dp)
+                modifier = Modifier.size(58.dp, 24.dp)
             ) {
-                Text("Default", style = MaterialTheme.typography.labelSmall)
+                Text(
+                    "Default",
+                    maxLines = 1,
+                    softWrap = false,
+                    style = MaterialTheme.typography.labelSmall
+                )
             }
         }
 
@@ -776,6 +868,68 @@ private fun SelectedSplitRow(
 }
 
 @Composable
+private fun EditableSplitArtwork(
+    itemId: String,
+    customImageFile: File?,
+    customImageCacheKey: Long?,
+    hasCustomImage: Boolean,
+    onChooseImage: () -> Unit,
+    onResetImage: () -> Unit
+) {
+    var hovered by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .size(34.dp)
+            .onPointerEvent(PointerEventType.Enter) { hovered = true }
+            .onPointerEvent(PointerEventType.Exit) { hovered = false }
+            .pointerHoverIcon(PointerIcon.Hand, overrideDescendants = true)
+            .clickable(onClick = onChooseImage),
+        contentAlignment = Alignment.Center
+    ) {
+        SplitArtworkIcon(
+            itemId = itemId,
+            customImageFile = customImageFile,
+            customImageCacheKey = customImageCacheKey,
+            isObtained = true,
+            size = 34
+        )
+        if (hovered) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(TrackerColors.Background.copy(alpha = 0.62f), RoundedCornerShape(2.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = "Choose split image",
+                    tint = TrackerColors.OnSurface,
+                    modifier = Modifier.size(13.dp)
+                )
+            }
+            if (hasCustomImage) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(16.dp)
+                        .background(TrackerColors.Error, RoundedCornerShape(8.dp))
+                        .pointerHoverIcon(PointerIcon.Hand, overrideDescendants = true)
+                        .clickable(onClick = onResetImage),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = "Restore default split image",
+                        tint = TrackerColors.OnPrimary,
+                        modifier = Modifier.size(11.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun CompactSplitNameField(
     value: String,
     onValueChange: (String) -> Unit,
@@ -784,30 +938,53 @@ private fun CompactSplitNameField(
     description: String?,
     modifier: Modifier = Modifier
 ) {
+    var hovered by remember { mutableStateOf(false) }
     Column(modifier = modifier) {
-        BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            textStyle = MaterialTheme.typography.bodySmall.copy(color = TrackerColors.OnSurface),
-            cursorBrush = SolidColor(TrackerColors.Primary),
-            decorationBox = { innerTextField ->
-                Box(contentAlignment = Alignment.CenterStart) {
-                    if (value.isEmpty()) {
-                        Text(
-                            defaultName,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.65f)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .onPointerEvent(PointerEventType.Enter) { hovered = true }
+                .onPointerEvent(PointerEventType.Exit) { hovered = false }
+                .pointerHoverIcon(PointerIcon.Hand, overrideDescendants = true),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier.fillMaxWidth().padding(end = 18.dp),
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodySmall.copy(color = TrackerColors.OnSurface),
+                cursorBrush = SolidColor(TrackerColors.Primary),
+                decorationBox = { innerTextField ->
+                    Box(contentAlignment = Alignment.CenterStart) {
+                        if (value.isEmpty()) {
+                            Text(
+                                defaultName,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = TrackerColors.OnSurfaceVariant.copy(alpha = 0.65f)
+                                )
                             )
-                        )
+                        }
+                        innerTextField()
                     }
-                    innerTextField()
+                }
+            )
+            Box(
+                modifier = Modifier.align(Alignment.CenterEnd).size(13.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (hovered) {
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = "Edit split name",
+                        tint = TrackerColors.Primary,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
             }
-        )
+        }
         Text(
             splitType.replace('_', ' ').uppercase(),
             style = MaterialTheme.typography.labelSmall.copy(
@@ -831,4 +1008,20 @@ private fun <T> List<T>.moved(fromIndex: Int, toIndex: Int): List<T> {
         val item = removeAt(fromIndex)
         add(toIndex, item)
     }
+}
+
+private fun showSplitImagePickerDialog(): String? {
+    val dialog = java.awt.FileDialog(
+        null as java.awt.Frame?,
+        "Choose Split Image",
+        java.awt.FileDialog.LOAD
+    )
+    dialog.setFilenameFilter { _, name ->
+        name.substringAfterLast('.', "").lowercase() in setOf("png", "jpg", "jpeg", "gif", "bmp")
+    }
+    dialog.isVisible = true
+    val directory = dialog.directory
+    val file = dialog.file
+    dialog.dispose()
+    return if (directory != null && file != null) File(directory, file).absolutePath else null
 }

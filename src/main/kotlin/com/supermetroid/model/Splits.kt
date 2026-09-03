@@ -25,7 +25,9 @@ data class SplitProfile(
      */
     val version: Int = 1,
     /** Stable identity shared by all structural versions of a custom profile. */
-    val familyId: String = id
+    val familyId: String = id,
+    /** Per-profile artwork overrides keyed by stable split ID. */
+    val splitImageOverrides: Map<String, SplitImageAsset> = emptyMap()
 )
 
 @Serializable

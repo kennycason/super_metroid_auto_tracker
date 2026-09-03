@@ -11,10 +11,39 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.awt.RenderingHints
+import java.awt.image.BufferedImage
 import java.io.File
+import javax.imageio.ImageIO
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.UUID
 import kotlin.math.abs
+import kotlin.math.min
+import kotlin.math.roundToInt
+
+internal data class SplitImageDimensions(val width: Int, val height: Int)
+
+/**
+ * Downscale only when both dimensions exceed [minimumDimension]. The shorter
+ * side becomes 128px, so a later square center-crop always has enough pixels
+ * in both directions without upscaling small uploads.
+ */
+internal fun calculateSplitImagePreviewDimensions(
+    width: Int,
+    height: Int,
+    minimumDimension: Int = 128
+): SplitImageDimensions {
+    require(width > 0 && height > 0) { "Image dimensions must be positive" }
+    if (min(width, height) <= minimumDimension) {
+        return SplitImageDimensions(width, height)
+    }
+    val scale = minimumDimension.toDouble() / min(width, height).toDouble()
+    return SplitImageDimensions(
+        width = (width * scale).roundToInt().coerceAtLeast(minimumDimension),
+        height = (height * scale).roundToInt().coerceAtLeast(minimumDimension)
+    )
+}
 
 /**
  * File-based storage service for splits data and personal bests
@@ -35,6 +64,7 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
     private val backupsDir = File(trackerDir, "backups")
     private val runSummariesFile = File(trackerDir, "run-summaries.json")
     private val splitProfilesFile = File(trackerDir, "split-profiles.json")
+    private val splitProfileImagesDir = File(trackerDir, "split-profile-images")
 
     /** Get the storage directory path (e.g., ~/.smtracker/) */
     fun getStorageDir(): File = trackerDir
@@ -61,6 +91,10 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
         if (!backupsDir.exists()) {
             backupsDir.mkdirs()
             logger.info { "📁 Created backups directory: ${backupsDir.absolutePath}" }
+        }
+        if (!splitProfileImagesDir.exists()) {
+            splitProfileImagesDir.mkdirs()
+            logger.info { "📁 Created split profile images directory: ${splitProfileImagesDir.absolutePath}" }
         }
     }
 
@@ -191,6 +225,126 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
     suspend fun backupSplitProfilesConfig(): Boolean = withContext(Dispatchers.IO) {
         backupFileSync(splitProfilesFile)
     }
+
+    /**
+     * Preserve an uploaded split image and generate a proportional PNG preview.
+     * Paths stored in profile JSON remain relative to the tracker directory.
+     */
+    suspend fun saveSplitProfileImage(
+        profileStorageKey: String,
+        splitId: String,
+        sourcePath: String
+    ): SplitImageAsset = withContext(Dispatchers.IO) {
+        val source = File(sourcePath)
+        require(source.isFile) { "Selected image does not exist" }
+        val extension = source.extension.lowercase().let {
+            when (it) {
+                "jpeg" -> "jpg"
+                "png", "jpg", "gif", "bmp" -> it
+                else -> throw IllegalArgumentException("Choose a PNG, JPG, GIF, or BMP image")
+            }
+        }
+        val originalImage = ImageIO.read(source)
+            ?: throw IllegalArgumentException("The selected file is not a readable image")
+        val previewDimensions = calculateSplitImagePreviewDimensions(
+            originalImage.width,
+            originalImage.height
+        )
+
+        val imageDir = File(
+            File(splitProfileImagesDir, safePathSegment(profileStorageKey)),
+            safePathSegment(splitId)
+        )
+        check(imageDir.exists() || imageDir.mkdirs()) { "Could not create split image directory" }
+
+        // Asset files are immutable. That keeps archived profile versions and
+        // split-profiles.json backups pointing at the exact image they recorded.
+        val updatedAt = System.currentTimeMillis()
+        val assetId = "$updatedAt-${UUID.randomUUID().toString().take(8)}"
+        val originalFile = File(imageDir, "original-$assetId.$extension")
+        val previewFile = File(imageDir, "preview-$assetId.png")
+        val originalTemp = File.createTempFile("original_", ".$extension", imageDir)
+        val previewTemp = File.createTempFile("preview_", ".png", imageDir)
+
+        try {
+            source.copyTo(originalTemp, overwrite = true)
+            val previewImage = if (
+                previewDimensions.width == originalImage.width &&
+                previewDimensions.height == originalImage.height
+            ) {
+                originalImage
+            } else {
+                resizeImage(originalImage, previewDimensions)
+            }
+            check(ImageIO.write(previewImage, "png", previewTemp)) {
+                "Could not encode split image preview"
+            }
+
+            replaceFile(originalTemp, originalFile)
+            replaceFile(previewTemp, previewFile)
+
+            SplitImageAsset(
+                originalPath = relativeTrackerPath(originalFile),
+                previewPath = relativeTrackerPath(previewFile),
+                originalWidth = originalImage.width,
+                originalHeight = originalImage.height,
+                previewWidth = previewDimensions.width,
+                previewHeight = previewDimensions.height,
+                updatedAtEpochMs = updatedAt
+            )
+        } finally {
+            originalTemp.delete()
+            previewTemp.delete()
+        }
+    }
+
+    /** Resolve a persisted relative asset path without allowing traversal outside the data directory. */
+    fun resolveSplitProfileImage(relativePath: String): File? {
+        if (relativePath.isBlank()) return null
+        return try {
+            val root = trackerDir.canonicalFile.toPath()
+            val resolved = File(trackerDir, relativePath).canonicalFile
+            resolved.takeIf { it.toPath().startsWith(root) && it.isFile }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun resizeImage(source: BufferedImage, dimensions: SplitImageDimensions): BufferedImage {
+        val resized = BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_INT_ARGB)
+        val graphics = resized.createGraphics()
+        try {
+            graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC)
+            graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
+            graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+            graphics.drawImage(source, 0, 0, dimensions.width, dimensions.height, null)
+        } finally {
+            graphics.dispose()
+        }
+        return resized
+    }
+
+    private fun replaceFile(tempFile: File, destination: File) {
+        if (destination.exists() && !destination.delete()) {
+            throw IllegalStateException("Could not replace ${destination.name}")
+        }
+        if (!tempFile.renameTo(destination)) {
+            tempFile.copyTo(destination, overwrite = true)
+            tempFile.delete()
+        }
+    }
+
+    private fun relativeTrackerPath(file: File): String =
+        trackerDir.canonicalFile.toPath()
+            .relativize(file.canonicalFile.toPath())
+            .toString()
+            .replace(File.separatorChar, '/')
+
+    private fun safePathSegment(value: String): String = value
+        .replace(Regex("[^A-Za-z0-9._-]"), "_")
+        .trim('.', '_')
+        .take(120)
+        .ifBlank { "unnamed" }
 
     /**
      * Get config file path for debugging
