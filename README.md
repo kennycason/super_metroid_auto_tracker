@@ -86,6 +86,18 @@ A real-time item, boss, and location tracker for Super Metroid with automatic sp
 - **Spacebar**: Start/pause the run timer
 - **R**: Reset the current run (requires confirmation)
 
+### Resume an Unfinished Run
+
+Pausing writes a durable run checkpoint, and closing the tracker also saves the
+active run as paused. To continue later, open **Settings → Run History** and find
+the entry marked `⏸`:
+
+- Click the run row to load it paused, then click Play or press Spacebar.
+- Click the small green `▶` on the row to resume it immediately.
+
+Completed history comes from LiveSplit; resumable checkpoints come from the
+tracker's JSON run files and are shown alongside it.
+
 ### Command-Line Arguments
 
 #### Custom Data Directory

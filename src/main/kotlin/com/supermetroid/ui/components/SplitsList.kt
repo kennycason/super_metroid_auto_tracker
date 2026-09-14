@@ -888,8 +888,9 @@ fun PersonalBestSummary(
 ) {
     val fontSize by splitsFontSizeService.fontSize.collectAsState()
     val currentProfilePB = splitsState.personalBests[profileId]
+    val hasCompletedRun = hasCompletedRunForSummary(splitsState, profileId, profile)
 
-    if (currentProfilePB != null) {
+    if (currentProfilePB != null && hasCompletedRun) {
         // Personal Best row
         SummaryRow(
             label = "Personal Best",
@@ -929,6 +930,30 @@ fun PersonalBestSummary(
                 )
             }
         }
+    }
+}
+
+/**
+ * The footer summarizes historical performance, so current and incomplete runs
+ * must never make it appear. Require a positive, fully populated completed run
+ * for this exact profile. This is deliberately separate from the split-column
+ * state, which may track live segment improvements during an active run.
+ */
+internal fun hasCompletedRunForSummary(
+    splitsState: SplitsState,
+    profileId: String,
+    profile: SplitProfile
+): Boolean {
+    return splitsState.runHistory.any { run ->
+        run.profileId == profileId &&
+            run.endTime != null &&
+            run.totalTime > 0L &&
+            profile.splits.all { profileSplit ->
+                run.completedSplits.any { completedSplit ->
+                    completedSplit.splitId == profileSplit.id &&
+                        completedSplit.time.segmentTime > 0L
+                }
+            }
     }
 }
 

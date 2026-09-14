@@ -295,7 +295,9 @@ class SplitFormatService(
                 }
             }
 
-            val existingDoc = _liveSplitDocument.value
+            val existingDoc = _liveSplitDocument.value?.let { document ->
+                removeMatchingIncompleteAttempt(document, run)
+            }
             val updatedDoc = converter.fromRunSession(run, profile, existingDoc)
 
             writer.writeToFile(updatedDoc, file)
@@ -307,6 +309,42 @@ class SplitFormatService(
             logger.error(e) { "Failed to save run to LiveSplit: $path" }
             false
         }
+    }
+
+    /**
+     * A run that was saved for later may already have a DNF attempt in LiveSplit.
+     * When that same run eventually completes, remove the old incomplete attempt
+     * and its segment-history entries before writing the completed version.
+     */
+    private fun removeMatchingIncompleteAttempt(
+        document: LiveSplitDocument,
+        run: RunSession
+    ): LiveSplitDocument {
+        if (run.endTime == null) return document
+
+        val runStarted = LiveSplitConverter.formatInstantForLiveSplit(run.startTime)
+        val replacedAttemptIds = document.attemptHistory
+            .filter { attempt ->
+                attempt.realTime == null && attempt.started == runStarted
+            }
+            .map { it.id }
+            .toSet()
+
+        if (replacedAttemptIds.isEmpty()) return document
+
+        logger.info {
+            "Replacing ${replacedAttemptIds.size} incomplete LiveSplit attempt(s) for resumed run ${run.id}"
+        }
+        val attempts = document.attemptHistory.filterNot { it.id in replacedAttemptIds }
+        return document.copy(
+            attemptCount = attempts.size,
+            attemptHistory = attempts,
+            segments = document.segments.map { segment ->
+                segment.copy(
+                    segmentHistory = segment.segmentHistory.filterNot { it.id in replacedAttemptIds }
+                )
+            }
+        )
     }
 
     /**

@@ -12,6 +12,7 @@ import strikt.api.expectThat
 import strikt.assertions.*
 import java.io.File
 import java.nio.file.Path
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -127,6 +128,111 @@ class SplitSaveTest {
         
         expectThat(savedRun.completedSplits).isNotEmpty()
     }
+
+    @Test
+    fun `pausing writes a resumable checkpoint`() = runBlocking {
+        autoSplitsEngine.loadProfile(SplitProfiles.SIMPLE_RDPK)
+        autoSplitsEngine.startNewRun(SplitProfiles.ID_SIMPLE_RDPK)
+        delay(25)
+
+        autoSplitsEngine.toggleRunState()
+        delay(500)
+
+        val savedRun = fileStorageService.loadAllRuns().single()
+        expectThat(savedRun) {
+            get { profileId }.isEqualTo(SplitProfiles.ID_SIMPLE_RDPK)
+            get { isPaused }.isTrue()
+            get { endTime }.isNull()
+            get { totalTime }.isGreaterThan(0L)
+        }
+    }
+
+    @Test
+    fun `application exit persists active run as paused checkpoint`() = runBlocking {
+        val expectedTime = 22_475_447L
+        autoSplitsEngine.loadProfile(SplitProfiles.SIMPLE_RDPK)
+        autoSplitsEngine.setTimer(expectedTime, SplitProfiles.ID_SIMPLE_RDPK)
+
+        expectThat(autoSplitsEngine.saveCurrentRunForExit()).isTrue()
+
+        val savedRun = fileStorageService.loadAllRuns().single()
+        expectThat(savedRun) {
+            get { profileId }.isEqualTo(SplitProfiles.ID_SIMPLE_RDPK)
+            get { isPaused }.isTrue()
+            get { endTime }.isNull()
+            get { totalTime }.isEqualTo(expectedTime)
+        }
+    }
+
+    @Test
+    fun `resuming keeps disk checkpoint until progress is saved again`() = runBlocking {
+        val startTime = Clock.System.now() - 10.seconds
+        val checkpoint = RunSession(
+            id = "run_12345",
+            profileId = SplitProfiles.ID_SIMPLE_RDPK,
+            startTime = startTime,
+            completedSplits = listOf(
+                CompletedSplit(
+                    splitId = "ceres_station",
+                    time = SplitTime(totalTime = 5_000L, segmentTime = 5_000L),
+                    timestamp = startTime + 5_000L.milliseconds
+                )
+            ),
+            totalTime = 6_000L,
+            isPaused = true,
+            profileSnapshot = SplitProfiles.SIMPLE_RDPK
+        )
+        fileStorageService.saveRun(checkpoint)
+        val runFile = fileStorageService.listRunFiles().single().fileName
+
+        expectThat(autoSplitsEngine.resumeRun(runFile)).isTrue()
+        expectThat(autoSplitsEngine.splitsState.value.currentRun).isNotNull().and {
+            get { isPaused }.isFalse()
+            get { completedSplits }.hasSize(1)
+        }
+
+        // The last safe checkpoint remains available if the app crashes before
+        // another pause, split, or orderly exit.
+        expectThat(fileStorageService.loadRunByFileName(runFile)).isNotNull()
+        Unit
+    }
+
+    @Test
+    fun `loading incomplete run waits paused until Play is pressed`() = runBlocking {
+        val startTime = Clock.System.now() - 10.seconds
+        val checkpoint = RunSession(
+            id = "run_54321",
+            profileId = SplitProfiles.ID_SIMPLE_RDPK,
+            startTime = startTime,
+            completedSplits = listOf(
+                CompletedSplit(
+                    splitId = "ceres_station",
+                    time = SplitTime(totalTime = 5_000L, segmentTime = 5_000L),
+                    timestamp = startTime + 5_000L.milliseconds
+                )
+            ),
+            totalTime = 6_000L,
+            isPaused = true,
+            profileSnapshot = SplitProfiles.SIMPLE_RDPK
+        )
+        fileStorageService.saveRun(checkpoint)
+        val runFile = fileStorageService.listRunFiles().single().fileName
+
+        expectThat(autoSplitsEngine.loadReplayRun(runFile)).isTrue()
+        expectThat(autoSplitsEngine.splitsState.value.currentRun).isNotNull().and {
+            get { isPaused }.isTrue()
+            get { totalTime }.isEqualTo(6_000L)
+            get { completedSplits }.hasSize(1)
+        }
+        expectThat(autoSplitsEngine.autoStartEnabled).isFalse()
+
+        autoSplitsEngine.toggleRunState()
+        expectThat(autoSplitsEngine.splitsState.value.currentRun).isNotNull().and {
+            get { isPaused }.isFalse()
+            get { completedSplits }.hasSize(1)
+        }
+        Unit
+    }
     
     @Test
     fun `should create separate file for each run`() = runBlocking {
@@ -226,4 +332,3 @@ class SplitSaveTest {
         )
     }
 }
-

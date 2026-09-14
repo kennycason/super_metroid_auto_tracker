@@ -1661,8 +1661,9 @@ private fun LoadRunSection(
         )
     }
 
-    // LiveSplit is the canonical read source when a matching LSS document is loaded.
-    // JSON files are an optional output/fallback source.
+    // LiveSplit is the canonical source for completed runs when a matching document
+    // is loaded. Incomplete runs only exist as resumable JSON checkpoints, so keep
+    // those rows alongside the LiveSplit history.
     val jsonRunFiles = allRunFiles.filter { it.profileId == currentProfile.id }
     val runFiles = selectRunFileMetadata(
         jsonRunFiles = jsonRunFiles,
@@ -1677,8 +1678,8 @@ private fun LoadRunSection(
     val scope = rememberCoroutineScope()
 
     // Load run files when dropdown is opened
-    LaunchedEffect(expanded, hasLiveSplitRunSource) {
-        if (expanded && !hasLiveSplitRunSource && allRunFiles.isEmpty()) {
+    LaunchedEffect(expanded) {
+        if (expanded && allRunFiles.isEmpty()) {
             isLoading = true
             allRunFiles = fileStorageService.listRunFiles()
             isLoading = false
@@ -1707,7 +1708,7 @@ private fun LoadRunSection(
             )
 
             Text(
-                text = "Review or delete past runs",
+                text = "Review, resume, or delete past runs",
                 style = MaterialTheme.typography.bodySmall.copy(
                     color = TrackerColors.OnSurfaceVariant
                 ),
@@ -1822,8 +1823,8 @@ private fun LoadRunSection(
                                                     expanded = false
                                                     scope.launch {
                                                         try {
-                                                            autoSplitsEngine.resumeRun(runFile.fileName)
-                                                            statusMessage = "Resumed run"
+                                                            val resumed = autoSplitsEngine.resumeRun(runFile.fileName)
+                                                            statusMessage = if (resumed) "Resumed run" else "Failed to resume"
                                                             allRunFiles = fileStorageService.listRunFiles()
                                                         } catch (e: Exception) {
                                                             statusMessage = "Failed to resume"
@@ -1882,7 +1883,11 @@ private fun LoadRunSection(
                                         } else {
                                             autoSplitsEngine.loadReplayRun(runFile.fileName)
                                         }
-                                        statusMessage = if (success) "Loaded run" else "Failed to load run"
+                                        statusMessage = when {
+                                            !success -> "Failed to load run"
+                                            !runFile.isComplete -> "Loaded paused run - press Play to resume"
+                                            else -> "Loaded run"
+                                        }
                                     }
                                 }
                             )
@@ -1899,9 +1904,8 @@ private fun LoadRunSection(
                             isLoading = true
                             if (hasLiveSplitRunSource) {
                                 splitFormatService.reloadLiveSplitFile()
-                            } else {
-                                allRunFiles = fileStorageService.listRunFiles()
                             }
+                            allRunFiles = fileStorageService.listRunFiles()
                             isLoading = false
                         }
                     },
@@ -2025,6 +2029,13 @@ internal fun selectRunFileMetadata(
     lssRunFiles: List<FileStorageService.RunFileMetadata>,
     useLiveSplitSource: Boolean
 ): List<FileStorageService.RunFileMetadata> {
-    val selectedRuns = if (useLiveSplitSource) lssRunFiles else jsonRunFiles
+    val selectedRuns = if (useLiveSplitSource) {
+        // Completed JSON runs duplicate canonical LiveSplit attempts. Incomplete
+        // JSON runs are different: they are the durable checkpoints used by the
+        // resume flow and therefore must remain visible.
+        lssRunFiles + jsonRunFiles.filterNot { it.isComplete }
+    } else {
+        jsonRunFiles
+    }
     return selectedRuns.sortedByDescending { it.startTime }
 }

@@ -55,12 +55,19 @@ class LiveSplitRunDropdownMetadataTest {
     }
 
     @Test
-    fun `run metadata uses LiveSplit source instead of JSON when active`() {
+    fun `active LiveSplit source includes resumable JSON but excludes completed JSON`() {
         val jsonRun = runMetadata(
             fileName = "map-rando_2026-04-01_10-00-00_run_1.json",
             displayName = "JSON",
             startTime = Instant.fromEpochMilliseconds(1_459L),
             totalTime = 1_043_210L
+        )
+        val incompleteJsonRun = runMetadata(
+            fileName = "map-rando_2026-04-01_11-00-00_run_2.json",
+            displayName = "Incomplete JSON",
+            startTime = Instant.fromEpochMilliseconds(10_000L),
+            totalTime = 900_000L,
+            isComplete = false
         )
         val lssRun = runMetadata(
             fileName = "lss-attempt-7",
@@ -68,20 +75,13 @@ class LiveSplitRunDropdownMetadataTest {
             startTime = Instant.fromEpochMilliseconds(1_000L),
             totalTime = 1_043_210L
         )
-        val unrelatedJsonRun = runMetadata(
-            fileName = "map-rando_2026-04-01_11-00-00_run_2.json",
-            displayName = "Unrelated",
-            startTime = Instant.fromEpochMilliseconds(10_000L),
-            totalTime = 900_000L
-        )
-
         val selected = selectRunFileMetadata(
-            jsonRunFiles = listOf(jsonRun, unrelatedJsonRun),
+            jsonRunFiles = listOf(jsonRun, incompleteJsonRun),
             lssRunFiles = listOf(lssRun),
             useLiveSplitSource = true
         )
 
-        assertEquals(listOf(lssRun.fileName), selected.map { it.fileName })
+        assertEquals(listOf(incompleteJsonRun.fileName, lssRun.fileName), selected.map { it.fileName })
     }
 
     @Test
@@ -103,12 +103,13 @@ class LiveSplitRunDropdownMetadataTest {
     }
 
     @Test
-    fun `run metadata does not show JSON rows when active LiveSplit source has no runs`() {
+    fun `active LiveSplit source with no attempts still shows incomplete JSON rows`() {
         val jsonRun = runMetadata(
             fileName = "map-rando_2026-04-01_10-00-00_run_1.json",
             displayName = "JSON",
             startTime = Instant.fromEpochMilliseconds(1_459L),
-            totalTime = 1_043_210L
+            totalTime = 1_043_210L,
+            isComplete = false
         )
 
         val selected = selectRunFileMetadata(
@@ -117,7 +118,7 @@ class LiveSplitRunDropdownMetadataTest {
             useLiveSplitSource = true
         )
 
-        assertTrue(selected.isEmpty())
+        assertEquals(listOf(jsonRun.fileName), selected.map { it.fileName })
     }
 
     private fun documentWithAttempts(vararg attempts: LiveSplitAttempt): LiveSplitDocument {
@@ -143,12 +144,13 @@ class LiveSplitRunDropdownMetadataTest {
         displayName: String,
         startTime: Instant,
         totalTime: Long,
-        profileId: String = "map-rando"
+        profileId: String = "map-rando",
+        isComplete: Boolean = true
     ): FileStorageService.RunFileMetadata {
         return FileStorageService.RunFileMetadata(
             fileName = fileName,
             displayName = displayName,
-            isComplete = true,
+            isComplete = isComplete,
             startTime = startTime,
             totalTime = totalTime,
             profileId = profileId

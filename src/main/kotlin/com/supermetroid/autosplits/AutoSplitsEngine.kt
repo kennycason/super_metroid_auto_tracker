@@ -137,6 +137,12 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             val newProfile = targetRun.profileSnapshot ?: resolveProfile(targetRun.profileId)
             currentProfile = newProfile
             currentSplitIndex = targetRun.completedSplits.size
+            pauseStartTime = null
+            if (targetRun.endTime == null) {
+                // An incomplete run is loaded paused and waits for an explicit
+                // Play/Space action instead of reacting to game auto-start.
+                autoStartEnabled = false
+            }
 
             // Notify SplitProfileService of the profile change
             onProfileChangedFromEngine?.invoke(newProfile)
@@ -162,6 +168,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             val newProfile = targetRun.profileSnapshot ?: resolveProfile(targetRun.profileId)
             currentProfile = newProfile
             currentSplitIndex = targetRun.completedSplits.size
+            pauseStartTime = null
 
             onProfileChangedFromEngine?.invoke(newProfile)
 
@@ -435,6 +442,9 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                 logger.info { "⏱️ Starting new run" }
                 startNewRun(profileId)
             }
+            currentRun.endTime != null -> {
+                logger.info { "⏱️ Ignoring Play on completed replay run" }
+            }
             currentRun.isPaused -> {
                 logger.info { "⏱️ Resuming paused run" }
                 resumeRun()
@@ -543,12 +553,25 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         // Update the state to mark the run as paused AND update totalTime to the current running time
         val currentState = _splitsState.value
-        _splitsState.value = currentState.copy(
-            currentRun = currentRun.copy(
-                isPaused = true,
-                totalTime = runningTime  // Update totalTime to current running time
-            )
+        val pausedRun = currentRun.copy(
+            isPaused = true,
+            totalTime = runningTime  // Update totalTime to current running time
         )
+        _splitsState.value = currentState.copy(currentRun = pausedRun)
+
+        // A deliberate pause is a durable checkpoint. Save JSON directly rather
+        // than sending an incomplete run to LiveSplit, whose attempts are not
+        // resumable by the tracker.
+        fileStorageService?.let { storage ->
+            scope.launch(Dispatchers.IO) {
+                try {
+                    storage.saveRun(pausedRun)
+                    logger.info { "💾 Saved paused run checkpoint at ${formatTime(runningTime)}" }
+                } catch (e: Exception) {
+                    logger.error(e) { "❌ Failed to save paused run checkpoint" }
+                }
+            }
+        }
 
         logger.info { "⏸️ Run ${currentRun.id} paused successfully at ${formatTime(runningTime)}" }
     }
@@ -1504,62 +1527,92 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
      * Resume an incomplete run. Loads the run as current, adjusts paused time
      * to account for the gap, and positions at the next uncompleted split.
      */
-    suspend fun resumeRun(runFileName: String) {
+    suspend fun resumeRun(runFileName: String): Boolean {
         logger.info { "▶️ Resuming run: $runFileName" }
 
         try {
-            fileStorageService?.let { storage ->
-                val targetRun = storage.loadRunByFileName(runFileName)
-                if (targetRun == null) {
-                    logger.error { "❌ Could not find run file: $runFileName" }
-                    return
-                }
-
-                if (targetRun.endTime != null) {
-                    logger.warn { "⚠️ Cannot resume a completed run" }
-                    return
-                }
-
-                // Calculate the gap between when the run was paused and now
-                val now = kotlinx.datetime.Clock.System.now()
-                val gapMs = now.toEpochMilliseconds() - targetRun.startTime.toEpochMilliseconds() -
-                    targetRun.totalTime - targetRun.pausedTime
-
-                // Resume the run: add the gap to pausedTime so the timer picks up from totalTime
-                val resumedRun = targetRun.copy(
-                    isPaused = false,
-                    pausedTime = targetRun.pausedTime + gapMs
-                )
-
-                // Set split index past completed splits
-                val profile = targetRun.profileSnapshot ?: resolveProfile(targetRun.profileId)
-                currentProfile = profile
-                currentSplitIndex = targetRun.completedSplits.size
-
-                // Load all runs for PB calculation
-                val allRuns = storage.loadAllRuns()
-                val previousRuns = allRuns.filter { it.startTime < targetRun.startTime && it.endTime != null }
-
-                val updatedState = SplitsState(
-                    currentRun = resumedRun,
-                    personalBests = emptyMap(),
-                    runHistory = previousRuns
-                )
-
-                val finalState = updatePersonalBestsFromRunHistory(updatedState)
-                _splitsState.value = finalState
-
-                onProfileChangedFromEngine?.invoke(profile)
-                autoStartEnabled = false
-
-                logger.info { "▶️ Resumed run ${targetRun.id}: ${targetRun.completedSplits.size} splits done, timer at ${formatTime(targetRun.totalTime)}" }
-
-                // Delete the old run file since we're continuing it
-                storage.deleteRun(runFileName)
-                logger.info { "🗑️ Removed old run file (run is now active): $runFileName" }
+            val storage = fileStorageService ?: return false
+            val targetRun = storage.loadRunByFileName(runFileName)
+            if (targetRun == null) {
+                logger.error { "❌ Could not find run file: $runFileName" }
+                return false
             }
+
+            if (targetRun.endTime != null) {
+                logger.warn { "⚠️ Cannot resume a completed run" }
+                return false
+            }
+
+            // Calculate the gap between when the run was paused and now
+            val now = kotlinx.datetime.Clock.System.now()
+            val gapMs = now.toEpochMilliseconds() - targetRun.startTime.toEpochMilliseconds() -
+                targetRun.totalTime - targetRun.pausedTime
+
+            // Resume the run: add the gap to pausedTime so the timer picks up from totalTime
+            val resumedRun = targetRun.copy(
+                isPaused = false,
+                pausedTime = targetRun.pausedTime + gapMs
+            )
+
+            // Set split index past completed splits
+            val profile = targetRun.profileSnapshot ?: resolveProfile(targetRun.profileId)
+            currentProfile = profile
+            currentSplitIndex = targetRun.completedSplits.size
+
+            // Load all runs for PB calculation
+            val allRuns = storage.loadAllRuns()
+            val previousRuns = allRuns.filter { it.startTime < targetRun.startTime && it.endTime != null }
+
+            val updatedState = SplitsState(
+                currentRun = resumedRun,
+                personalBests = emptyMap(),
+                runHistory = previousRuns
+            )
+
+            val finalState = updatePersonalBestsFromRunHistory(updatedState)
+            _splitsState.value = finalState
+
+            onProfileChangedFromEngine?.invoke(profile)
+            autoStartEnabled = false
+
+            logger.info { "▶️ Resumed run ${targetRun.id}: ${targetRun.completedSplits.size} splits done, timer at ${formatTime(targetRun.totalTime)}" }
+            // Keep the checkpoint in place until a later pause, split, or exit
+            // overwrites it. This protects the run if the app exits unexpectedly.
+            return true
         } catch (e: Exception) {
             logger.error(e) { "❌ Failed to resume run" }
+            return false
+        }
+    }
+
+    /**
+     * Persist the active run as a paused JSON checkpoint before application exit.
+     * Returns true when a checkpoint was written.
+     */
+    suspend fun saveCurrentRunForExit(): Boolean {
+        val currentRun = _splitsState.value.currentRun ?: return false
+        if (currentRun.endTime != null) return false
+
+        val finalTime = if (currentRun.isPaused) {
+            currentRun.totalTime
+        } else {
+            System.currentTimeMillis() - currentRun.startTime.toEpochMilliseconds() - currentRun.pausedTime
+        }
+        if (finalTime <= 0L && currentRun.completedSplits.isEmpty()) return false
+
+        val checkpoint = currentRun.copy(
+            isPaused = true,
+            totalTime = finalTime
+        )
+        val storage = fileStorageService ?: return false
+
+        return try {
+            storage.saveRun(checkpoint)
+            logger.info { "💾 Saved exit checkpoint for run ${checkpoint.id} at ${formatTime(finalTime)}" }
+            true
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Failed to save current run before exit" }
+            false
         }
     }
 

@@ -95,8 +95,9 @@ fun main(args: Array<String>) {
         
         Window(
             onCloseRequest = {
-                // Save window dimensions before closing
+                // Save the active run and window dimensions before closing.
                 runBlocking {
+                    autoSplitsEngine.saveCurrentRunForExit()
                     val currentConfig = fileStorageService.loadAppConfig()
                     fileStorageService.saveAppConfig(
                         currentConfig.copy(

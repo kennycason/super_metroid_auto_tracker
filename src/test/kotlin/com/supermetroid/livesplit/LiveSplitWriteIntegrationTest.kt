@@ -265,6 +265,29 @@ class LiveSplitWriteIntegrationTest {
     }
 
     @Test
+    fun `completed resumed run replaces matching incomplete LSS attempt`() = runBlocking {
+        splitFormatService.setLiveSplitFilePath(lssFile.absolutePath)
+        splitProfileService.initialize()
+
+        val completedRun = makeCompletedRun(totalTimeMs = 3_600_000L)
+        val incompleteRun = completedRun.copy(
+            endTime = null,
+            completedSplits = completedRun.completedSplits.take(1),
+            totalTime = completedRun.completedSplits.first().time.totalTime
+        )
+
+        splitFormatService.handleRunSaved(incompleteRun)
+        splitFormatService.handleRunSaved(completedRun)
+
+        val doc = LiveSplitParser().parseFile(lssFile)
+        assertEquals(1, doc.attemptCount)
+        assertEquals(1, doc.attemptHistory.size)
+        assertEquals(completedRun.totalTime, doc.attemptHistory.single().realTime)
+        assertNotNull(doc.attemptHistory.single().ended)
+        assertTrue(doc.segments.all { segment -> segment.segmentHistory.size == 1 })
+    }
+
+    @Test
     fun `loadLiveSplitFile repairs best segments from valid complete attempts only`() = runBlocking {
         val doc = LiveSplitDocument(
             gameName = "Test",

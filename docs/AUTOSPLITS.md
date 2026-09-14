@@ -46,9 +46,11 @@ When resuming a run or loading a save state, the engine auto-skips splits whose 
 ## Timer Management
 
 - **Auto-start**: Detects game start transition (gameState changes from title/loading to gameplay)
-- **Pause/Resume**: Spacebar toggles with 300ms debounce
+- **Pause/Resume**: Spacebar toggles with 300ms debounce; pausing writes a resumable JSON checkpoint
 - **Reset**: R key, saves partial run as incomplete
 - **Set Timer**: Manual timer value entry (creates paused run)
+- **Application exit**: Active runs are saved as paused JSON checkpoints before shutdown
+- **Run History**: Incomplete JSON checkpoints remain visible beside canonical LiveSplit history and can be loaded paused or resumed immediately
 
 ## Personal Best Tracking
 

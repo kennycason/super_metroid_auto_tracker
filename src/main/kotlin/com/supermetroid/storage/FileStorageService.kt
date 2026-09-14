@@ -586,7 +586,7 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
                     val profileName = run.profileSnapshot?.name
                         ?: run.profileId.uppercase().replace("-", " ")
                     val timeStr = formatTime(run.totalTime)
-                    val completeIcon = if (run.endTime != null) "✅" else "❌"
+                    val completeIcon = if (run.endTime != null) "✅" else "⏸"
                     
                     val displayName = "$completeIcon $dateStr - $profileName ($timeStr)"
                     
