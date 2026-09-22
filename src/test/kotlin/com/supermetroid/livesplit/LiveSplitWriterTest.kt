@@ -1,5 +1,7 @@
 package com.supermetroid.livesplit
 
+import com.supermetroid.model.DeathEvent
+import kotlinx.datetime.Instant
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -8,6 +10,37 @@ import java.io.File
 import java.nio.file.Path
 
 class LiveSplitWriterTest {
+
+    @Test
+    fun `round trip preserves death counter events on attempts`() {
+        val death = DeathEvent(
+            runTimeMs = 123_450,
+            timestamp = Instant.parse("2026-09-21T12:34:56Z"),
+            roomId = 0xA253
+        )
+        val document = LiveSplitDocument(
+            gameName = "Super Metroid",
+            categoryName = "Kaizo",
+            attemptCount = 1,
+            segments = emptyList(),
+            attemptHistory = listOf(
+                LiveSplitAttempt(
+                    id = 1,
+                    started = "09/21/2026 05:30:00",
+                    ended = "09/21/2026 05:40:00",
+                    realTime = 600_000,
+                    gameTime = null,
+                    deathCounterEnabled = true,
+                    deaths = listOf(death)
+                )
+            )
+        )
+
+        val reparsed = LiveSplitParser().parseString(LiveSplitWriter().writeToString(document))
+        val attempt = reparsed.attemptHistory.single()
+        assertTrue(attempt.deathCounterEnabled)
+        assertEquals(listOf(death), attempt.deaths)
+    }
 
     private lateinit var parser: LiveSplitParser
     private lateinit var writer: LiveSplitWriter

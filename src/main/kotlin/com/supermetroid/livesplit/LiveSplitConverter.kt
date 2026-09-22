@@ -425,7 +425,9 @@ class LiveSplitConverter : Logging {
                 started = formatInstantForLiveSplit(run.startTime),
                 ended = run.endTime?.let { formatInstantForLiveSplit(it) },
                 realTime = if (run.endTime != null) run.totalTime else null,
-                gameTime = null
+                gameTime = null,
+                deathCounterEnabled = run.deathCounterEnabled,
+                deaths = run.deaths
             )
         }
 
@@ -488,7 +490,9 @@ class LiveSplitConverter : Logging {
                 endTime = endTime,
                 completedSplits = completedSplits,
                 totalTime = totalTime,
-                isPersonalBest = false
+                isPersonalBest = false,
+                deathCounterEnabled = attempt.deathCounterEnabled,
+                deaths = attempt.deaths
             )
         }
     }
@@ -577,7 +581,9 @@ class LiveSplitConverter : Logging {
             started = formatInstantForLiveSplit(run.startTime),
             ended = run.endTime?.let { formatInstantForLiveSplit(it) },
             realTime = if (run.endTime != null) run.totalTime else null,
-            gameTime = null
+            gameTime = null,
+            deathCounterEnabled = run.deathCounterEnabled,
+            deaths = run.deaths
         )
 
         val attemptHistory = (existingDoc?.attemptHistory ?: emptyList()) + newAttempt

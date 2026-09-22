@@ -559,7 +559,9 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
         val isComplete: Boolean,
         val startTime: kotlinx.datetime.Instant,
         val totalTime: Long,
-        val profileId: String
+        val profileId: String,
+        /** Null means this run did not opt into death tracking. */
+        val deathCount: Int? = null
     )
 
     /**
@@ -588,7 +590,13 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
                     val timeStr = formatTime(run.totalTime)
                     val completeIcon = if (run.endTime != null) "✅" else "⏸"
                     
-                    val displayName = "$completeIcon $dateStr - $profileName ($timeStr)"
+                    val deathCount = if (run.deathCounterEnabled || run.deaths.isNotEmpty()) {
+                        run.deaths.size
+                    } else {
+                        null
+                    }
+                    val deathLabel = deathCount?.let { " · ☠ $it" }.orEmpty()
+                    val displayName = "$completeIcon $dateStr - $profileName ($timeStr)$deathLabel"
                     
                     RunFileMetadata(
                         fileName = file.name,
@@ -596,7 +604,8 @@ class FileStorageService(private val dataDir: String? = null) : Logging {
                         isComplete = run.endTime != null,
                         startTime = run.startTime,
                         totalTime = run.totalTime,
-                        profileId = run.profileId
+                        profileId = run.profileId,
+                        deathCount = deathCount
                     )
                 } catch (e: Exception) {
                     logger.error(e) { "❌ Failed to load metadata from ${file.name}" }

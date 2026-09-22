@@ -45,6 +45,17 @@ data class CompletedSplit(
     val timestamp: Instant // When the split was recorded
 )
 
+/** A death recorded during a timed run. */
+@Serializable
+data class DeathEvent(
+    /** Timer value at the moment of death, excluding paused time. */
+    val runTimeMs: Long,
+    /** Wall-clock timestamp retained for auditing/export. */
+    val timestamp: Instant,
+    /** Super Metroid room header ID (for example, 0x91F8 for Landing Site). */
+    val roomId: Int
+)
+
 @Serializable
 data class RunSession(
     val id: String,
@@ -56,6 +67,9 @@ data class RunSession(
     val isPersonalBest: Boolean = false,
     val isPaused: Boolean = false,
     val pausedTime: Long = 0, // Total time spent paused in milliseconds
+    /** Whether death tracking was enabled for this run (including zero-death runs). */
+    val deathCounterEnabled: Boolean = false,
+    val deaths: List<DeathEvent> = emptyList(),
     /**
      * Snapshot used to replay runs after a custom profile is revised or deleted.
      * Optional so all existing run JSON remains backwards compatible.

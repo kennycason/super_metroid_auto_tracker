@@ -68,6 +68,18 @@ class LiveSplitWriter : Logging {
             if (attempt.gameTime != null) {
                 attemptEl.appendTextElement(doc, "GameTime", LiveSplitParser.msToTimeString(attempt.gameTime))
             }
+            if (attempt.deathCounterEnabled || attempt.deaths.isNotEmpty()) {
+                val deathCounter = doc.createElement("SMTrackerDeathCounter")
+                deathCounter.setAttribute("enabled", attempt.deathCounterEnabled.toString())
+                for (death in attempt.deaths) {
+                    val deathEl = doc.createElement("Death")
+                    deathEl.setAttribute("runTimeMs", death.runTimeMs.toString())
+                    deathEl.setAttribute("timestamp", death.timestamp.toString())
+                    deathEl.setAttribute("roomId", "0x${death.roomId.toString(16).uppercase()}")
+                    deathCounter.appendChild(deathEl)
+                }
+                attemptEl.appendChild(deathCounter)
+            }
             attemptHistory.appendChild(attemptEl)
         }
         run.appendChild(attemptHistory)

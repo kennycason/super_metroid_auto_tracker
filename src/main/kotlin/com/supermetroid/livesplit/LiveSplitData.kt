@@ -1,5 +1,7 @@
 package com.supermetroid.livesplit
 
+import com.supermetroid.model.DeathEvent
+
 /**
  * Data model representing a parsed LiveSplit (.lss) file.
  *
@@ -43,7 +45,10 @@ data class LiveSplitAttempt(
     val started: String?,
     val ended: String?,
     val realTime: Long?,
-    val gameTime: Long?
+    val gameTime: Long?,
+    /** SM Tracker extension. LiveSplit safely ignores this custom child element. */
+    val deathCounterEnabled: Boolean = false,
+    val deaths: List<DeathEvent> = emptyList()
 )
 
 data class LiveSplitHistoryEntry(

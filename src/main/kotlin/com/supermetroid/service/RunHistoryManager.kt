@@ -87,7 +87,9 @@ class RunHistoryManager(
             totalTime = this.totalTime,
             isComplete = isComplete,
             completionReason = completionReason,
-            pausedTime = this.pausedTime
+            pausedTime = this.pausedTime,
+            deathCounterEnabled = this.deathCounterEnabled,
+            deaths = this.deaths
         )
     }
 
@@ -111,9 +113,9 @@ class RunHistoryManager(
      * Store an incomplete run (reset or abandoned)
      */
     fun storeIncompleteRun(run: RunSession, completionReason: RunCompletionReason = RunCompletionReason.RESET) {
-        // Only store incomplete runs if they have at least one completed split
-        if (run.completedSplits.isEmpty()) {
-            logger.debug { "Skipping storage of incomplete run ${run.id} - no completed splits" }
+        // A recorded death is meaningful run history even before the first split.
+        if (run.completedSplits.isEmpty() && run.deaths.isEmpty()) {
+            logger.debug { "Skipping storage of incomplete run ${run.id} - no completed splits or deaths" }
             return
         }
 

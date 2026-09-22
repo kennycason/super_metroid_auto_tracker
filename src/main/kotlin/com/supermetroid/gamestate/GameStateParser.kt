@@ -413,6 +413,7 @@ object GameStateConstants {
     const val TITLE_SCREEN = 2              // Title screen state (before pressing start)
     const val GAME_START_TRANSITION = 31    // 0x1F - Transition after pressing start (ASL normalStart)
     const val START_OF_CERES_CUTSCENE = 32  // 0x20
+    const val DEATH_SEQUENCE = 19           // 0x13 - Samus death sequence
     const val PRE_END_CUTSCENE = 38  // 0x26
     const val END_CUTSCENE = 39  // 0x27
     const val ZEBES_TRANSITION_END = 6      // For categories that start from Zebes (ASL zebesStart)

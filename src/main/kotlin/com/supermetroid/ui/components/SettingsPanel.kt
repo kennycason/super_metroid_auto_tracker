@@ -180,6 +180,11 @@ private fun GeneralSettingsTab(
             modifier = Modifier.fillMaxWidth()
         )
 
+        DeathCounterToggleSection(
+            autoSplitsEngine = autoSplitsEngine,
+            modifier = Modifier.fillMaxWidth()
+        )
+
         // Room Name Toggle Section
         RoomNameToggleSection(
             roomNameService = roomNameService,
@@ -705,6 +710,22 @@ private fun RoomNameToggleSection(
         label = "Show room names in status display",
         checked = showRoomName,
         onCheckedChange = { roomNameService.setShowRoomName(it) },
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun DeathCounterToggleSection(
+    autoSplitsEngine: com.supermetroid.autosplits.AutoSplitsEngine,
+    modifier: Modifier = Modifier
+) {
+    val enabled by autoSplitsEngine.deathCounterEnabled.collectAsState()
+
+    ToggleRow(
+        label = "Enable death counter",
+        checked = enabled,
+        onCheckedChange = { autoSplitsEngine.setDeathCounterEnabled(it) },
+        description = "Tracks death time and room ID for each run",
         modifier = modifier
     )
 }
@@ -1874,10 +1895,36 @@ private fun LoadRunSection(
                                                 val allLssRuns = converter.toRunHistory(doc, profileId)
                                                 val targetRun = allLssRuns.find { run -> run.id == "lss-attempt-$attemptId" }
                                                 if (targetRun != null) {
-                                                    val previousRuns = allLssRuns.filter { run ->
-                                                        run.startTime < targetRun.startTime && run.endTime != null
+                                                    // LiveSplit itself does not retain custom per-attempt
+                                                    // extension elements when it rewrites an LSS. Restore
+                                                    // death data from the matching JSON run when necessary.
+                                                    val targetWithDeaths = if (
+                                                        !targetRun.deathCounterEnabled && targetRun.deaths.isEmpty()
+                                                    ) {
+                                                        val jsonFile = fileStorageService.findJsonRunByStartTime(
+                                                            profileId = profileId,
+                                                            startTime = targetRun.startTime
+                                                        )
+                                                        val jsonRun = jsonFile?.let {
+                                                            fileStorageService.loadRunByFileName(it)
+                                                        }
+                                                        if (jsonRun != null &&
+                                                            (jsonRun.deathCounterEnabled || jsonRun.deaths.isNotEmpty())
+                                                        ) {
+                                                            targetRun.copy(
+                                                                deathCounterEnabled = jsonRun.deathCounterEnabled,
+                                                                deaths = jsonRun.deaths
+                                                            )
+                                                        } else {
+                                                            targetRun
+                                                        }
+                                                    } else {
+                                                        targetRun
                                                     }
-                                                    autoSplitsEngine.loadReplayRunSession(targetRun, previousRuns)
+                                                    val previousRuns = allLssRuns.filter { run ->
+                                                        run.startTime < targetWithDeaths.startTime && run.endTime != null
+                                                    }
+                                                    autoSplitsEngine.loadReplayRunSession(targetWithDeaths, previousRuns)
                                                 } else false
                                             } else false
                                         } else {
@@ -2012,14 +2059,21 @@ internal fun buildLiveSplitRunFileMetadata(
                 ?.let { dateFormat.format(java.util.Date(it.toEpochMilliseconds())) }
                 ?: "Attempt ${attempt.id}"
             val timeStr = formatRunTime(totalTime)
+            val deathCount = if (attempt.deathCounterEnabled || attempt.deaths.isNotEmpty()) {
+                attempt.deaths.size
+            } else {
+                null
+            }
+            val deathLabel = deathCount?.let { " · ☠ $it" }.orEmpty()
 
             FileStorageService.RunFileMetadata(
                 fileName = "lss-attempt-${attempt.id}",
-                displayName = "\u2705 $runLabel \u2013 $profileName ($timeStr)",
+                displayName = "\u2705 $runLabel \u2013 $profileName ($timeStr)$deathLabel",
                 isComplete = true,
                 startTime = startTime,
                 totalTime = totalTime,
-                profileId = profileId
+                profileId = profileId,
+                deathCount = deathCount
             )
         }
 }
@@ -2033,7 +2087,28 @@ internal fun selectRunFileMetadata(
         // Completed JSON runs duplicate canonical LiveSplit attempts. Incomplete
         // JSON runs are different: they are the durable checkpoints used by the
         // resume flow and therefore must remain visible.
-        lssRunFiles + jsonRunFiles.filterNot { it.isComplete }
+        val completedJsonRuns = jsonRunFiles.filter { it.isComplete }
+        val lssRunsWithJsonDeathFallback = lssRunFiles.map { lssRun ->
+            if (lssRun.deathCount != null) return@map lssRun
+            val matchingJson = completedJsonRuns
+                .filter { jsonRun ->
+                    jsonRun.profileId == lssRun.profileId &&
+                        kotlin.math.abs(
+                            jsonRun.startTime.toEpochMilliseconds() - lssRun.startTime.toEpochMilliseconds()
+                        ) <= 1_000L
+                }
+                .minByOrNull { jsonRun ->
+                    kotlin.math.abs(
+                        jsonRun.startTime.toEpochMilliseconds() - lssRun.startTime.toEpochMilliseconds()
+                    )
+                }
+            val deathCount = matchingJson?.deathCount ?: return@map lssRun
+            lssRun.copy(
+                displayName = "${lssRun.displayName} · ☠ $deathCount",
+                deathCount = deathCount
+            )
+        }
+        lssRunsWithJsonDeathFallback + jsonRunFiles.filterNot { it.isComplete }
     } else {
         jsonRunFiles
     }

@@ -1,6 +1,7 @@
 package com.supermetroid.service
 
 import com.supermetroid.gamestate.GameStateParser
+import com.supermetroid.gamestate.GameStateConstants
 import com.supermetroid.model.ConnectionInfo
 import com.supermetroid.model.GameState
 import com.supermetroid.model.TrackerState
@@ -189,7 +190,24 @@ class GameStateService(
             maxSupersDiff > 20 || maxPowerBombsDiff > 20
         ) && gameState.roomId == lastState.roomId  // Same room but big stat changes = save file change
 
-        val isStable = roomChanged || smallChanges || itemCollection || saveFileLoad
+        // A death can drop hundreds of energy in one poll and would otherwise be
+        // rejected by the generic stability filter. Likewise, allow the large HP
+        // restoration when gameplay resumes after a death/reload.
+        val deathSequence = gameState.gameState == GameStateConstants.DEATH_SEQUENCE &&
+            gameState.health <= 0 && lastState.health > 0 &&
+            gameState.maxHealth == lastState.maxHealth && gameState.roomId == lastState.roomId
+        val recoveryGameplayState = when (gameState.gameState) {
+            GameStateConstants.NORMAL_GAMEPLAY,
+            GameStateConstants.DOOR_TRANSITION,
+            GameStateConstants.ELEVATOR -> true
+            else -> false
+        }
+        val postDeathRecovery = lastState.health <= 0 && gameState.health > 0 &&
+            gameState.health <= gameState.maxHealth && gameState.maxHealth == lastState.maxHealth &&
+            recoveryGameplayState
+
+        val isStable = roomChanged || smallChanges || itemCollection || saveFileLoad ||
+            deathSequence || postDeathRecovery
 
         if (!isStable) {
             logger.debug { "🔄 Rejecting change - Health: ${lastState.health}->${gameState.health} (Δ$healthDiff), MaxHealth: ${lastState.maxHealth}->${gameState.maxHealth} (Δ$maxHealthDiff), Room: ${lastState.roomId}->${gameState.roomId}" }

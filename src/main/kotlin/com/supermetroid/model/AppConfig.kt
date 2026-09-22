@@ -105,6 +105,9 @@ data class AppConfig(
     // Timer persistence
     val savedTimerMs: Long? = null,  // Saved timer value in milliseconds (null = no saved timer)
     val savedTimerProfileId: String? = null,  // Profile ID for the saved timer
+    // Death counter settings
+    val deathCounterEnabled: Boolean = false,
+    val deathCounterWidthDp: Float = 96f,
     // Map Rando info panel settings
     val mapRandoInfoFontSize: String? = null,  // Font size for Map Rando info panel (null = default)
     // Split profile selection

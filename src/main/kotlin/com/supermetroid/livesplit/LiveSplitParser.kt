@@ -1,6 +1,8 @@
 package com.supermetroid.livesplit
 
+import com.supermetroid.model.DeathEvent
 import com.supermetroid.util.Logging
+import kotlinx.datetime.Instant
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -147,13 +149,41 @@ class LiveSplitParser : Logging {
             val ended = el.getAttribute("ended")
             val realTime = el.getChildText("RealTime")?.let { parseTimeToMs(it) }
             val gameTime = el.getChildText("GameTime")?.let { parseTimeToMs(it) }
+            val deathCounterElement = el.getChildElement("SMTrackerDeathCounter")
+            val deathCounterEnabled = deathCounterElement
+                ?.getAttribute("enabled")
+                ?.toBooleanStrictOrNull()
+                ?: false
+            val deaths = deathCounterElement?.let { parseDeaths(it) } ?: emptyList()
             LiveSplitAttempt(
                 id = id,
                 started = started,
                 ended = ended,
                 realTime = realTime,
-                gameTime = gameTime
+                gameTime = gameTime,
+                deathCounterEnabled = deathCounterEnabled,
+                deaths = deaths
             )
+        }
+    }
+
+    private fun parseDeaths(deathCounterElement: Element): List<DeathEvent> {
+        val deathNodes = deathCounterElement.getElementsByTagName("Death")
+        return (0 until deathNodes.length).mapNotNull { i ->
+            val death = deathNodes.item(i) as? Element ?: return@mapNotNull null
+            val runTimeMs = death.getAttribute("runTimeMs").toLongOrNull()
+                ?: return@mapNotNull null
+            val timestamp = death.getAttribute("timestamp")
+                .takeIf { it.isNotBlank() }
+                ?.let { runCatching { Instant.parse(it) }.getOrNull() }
+                ?: return@mapNotNull null
+            val roomText = death.getAttribute("roomId")
+            val roomId = when {
+                roomText.startsWith("0x", ignoreCase = true) ->
+                    roomText.substring(2).toIntOrNull(16)
+                else -> roomText.toIntOrNull()
+            } ?: return@mapNotNull null
+            DeathEvent(runTimeMs = runTimeMs, timestamp = timestamp, roomId = roomId)
         }
     }
 

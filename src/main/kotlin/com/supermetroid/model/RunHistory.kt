@@ -17,7 +17,9 @@ data class StoredRunSession(
     val totalTime: Long,
     val isComplete: Boolean = false, // Whether run was finished or reset/abandoned
     val completionReason: RunCompletionReason = RunCompletionReason.UNKNOWN,
-    val pausedTime: Long = 0 // Total time spent paused in milliseconds
+    val pausedTime: Long = 0, // Total time spent paused in milliseconds
+    val deathCounterEnabled: Boolean = false,
+    val deaths: List<DeathEvent> = emptyList()
 )
 
 @Serializable

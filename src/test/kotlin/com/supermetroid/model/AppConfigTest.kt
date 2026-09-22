@@ -18,6 +18,14 @@ class AppConfigTest {
     }
 
     @Test
+    fun `death counter settings are backward compatible`() {
+        val config = json.decodeFromString(AppConfig.serializer(), "{}")
+
+        assertFalse(config.deathCounterEnabled)
+        assertEquals(96f, config.deathCounterWidthDp)
+    }
+
+    @Test
     fun `AppConfig should serialize and deserialize icon size correctly`() {
         // Given
         val originalConfig = AppConfig(iconSize = 48)
@@ -79,4 +87,3 @@ class AppConfigTest {
         assertEquals(true, updatedConfig.autoSplitsEnabled)
     }
 }
-

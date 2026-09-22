@@ -3,12 +3,18 @@ package com.supermetroid.ui
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -28,6 +34,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.swing.Swing
+import java.awt.Cursor
 
 private val logger = KotlinLogging.logger {}
 
@@ -78,10 +85,9 @@ fun main(args: Array<String>) {
     // archived profile IDs must be resolvable when the engine rebuilds a run.
     runBlocking {
         splitProfileService.initialize()
+        autoSplitsEngine.initialize()
         if (currentRunFile != null) {
             autoSplitsEngine.loadReplayRun(currentRunFile)
-        } else {
-            autoSplitsEngine.initialize()
         }
     }
     
@@ -437,6 +443,15 @@ fun SuperMetroidTrackerLayout(
     val scope = rememberCoroutineScope()
     val iconViewMode by iconViewModeService.iconViewMode.collectAsState()
     val showMapRandoInfo by uiVisibilityService.showMapRandoInfo.collectAsState()
+    val deathCounterEnabled by autoSplitsEngine.deathCounterEnabled.collectAsState()
+    val savedDeathCounterWidth by autoSplitsEngine.deathCounterWidthDp.collectAsState()
+    var deathCounterWidth by remember { mutableFloatStateOf(savedDeathCounterWidth) }
+    var timerRowWidthPx by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+
+    LaunchedEffect(savedDeathCounterWidth) {
+        deathCounterWidth = savedDeathCounterWidth
+    }
     
     // Determine if Map Rando info panel should be visible
     val showMapRandoPanel = showMapRandoInfo && showIcons && iconViewMode == com.supermetroid.model.IconViewMode.MAP_RANDO
@@ -457,33 +472,77 @@ fun SuperMetroidTrackerLayout(
             Column(modifier = Modifier.fillMaxSize()) {
                 // Timer section - Centered and compact
                 if (showTimer) {
-                    Timer(
-                        splitsState = splitsState,
-                        onToggleRun = {
-                            logger.debug { "🖱️ Timer UI button clicked - onToggleRun callback" }
-                            CoroutineScope(Dispatchers.Swing).launch {
-                                autoSplitsEngine.toggleRunState()
-                            }
-                        },
-                        onResetRun = {
-                            logger.debug { "🖱️ Timer UI reset button clicked" }
-                            CoroutineScope(Dispatchers.Swing).launch {
-                                autoSplitsEngine.resetRun()
-                            }
-                        },
-                        onManualSplit = {
-                            logger.debug { "🖱️ Timer UI manual split clicked" }
-                            autoSplitsEngine.manualSplit()
-                        },
-                        onUndoSplit = {
-                            logger.debug { "🖱️ Timer UI undo split clicked" }
-                            autoSplitsEngine.undoSplit()
-                        },
-                        onDiscardRun = {
-                            logger.debug { "🖱️ Timer UI discard run clicked" }
-                            autoSplitsEngine.discardRun()
+                    val displayedRun = splitsState.currentRun
+                    val showDeathCounter = displayedRun?.let {
+                        it.deathCounterEnabled || it.deaths.isNotEmpty()
+                    } ?: deathCounterEnabled
+                    val availableRowWidthDp = with(density) { timerRowWidthPx.toDp().value }
+                    val maxCounterWidth = (availableRowWidthDp - 190f).coerceIn(72f, 240f)
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min)
+                            .onSizeChanged { timerRowWidthPx = it.width },
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                    ) {
+                        Timer(
+                            splitsState = splitsState,
+                            onToggleRun = {
+                                logger.debug { "🖱️ Timer UI button clicked - onToggleRun callback" }
+                                CoroutineScope(Dispatchers.Swing).launch {
+                                    autoSplitsEngine.toggleRunState()
+                                }
+                            },
+                            onResetRun = {
+                                logger.debug { "🖱️ Timer UI reset button clicked" }
+                                CoroutineScope(Dispatchers.Swing).launch {
+                                    autoSplitsEngine.resetRun()
+                                }
+                            },
+                            onManualSplit = {
+                                logger.debug { "🖱️ Timer UI manual split clicked" }
+                                autoSplitsEngine.manualSplit()
+                            },
+                            onUndoSplit = {
+                                logger.debug { "🖱️ Timer UI undo split clicked" }
+                                autoSplitsEngine.undoSplit()
+                            },
+                            onDiscardRun = {
+                                logger.debug { "🖱️ Timer UI discard run clicked" }
+                                autoSplitsEngine.discardRun()
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        if (showDeathCounter) {
+                            // Transparent drag target: the timer and counter remain one
+                            // seamless surface while their relative widths are adjustable.
+                            Box(
+                                modifier = Modifier
+                                    .width(7.dp)
+                                    .fillMaxHeight()
+                                    .background(TrackerColors.Surface)
+                                    .pointerHoverIcon(PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)))
+                                    .pointerInput(maxCounterWidth, density) {
+                                        detectHorizontalDragGestures(
+                                            onDragEnd = {
+                                                autoSplitsEngine.setDeathCounterWidthDp(deathCounterWidth)
+                                            },
+                                            onHorizontalDrag = { _, dragAmount ->
+                                                val dragDp = with(density) { dragAmount.toDp().value }
+                                                deathCounterWidth = (deathCounterWidth - dragDp)
+                                                    .coerceIn(72f, maxCounterWidth)
+                                            }
+                                        )
+                                    }
+                            )
+                            DeathCounter(
+                                deaths = displayedRun?.deaths.orEmpty(),
+                                modifier = Modifier.width(deathCounterWidth.coerceIn(72f, maxCounterWidth).dp)
+                            )
                         }
-                    )
+                    }
                     Spacer(modifier = Modifier.height(3.dp))
                 }
 

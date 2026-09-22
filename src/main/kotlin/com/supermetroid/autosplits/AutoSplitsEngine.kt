@@ -25,6 +25,13 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
     private var currentProfile: SplitProfile? = null
     private var currentSplitIndex = 0
     private var pauseStartTime: kotlinx.datetime.Instant? = null
+    private var deathDetectionArmed = false
+
+    private val _deathCounterEnabled = MutableStateFlow(false)
+    val deathCounterEnabled: StateFlow<Boolean> = _deathCounterEnabled.asStateFlow()
+
+    private val _deathCounterWidthDp = MutableStateFlow(96f)
+    val deathCounterWidthDp: StateFlow<Float> = _deathCounterWidthDp.asStateFlow()
 
     // For debouncing toggleRunState calls
     private var lastToggleTime: Long = 0
@@ -92,6 +99,8 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         try {
             fileStorageService?.let { storage ->
                 val config = storage.loadAppConfig()
+                _deathCounterEnabled.value = config.deathCounterEnabled
+                _deathCounterWidthDp.value = config.deathCounterWidthDp.coerceIn(72f, 240f)
                 val savedTimerMs = config.savedTimerMs
                 val savedProfileId = config.savedTimerProfileId
                 
@@ -477,6 +486,47 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         logger.info { if (enabled) "✅ Auto-start enabled" else "🚫 Auto-start disabled" }
     }
 
+    /** Enable death tracking for future runs and the current active run. */
+    fun setDeathCounterEnabled(enabled: Boolean) {
+        _deathCounterEnabled.value = enabled
+        deathDetectionArmed = false
+
+        val state = _splitsState.value
+        val run = state.currentRun
+        if (run != null && run.endTime == null) {
+            _splitsState.value = state.copy(
+                currentRun = run.copy(deathCounterEnabled = enabled)
+            )
+        }
+
+        fileStorageService?.let { storage ->
+            scope.launch(Dispatchers.IO) {
+                try {
+                    val config = storage.loadAppConfig()
+                    storage.saveAppConfig(config.copy(deathCounterEnabled = enabled))
+                } catch (e: Exception) {
+                    logger.error(e) { "Failed to save death counter setting" }
+                }
+            }
+        }
+    }
+
+    /** Persist the width of the death-counter side of the timer row. */
+    fun setDeathCounterWidthDp(widthDp: Float) {
+        val clamped = widthDp.coerceIn(72f, 240f)
+        _deathCounterWidthDp.value = clamped
+        fileStorageService?.let { storage ->
+            scope.launch(Dispatchers.IO) {
+                try {
+                    val config = storage.loadAppConfig()
+                    storage.saveAppConfig(config.copy(deathCounterWidthDp = clamped))
+                } catch (e: Exception) {
+                    logger.error(e) { "Failed to save death counter width" }
+                }
+            }
+        }
+    }
+
     /**
      * Start a completely new run
      */
@@ -508,12 +558,14 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             totalTime = 0,
             isPaused = false,
             pausedTime = 0,
+            deathCounterEnabled = _deathCounterEnabled.value,
             profileSnapshot = currentProfile?.takeIf { it.id == profileId }
         )
 
         // Reset the split index and pause state
         currentSplitIndex = 0
         pauseStartTime = null
+        deathDetectionArmed = false
 
         // Update the state with the new run
         val currentState = _splitsState.value
@@ -652,8 +704,8 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         
         if (isCompletedRunInReplay) {
             logger.info { "🎬 Viewing completed run in replay mode - not saving (run already exists on disk)" }
-        } else if (currentRun != null && currentRun.completedSplits.isNotEmpty()) {
-            logger.info { "💾 Saving partial run with ${currentRun.completedSplits.size} completed splits before reset" }
+        } else if (currentRun != null && (currentRun.completedSplits.isNotEmpty() || currentRun.deaths.isNotEmpty())) {
+            logger.info { "💾 Saving partial run with ${currentRun.completedSplits.size} completed splits and ${currentRun.deaths.size} deaths before reset" }
 
             // Calculate current time for the saved run
             val finalTime = if (currentRun.isPaused) {
@@ -691,6 +743,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         // a valid state transition (e.g., title screen 2 → 31) for auto-start.
         // Clearing it would cause the first poll after reset to miss the transition.
         pauseStartTime = null  // Ensure pauseStartTime is reset
+        deathDetectionArmed = false
 
         val currentState = _splitsState.value
 
@@ -764,6 +817,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
                 totalTime = timeMs,
                 isPaused = true,  // Start paused so time doesn't advance
                 pausedTime = 0,
+                deathCounterEnabled = _deathCounterEnabled.value,
                 profileSnapshot = (currentProfile ?: resolveProfile(profileId)).takeIf { it.id == profileId }
             )
 
@@ -845,6 +899,8 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             return
         }
 
+        trackDeathIfNeeded(gameState)
+
         // Auto-reset paused runs when starting a new game (check BEFORE gameplay state validation)
         if (currentRun.isPaused) {
             val shouldAutoStart = checkAutoStartCondition(previousGameState, gameState)
@@ -899,6 +955,64 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
         }
 
         previousGameState = gameState
+    }
+
+    /**
+     * Record one event for each positive-HP -> zero-HP cycle. Death animation and
+     * reload polls can report zero repeatedly, so detection stays disarmed until
+     * health becomes positive again.
+     */
+    private fun trackDeathIfNeeded(gameState: GameState) {
+        val state = _splitsState.value
+        val run = state.currentRun ?: return
+        if (!run.deathCounterEnabled || run.isPaused || run.endTime != null) {
+            deathDetectionArmed = false
+            return
+        }
+
+        if (gameState.health > 0) {
+            deathDetectionArmed = true
+            return
+        }
+        if (!deathDetectionArmed) return
+
+        // 0x13 is the game's actual death sequence. The no-reserve fallback
+        // catches hacks that retain vanilla HP behavior but alter the state ID,
+        // without treating an automatic reserve-tank refill as a death.
+        val confirmedDeath = gameState.gameState == GameStateConstants.DEATH_SEQUENCE ||
+            (gameState.health <= 0 && gameState.reserveEnergy <= 0)
+        if (!confirmedDeath) return
+
+        deathDetectionArmed = false
+        val now = Clock.System.now()
+        val runTimeMs = (
+            now.toEpochMilliseconds() - run.startTime.toEpochMilliseconds() - run.pausedTime
+        ).coerceAtLeast(0L)
+        val death = DeathEvent(
+            runTimeMs = runTimeMs,
+            timestamp = now,
+            roomId = gameState.roomId
+        )
+        val updatedRun = run.copy(
+            deaths = run.deaths + death,
+            totalTime = runTimeMs
+        )
+        _splitsState.value = state.copy(currentRun = updatedRun)
+        logger.info {
+            "☠️ Death #${updatedRun.deaths.size} at ${formatTime(runTimeMs)} in room 0x${gameState.roomId.toString(16).uppercase()}"
+        }
+
+        // A death is meaningful progress even before the first split. Checkpoint it
+        // immediately so a crash/reload does not lose the counter.
+        fileStorageService?.let { storage ->
+            scope.launch(Dispatchers.IO) {
+                try {
+                    storage.saveRun(updatedRun)
+                } catch (e: Exception) {
+                    logger.error(e) { "Failed to save death-counter checkpoint" }
+                }
+            }
+        }
     }
 
     /**
@@ -1510,6 +1624,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
 
         currentSplitIndex = 0
         pauseStartTime = null
+        deathDetectionArmed = false
 
         val currentState = _splitsState.value
         val updatedState = updatePersonalBestsFromRunHistory(currentState)
@@ -1558,6 +1673,7 @@ class AutoSplitsEngine(private val fileStorageService: FileStorageService? = nul
             val profile = targetRun.profileSnapshot ?: resolveProfile(targetRun.profileId)
             currentProfile = profile
             currentSplitIndex = targetRun.completedSplits.size
+            deathDetectionArmed = false
 
             // Load all runs for PB calculation
             val allRuns = storage.loadAllRuns()

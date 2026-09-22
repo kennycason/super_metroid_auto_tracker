@@ -3,6 +3,7 @@ package com.supermetroid.ui.components
 import com.supermetroid.livesplit.LiveSplitAttempt
 import com.supermetroid.livesplit.LiveSplitDocument
 import com.supermetroid.livesplit.LiveSplitSegment
+import com.supermetroid.model.DeathEvent
 import com.supermetroid.storage.FileStorageService
 import kotlinx.datetime.Instant
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -10,6 +11,33 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class LiveSplitRunDropdownMetadataTest {
+
+    @Test
+    fun `LiveSplit run metadata displays death count when enabled`() {
+        val death = DeathEvent(
+            runTimeMs = 90_000,
+            timestamp = Instant.parse("2026-04-01T17:01:30Z"),
+            roomId = 0xA253
+        )
+        val metadata = buildLiveSplitRunFileMetadata(
+            doc = documentWithAttempts(
+                LiveSplitAttempt(
+                    id = 7,
+                    started = "04/01/2026 10:00:00",
+                    ended = "04/01/2026 10:17:23",
+                    realTime = 1_043_210L,
+                    gameTime = null,
+                    deathCounterEnabled = true,
+                    deaths = listOf(death)
+                )
+            ),
+            profileId = "kaizo",
+            profileName = "Kaizo"
+        ).single()
+
+        assertEquals(1, metadata.deathCount)
+        assertTrue(metadata.displayName.contains("☠ 1"))
+    }
 
     @Test
     fun `LiveSplit run metadata displays parsed attempt dates`() {
@@ -85,6 +113,36 @@ class LiveSplitRunDropdownMetadataTest {
     }
 
     @Test
+    fun `completed JSON restores death count missing from matching LiveSplit attempt`() {
+        val start = Instant.fromEpochMilliseconds(10_000L)
+        val jsonRun = runMetadata(
+            fileName = "kaizo.json",
+            displayName = "JSON · ☠ 3",
+            startTime = start,
+            totalTime = 500_000L,
+            profileId = "kaizo",
+            deathCount = 3
+        )
+        val lssRun = runMetadata(
+            fileName = "lss-attempt-9",
+            displayName = "LSS",
+            startTime = Instant.fromEpochMilliseconds(10_500L),
+            totalTime = 500_000L,
+            profileId = "kaizo"
+        )
+
+        val selected = selectRunFileMetadata(
+            jsonRunFiles = listOf(jsonRun),
+            lssRunFiles = listOf(lssRun),
+            useLiveSplitSource = true
+        ).single()
+
+        assertEquals("lss-attempt-9", selected.fileName)
+        assertEquals(3, selected.deathCount)
+        assertTrue(selected.displayName.contains("☠ 3"))
+    }
+
+    @Test
     fun `run metadata falls back to JSON when no LiveSplit source is active`() {
         val jsonRun = runMetadata(
             fileName = "map-rando_2026-04-01_10-00-00_run_1.json",
@@ -145,7 +203,8 @@ class LiveSplitRunDropdownMetadataTest {
         startTime: Instant,
         totalTime: Long,
         profileId: String = "map-rando",
-        isComplete: Boolean = true
+        isComplete: Boolean = true,
+        deathCount: Int? = null
     ): FileStorageService.RunFileMetadata {
         return FileStorageService.RunFileMetadata(
             fileName = fileName,
@@ -153,7 +212,8 @@ class LiveSplitRunDropdownMetadataTest {
             isComplete = isComplete,
             startTime = startTime,
             totalTime = totalTime,
-            profileId = profileId
+            profileId = profileId,
+            deathCount = deathCount
         )
     }
 }
